@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:clipToPadding="false"
+    android:paddingBottom="100dp"
+    android:background="#080C14">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 1. Top App Bar (Title: Wallet & Accounts, Currency Selector, Security Shield) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="14dp">
+
+            <!-- Title -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWalletTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.01"
+                    android:text="Wallet &amp; Accounts"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Money &amp; Ledger Tracker"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Quick Converter Tool -->
+            <ImageButton
+                android:id="@+id/btnLiveCurrencyConverter"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_glass_squircle_action"
+                android:contentDescription="Live Currency Converter"
+                android:src="@drawable/ic_calculate"
+                app:tint="#38BDF8" />
+
+            <!-- Currency Selector ("BDT (৳)") -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCurrencySelector"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="12dp"
+                android:text="BDT (৳) ▾"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:cornerRadius="18dp"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp" />
+
+            <!-- Security Shield -->
+            <ImageButton
+                android:id="@+id/btnToggleLockWallet"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_glass_squircle_action"
+                android:contentDescription="Security Lock"
+                android:src="@drawable/ic_shield_check"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- Wallet Locked State Banner -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/layoutWalletLocked"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/card_stroke"
+            app:cardBackgroundColor="@color/surface_card"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Wallet Protection Active"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="Account balances and pockets are secured with biometric lock."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnUnlockWallet"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="14dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="Unlock Wallet"
+                    app:icon="@drawable/ic_lock"
+                    app:iconSize="16dp"
+                    app:iconTint="@color/white"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/primary"
+                    app:strokeWidth="0dp"
+                    app:cornerRadius="16dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Zero State Setup First Account -->
+        <LinearLayout
+            android:id="@+id/layoutZeroState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#203049"
+                app:cardBackgroundColor="#131D2F">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="24dp"
+                    android:paddingVertical="36dp">
+
+                    <FrameLayout
+                        android:layout_width="68dp"
+                        android:layout_height="68dp"
+                        android:background="@drawable/bg_zero_state_glow">
+
+                        <ImageView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_wallet"
+                            app:tint="#38BDF8" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="Start Your Financial Ledger"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:text="Create your primary account (e.g., Cash, bKash, or Bank) to begin tracking net worth, cashflow, and expenses."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
+                        android:lineSpacingExtra="3dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSetupFirstAccount"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="24dp"
+                        android:paddingHorizontal="24dp"
+                        android:text="＋ Set Up First Account"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#0284C7"
+                        app:cornerRadius="16dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Active Dashboard -->
+        <LinearLayout
+            android:id="@+id/layoutActiveDashboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 2. Hero Net Worth Card (Dark Obsidian surface #131D2F with 1dp border #203049) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardWalletHero"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#203049"
+                app:cardBackgroundColor="#131D2F">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Top Row: "TOTAL NET WORTH" + Options Menu -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:letterSpacing="0.04"
+                            android:text="TOTAL NET WORTH"
+                            android:textColor="#94A3B8"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <ImageButton
+                            android:id="@+id/btnWalletCardMenu"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Wallet Options"
+                            android:src="@drawable/ic_more_vert"
+                            app:tint="#94A3B8" />
+                    </LinearLayout>
+
+                    <!-- Grand Total Amount (28sp bold white) -->
+                    <TextView
+                        android:id="@+id/tvTotalBalance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="৳0.00"
+                        android:textColor="@color/white"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                    <!-- Bottom Meta Row: Active accounts count & currency sync caption -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:id="@+id/layoutAccountsSummaryPill"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_chip_unselected"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp">
+
+                            <ImageView
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:layout_marginEnd="4dp"
+                                android:src="@drawable/ic_shield_check"
+                                app:tint="#0284C7" />
+
+                            <TextView
+                                android:id="@+id/tvAccountsSummary"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 Accounts"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvRatesSyncTime"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="Pure Account Ledger"
+                            android:textColor="@color/text_muted"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 3. "My Accounts" Section -->
+            <LinearLayout
+                android:id="@+id/layoutBucketsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="My Accounts"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvBucketCountBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_chip_unselected"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="0 Active"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Compact "+ ADD" Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddBucket"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="+ ADD"
+                    android:textColor="#38BDF8"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 2-Column Compact Grid of User Accounts -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvWalletBuckets"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_wallet_bucket" />
+
+            <!-- Empty Buckets Fallback Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layoutEmptyBuckets"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#203049"
+                app:cardBackgroundColor="#131D2F"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="22dp">
+
+                    <FrameLayout
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/bg_glass_squircle_action">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_wallet"
+                            app:tint="#38BDF8" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Tap + to add your Cash or Bank account"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:text="Keep your cash, bKash, and bank balances organized in one clean place."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEmptyAddBucket"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginTop="14dp"
+                        android:paddingHorizontal="18dp"
+                        android:text="+ Add Account"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#0284C7"
+                        app:cornerRadius="14dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 4. Active Subscriptions Pill (Ultra-Slim Bottom Row Summarizing Recurring Dues) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSubscriptionsTracker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#203049"
+                app:cardBackgroundColor="#131D2F">
+
+                <LinearLayout
+                    android:id="@+id/layoutSubscriptionsAccordionHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="13dp">
+
+                    <FrameLayout
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/bg_glass_squircle_action">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_subscription"
+                            app:tint="#38BDF8" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Active Subscriptions"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvSubscriptionsSummaryHeader"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="Active Subscriptions: ৳0.00/mo"
+                            android:textColor="#38BDF8"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvActiveSubCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_chip_unselected"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="0 Active"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/ivSubscriptionsExpandToggle"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_secondary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Zero-regression hidden container for backward compatibility -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone">
+
+                <View
+                    android:id="@+id/cardFinancialAnalytics"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/cardMonthlyOverview"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/btnOpenAnalyticsCharts"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/layoutAnalyticsAccordionHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/layoutAnalyticsExpandableContent"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/cardAnalyticsAccordion"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/layoutWalletMonthFilter"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvWalletSelectedMonth"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvTotalIncome"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvTotalExpenses"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvAnalyticsSummaryPill"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/ivAnalyticsAccordionChevron"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/layoutSubscriptionsExpandableContent"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/layoutUpcomingAlert"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvUpcomingSubAlert"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvUpcomingSubBucket"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvSubscriptionsPreview"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvEmptySubscriptions"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/btnManageSubscriptions"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvSubTotalCost"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/btnAddTransaction"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/btnAddInflow"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/btnAddOutflow"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/btnAddAccount"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/btnSetTotalMoney"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/layoutBreakdownPills"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvCashBadge"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvBucketsBadge"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <TextView
+                    android:id="@+id/tvCashBreakdown"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+                <View
+                    android:id="@+id/blurWalletHero"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,47 @@
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+app/build/
+.gradle/
+
+# Gradle and Local Properties
+.gradletasknamecache
+local.properties
+
+# Android Studio / IntelliJ IDEA
+.idea/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+*.iml
+*.iws
+*.ipr
+
+# Keystore / Signing credentials
+*.jks
+*.keystore
+
+# Native build cache
+.externalNativeBuild
+.cxx/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Workspace attachments
+attachments/

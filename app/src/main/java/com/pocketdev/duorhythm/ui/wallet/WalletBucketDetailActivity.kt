@@ -1,0 +1,909 @@
+package com.pocketdev.duorhythm.ui.wallet
+
+import android.app.AlertDialog
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.Toast
+import android.content.res.ColorStateList
+import android.graphics.Color
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.ColorUtils
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.chip.Chip
+import com.pocketdev.duorhythm.R
+import com.pocketdev.duorhythm.data.model.CurrencyRate
+import com.pocketdev.duorhythm.data.local.db.DatabaseHelper
+import com.pocketdev.duorhythm.data.model.TransactionItem
+import com.pocketdev.duorhythm.data.model.WalletBucketItem
+import com.pocketdev.duorhythm.databinding.ActivityWalletBucketDetailBinding
+import com.pocketdev.duorhythm.databinding.DialogAddTransactionBinding
+import com.pocketdev.duorhythm.util.AnimationUtils
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+
+class WalletBucketDetailActivity : AppCompatActivity() {
+
+    companion object {
+        const val EXTRA_BUCKET_ID = "extra_bucket_id"
+    }
+
+    private lateinit var binding: ActivityWalletBucketDetailBinding
+    private lateinit var dbHelper: DatabaseHelper
+    private lateinit var transactionsAdapter: TransactionsAdapter
+
+    private var bucketId: Long = 0
+    private var currentBucket: WalletBucketItem? = null
+    private var currentFilter = "ALL"
+    private var currentCurrency = "USD"
+    private var currentRate = 1.0
+    private var currentSymbol = "$"
+
+    private enum class MiniChartMode { PIE, BAR }
+    private var miniChartMode = MiniChartMode.PIE
+
+    private val miniChartColors = listOf(
+        Color.parseColor("#10B981"),
+        Color.parseColor("#38BDF8"),
+        Color.parseColor("#F43F5E"),
+        Color.parseColor("#8B5CF6"),
+        Color.parseColor("#F59E0B"),
+        Color.parseColor("#06B6D4"),
+        Color.parseColor("#EC4899"),
+        Color.parseColor("#6366F1")
+    )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityWalletBucketDetailBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        dbHelper = DatabaseHelper.getInstance(this)
+        bucketId = intent.getLongExtra(EXTRA_BUCKET_ID, 0L)
+
+        setupCurrency()
+        setupRecyclerView()
+        setupMiniCharts()
+        setupListeners()
+        loadBucketData()
+    }
+
+    private fun setupCurrency() {
+        val prefs = getSharedPreferences("lifesync_prefs", MODE_PRIVATE)
+        val defaultCurrency = if (isBangladeshLocale()) "BDT" else "USD"
+        currentCurrency = prefs.getString("selected_currency", defaultCurrency) ?: defaultCurrency
+        val rates = dbHelper.getAllCurrencyRates()
+        val rateObj = rates.find { it.code == currentCurrency }
+        if (rateObj != null) {
+            currentRate = 1.0
+            currentSymbol = rateObj.symbol
+        }
+    }
+
+    private fun isBangladeshLocale(): Boolean {
+        val loc = Locale.getDefault()
+        val tz = java.util.TimeZone.getDefault().id
+        return loc.country.equals("BD", ignoreCase = true) ||
+                loc.language.equals("bn", ignoreCase = true) ||
+                tz.contains("Dhaka", ignoreCase = true) ||
+                tz.contains("Bangladesh", ignoreCase = true)
+    }
+
+    private fun setupRecyclerView() {
+        transactionsAdapter = TransactionsAdapter(
+            emptyList(),
+            emptyMap(),
+            currentSymbol,
+            1.0,
+            onTxClick = { tx ->
+                showEditTransactionDialog(tx)
+            },
+            onDeleteClick = { tx ->
+                AlertDialog.Builder(this)
+                    .setTitle("Delete Record")
+                    .setMessage("Remove '${tx.title}' (${currentSymbol}${String.format(Locale.US, "%.2f", tx.amount)})?")
+                    .setPositiveButton("Delete") { _, _ ->
+                        dbHelper.deleteTransaction(tx.id)
+                        loadBucketData()
+                        WalletDataSyncManager.notifyChanged()
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+        )
+        binding.rvBucketTransactions.layoutManager = LinearLayoutManager(this)
+        binding.rvBucketTransactions.adapter = transactionsAdapter
+        AnimationUtils.applySlideUpLayoutAnimation(binding.rvBucketTransactions)
+    }
+
+    private fun setupListeners() {
+        binding.btnBucketBack.setOnClickListener { finish() }
+
+        binding.btnEditBucket.setOnClickListener {
+            showAdjustOrResetBalanceDialog()
+        }
+        binding.btnEditBucket.setOnLongClickListener {
+            showEditBucketDialog()
+            true
+        }
+
+        binding.btnAdjustBalanceHero.setOnClickListener {
+            showAdjustOrResetBalanceDialog()
+        }
+
+        binding.btnDeleteBucket.setOnClickListener {
+            showDeleteBucketDialog()
+        }
+
+        binding.chipGroupBucketTxFilter.setOnCheckedChangeListener { _, checkedId ->
+            currentFilter = when (checkedId) {
+                R.id.chipBucketIncome -> "INCOME"
+                R.id.chipBucketExpense -> "EXPENSE"
+                else -> "ALL"
+            }
+            loadBucketData()
+        }
+
+        binding.btnToggleMiniChartMode.setOnClickListener {
+            miniChartMode = if (miniChartMode == MiniChartMode.PIE) MiniChartMode.BAR else MiniChartMode.PIE
+            binding.tvMiniChartToggleIcon.text = if (miniChartMode == MiniChartMode.PIE) "🥧 / 📊" else "📊 / 🥧"
+            renderMiniChart()
+        }
+
+        binding.containerBucketMiniChart.setOnClickListener {
+            val bucket = currentBucket ?: return@setOnClickListener
+            BucketAnalyticsBottomSheet.newInstance(bucket.id, bucket.name, currentSymbol)
+                .show(supportFragmentManager, "BucketAnalyticsBottomSheet")
+        }
+
+        binding.fabAddBucketRecord.setOnClickListener {
+            showAddTransactionDialog()
+        }
+
+        AnimationUtils.attachTactileFeedback(
+            binding.btnBucketBack,
+            binding.btnEditBucket,
+            binding.btnAdjustBalanceHero,
+            binding.btnDeleteBucket,
+            binding.btnToggleMiniChartMode,
+            binding.containerBucketMiniChart,
+            binding.fabAddBucketRecord
+        )
+    }
+
+    private fun showAdjustOrResetBalanceDialog() {
+        val bucket = currentBucket ?: return
+        val context = this
+        val convertedBalance = bucket.balance
+
+        val dialogBinding = com.pocketdev.duorhythm.databinding.DialogEditBalanceBinding.inflate(layoutInflater)
+        dialogBinding.tvEditBalanceSubtitle.text = "Directly adjust the balance of '${bucket.name}', or reset to ${currentSymbol}0 instantly."
+        dialogBinding.tvBalanceLabel.text = "Enter New Balance ($currentSymbol - $currentCurrency)"
+
+        val textStr = if (convertedBalance % 1.0 == 0.0) convertedBalance.toLong().toString()
+        else String.format(Locale.US, "%.2f", convertedBalance)
+        dialogBinding.etBalance.setText(textStr)
+        dialogBinding.etBalance.setSelection(dialogBinding.etBalance.text?.length ?: 0)
+
+        val dialog = AlertDialog.Builder(context)
+            .setTitle("Edit / Reset Balance")
+            .setView(dialogBinding.root)
+            .setPositiveButton("Save Balance") { _, _ ->
+                val entered = dialogBinding.etBalance.text?.toString()?.trim()?.toDoubleOrNull() ?: convertedBalance
+                val baseBalance = entered
+                dbHelper.updateBucketBalance(bucket.id, baseBalance)
+                loadBucketData()
+                WalletDataSyncManager.notifyChanged()
+                Toast.makeText(context, "${bucket.name} balance set to $currentSymbol${String.format(Locale.US, "%.2f", entered)}", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("RESET TO ৳0") { _, _ ->
+                AlertDialog.Builder(context)
+                    .setTitle("Reset Balance to ৳0")
+                    .setMessage("Are you sure you want to reset '${bucket.name}' balance to ${currentSymbol}0.00? Ledger transactions will be retained.")
+                    .setPositiveButton("Reset to ৳0") { _, _ ->
+                        dbHelper.updateBucketBalance(bucket.id, 0.0)
+                        loadBucketData()
+                        WalletDataSyncManager.notifyChanged()
+                        Toast.makeText(context, "${bucket.name} balance reset to ${currentSymbol}0.00", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        dialog.show()
+        dialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL)?.setTextColor(android.graphics.Color.parseColor("#EF4444"))
+        dialogBinding.etBalance.requestFocus()
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+
+    private fun showEditBucketDialog() {
+        val bucket = currentBucket ?: return
+        val dialogBinding = com.pocketdev.duorhythm.databinding.DialogAddBucketBinding.inflate(layoutInflater)
+        dialogBinding.tvBucketDialogTitle.text = "Edit Account"
+        dialogBinding.tvBucketDialogSubtitle.text = "Update account name, icon, or accent color."
+        dialogBinding.btnSaveBucket.text = "Save Changes"
+
+        dialogBinding.etBucketName.setText(bucket.name)
+        val convertedBalance = bucket.balance
+        dialogBinding.etBucketBalance.setText(
+            if (convertedBalance % 1.0 == 0.0) convertedBalance.toLong().toString()
+            else String.format(Locale.US, "%.2f", convertedBalance)
+        )
+        dialogBinding.tvBucketBalanceLabel.text = "Current Balance ($currentSymbol - $currentCurrency)"
+
+        var selectedIcon = bucket.icon
+        var selectedColor = bucket.colorHex
+
+        val iconOptions = listOf(
+            Triple("cash", dialogBinding.btnIconCash, dialogBinding.ivIconCash),
+            Triple("wallet", dialogBinding.btnIconWallet, dialogBinding.ivIconWallet),
+            Triple("bank", dialogBinding.btnIconBank, dialogBinding.ivIconBank),
+            Triple("card", dialogBinding.btnIconCard, dialogBinding.ivIconCard),
+            Triple("piggybank", dialogBinding.btnIconPiggy, dialogBinding.ivIconPiggy),
+            Triple("vault", dialogBinding.btnIconVault, dialogBinding.ivIconVault)
+        )
+
+        val colorOptions = listOf(
+            Triple("#06B6D4", dialogBinding.btnColorCyan, Pair(dialogBinding.ringColorCyan, dialogBinding.checkColorCyan)),
+            Triple("#10B981", dialogBinding.btnColorEmerald, Pair(dialogBinding.ringColorEmerald, dialogBinding.checkColorEmerald)),
+            Triple("#8B5CF6", dialogBinding.btnColorViolet, Pair(dialogBinding.ringColorViolet, dialogBinding.checkColorViolet)),
+            Triple("#F59E0B", dialogBinding.btnColorAmber, Pair(dialogBinding.ringColorAmber, dialogBinding.checkColorAmber)),
+            Triple("#F43F5E", dialogBinding.btnColorRose, Pair(dialogBinding.ringColorRose, dialogBinding.checkColorRose)),
+            Triple("#38BDF8", dialogBinding.btnColorSkyBlue, Pair(dialogBinding.ringColorSkyBlue, dialogBinding.checkColorSkyBlue))
+        )
+
+        fun updateColorSelectionUi() {
+            val parsedColor = try { Color.parseColor(selectedColor) } catch (_: Exception) { Color.parseColor("#06B6D4") }
+            val glowColor = ColorUtils.setAlphaComponent(parsedColor, (255 * 0.18).toInt())
+
+            for ((hex, _, views) in colorOptions) {
+                val isSelected = hex.equals(selectedColor, ignoreCase = true)
+                views.first.visibility = if (isSelected) View.VISIBLE else View.GONE
+                views.second.visibility = if (isSelected) View.VISIBLE else View.GONE
+            }
+
+            dialogBinding.btnSaveBucket.backgroundTintList = ColorStateList.valueOf(parsedColor)
+
+            for ((iconKey, card, iv) in iconOptions) {
+                val isSelected = iconKey.equals(selectedIcon, ignoreCase = true)
+                if (isSelected) {
+                    card.setCardBackgroundColor(glowColor)
+                    card.strokeColor = parsedColor
+                    card.strokeWidth = (1.5f * resources.displayMetrics.density).toInt()
+                    iv.setColorFilter(parsedColor)
+                } else {
+                    card.setCardBackgroundColor(Color.parseColor("#131D2F"))
+                    card.strokeColor = Color.parseColor("#243654")
+                    card.strokeWidth = (1f * resources.displayMetrics.density).toInt()
+                    iv.setColorFilter(Color.parseColor("#94A3B8"))
+                }
+            }
+        }
+
+        for ((iconKey, card, _) in iconOptions) {
+            card.setOnClickListener {
+                selectedIcon = iconKey
+                updateColorSelectionUi()
+            }
+        }
+
+        for ((hex, button, _) in colorOptions) {
+            button.setOnClickListener {
+                selectedColor = hex
+                updateColorSelectionUi()
+            }
+        }
+
+        updateColorSelectionUi()
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnCancelBucket.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnSaveBucket.setOnClickListener {
+            val name = dialogBinding.etBucketName.text?.toString()?.trim().orEmpty()
+            val balanceStr = dialogBinding.etBucketBalance.text?.toString()?.trim().orEmpty()
+
+            if (name.isEmpty()) {
+                Toast.makeText(this, "Account name is required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val enteredBalance = balanceStr.toDoubleOrNull() ?: convertedBalance
+            val baseBalance = enteredBalance
+
+            val updated = bucket.copy(
+                name = name,
+                icon = selectedIcon,
+                colorHex = selectedColor,
+                connectedAccounts = name,
+                balance = baseBalance
+            )
+            dbHelper.updateWalletBucket(updated)
+            dialog.dismiss()
+            loadBucketData()
+            WalletDataSyncManager.notifyChanged()
+            Toast.makeText(this, "Account updated", Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+
+    private fun showDeleteBucketDialog() {
+        val bucket = currentBucket ?: return
+        AlertDialog.Builder(this)
+            .setTitle("Delete Category")
+            .setMessage("Delete this category? Any linked transactions will also be cleared.")
+            .setPositiveButton("Delete") { _, _ ->
+                dbHelper.deleteWalletBucket(bucket.id)
+                WalletDataSyncManager.notifyChanged()
+                Toast.makeText(this, "Category deleted", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun loadBucketData() {
+        currentBucket = dbHelper.getWalletBucketById(bucketId)
+        val bucket = currentBucket
+        if (bucket == null) {
+            Toast.makeText(this, "Bucket not found", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        val parsedColor = try {
+            Color.parseColor(bucket.colorHex)
+        } catch (_: Exception) {
+            Color.parseColor("#06B6D4")
+        }
+
+        // Apply accent color to header trim and edit balance button
+        binding.viewBucketAccentTrim.backgroundTintList = ColorStateList.valueOf(parsedColor)
+        binding.btnAdjustBalanceHero.strokeColor = ColorStateList.valueOf(parsedColor)
+        binding.btnAdjustBalanceHero.setTextColor(parsedColor)
+        binding.btnAdjustBalanceHero.iconTint = ColorStateList.valueOf(parsedColor)
+        val btnGlow = ColorUtils.setAlphaComponent(parsedColor, (255 * 0.12).toInt())
+        binding.btnAdjustBalanceHero.backgroundTintList = ColorStateList.valueOf(btnGlow)
+
+        binding.tvBucketDetailTitle.text = bucket.name
+
+        val convertedBalance = bucket.balance
+        binding.tvBucketTotalBalance.text = String.format(
+            Locale.US,
+            "%s%.2f",
+            currentSymbol,
+            convertedBalance
+        )
+
+        // Populate Linked Payment Methods Chips with accent tint
+        binding.chipGroupLinkedMethods.removeAllViews()
+        val accounts = bucket.connectedAccounts.split("•", ",").map { it.trim() }.filter { it.isNotEmpty() }
+        val chipGlow = ColorUtils.setAlphaComponent(parsedColor, (255 * 0.15).toInt())
+        if (accounts.isNotEmpty()) {
+            for (acc in accounts) {
+                val chip = Chip(this).apply {
+                    text = acc
+                    setChipBackgroundColor(ColorStateList.valueOf(chipGlow))
+                    setTextColor(parsedColor)
+                    textSize = 11f
+                    isClickable = false
+                    isCheckable = false
+                }
+                binding.chipGroupLinkedMethods.addView(chip)
+            }
+        } else {
+            val chip = Chip(this).apply {
+                text = "Direct Funds"
+                setChipBackgroundColor(ColorStateList.valueOf(chipGlow))
+                setTextColor(parsedColor)
+                textSize = 11f
+                isClickable = false
+                isCheckable = false
+            }
+            binding.chipGroupLinkedMethods.addView(chip)
+        }
+
+        // Calculate Inflow & Outflow for this bucket (100% Pure Raw Values)
+        val income = dbHelper.getBucketIncome(bucket.id)
+        val expense = dbHelper.getBucketExpenses(bucket.id)
+        binding.tvBucketInflow.text = String.format(Locale.US, "+%s%.2f", currentSymbol, income)
+        binding.tvBucketOutflow.text = String.format(Locale.US, "-%s%.2f", currentSymbol, expense)
+
+        // Load filtered transactions for this bucket
+        val transactions = dbHelper.getTransactionsByBucket(bucket.id, currentFilter)
+        transactionsAdapter.updateData(transactions, emptyMap(), currentSymbol, 1.0)
+
+        if (transactions.isEmpty()) {
+            binding.rvBucketTransactions.visibility = View.GONE
+            binding.tvEmptyBucketTransactions.visibility = View.VISIBLE
+        } else {
+            binding.rvBucketTransactions.visibility = View.VISIBLE
+            binding.tvEmptyBucketTransactions.visibility = View.GONE
+        }
+
+        renderMiniChart()
+    }
+
+    private fun setupMiniCharts() {
+        binding.miniPieChart.apply {
+            setBackgroundColor(Color.TRANSPARENT)
+            description.isEnabled = false
+            legend.isEnabled = false
+            setDrawEntryLabels(false)
+            isDrawHoleEnabled = true
+            setHoleColor(Color.parseColor("#131D2F"))
+            holeRadius = 65f
+            transparentCircleRadius = 0f
+            setDrawCenterText(true)
+            setCenterTextColor(Color.WHITE)
+            setCenterTextSize(10f)
+            setCenterTextTypeface(android.graphics.Typeface.DEFAULT_BOLD)
+            setTouchEnabled(false)
+        }
+
+        binding.miniBarChart.apply {
+            setBackgroundColor(Color.TRANSPARENT)
+            description.isEnabled = false
+            legend.isEnabled = false
+            setDrawGridBackground(false)
+            setDrawBarShadow(false)
+            setDrawValueAboveBar(false)
+            setPinchZoom(false)
+            setScaleEnabled(false)
+            setTouchEnabled(false)
+
+            xAxis.apply {
+                setDrawGridLines(false)
+                setDrawAxisLine(false)
+                setDrawLabels(false)
+            }
+            axisLeft.apply {
+                setDrawGridLines(false)
+                setDrawAxisLine(false)
+                setDrawLabels(false)
+                axisMinimum = 0f
+            }
+            axisRight.isEnabled = false
+        }
+    }
+
+    private fun renderMiniChart() {
+        val bucket = currentBucket ?: return
+        val allTransactions = dbHelper.getTransactionsByBucket(bucket.id, "ALL")
+
+        if (allTransactions.isEmpty()) {
+            if (miniChartMode == MiniChartMode.PIE) {
+                binding.layoutMiniChartEmpty.visibility = View.GONE
+                binding.miniPieChart.visibility = View.VISIBLE
+                binding.miniBarChart.visibility = View.GONE
+                renderMiniPieChart(emptyList())
+            } else {
+                binding.layoutMiniChartEmpty.visibility = View.VISIBLE
+                binding.miniPieChart.visibility = View.GONE
+                binding.miniBarChart.visibility = View.GONE
+            }
+            return
+        }
+
+        binding.layoutMiniChartEmpty.visibility = View.GONE
+
+        if (miniChartMode == MiniChartMode.PIE) {
+            binding.miniPieChart.visibility = View.VISIBLE
+            binding.miniBarChart.visibility = View.GONE
+            renderMiniPieChart(allTransactions)
+        } else {
+            binding.miniPieChart.visibility = View.GONE
+            binding.miniBarChart.visibility = View.VISIBLE
+            renderMiniBarChart(allTransactions)
+        }
+    }
+
+    private fun renderMiniPieChart(transactions: List<TransactionItem>) {
+        if (transactions.isEmpty()) {
+            // Strictly show empty state ONLY when there are truly 0 total transactions
+            val emptyEntries = arrayListOf(PieEntry(1f, ""))
+            val emptyDataSet = PieDataSet(emptyEntries, "").apply {
+                colors = listOf(Color.parseColor("#334155"))
+                sliceSpace = 0f
+                setDrawValues(false)
+            }
+            binding.miniPieChart.apply {
+                setHoleColor(Color.parseColor("#131D2F"))
+                centerText = "No Records"
+                setCenterTextColor(Color.parseColor("#94A3B8"))
+                setCenterTextSize(10f)
+                setCenterTextTypeface(android.graphics.Typeface.DEFAULT_BOLD)
+                data = PieData(emptyDataSet)
+                invalidate()
+            }
+            return
+        }
+
+        val expenses = transactions.filter { it.type.equals("EXPENSE", ignoreCase = true) }
+        val incomes = transactions.filter { it.type.equals("INCOME", ignoreCase = true) }
+
+        // Dynamic Income & Expense handling:
+        // Case A: User has expenses -> Render Expense Category Breakdown
+        // Case B: User has ONLY income (e.g. initial gift/deposit) -> Render Income Category Breakdown
+        val isIncomeOnly = expenses.isEmpty() && incomes.isNotEmpty()
+        val targetTx = if (isIncomeOnly) incomes else expenses
+        val targetTotal = targetTx.sumOf { it.amount }
+
+        val categoryMap = mutableMapOf<String, Double>()
+        for (tx in targetTx) {
+            val cat = if (tx.category.isNotBlank()) tx.category.trim() else if (isIncomeOnly) "Income" else "Other"
+            categoryMap[cat] = (categoryMap[cat] ?: 0.0) + tx.amount
+        }
+
+        if (categoryMap.isEmpty() || targetTotal <= 0.0) {
+            val emptyEntries = arrayListOf(PieEntry(1f, ""))
+            val emptyDataSet = PieDataSet(emptyEntries, "").apply {
+                colors = listOf(Color.parseColor("#334155"))
+                sliceSpace = 0f
+                setDrawValues(false)
+            }
+            binding.miniPieChart.apply {
+                setHoleColor(Color.parseColor("#131D2F"))
+                centerText = "No Records"
+                setCenterTextColor(Color.parseColor("#94A3B8"))
+                setCenterTextSize(10f)
+                setCenterTextTypeface(android.graphics.Typeface.DEFAULT_BOLD)
+                data = PieData(emptyDataSet)
+                invalidate()
+            }
+            return
+        }
+
+        val defaultCategoryColors = mapOf(
+            "salary" to "#10B981",        // Emerald
+            "income" to "#10B981",        // Emerald
+            "deposit" to "#10B981",       // Emerald
+            "parent's gift" to "#10B981", // Emerald
+            "parents gift" to "#10B981",
+            "gift" to "#34D399",          // Light emerald/mint
+            "freelance" to "#06B6D4",     // Teal
+            "business" to "#3B82F6",      // Blue
+            "investment" to "#8B5CF6",    // Violet
+            "allowance" to "#10B981",     // Emerald
+            "food" to "#F59E0B",          // Amber
+            "dining" to "#F59E0B",
+            "groceries" to "#10B981",     // Emerald
+            "gadget" to "#8B5CF6",        // Violet
+            "gadgets" to "#8B5CF6",       // Violet
+            "electronics" to "#8B5CF6",
+            "tech" to "#06B6D4",          // Teal
+            "shopping" to "#EC4899",      // Pink
+            "entertainment" to "#A855F7", // Purple
+            "bills" to "#38BDF8",         // Sky
+            "utilities" to "#0EA5E9",
+            "transport" to "#06B6D4",     // Teal
+            "travel" to "#38BDF8",
+            "health" to "#10B981",        // Emerald
+            "medical" to "#10B981",
+            "education" to "#6366F1",     // Indigo
+            "study" to "#6366F1",
+            "tuition" to "#6366F1",
+            "subscription" to "#A855F7",
+            "other" to "#64748B"
+        )
+        val fallbackPalette = if (isIncomeOnly) {
+            listOf(
+                "#10B981", // Emerald
+                "#06B6D4", // Teal
+                "#34D399", // Mint
+                "#3B82F6", // Blue
+                "#8B5CF6", // Violet
+                "#14B8A6", // Teal light
+                "#6EE7B7"  // Pastel emerald
+            )
+        } else {
+            listOf(
+                "#8B5CF6", // Violet
+                "#06B6D4", // Teal
+                "#F59E0B", // Amber
+                "#10B981", // Emerald
+                "#38BDF8", // Sky
+                "#EC4899", // Pink
+                "#F43F5E", // Rose
+                "#F97316"  // Orange
+            )
+        }
+
+        val entries = ArrayList<PieEntry>()
+        val colors = ArrayList<Int>()
+        var colorIdx = 0
+        val sorted = categoryMap.entries.sortedByDescending { it.value }
+        for (entry in sorted) {
+            entries.add(PieEntry(entry.value.toFloat(), entry.key))
+
+            val catKey = entry.key.lowercase(Locale.US).trim()
+            val customCat = dbHelper.getTransactionCategoryByName(entry.key)
+            val colorHex = when {
+                customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0284C7" -> customCat.colorHex
+                defaultCategoryColors.containsKey(catKey) -> defaultCategoryColors[catKey]!!
+                customCat != null && customCat.colorHex.isNotBlank() -> customCat.colorHex
+                isIncomeOnly -> "#10B981"
+                else -> fallbackPalette[colorIdx % fallbackPalette.size]
+            }
+
+            val parsedColor = try {
+                Color.parseColor(colorHex)
+            } catch (_: Exception) {
+                Color.parseColor(fallbackPalette[colorIdx % fallbackPalette.size])
+            }
+            colors.add(parsedColor)
+            colorIdx++
+        }
+
+        val dataSet = PieDataSet(entries, "").apply {
+            this.colors = colors
+            sliceSpace = if (entries.size > 1) 2f else 0f
+            setDrawValues(false)
+        }
+
+        val formattedCenter = if (isIncomeOnly) {
+            if (targetTotal % 1.0 == 0.0) {
+                String.format(Locale.US, "+%s%,d", currentSymbol, targetTotal.toLong())
+            } else {
+                String.format(Locale.US, "+%s%,.0f", currentSymbol, targetTotal)
+            }
+        } else {
+            if (targetTotal % 1.0 == 0.0) {
+                String.format(Locale.US, "-%s%,d", currentSymbol, targetTotal.toLong())
+            } else {
+                String.format(Locale.US, "-%s%,.0f", currentSymbol, targetTotal)
+            }
+        }
+
+        val centerTextColor = if (isIncomeOnly) Color.parseColor("#10B981") else Color.parseColor("#F43F5E")
+
+        binding.miniPieChart.apply {
+            setHoleColor(Color.parseColor("#131D2F"))
+            centerText = formattedCenter
+            setCenterTextColor(centerTextColor)
+            setCenterTextSize(10f)
+            setCenterTextTypeface(android.graphics.Typeface.DEFAULT_BOLD)
+            data = PieData(dataSet)
+            invalidate()
+        }
+    }
+
+    private fun renderMiniBarChart(transactions: List<TransactionItem>) {
+        val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val dailyMap = mutableMapOf<String, Float>()
+        val expenses = transactions.filter { it.type.equals("EXPENSE", ignoreCase = true) }
+        val incomes = transactions.filter { it.type.equals("INCOME", ignoreCase = true) }
+        val isIncomeOnly = expenses.isEmpty() && incomes.isNotEmpty()
+        val targetTx = if (isIncomeOnly) incomes else expenses
+
+        for (tx in targetTx) {
+            dailyMap[tx.date] = (dailyMap[tx.date] ?: 0f) + tx.amount.toFloat()
+        }
+
+        val entries = ArrayList<BarEntry>()
+        for (i in 6 downTo 0) {
+            val c = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
+            val key = dayFormat.format(c.time)
+            val idx = 6 - i
+            entries.add(BarEntry(idx.toFloat(), dailyMap[key] ?: 0f))
+        }
+
+        val dataSet = BarDataSet(entries, "").apply {
+            color = Color.parseColor(if (isIncomeOnly) "#10B981" else "#EF4444")
+            setDrawValues(false)
+        }
+        val barData = BarData(dataSet).apply {
+            barWidth = 0.5f
+        }
+        binding.miniBarChart.apply {
+            data = barData
+            invalidate()
+        }
+    }
+
+    private fun applyToggleStyles(binding: DialogAddTransactionBinding, isIncome: Boolean) {
+        if (isIncome) {
+            binding.btnTypeIncome.setBackgroundColor(Color.parseColor("#064E3B"))
+            binding.btnTypeIncome.setTextColor(Color.parseColor("#34D399"))
+            binding.btnTypeIncome.strokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#059669"))
+
+            binding.btnTypeExpense.setBackgroundColor(Color.TRANSPARENT)
+            binding.btnTypeExpense.setTextColor(Color.parseColor("#94A3B8"))
+            binding.btnTypeExpense.strokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#203049"))
+        } else {
+            binding.btnTypeExpense.setBackgroundColor(Color.parseColor("#4C1D24"))
+            binding.btnTypeExpense.setTextColor(Color.parseColor("#F87171"))
+            binding.btnTypeExpense.strokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#991B1B"))
+
+            binding.btnTypeIncome.setBackgroundColor(Color.TRANSPARENT)
+            binding.btnTypeIncome.setTextColor(Color.parseColor("#94A3B8"))
+            binding.btnTypeIncome.strokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#203049"))
+        }
+    }
+
+    private fun showAddTransactionDialog() {
+        val bucket = currentBucket ?: return
+        val dialogBinding = DialogAddTransactionBinding.inflate(layoutInflater)
+        dialogBinding.tilTxAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
+
+        var txType = "INCOME"
+        dialogBinding.toggleTxType.check(R.id.btnTypeIncome)
+        applyToggleStyles(dialogBinding, true)
+
+        val categoryHelper = TransactionCategoryHelper(
+            context = this,
+            dbHelper = dbHelper,
+            actvCategory = dialogBinding.actvTxCategory,
+            currentTxType = txType,
+            chipCreateCategory = dialogBinding.chipCreateCategory
+        )
+
+        // Pre-select current bucket
+        dialogBinding.tilTxCard.visibility = View.GONE
+        dialogBinding.spTxCard.visibility = View.GONE
+
+        dialogBinding.toggleTxType.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                val isIncome = (checkedId == R.id.btnTypeIncome)
+                txType = if (isIncome) "INCOME" else "EXPENSE"
+                applyToggleStyles(dialogBinding, isIncome)
+                categoryHelper.setTxType(txType)
+            }
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Add Record to ${bucket.name}")
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnSaveTx.setOnClickListener {
+            val title = dialogBinding.etTxTitle.text?.toString()?.trim().orEmpty()
+            val amountStr = dialogBinding.etTxAmount.text?.toString()?.trim().orEmpty()
+            val notes = dialogBinding.etTxNotes.text?.toString()?.trim().orEmpty()
+
+            if (amountStr.isEmpty()) {
+                Toast.makeText(this, "Amount is required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val enteredAmount = amountStr.toDoubleOrNull() ?: 0.0
+            val baseAmount = enteredAmount
+            val category = categoryHelper.getSelectedCategoryAndEnsurePersisted()
+            if (category.isBlank()) {
+                Toast.makeText(this, "Please select or create a category", Toast.LENGTH_SHORT).show()
+                dialogBinding.actvTxCategory.requestFocus()
+                return@setOnClickListener
+            }
+            val finalTitle = if (title.isNotBlank()) title else category
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
+            val tx = TransactionItem(
+                title = finalTitle,
+                amount = baseAmount,
+                type = txType,
+                category = category,
+                date = today,
+                cardId = 0L,
+                currency = currentCurrency,
+                notes = if (notes.isNotBlank()) "$notes (${bucket.name})" else "Account: ${bucket.name}",
+                bucketId = bucket.id
+            )
+            dbHelper.insertTransaction(tx)
+            dialog.dismiss()
+            loadBucketData()
+            WalletDataSyncManager.notifyChanged()
+            Toast.makeText(this, "Recorded to ${bucket.name}", Toast.LENGTH_SHORT).show()
+        }
+
+        dialogBinding.etTxAmount.requestFocus()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+
+    private fun showEditTransactionDialog(tx: TransactionItem) {
+        val bucket = currentBucket ?: return
+        val dialogBinding = DialogAddTransactionBinding.inflate(layoutInflater)
+        dialogBinding.tilTxAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
+
+        var txType = tx.type
+        val isIncome = (txType == "INCOME")
+        dialogBinding.toggleTxType.check(if (isIncome) R.id.btnTypeIncome else R.id.btnTypeExpense)
+        applyToggleStyles(dialogBinding, isIncome)
+
+        val categoryHelper = TransactionCategoryHelper(
+            context = this,
+            dbHelper = dbHelper,
+            actvCategory = dialogBinding.actvTxCategory,
+            currentTxType = txType,
+            chipCreateCategory = dialogBinding.chipCreateCategory
+        )
+
+        dialogBinding.tilTxCard.visibility = View.GONE
+        dialogBinding.spTxCard.visibility = View.GONE
+
+        // Pre-fill existing transaction data (Pure 100% Raw Values)
+        val convertedAmount = tx.amount
+        dialogBinding.etTxAmount.setText(
+            if (convertedAmount % 1.0 == 0.0) String.format(Locale.US, "%.0f", convertedAmount)
+            else String.format(Locale.US, "%.2f", convertedAmount)
+        )
+        dialogBinding.actvTxCategory.setText(tx.category, false)
+        dialogBinding.etTxTitle.setText(tx.title)
+        dialogBinding.etTxNotes.setText(tx.notes)
+
+        dialogBinding.toggleTxType.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                val activeIncome = (checkedId == R.id.btnTypeIncome)
+                txType = if (activeIncome) "INCOME" else "EXPENSE"
+                applyToggleStyles(dialogBinding, activeIncome)
+                categoryHelper.setTxType(txType)
+            }
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Edit Record")
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnSaveTx.text = "Save Changes"
+        dialogBinding.btnSaveTx.setOnClickListener {
+            val title = dialogBinding.etTxTitle.text?.toString()?.trim().orEmpty()
+            val amountStr = dialogBinding.etTxAmount.text?.toString()?.trim().orEmpty()
+            val notes = dialogBinding.etTxNotes.text?.toString()?.trim().orEmpty()
+
+            if (amountStr.isEmpty()) {
+                Toast.makeText(this, "Amount is required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val enteredAmount = amountStr.toDoubleOrNull() ?: 0.0
+            val baseAmount = enteredAmount
+            val category = categoryHelper.getSelectedCategoryAndEnsurePersisted()
+            if (category.isBlank()) {
+                Toast.makeText(this, "Please select or create a category", Toast.LENGTH_SHORT).show()
+                dialogBinding.actvTxCategory.requestFocus()
+                return@setOnClickListener
+            }
+            val finalTitle = if (title.isNotBlank()) title else category
+
+            val updatedTx = tx.copy(
+                title = finalTitle,
+                amount = baseAmount,
+                type = txType,
+                category = category,
+                notes = notes,
+                bucketId = bucket.id
+            )
+            dbHelper.updateTransaction(updatedTx)
+            dialog.dismiss()
+            loadBucketData()
+            WalletDataSyncManager.notifyChanged()
+            Toast.makeText(this, "Record updated", Toast.LENGTH_SHORT).show()
+        }
+
+        dialogBinding.etTxAmount.requestFocus()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Crisp 1dp subtle top border (#1E293B on Dark) -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#1E293B" />
+        </shape>
+    </item>
+    <!-- Flat obsidian dark dock body (#090D16) -->
+    <item android:top="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#090D16" />
+        </shape>
+    </item>
+</layer-list>

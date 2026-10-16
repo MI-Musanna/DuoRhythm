@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinatorLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:background="@drawable/bg_ambient_canvas">
+
+    <!-- Unified Single Clean Top AppBar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_cyber_header"
+        app:elevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Sleek Minimal App Logo -->
+                <ImageView
+                    android:id="@+id/ivAppLogo"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_glass_squircle_action"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_app_logo"
+                    android:contentDescription="@string/app_name" />
+
+                <!-- Single Clean Screen Title & Current Tab Name -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvAppTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.02"
+                        android:text="DuoRhythm"
+                        android:textColor="@color/text_primary"
+                        android:textSize="19sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvAppSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:text="Personal Dashboard"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Status Badge kept gone -->
+                <TextView
+                    android:id="@+id/tvAppStatusBadge"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+
+                <!-- Focus / Productivity Suite Action Icon -->
+                <ImageButton
+                    android:id="@+id/btnQuickTools"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_glass_squircle_action"
+                    android:contentDescription="Focus Suite"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_bolt"
+                    app:tint="@color/text_secondary" />
+
+                <!-- Dedicated Settings Action Icon -->
+                <ImageButton
+                    android:id="@+id/btnQuickSettings"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_glass_squircle_action"
+                    android:contentDescription="Settings"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_settings"
+                    app:tint="@color/text_secondary" />
+
+                <!-- Retained for view binding compatibility -->
+                <ImageButton
+                    android:id="@+id/btnQuickBackup"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+
+                <!-- Removed Utility Orbs (Kept gone with 0dp size for view binding compatibility) -->
+                <ImageButton
+                    android:id="@+id/btnQuickPomodoro"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:contentDescription=""
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/btnQuickMusic"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:contentDescription=""
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/btnQuickCalc"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:contentDescription=""
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/btnQuickAbout"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:contentDescription=""
+                    android:visibility="gone" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Full-screen Main ViewPager2 for swipe gesture tab navigation -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/mainViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <!-- Overlay container for Tools Focus Suite -->
+    <FrameLayout
+        android:id="@+id/toolsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <!-- Modern Floating Pill Navigation Dock (Bottom Navigation Bar) -->
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_floating_glass_dock"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <!-- Tab 1: Wallet -->
+        <LinearLayout
+            android:id="@+id/nav_wallet"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_nav_tab_ripple"
+            android:clickable="true"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:contentDescription="@string/nav_wallet"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <ImageView
+                android:id="@+id/ivNavWallet"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/nav_wallet"
+                android:src="@drawable/ic_wallet"
+                app:tint="#64748B" />
+
+            <TextView
+                android:id="@+id/tvNavWallet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:ellipsize="none"
+                android:text="@string/nav_wallet"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Tab 2: Tasks -->
+        <LinearLayout
+            android:id="@+id/nav_tasks"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_nav_tab_ripple"
+            android:clickable="true"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:contentDescription="@string/nav_tasks"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <ImageView
+                android:id="@+id/ivNavTasks"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/nav_tasks"
+                android:src="@drawable/ic_tasks"
+                app:tint="#64748B" />
+
+            <TextView
+                android:id="@+id/tvNavTasks"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:ellipsize="none"
+                android:text="@string/nav_tasks"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Tab 3: Home (Center - Initially Active) -->
+        <LinearLayout
+            android:id="@+id/nav_home"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:background="@drawable/bg_nav_active_pill"
+            android:clickable="true"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:contentDescription="@string/nav_home"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="10dp">
+
+            <ImageView
+                android:id="@+id/ivNavHome"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="@string/nav_home"
+                android:src="@drawable/ic_home"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/tvNavHome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:ellipsize="none"
+                android:text="@string/nav_home"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Tab 4: Schedule -->
+        <LinearLayout
+            android:id="@+id/nav_schedule"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_nav_tab_ripple"
+            android:clickable="true"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:contentDescription="@string/nav_schedule"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <ImageView
+                android:id="@+id/ivNavSchedule"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/nav_schedule"
+                android:src="@drawable/ic_schedule"
+                app:tint="#64748B" />
+
+            <TextView
+                android:id="@+id/tvNavSchedule"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:ellipsize="none"
+                android:text="@string/nav_schedule"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Tab 5: Portal -->
+        <LinearLayout
+            android:id="@+id/nav_portal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_nav_tab_ripple"
+            android:clickable="true"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:contentDescription="@string/nav_portal"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <ImageView
+                android:id="@+id/ivNavPortal"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/nav_portal"
+                android:src="@drawable/ic_portal"
+                app:tint="#64748B" />
+
+            <TextView
+                android:id="@+id/tvNavPortal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:ellipsize="none"
+                android:text="@string/nav_portal"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

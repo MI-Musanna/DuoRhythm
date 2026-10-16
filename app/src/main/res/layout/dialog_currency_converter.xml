@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_bottom_sheet_surface"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="16dp">
+
+    <!-- Top Drag Handle -->
+    <View
+        android:layout_width="48dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_cyber_badge_status" />
+
+    <!-- Header: Title, Subtitle, Sync & Close -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_glass_squircle_action">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_currency_exchange"
+                app:tint="@color/primary" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Live Currency Converter"
+                android:textColor="@color/text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvConverterSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Real-time FX rates • Tap currency to switch input"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Live Sync Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSyncRates"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginEnd="6dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingHorizontal="10dp"
+            android:text="Sync"
+            app:icon="@drawable/ic_sync"
+            app:iconSize="14dp"
+            app:iconTint="@color/white"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="10dp" />
+
+        <!-- Close Button -->
+        <ImageButton
+            android:id="@+id/btnCloseConverter"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_glass_squircle_action"
+            android:contentDescription="Close"
+            android:src="@drawable/ic_close"
+            app:tint="@color/text_secondary" />
+    </LinearLayout>
+
+    <!-- Sticky Search Filter Bar -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilCurrencySearch"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="6dp"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxStrokeColor="@color/card_stroke"
+        app:boxStrokeWidth="1dp"
+        app:startIconDrawable="@drawable/ic_search"
+        app:startIconTint="@color/text_secondary"
+        app:endIconMode="clear_text"
+        app:endIconTint="@color/text_secondary"
+        app:hintEnabled="false">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCurrencySearch"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:paddingVertical="0dp"
+            android:paddingHorizontal="12dp"
+            android:hint="Search currency (e.g. USD, BDT, Euro, JPY, Riyal)..."
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:textSize="12sp"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:imeOptions="actionDone" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Sync status & Active input preview bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_chip_unselected"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvSyncStatus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Live FX Rates Active • Offline Resilient"
+            android:textColor="@color/primary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvActiveInputPreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="Active: 100 USD ($)" />
+    </LinearLayout>
+
+    <!-- Multi-Currency List (Allocates ~60% of vertical height via layout_weight) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCurrencies"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:overScrollMode="never" />
+
+    <!-- Section Label for Keypad -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="4dp"
+        android:text="CALCULATOR KEYBOARD"
+        android:textColor="@color/primary"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.06" />
+
+    <!-- Pinned Bottom Responsive Keypad (Reduced ~42dp height, crisp dynamic surfaces & ripples) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_cyber_dock"
+        android:orientation="vertical"
+        android:padding="3dp">
+
+        <!-- Row 1: 7, 8, 9, Backspace -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey7"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="7"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey8"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="8"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey9"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="9"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKeyDel"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="⌫"
+                android:textColor="#EF4444"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_variant"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="#40EF4444" />
+        </LinearLayout>
+
+        <!-- Row 2: 4, 5, 6, Plus -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey4"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="4"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey5"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="5"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey6"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="6"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKeyPlus"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="+"
+                android:textColor="@color/primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_variant"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="@color/water_cyan_glow" />
+        </LinearLayout>
+
+        <!-- Row 3: 1, 2, 3, Equal -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey1"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="1"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey2"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="2"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey3"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="3"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKeyEqual"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="="
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/primary"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="@color/water_shimmer_highlight" />
+        </LinearLayout>
+
+        <!-- Row 4: C, 0, ., 00 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKeyClear"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="C"
+                android:textColor="#EF4444"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_variant"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="#40EF4444" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey0"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="0"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKeyDot"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="."
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey00"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="1.5dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="00"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/surface_card"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp"
+                app:cornerRadius="10dp"
+                app:rippleColor="?attr/colorControlHighlight" />
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

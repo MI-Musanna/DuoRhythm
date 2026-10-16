@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">DuoRhythm</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_wallet">Wallet</string>
+    <string name="nav_tasks">Tasks</string>
+    <string name="nav_portal">Portal</string>
+    <string name="nav_schedule">Schedule</string>
+    <string name="nav_tools">Tools</string>
+
+    <string name="profile_student">Student Portal</string>
+    <string name="profile_work">Work Portal</string>
+    <string name="about_developer">About Developer</string>
+</resources>

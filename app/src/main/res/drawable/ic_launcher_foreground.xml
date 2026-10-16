@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 1. Ambient Depth Glows (alpha 0.15 for multi-layered 3D etched finish) -->
+    <!-- Left Ambient Wing Halo (Cyan #0284C7 at 15% opacity) -->
+    <path
+        android:fillColor="#260284C7"
+        android:pathData="M52,24 C40,24 28,36 28,52 C28,66 38,76 48,82 L52,75 C44,70 36,62 36,52 C36,40 44,31 52,31 Z" />
+
+    <!-- Right Ambient Wing Halo (Emerald #10B981 at 15% opacity) -->
+    <path
+        android:fillColor="#2610B981"
+        android:pathData="M56,24 C68,24 80,36 80,52 C80,66 70,76 60,82 L56,75 C64,70 72,62 72,52 C72,40 64,31 56,31 Z" />
+
+    <!-- 2. Left Wing (Knowledge / Study Stream): Soaring 45-degree curved prism polygon -->
+    <path
+        android:pathData="M51,26 C41,26 31,37 31,51 C31,63 40,73 49,79 L53,73 C46,68 39,60 39,51 C39,41 46,33 53,33 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="31"
+                android:startY="79"
+                android:endX="53"
+                android:endY="26"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#0284C7" />
+                <item android:offset="1.0" android:color="#38BDF8" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Left Wing Specular Edge (Subtle high-contrast rim) -->
+    <path
+        android:pathData="M51,26 C41,26 31,37 31,51"
+        android:strokeColor="#7DD3FC"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round" />
+
+    <!-- 3. Right Wing (Action / Work Stream): Opposing symmetrical dynamic wing -->
+    <path
+        android:pathData="M57,26 C67,26 77,37 77,51 C77,63 68,73 59,79 L55,73 C62,68 69,60 69,51 C69,41 62,33 55,33 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="77"
+                android:startY="79"
+                android:endX="55"
+                android:endY="26"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#059669" />
+                <item android:offset="1.0" android:color="#10B981" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Right Wing Specular Edge (Subtle emerald-mint rim) -->
+    <path
+        android:pathData="M57,26 C67,26 77,37 77,51"
+        android:strokeColor="#6EE7B7"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round" />
+
+    <!-- 4. Central Dynamic Nexus (Harmonic Interlock Wave) -->
+    <path
+        android:pathData="M48,58 L54,64 L60,58 L56,54 L54,56 L52,54 Z"
+        android:fillColor="#E2E8F0" />
+
+    <!-- 5. Central Precision Core: Elegant Floating Diamond -->
+    <path
+        android:pathData="M54,43 L61,50 L54,57 L47,50 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="47"
+                android:startY="43"
+                android:endX="61"
+                android:endY="57"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#38BDF8" />
+                <item android:offset="0.5" android:color="#FFFFFF" />
+                <item android:offset="1.0" android:color="#34D399" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Core Micro Accent (Precision focal pivot) -->
+    <path
+        android:pathData="M54,47 L57,50 L54,53 L51,50 Z"
+        android:fillColor="#090D16" />
+
+</vector>

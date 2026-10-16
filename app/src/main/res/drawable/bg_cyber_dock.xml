@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Crisp 1dp subtle top border (#E2E8F0 on Light) -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#E2E8F0" />
+        </shape>
+    </item>
+    <!-- Flat clean light dock body -->
+    <item android:top="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#F8FAFC" />
+        </shape>
+    </item>
+</layer-list>

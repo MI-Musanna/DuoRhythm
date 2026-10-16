@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Offline Study Help Sounds"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="2dp"
+        android:text="Real-time synthesized ambient sounds (No internet needed)"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
+    <!-- Radio / Modes Selection -->
+    <RadioGroup
+        android:id="@+id/rgSoundModes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+
+        <RadioButton
+            android:id="@+id/rbRainSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Gentle Rain &amp; Stream (Calming Rainfall)" />
+
+        <RadioButton
+            android:id="@+id/rbWavesSound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ocean Night Waves (Rhythmic Breaths)" />
+
+        <RadioButton
+            android:id="@+id/rbZenBowl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tibetan Singing Bowl Chimes (Mindfulness)" />
+
+        <RadioButton
+            android:id="@+id/rbAlphaPad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Deep Alpha Focus Pad (Warm 10Hz Drone)" />
+
+        <RadioButton
+            android:id="@+id/rbBrownNoise"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cozy Brown Noise (Deep Waterfall, Zero Hiss)" />
+    </RadioGroup>
+
+    <!-- Volume Slider -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="Volume"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <SeekBar
+        android:id="@+id/sbVolume"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:max="100"
+        android:progress="60" />
+
+    <!-- Controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnToggleSoundPlay"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/accent_purple"
+            android:text="Play Sound"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopSound"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Stop"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+</LinearLayout>

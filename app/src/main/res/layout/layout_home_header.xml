@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <!-- Stylish User Profile Avatar Badge -->
+    <FrameLayout
+        android:id="@+id/containerHomeAvatar"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:background="@drawable/bg_avatar_circle"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:id="@+id/ivHomeAvatar"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:padding="8dp"
+            android:src="@drawable/ic_person"
+            app:tint="@color/neon_cyan"
+            android:contentDescription="User Profile" />
+    </FrameLayout>
+
+    <!-- Clean Vertical 3-Level Greeting Hierarchy -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Top Label: Welcome back, -->
+        <TextView
+            android:id="@+id/tvHomeGreeting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="Welcome back,"
+            android:textColor="#94A3B8"
+            android:textSize="12sp" />
+
+        <!-- User Name Label: Bold dynamic name -->
+        <TextView
+            android:id="@+id/tvHomeUserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="User"
+            tools:text="User"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Date Label: Muted current date -->
+        <TextView
+            android:id="@+id/tvHomeLiveDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Wednesday, October 14"
+            android:textColor="#64748B"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- Enclosed Unified Student/Work Pill -->
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_mode_switch_pill"
+        android:clipToPadding="true"
+        android:clipChildren="true"
+        android:padding="4dp">
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleHomeProfile"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            app:checkedButton="@+id/btnHomeProfileStudent"
+            app:singleSelection="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHomeProfileStudent"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:minHeight="32dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="0dp"
+                android:text="Student"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                app:backgroundTint="#0284C7"
+                app:strokeWidth="0dp"
+                app:cornerRadius="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHomeProfileWork"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:minHeight="32dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="0dp"
+                android:text="Work"
+                android:textColor="#475569"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeWidth="0dp"
+                app:cornerRadius="16dp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+    </FrameLayout>
+</LinearLayout>

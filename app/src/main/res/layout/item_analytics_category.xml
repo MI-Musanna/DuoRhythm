@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="7dp"
+    android:paddingHorizontal="4dp">
+
+    <!-- Color Indicator Dot -->
+    <View
+        android:id="@+id/viewCategoryColor"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:background="@drawable/bg_dot_circle" />
+
+    <!-- Category Name -->
+    <TextView
+        android:id="@+id/tvCategoryName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:textColor="@color/white"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        tools:text="Food &amp; Dining" />
+
+    <!-- Percentage Badge -->
+    <TextView
+        android:id="@+id/tvCategoryPercent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_chip_unselected"
+        android:paddingHorizontal="7dp"
+        android:paddingVertical="2dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        tools:text="34.5%" />
+
+    <!-- Total Amount -->
+    <TextView
+        android:id="@+id/tvCategoryAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/water_cyan_bright"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        tools:text="৳1,250.00" />
+
+</LinearLayout>

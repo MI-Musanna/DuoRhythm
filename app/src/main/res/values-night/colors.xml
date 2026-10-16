@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Liquid Glass & Ambient Glow UI Color Palette (Night / Obsidian Navy) -->
+
+    <!-- Deep Midnight Obsidian Canvas (#0A0E17) -->
+    <color name="background">#0A0E17</color>
+    <color name="background_canvas_alt">#0A0E17</color>
+    <color name="background_card">#131B2E</color>
+
+    <!-- Solid High-Contrast Luxury Dark Surfaces (#131B2E) -->
+    <color name="surface">#131B2E</color>
+    <color name="surface_card">#131B2E</color>
+    <color name="surface_card_selected">#1E293B</color>
+    <color name="surface_variant">#1E293B</color>
+    <color name="surface_glass">#131B2E</color>
+    <color name="surface_dock">#0A0E17</color>
+    <color name="surface_pill">#1E293B</color>
+    <color name="blur_overlay">#4D0A0E17</color>
+
+    <!-- Translucent Fills -->
+    <color name="glass_fill_04">#0DFFFFFF</color>
+    <color name="glass_fill_06">#12FFFFFF</color>
+    <color name="glass_fill_08">#17FFFFFF</color>
+    <color name="glass_fill_12">#22FFFFFF</color>
+
+    <!-- Glass Borders & Inner Highlights -->
+    <color name="glass_border_highlight">#334155</color>
+    <color name="glass_border_shadow">#1E293B</color>
+    <color name="card_stroke">#1E293B</color>
+    <color name="card_stroke_bright">#334155</color>
+    <color name="specular_stroke">#1E293B</color>
+    <color name="squircle_bg">#172033</color>
+    <color name="squircle_stroke">#232F48</color>
+    <color name="glass_rim_light">#1E293B</color>
+    <color name="cyber_glass">#131B2E</color>
+    <color name="cyber_glass_border">#1E293B</color>
+
+    <!-- Water Gradient & Oceanic Glass UI Palette -->
+    <color name="water_cyan_bright">#00F2FE</color>
+    <color name="water_cyan_glow">#4D00F2FE</color>
+    <color name="water_sky_light">#38BDF8</color>
+    <color name="water_azure">#0284C7</color>
+    <color name="water_ocean_deep">#0072FF</color>
+    <color name="water_cobalt">#1D4ED8</color>
+    <color name="water_teal_lagoon">#14B8A6</color>
+    <color name="water_abyss_dark">#081326</color>
+    <color name="water_abyss_deepest">#050B14</color>
+    <color name="water_surface_sheen">#3300F2FE</color>
+    <color name="water_rim_stroke">#3338BDF8</color>
+    <color name="water_shimmer_highlight">#E0F7FA</color>
+    <color name="ocean_start">#0284C7</color>
+    <color name="ocean_end">#2563EB</color>
+
+    <!-- Primary Vibrant Gradients -->
+    <color name="primary">#00D2FF</color>
+    <color name="primary_variant">#0072FF</color>
+    <color name="on_primary">#050811</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Secondary Gradients -->
+    <color name="secondary">#D946EF</color>
+    <color name="secondary_variant">#8B5CF6</color>
+    <color name="on_secondary">#FFFFFF</color>
+
+    <!-- Accents & Vibrant Glows -->
+    <color name="neon_cyan">#00D2FF</color>
+    <color name="neon_magenta">#FF2A6D</color>
+    <color name="neon_purple">#8B5CF6</color>
+    <color name="neon_green">#10B981</color>
+    <color name="neon_yellow">#F59E0B</color>
+
+    <!-- Ambient Colored Diffusion Halos -->
+    <color name="glow_ambient_cyan">#660072FF</color>
+    <color name="glow_ambient_purple">#598B5CF6</color>
+    <color name="glow_ambient_pink">#59FF2A6D</color>
+    <color name="glow_ambient_soft_cyan">#3300D2FF</color>
+
+    <!-- Soft Ambient Rim Strokes -->
+    <color name="neon_cyan_stroke">#5900D2FF</color>
+    <color name="neon_magenta_stroke">#59FF2A6D</color>
+    <color name="neon_purple_stroke">#598B5CF6</color>
+    <color name="neon_yellow_stroke">#59F59E0B</color>
+    <color name="neon_green_stroke">#5910B981</color>
+
+    <!-- Secondary / Outlined Button colors -->
+    <color name="glass_button_bg">#12FFFFFF</color>
+    <color name="glass_button_stroke">#6600D2FF</color>
+
+    <color name="accent_indigo">#6366F1</color>
+    <color name="accent_purple">#8B5CF6</color>
+    <color name="accent_rose">#FF2A6D</color>
+    <color name="accent_amber">#F59E0B</color>
+    <color name="accent_emerald">#10B981</color>
+    <color name="accent_sky">#00D2FF</color>
+
+    <!-- Typography & Micro-Hierarchy -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_silver">#94A3B8</color>
+    <color name="glass_card_translucent">#131B2E</color>
+    <color name="text_muted">#64748B</color>
+    <color name="text_ice">#D2D9E3</color>
+
+    <!-- Status Colors -->
+    <color name="income_green">#22C55E</color>
+    <color name="expense_red">#FF4D6D</color>
+    <color name="priority_high">#FF4D6D</color>
+    <color name="priority_medium">#F59E0B</color>
+    <color name="priority_low">#00D2FF</color>
+    <color name="priority_none">#64748B</color>
+
+    <!-- Liquid Bank Cards Gradient Colors -->
+    <color name="card_navy_start">#1E293B</color>
+    <color name="card_navy_end">#0F172A</color>
+    <color name="card_purple_start">#7F00FF</color>
+    <color name="card_purple_end">#E100FF</color>
+    <color name="card_emerald_start">#059669</color>
+    <color name="card_emerald_end">#064E3B</color>
+    <color name="card_amber_start">#B45309</color>
+    <color name="card_amber_end">#78350F</color>
+</resources>

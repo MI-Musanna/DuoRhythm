@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass"
+    android:clipToOutline="true"
+    android:isScrollContainer="true"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="22dp"
+        android:paddingBottom="26dp">
+
+        <!-- Header -->
+        <TextView
+            android:id="@+id/tvBucketDialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Account"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvBucketDialogSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="Set up your account name, icon, and accent color."
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <!-- 1. Account Name Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilBucketName"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Account Name e.g. Daily Cash, Mess, Tuition"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etBucketName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 2. Starting Balance Input -->
+        <TextView
+            android:id="@+id/tvBucketBalanceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp"
+            android:text="Starting Balance"
+            android:textColor="#94A3B8"
+            android:textSize="12sp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilBucketBalance"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hintEnabled="false"
+            app:boxStrokeColor="@color/primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etBucketBalance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text=""
+                android:hint="0.00"
+                android:textColor="@color/text_primary"
+                android:textColorHint="#64748B"
+                android:textSize="14sp"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 3. Choose Icon Row -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Choose Icon"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Cash -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnIconCash"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="#131D2F"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#243654"
+                    app:strokeWidth="1dp">
+
+                    <ImageView
+                        android:id="@+id/ivIconCash"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_cash"
+                        app:tint="#94A3B8" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Wallet -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnIconWallet"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="#131D2F"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#243654"
+                    app:strokeWidth="1dp">
+
+                    <ImageView
+                        android:id="@+id/ivIconWallet"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_wallet"
+                        app:tint="#94A3B8" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Bank -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnIconBank"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="#131D2F"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#243654"
+                    app:strokeWidth="1dp">
+
+                    <ImageView
+                        android:id="@+id/ivIconBank"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_bank"
+                        app:tint="#94A3B8" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnIconCard"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="#131D2F"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#243654"
+                    app:strokeWidth="1dp">
+
+                    <ImageView
+                        android:id="@+id/ivIconCard"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_credit_card"
+                        app:tint="#94A3B8" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Piggybank -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnIconPiggy"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="#131D2F"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#243654"
+                    app:strokeWidth="1dp">
+
+                    <ImageView
+                        android:id="@+id/ivIconPiggy"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_piggy_bank"
+                        app:tint="#94A3B8" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Vault -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnIconVault"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="#131D2F"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#243654"
+                    app:strokeWidth="1dp">
+
+                    <ImageView
+                        android:id="@+id/ivIconVault"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_vault"
+                        app:tint="#94A3B8" />
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- 4. Choose Accent Color Row -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Choose Accent Color"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Cyan (#06B6D4) -->
+                <FrameLayout
+                    android:id="@+id/btnColorCyan"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/ringColorCyan"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_color_circle_ring"
+                        android:backgroundTint="#06B6D4"
+                        android:visibility="gone" />
+
+                    <View
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_fill"
+                        android:backgroundTint="#06B6D4" />
+
+                    <ImageView
+                        android:id="@+id/checkColorCyan"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_check"
+                        app:tint="#FFFFFF"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <!-- Emerald (#10B981) -->
+                <FrameLayout
+                    android:id="@+id/btnColorEmerald"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/ringColorEmerald"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_color_circle_ring"
+                        android:backgroundTint="#10B981"
+                        android:visibility="gone" />
+
+                    <View
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_fill"
+                        android:backgroundTint="#10B981" />
+
+                    <ImageView
+                        android:id="@+id/checkColorEmerald"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_check"
+                        app:tint="#FFFFFF"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <!-- Violet / Purple (#8B5CF6) -->
+                <FrameLayout
+                    android:id="@+id/btnColorViolet"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/ringColorViolet"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_color_circle_ring"
+                        android:backgroundTint="#8B5CF6"
+                        android:visibility="gone" />
+
+                    <View
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_fill"
+                        android:backgroundTint="#8B5CF6" />
+
+                    <ImageView
+                        android:id="@+id/checkColorViolet"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_check"
+                        app:tint="#FFFFFF"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <!-- Amber / Gold (#F59E0B) -->
+                <FrameLayout
+                    android:id="@+id/btnColorAmber"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/ringColorAmber"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_color_circle_ring"
+                        android:backgroundTint="#F59E0B"
+                        android:visibility="gone" />
+
+                    <View
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_fill"
+                        android:backgroundTint="#F59E0B" />
+
+                    <ImageView
+                        android:id="@+id/checkColorAmber"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_check"
+                        app:tint="#FFFFFF"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <!-- Rose / Coral (#F43F5E) -->
+                <FrameLayout
+                    android:id="@+id/btnColorRose"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/ringColorRose"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_color_circle_ring"
+                        android:backgroundTint="#F43F5E"
+                        android:visibility="gone" />
+
+                    <View
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_fill"
+                        android:backgroundTint="#F43F5E" />
+
+                    <ImageView
+                        android:id="@+id/checkColorRose"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_check"
+                        app:tint="#FFFFFF"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <!-- Sky Blue (#38BDF8) -->
+                <FrameLayout
+                    android:id="@+id/btnColorSkyBlue"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/ringColorSkyBlue"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_color_circle_ring"
+                        android:backgroundTint="#38BDF8"
+                        android:visibility="gone" />
+
+                    <View
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_fill"
+                        android:backgroundTint="#38BDF8" />
+
+                    <ImageView
+                        android:id="@+id/checkColorSkyBlue"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_check"
+                        app:tint="#FFFFFF"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Actions: Cancel and Save -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelBucket"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="Cancel"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                app:cornerRadius="14dp"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveBucket"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1.3"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="+ Create Account"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:backgroundTint="#06B6D4"
+                app:cornerRadius="14dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

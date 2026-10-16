@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Active Tab: Cyan #38BDF8 -->
+    <item android:color="#38BDF8" android:state_checked="true" />
+    <!-- Inactive Tabs: Subtle slate-gray #94A3B8 -->
+    <item android:color="#94A3B8" />
+</selector>

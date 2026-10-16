@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Deep Ocean Water Glass Surface -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="180"
+                android:startColor="#0F243E"
+                android:centerColor="#0B1A2E"
+                android:endColor="#081424" />
+        </shape>
+    </item>
+    <!-- Inner Water Glass Body -->
+    <item android:bottom="1.5dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:startColor="#091526"
+                android:endColor="#0D2038" />
+        </shape>
+    </item>
+    <!-- Shimmering Water Surface Rim at Bottom -->
+    <item
+        android:gravity="bottom"
+        android:height="1.5dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#1A00F2FE"
+                android:centerColor="#6600F2FE"
+                android:endColor="#1A0284C7" />
+        </shape>
+    </item>
+</layer-list>
