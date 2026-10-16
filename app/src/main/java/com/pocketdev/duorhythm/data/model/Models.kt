@@ -69,6 +69,18 @@ data class TransactionItem(
     val bucketId: Long = 0
 )
 
+data class DueDebtItem(
+    val id: Long = 0,
+    val personName: String,
+    val phoneOrContact: String = "",
+    val amount: Double,
+    val dueDate: String = "", // "YYYY-MM-DD"
+    val type: String, // "LENT" (I Lent / They Owe Me) or "BORROWED" (I Borrowed / I Owe)
+    val status: String = "UNPAID", // "UNPAID" or "SETTLED"
+    val notes: String = "",
+    val createdAt: String = ""
+)
+
 data class TaskItem(
     val id: Long = 0,
     val title: String,

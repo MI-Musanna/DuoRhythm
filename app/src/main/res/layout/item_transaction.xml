@@ -61,19 +61,36 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Amount Chip -->
-        <TextView
-            android:id="@+id/tvTxAmount"
+        <!-- Amount & Running Balance Column -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
-            android:background="@drawable/bg_chip_unselected"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="5dp"
-            tools:text="+$1,250.00"
-            android:textColor="@color/income_green"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTxAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_chip_unselected"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                tools:text="+$1,250.00"
+                android:textColor="@color/income_green"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvRunningBalance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="#94A3B8"
+                android:textSize="10sp"
+                android:visibility="gone"
+                tools:text="(BDT 22,160.00)" />
+        </LinearLayout>
 
         <!-- Delete Action -->
         <ImageButton

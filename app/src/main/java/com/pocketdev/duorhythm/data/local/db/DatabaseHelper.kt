@@ -240,6 +240,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             )"""
         )
 
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS dues_debts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                person_name TEXT NOT NULL,
+                phone_or_contact TEXT DEFAULT '',
+                amount REAL NOT NULL,
+                due_date TEXT DEFAULT '',
+                type TEXT NOT NULL,
+                status TEXT DEFAULT 'UNPAID',
+                notes TEXT DEFAULT '',
+                created_at TEXT DEFAULT ''
+            )"""
+        )
+
         seedInitialData(db)
     }
 
@@ -423,6 +437,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureColumnExists(db, "subscriptions", "auto_log", "INTEGER DEFAULT 1")
         ensureColumnExists(db, "transactions", "bucket_id", "INTEGER DEFAULT 0")
 
+        ensureDuesDebtsTable(db)
         migrateLegacyTransactionsAndAccounts(db)
 
         // Clean up any legacy test/mock data or hardcoded seed data
@@ -2402,5 +2417,244 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             e.printStackTrace()
             false
         }
+    }
+
+    fun executeTransfer(
+        fromBucketId: Long,
+        toBucketId: Long,
+        amount: Double,
+        date: String,
+        currency: String = "BDT",
+        note: String = "",
+        title: String = ""
+    ): Boolean {
+        if (fromBucketId <= 0L || toBucketId <= 0L || fromBucketId == toBucketId || amount <= 0.0) {
+            return false
+        }
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val fromBucket = getWalletBucketById(fromBucketId) ?: return false
+            val toBucket = getWalletBucketById(toBucketId) ?: return false
+
+            val debitTitle = if (title.isNotBlank()) title else "Transfer to ${toBucket.name}"
+            val creditTitle = if (title.isNotBlank()) title else "Transfer from ${fromBucket.name}"
+
+            val debitTx = TransactionItem(
+                title = debitTitle,
+                amount = amount,
+                type = "EXPENSE",
+                category = "Transfer",
+                date = date,
+                cardId = 0L,
+                currency = currency,
+                notes = note,
+                bucketId = fromBucketId
+            )
+            val creditTx = TransactionItem(
+                title = creditTitle,
+                amount = amount,
+                type = "INCOME",
+                category = "Transfer",
+                date = date,
+                cardId = 0L,
+                currency = currency,
+                notes = note,
+                bucketId = toBucketId
+            )
+
+            insertTransaction(debitTx)
+            insertTransaction(creditTx)
+
+            db.setTransactionSuccessful()
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun ensureDuesDebtsTable(db: SQLiteDatabase) {
+        try {
+            db.execSQL(
+                """CREATE TABLE IF NOT EXISTS dues_debts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    person_name TEXT NOT NULL,
+                    phone_or_contact TEXT DEFAULT '',
+                    amount REAL NOT NULL,
+                    due_date TEXT DEFAULT '',
+                    type TEXT NOT NULL,
+                    status TEXT DEFAULT 'UNPAID',
+                    notes TEXT DEFAULT '',
+                    created_at TEXT DEFAULT ''
+                )"""
+            )
+        } catch (_: Exception) {}
+    }
+
+    fun insertDueDebt(item: DueDebtItem): Long {
+        val db = writableDatabase
+        ensureDuesDebtsTable(db)
+        val cv = ContentValues().apply {
+            put("person_name", item.personName.trim())
+            put("phone_or_contact", item.phoneOrContact.trim())
+            put("amount", item.amount)
+            put("due_date", item.dueDate.trim())
+            put("type", item.type)
+            put("status", item.status)
+            put("notes", item.notes.trim())
+            put("created_at", if (item.createdAt.isNotBlank()) item.createdAt else SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()))
+        }
+        return db.insert("dues_debts", null, cv)
+    }
+
+    fun updateDueDebt(item: DueDebtItem): Boolean {
+        val db = writableDatabase
+        ensureDuesDebtsTable(db)
+        val cv = ContentValues().apply {
+            put("person_name", item.personName.trim())
+            put("phone_or_contact", item.phoneOrContact.trim())
+            put("amount", item.amount)
+            put("due_date", item.dueDate.trim())
+            put("type", item.type)
+            put("status", item.status)
+            put("notes", item.notes.trim())
+        }
+        return db.update("dues_debts", cv, "id = ?", arrayOf(item.id.toString())) > 0
+    }
+
+    fun deleteDueDebt(id: Long): Boolean {
+        val db = writableDatabase
+        ensureDuesDebtsTable(db)
+        return db.delete("dues_debts", "id = ?", arrayOf(id.toString())) > 0
+    }
+
+    fun getAllDuesDebts(): List<DueDebtItem> {
+        val list = mutableListOf<DueDebtItem>()
+        val db = readableDatabase
+        ensureDuesDebtsTable(db)
+        try {
+            val cursor = db.rawQuery("SELECT * FROM dues_debts ORDER BY status ASC, id DESC", null)
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        DueDebtItem(
+                            id = it.getLong(it.getColumnIndexOrThrow("id")),
+                            personName = it.getString(it.getColumnIndexOrThrow("person_name")),
+                            phoneOrContact = it.getString(it.getColumnIndexOrThrow("phone_or_contact")),
+                            amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
+                            dueDate = it.getString(it.getColumnIndexOrThrow("due_date")),
+                            type = it.getString(it.getColumnIndexOrThrow("type")),
+                            status = it.getString(it.getColumnIndexOrThrow("status")),
+                            notes = it.getString(it.getColumnIndexOrThrow("notes")),
+                            createdAt = it.getString(it.getColumnIndexOrThrow("created_at"))
+                        )
+                    )
+                }
+            }
+        } catch (_: Exception) {}
+        return list
+    }
+
+    fun getDueDebtById(id: Long): DueDebtItem? {
+        val db = readableDatabase
+        ensureDuesDebtsTable(db)
+        try {
+            val cursor = db.rawQuery("SELECT * FROM dues_debts WHERE id = ?", arrayOf(id.toString()))
+            cursor.use {
+                if (it.moveToFirst()) {
+                    return DueDebtItem(
+                        id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        personName = it.getString(it.getColumnIndexOrThrow("person_name")),
+                        phoneOrContact = it.getString(it.getColumnIndexOrThrow("phone_or_contact")),
+                        amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
+                        dueDate = it.getString(it.getColumnIndexOrThrow("due_date")),
+                        type = it.getString(it.getColumnIndexOrThrow("type")),
+                        status = it.getString(it.getColumnIndexOrThrow("status")),
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")),
+                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at"))
+                    )
+                }
+            }
+        } catch (_: Exception) {}
+        return null
+    }
+
+    fun settleDueDebt(
+        id: Long,
+        bucketId: Long? = null,
+        recordTransaction: Boolean = false,
+        note: String = "",
+        currency: String = "BDT"
+    ): Boolean {
+        val db = writableDatabase
+        ensureDuesDebtsTable(db)
+        db.beginTransaction()
+        try {
+            val item = getDueDebtById(id) ?: return false
+            val cv = ContentValues().apply {
+                put("status", "SETTLED")
+            }
+            val updated = db.update("dues_debts", cv, "id = ?", arrayOf(id.toString()))
+            if (updated <= 0) return false
+
+            if (recordTransaction && bucketId != null && bucketId > 0) {
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val tx = if (item.type == "LENT") {
+                    // Money was lent to them, now received back -> INCOME into bucket
+                    TransactionItem(
+                        title = "Due Settled: ${item.personName}",
+                        amount = item.amount,
+                        type = "INCOME",
+                        category = "Transfer",
+                        date = today,
+                        currency = currency,
+                        notes = if (note.isNotBlank()) note else "Settled lent due from ${item.personName}",
+                        bucketId = bucketId
+                    )
+                } else {
+                    // Money was borrowed from them, now paid back -> EXPENSE from bucket
+                    TransactionItem(
+                        title = "Debt Paid: ${item.personName}",
+                        amount = item.amount,
+                        type = "EXPENSE",
+                        category = "Bills",
+                        date = today,
+                        currency = currency,
+                        notes = if (note.isNotBlank()) note else "Paid borrowed debt to ${item.personName}",
+                        bucketId = bucketId
+                    )
+                }
+                insertTransaction(tx)
+            }
+
+            db.setTransactionSuccessful()
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun getDuesDebtsSummary(): Pair<Double, Double> {
+        val db = readableDatabase
+        ensureDuesDebtsTable(db)
+        var totalLentUnpaid = 0.0
+        var totalBorrowedUnpaid = 0.0
+        try {
+            val cursorLent = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'LENT' AND status = 'UNPAID'", null)
+            cursorLent.use {
+                if (it.moveToFirst() && !it.isNull(0)) totalLentUnpaid = it.getDouble(0)
+            }
+            val cursorBorrowed = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'BORROWED' AND status = 'UNPAID'", null)
+            cursorBorrowed.use {
+                if (it.moveToFirst() && !it.isNull(0)) totalBorrowedUnpaid = it.getDouble(0)
+            }
+        } catch (_: Exception) {}
+        return Pair(totalLentUnpaid, totalBorrowedUnpaid)
     }
 }

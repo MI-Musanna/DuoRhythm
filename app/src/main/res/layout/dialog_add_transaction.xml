@@ -22,7 +22,7 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <!-- 1. Type Toggle: Income / Expense (Income first) -->
+        <!-- 1. Type Toggle: Income / Expense / Transfer -->
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/toggleTxType"
             android:layout_width="wrap_content"
@@ -38,9 +38,9 @@
                 android:layout_height="38dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:paddingHorizontal="16dp"
+                android:paddingHorizontal="14dp"
                 android:text="▲ INCOME"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
@@ -50,9 +50,21 @@
                 android:layout_height="38dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:paddingHorizontal="16dp"
+                android:paddingHorizontal="14dp"
                 android:text="▼ EXPENSE"
-                android:textSize="12sp"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTypeTransfer"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="14dp"
+                android:text="⇄ TRANSFER"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
@@ -92,6 +104,27 @@
 
                 <AutoCompleteTextView
                     android:id="@+id/actvTxCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilTxToAccount"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:visibility="gone"
+                android:hint="To Account">
+
+                <AutoCompleteTextView
+                    android:id="@+id/actvTxToAccount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="none"

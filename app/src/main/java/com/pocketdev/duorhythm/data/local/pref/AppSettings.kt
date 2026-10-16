@@ -57,4 +57,18 @@ object AppSettings {
             .putBoolean("KEY_AUTO_TRACK_ATTENDANCE", enabled)
             .apply()
     }
+
+    const val KEY_SHOW_RUNNING_BALANCE = "key_show_running_balance"
+
+    fun isShowRunningBalanceEnabled(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_SHOW_RUNNING_BALANCE, true)
+    }
+
+    fun setShowRunningBalanceEnabled(context: Context, enabled: Boolean) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean(KEY_SHOW_RUNNING_BALANCE, enabled)
+            .apply()
+    }
 }

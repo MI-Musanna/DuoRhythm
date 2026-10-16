@@ -2,6 +2,7 @@ package com.pocketdev.duorhythm.ui.wallet
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.pocketdev.duorhythm.R
@@ -16,6 +17,9 @@ class TransactionsAdapter(
     private var cardsMap: Map<Long, CardItem>,
     private var currencySymbol: String = "$",
     private var currencyRate: Double = 1.0,
+    private var runningBalanceMap: Map<Long, Double> = emptyMap(),
+    private var showRunningBalance: Boolean = true,
+    private var currencyCode: String = "",
     private val onTxClick: ((TransactionItem) -> Unit)? = null,
     private val onDeleteClick: (TransactionItem) -> Unit
 ) : RecyclerView.Adapter<TransactionsAdapter.TxViewHolder>() {
@@ -24,12 +28,18 @@ class TransactionsAdapter(
         newTransactions: List<TransactionItem>,
         newCards: Map<Long, CardItem>,
         newSymbol: String = currencySymbol,
-        newRate: Double = currencyRate
+        newRate: Double = currencyRate,
+        newRunningBalances: Map<Long, Double> = runningBalanceMap,
+        newShowRunningBalance: Boolean = showRunningBalance,
+        newCurrencyCode: String = currencyCode
     ) {
         transactions = newTransactions
         cardsMap = newCards
         currencySymbol = newSymbol
         currencyRate = newRate
+        runningBalanceMap = newRunningBalances
+        showRunningBalance = newShowRunningBalance
+        currencyCode = newCurrencyCode
         notifyDataSetChanged()
     }
 
@@ -62,6 +72,16 @@ class TransactionsAdapter(
             } else {
                 binding.tvTxAmount.text = String.format(Locale.US, "-%s%.2f", currencySymbol, convertedAmount)
                 binding.tvTxAmount.setTextColor(ContextCompat.getColor(context, R.color.expense_red))
+            }
+
+            // Running Balance underneath transaction amount
+            val runningBal = runningBalanceMap[tx.id]
+            if (showRunningBalance && runningBal != null) {
+                binding.tvRunningBalance.visibility = View.VISIBLE
+                val displayLabel = if (currencyCode.isNotEmpty()) currencyCode else currencySymbol
+                binding.tvRunningBalance.text = String.format(Locale.US, "(%s %,.2f)", displayLabel, runningBal)
+            } else {
+                binding.tvRunningBalance.visibility = View.GONE
             }
 
             // Category Icon Badge (Vector Drawables)

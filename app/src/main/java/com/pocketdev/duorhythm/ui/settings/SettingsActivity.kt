@@ -114,6 +114,7 @@ class SettingsActivity : AppCompatActivity() {
         refreshStartOfWeekUI()
         refreshCategoriesCountUI()
         refreshAutoTrackAttendanceUI()
+        refreshShowRunningBalanceUI()
         updateThemeSelectorUI(ThemeManager.getSavedThemeMode(this))
         syncSwitchStates()
         syncAutoBackupState()
@@ -211,6 +212,7 @@ class SettingsActivity : AppCompatActivity() {
         refreshStartOfWeekUI()
         refreshCategoriesCountUI()
         refreshAutoTrackAttendanceUI()
+        refreshShowRunningBalanceUI()
 
         binding.itemStartOfWeek.setOnClickListener {
             showStartOfWeekDialog()
@@ -223,9 +225,27 @@ class SettingsActivity : AppCompatActivity() {
                 AppSettings.setAutoTrackAttendanceEnabled(this, isChecked)
             }
         }
+        binding.rowShowRunningBalance.setOnClickListener {
+            binding.switchShowRunningBalance.toggle()
+        }
+        binding.switchShowRunningBalance.setOnCheckedChangeListener { _, isChecked ->
+            if (!isHydratingUI) {
+                AppSettings.setShowRunningBalanceEnabled(this, isChecked)
+            }
+        }
         binding.rowManageTransactionCategories.setOnClickListener {
             CategoryManagementDialog.show(this, dbHelper) {
                 refreshCategoriesCountUI()
+            }
+        }
+    }
+
+    private fun refreshShowRunningBalanceUI() {
+        binding.switchShowRunningBalance.setOnCheckedChangeListener(null)
+        binding.switchShowRunningBalance.isChecked = AppSettings.isShowRunningBalanceEnabled(this)
+        binding.switchShowRunningBalance.setOnCheckedChangeListener { _, isChecked ->
+            if (!isHydratingUI) {
+                AppSettings.setShowRunningBalanceEnabled(this, isChecked)
             }
         }
     }

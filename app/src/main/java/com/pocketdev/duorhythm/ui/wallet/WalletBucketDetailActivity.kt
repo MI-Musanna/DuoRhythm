@@ -15,11 +15,13 @@ import com.google.android.material.chip.Chip
 import com.pocketdev.duorhythm.R
 import com.pocketdev.duorhythm.data.model.CurrencyRate
 import com.pocketdev.duorhythm.data.local.db.DatabaseHelper
+import com.pocketdev.duorhythm.data.local.pref.AppSettings
 import com.pocketdev.duorhythm.data.model.TransactionItem
 import com.pocketdev.duorhythm.data.model.WalletBucketItem
 import com.pocketdev.duorhythm.databinding.ActivityWalletBucketDetailBinding
 import com.pocketdev.duorhythm.databinding.DialogAddTransactionBinding
 import com.pocketdev.duorhythm.util.AnimationUtils
+import com.pocketdev.duorhythm.util.CurrencyUtils
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
@@ -74,6 +76,12 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         setupRecyclerView()
         setupMiniCharts()
         setupListeners()
+        loadBucketData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupCurrency()
         loadBucketData()
     }
 
@@ -428,9 +436,31 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         binding.tvBucketInflow.text = String.format(Locale.US, "+%s%.2f", currentSymbol, income)
         binding.tvBucketOutflow.text = String.format(Locale.US, "-%s%.2f", currentSymbol, expense)
 
+        // Calculate chronological running balances for each transaction
+        val allBucketTransactions = dbHelper.getTransactionsByBucket(bucket.id, null)
+        val runningBalances = mutableMapOf<Long, Double>()
+        var runningBal = bucket.balance
+        for (tx in allBucketTransactions) {
+            runningBalances[tx.id] = runningBal
+            if (tx.type == "INCOME") {
+                runningBal -= tx.amount
+            } else {
+                runningBal += tx.amount
+            }
+        }
+        val showRunningBalance = AppSettings.isShowRunningBalanceEnabled(this)
+
         // Load filtered transactions for this bucket
         val transactions = dbHelper.getTransactionsByBucket(bucket.id, currentFilter)
-        transactionsAdapter.updateData(transactions, emptyMap(), currentSymbol, 1.0)
+        transactionsAdapter.updateData(
+            newTransactions = transactions,
+            newCards = emptyMap(),
+            newSymbol = currentSymbol,
+            newRate = 1.0,
+            newRunningBalances = runningBalances,
+            newShowRunningBalance = showRunningBalance,
+            newCurrencyCode = currentCurrency
+        )
 
         if (transactions.isEmpty()) {
             binding.rvBucketTransactions.visibility = View.GONE
@@ -720,34 +750,38 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun applyToggleStyles(binding: DialogAddTransactionBinding, isIncome: Boolean) {
-        if (isIncome) {
-            binding.btnTypeIncome.setBackgroundColor(Color.parseColor("#064E3B"))
-            binding.btnTypeIncome.setTextColor(Color.parseColor("#34D399"))
-            binding.btnTypeIncome.strokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#059669"))
+    private fun applyToggleStyles(binding: DialogAddTransactionBinding, mode: String) {
+        val incomeBg = if (mode == "INCOME") Color.parseColor("#064E3B") else Color.TRANSPARENT
+        val incomeText = if (mode == "INCOME") Color.parseColor("#34D399") else Color.parseColor("#94A3B8")
+        val incomeStroke = if (mode == "INCOME") Color.parseColor("#059669") else Color.parseColor("#203049")
+        binding.btnTypeIncome.setBackgroundColor(incomeBg)
+        binding.btnTypeIncome.setTextColor(incomeText)
+        binding.btnTypeIncome.strokeColor = android.content.res.ColorStateList.valueOf(incomeStroke)
 
-            binding.btnTypeExpense.setBackgroundColor(Color.TRANSPARENT)
-            binding.btnTypeExpense.setTextColor(Color.parseColor("#94A3B8"))
-            binding.btnTypeExpense.strokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#203049"))
-        } else {
-            binding.btnTypeExpense.setBackgroundColor(Color.parseColor("#4C1D24"))
-            binding.btnTypeExpense.setTextColor(Color.parseColor("#F87171"))
-            binding.btnTypeExpense.strokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#991B1B"))
+        val expenseBg = if (mode == "EXPENSE") Color.parseColor("#4C1D24") else Color.TRANSPARENT
+        val expenseText = if (mode == "EXPENSE") Color.parseColor("#F87171") else Color.parseColor("#94A3B8")
+        val expenseStroke = if (mode == "EXPENSE") Color.parseColor("#991B1B") else Color.parseColor("#203049")
+        binding.btnTypeExpense.setBackgroundColor(expenseBg)
+        binding.btnTypeExpense.setTextColor(expenseText)
+        binding.btnTypeExpense.strokeColor = android.content.res.ColorStateList.valueOf(expenseStroke)
 
-            binding.btnTypeIncome.setBackgroundColor(Color.TRANSPARENT)
-            binding.btnTypeIncome.setTextColor(Color.parseColor("#94A3B8"))
-            binding.btnTypeIncome.strokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#203049"))
-        }
+        val transferBg = if (mode == "TRANSFER") Color.parseColor("#0C4A6E") else Color.TRANSPARENT
+        val transferText = if (mode == "TRANSFER") Color.parseColor("#38BDF8") else Color.parseColor("#94A3B8")
+        val transferStroke = if (mode == "TRANSFER") Color.parseColor("#0284C7") else Color.parseColor("#203049")
+        binding.btnTypeTransfer.setBackgroundColor(transferBg)
+        binding.btnTypeTransfer.setTextColor(transferText)
+        binding.btnTypeTransfer.strokeColor = android.content.res.ColorStateList.valueOf(transferStroke)
     }
 
     private fun showAddTransactionDialog() {
         val bucket = currentBucket ?: return
+        val allBuckets = dbHelper.getAllWalletBuckets()
         val dialogBinding = DialogAddTransactionBinding.inflate(layoutInflater)
         dialogBinding.tilTxAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
 
         var txType = "INCOME"
         dialogBinding.toggleTxType.check(R.id.btnTypeIncome)
-        applyToggleStyles(dialogBinding, true)
+        applyToggleStyles(dialogBinding, "INCOME")
 
         val categoryHelper = TransactionCategoryHelper(
             context = this,
@@ -759,59 +793,148 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
         // Pre-select current bucket
         dialogBinding.tilTxCard.visibility = View.GONE
+        dialogBinding.tilTxToAccount.visibility = View.GONE
         dialogBinding.spTxCard.visibility = View.GONE
+
+        val bucketNames = allBuckets.map { it.name }
+        val bucketAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, bucketNames)
+        dialogBinding.actvTxCard.setAdapter(bucketAdapter)
+        dialogBinding.actvTxCard.setText(bucket.name, false)
+
+        fun updateToAccountDropdown() {
+            val selectedFromName = dialogBinding.actvTxCard.text?.toString()?.trim().orEmpty()
+            val destBuckets = allBuckets.filterNot { it.name.equals(selectedFromName, ignoreCase = true) }
+            val destNames = destBuckets.map { it.name }
+            val toAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, destNames)
+            dialogBinding.actvTxToAccount.setAdapter(toAdapter)
+            if (destNames.isNotEmpty()) {
+                dialogBinding.actvTxToAccount.setText(destNames.first(), false)
+            } else {
+                dialogBinding.actvTxToAccount.setText("", false)
+            }
+        }
+
+        dialogBinding.actvTxToAccount.setOnClickListener { dialogBinding.actvTxToAccount.showDropDown() }
+        dialogBinding.actvTxCard.setOnClickListener { dialogBinding.actvTxCard.showDropDown() }
+        dialogBinding.actvTxCard.setOnItemClickListener { _, _, _, _ -> updateToAccountDropdown() }
 
         dialogBinding.toggleTxType.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
-                val isIncome = (checkedId == R.id.btnTypeIncome)
-                txType = if (isIncome) "INCOME" else "EXPENSE"
-                applyToggleStyles(dialogBinding, isIncome)
-                categoryHelper.setTxType(txType)
+                when (checkedId) {
+                    R.id.btnTypeTransfer -> {
+                        txType = "TRANSFER"
+                        dialogBinding.tilTxCard.visibility = View.VISIBLE
+                        dialogBinding.tilTxCard.hint = "From Account"
+                        dialogBinding.tilTxToAccount.visibility = View.VISIBLE
+                        dialogBinding.tilTxToAccount.hint = "To Account"
+                        dialogBinding.tilTxCategory.visibility = View.GONE
+                        dialogBinding.chipCreateCategory.visibility = View.GONE
+                        dialogBinding.btnSaveTx.text = "Execute Transfer"
+                        updateToAccountDropdown()
+                    }
+                    R.id.btnTypeExpense -> {
+                        txType = "EXPENSE"
+                        dialogBinding.tilTxCard.visibility = View.GONE
+                        dialogBinding.tilTxToAccount.visibility = View.GONE
+                        dialogBinding.tilTxCategory.visibility = View.VISIBLE
+                        dialogBinding.btnSaveTx.text = "Save Record"
+                        categoryHelper.setTxType("EXPENSE")
+                    }
+                    else -> {
+                        txType = "INCOME"
+                        dialogBinding.tilTxCard.visibility = View.GONE
+                        dialogBinding.tilTxToAccount.visibility = View.GONE
+                        dialogBinding.tilTxCategory.visibility = View.VISIBLE
+                        dialogBinding.btnSaveTx.text = "Save Record"
+                        categoryHelper.setTxType("INCOME")
+                    }
+                }
+                applyToggleStyles(dialogBinding, txType)
             }
         }
 
         val dialog = AlertDialog.Builder(this)
-            .setTitle("Add Record to ${bucket.name}")
             .setView(dialogBinding.root)
             .create()
 
         dialogBinding.btnSaveTx.setOnClickListener {
-            val title = dialogBinding.etTxTitle.text?.toString()?.trim().orEmpty()
             val amountStr = dialogBinding.etTxAmount.text?.toString()?.trim().orEmpty()
-            val notes = dialogBinding.etTxNotes.text?.toString()?.trim().orEmpty()
-
             if (amountStr.isEmpty()) {
                 Toast.makeText(this, "Amount is required", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val enteredAmount = amountStr.toDoubleOrNull() ?: 0.0
-            val baseAmount = enteredAmount
-            val category = categoryHelper.getSelectedCategoryAndEnsurePersisted()
-            if (category.isBlank()) {
-                Toast.makeText(this, "Please select or create a category", Toast.LENGTH_SHORT).show()
-                dialogBinding.actvTxCategory.requestFocus()
+            if (enteredAmount <= 0.0) {
+                Toast.makeText(this, "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val finalTitle = if (title.isNotBlank()) title else category
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
-            val tx = TransactionItem(
-                title = finalTitle,
-                amount = baseAmount,
-                type = txType,
-                category = category,
-                date = today,
-                cardId = 0L,
-                currency = currentCurrency,
-                notes = if (notes.isNotBlank()) "$notes (${bucket.name})" else "Account: ${bucket.name}",
-                bucketId = bucket.id
-            )
-            dbHelper.insertTransaction(tx)
-            dialog.dismiss()
-            loadBucketData()
-            WalletDataSyncManager.notifyChanged()
-            Toast.makeText(this, "Recorded to ${bucket.name}", Toast.LENGTH_SHORT).show()
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+            val notes = dialogBinding.etTxNotes.text?.toString()?.trim().orEmpty()
+            val customTitle = dialogBinding.etTxTitle.text?.toString()?.trim().orEmpty()
+
+            if (txType == "TRANSFER") {
+                if (allBuckets.size < 2) {
+                    Toast.makeText(this, "Transfer requires at least 2 accounts", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val fromName = dialogBinding.actvTxCard.text?.toString()?.trim().orEmpty()
+                val toName = dialogBinding.actvTxToAccount.text?.toString()?.trim().orEmpty()
+
+                val fromBucket = allBuckets.firstOrNull { it.name.equals(fromName, ignoreCase = true) } ?: bucket
+                val toBucket = allBuckets.firstOrNull { it.name.equals(toName, ignoreCase = true) }
+
+                if (toBucket == null || fromBucket.id == toBucket.id) {
+                    Toast.makeText(this, "Please select different source and destination accounts", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val success = dbHelper.executeTransfer(
+                    fromBucketId = fromBucket.id,
+                    toBucketId = toBucket.id,
+                    amount = enteredAmount,
+                    date = today,
+                    currency = currentCurrency,
+                    note = notes,
+                    title = customTitle
+                )
+
+                if (success) {
+                    dialog.dismiss()
+                    loadBucketData()
+                    WalletDataSyncManager.notifyChanged()
+                    val formatted = CurrencyUtils.formatRawCurrency(enteredAmount, currentSymbol)
+                    Toast.makeText(this, "Transferred $formatted from ${fromBucket.name} to ${toBucket.name}", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Failed to execute transfer", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                val category = categoryHelper.getSelectedCategoryAndEnsurePersisted()
+                if (category.isBlank()) {
+                    Toast.makeText(this, "Please select or create a category", Toast.LENGTH_SHORT).show()
+                    dialogBinding.actvTxCategory.requestFocus()
+                    return@setOnClickListener
+                }
+                val finalTitle = if (customTitle.isNotBlank()) customTitle else category
+
+                val tx = TransactionItem(
+                    title = finalTitle,
+                    amount = enteredAmount,
+                    type = txType,
+                    category = category,
+                    date = today,
+                    cardId = 0L,
+                    currency = currentCurrency,
+                    notes = if (notes.isNotBlank()) "$notes (${bucket.name})" else "Account: ${bucket.name}",
+                    bucketId = bucket.id
+                )
+                dbHelper.insertTransaction(tx)
+                dialog.dismiss()
+                loadBucketData()
+                WalletDataSyncManager.notifyChanged()
+                Toast.makeText(this, "Recorded to ${bucket.name}", Toast.LENGTH_SHORT).show()
+            }
         }
 
         dialogBinding.etTxAmount.requestFocus()
@@ -828,7 +951,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         var txType = tx.type
         val isIncome = (txType == "INCOME")
         dialogBinding.toggleTxType.check(if (isIncome) R.id.btnTypeIncome else R.id.btnTypeExpense)
-        applyToggleStyles(dialogBinding, isIncome)
+        applyToggleStyles(dialogBinding, if (isIncome) "INCOME" else "EXPENSE")
 
         val categoryHelper = TransactionCategoryHelper(
             context = this,
@@ -855,7 +978,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             if (isChecked) {
                 val activeIncome = (checkedId == R.id.btnTypeIncome)
                 txType = if (activeIncome) "INCOME" else "EXPENSE"
-                applyToggleStyles(dialogBinding, activeIncome)
+                applyToggleStyles(dialogBinding, txType)
                 categoryHelper.setTxType(txType)
             }
         }
