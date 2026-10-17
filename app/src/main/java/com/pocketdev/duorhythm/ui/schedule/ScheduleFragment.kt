@@ -354,7 +354,11 @@ class ScheduleFragment : Fragment() {
         val enrolledSubjects = dbHelper.getAllStudentSubjects()
         if (enrolledSubjects.isEmpty()) {
             Toast.makeText(requireContext(), "Please add at least one subject first!", Toast.LENGTH_SHORT).show()
-            showAddSubjectDialog()
+            try {
+                showAddSubjectDialog()
+            } catch (e: Throwable) {
+                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
+            }
             return
         }
 

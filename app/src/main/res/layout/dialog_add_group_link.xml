@@ -21,7 +21,7 @@
         android:minHeight="48dp"
         android:hint="Group Title (e.g. CST Batch 2026)"
         android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?attr/colorOutline"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="12dp" />
 
     <EditText
@@ -32,7 +32,7 @@
         android:inputType="textUri"
         android:hint="Link (e.g. https://chat.whatsapp.com/...)"
         android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?attr/colorOutline"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="20dp" />
 
     <com.google.android.material.button.MaterialButton

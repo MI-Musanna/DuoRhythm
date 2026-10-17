@@ -29,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline"
+            android:textColorHint="?android:attr/textColorSecondary"
             android:inputType="textCapWords" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -54,7 +54,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOutline"
+                android:textColorHint="?android:attr/textColorSecondary"
                 android:inputType="textCapCharacters" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -73,7 +73,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOutline"
+                android:textColorHint="?android:attr/textColorSecondary"
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
@@ -92,7 +92,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline"
+            android:textColorHint="?android:attr/textColorSecondary"
             android:inputType="textPersonName" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -110,7 +110,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline"
+            android:textColorHint="?android:attr/textColorSecondary"
             android:inputType="textEmailAddress" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -130,7 +130,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline"
+            android:textColorHint="?android:attr/textColorSecondary"
             android:inputType="phone" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -148,7 +148,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline"
+            android:textColorHint="?android:attr/textColorSecondary"
             android:inputType="textMultiLine"
             android:lines="3" />
     </com.google.android.material.textfield.TextInputLayout>

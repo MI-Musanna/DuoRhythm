@@ -77,8 +77,20 @@ class PortalFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         try {
             dbHelper = DatabaseHelper.getInstance(requireContext())
+        } catch (e: Throwable) {
+            android.util.Log.e("PortalFragment", "Error initializing dbHelper", e)
+        }
+        try {
             setupAdapters()
+        } catch (e: Throwable) {
+            android.util.Log.e("PortalFragment", "Error in setupAdapters", e)
+        }
+        try {
             setupListeners()
+        } catch (e: Throwable) {
+            android.util.Log.e("PortalFragment", "Error in setupListeners", e)
+        }
+        try {
             val rootView = activity?.window?.decorView?.findViewById<ViewGroup>(android.R.id.content)
                 ?: (binding.root as? ViewGroup)
             if (rootView != null) {
@@ -87,7 +99,7 @@ class PortalFragment : Fragment() {
             updateProfileView()
             loadAcademicIdentity()
         } catch (e: Throwable) {
-            e.printStackTrace()
+            android.util.Log.e("PortalFragment", "Error in post-setup", e)
         }
     }
 
@@ -290,9 +302,27 @@ class PortalFragment : Fragment() {
                 updateStudentSegmentView(checkedId)
             }
         }
-        binding.btnAddSubject.setOnClickListener { showAddSubjectDialog() }
-        binding.btnEnrollFirstSubject.setOnClickListener { showAddSubjectDialog() }
-        binding.btnEmptyAddSubject.setOnClickListener { showAddSubjectDialog() }
+        binding.btnAddSubject.setOnClickListener {
+            try {
+                showAddSubjectDialog()
+            } catch (e: Throwable) {
+                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
+            }
+        }
+        binding.btnEnrollFirstSubject.setOnClickListener {
+            try {
+                showAddSubjectDialog()
+            } catch (e: Throwable) {
+                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
+            }
+        }
+        binding.btnEmptyAddSubject.setOnClickListener {
+            try {
+                showAddSubjectDialog()
+            } catch (e: Throwable) {
+                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
+            }
+        }
         binding.btnAddWorkOrder.setOnClickListener { showAddWorkOrderDialog() }
         binding.btnEmptyAddWorkOrder.setOnClickListener { showAddWorkOrderDialog() }
         binding.btnStudentScheduleShortcut.setOnClickListener {
@@ -351,16 +381,32 @@ class PortalFragment : Fragment() {
         }
 
         binding.btnStudentAddContact.setOnClickListener {
-            if (isStudentContactsTab) showAddContactDialog(true) else showAddGroupLinkDialog(true)
+            try {
+                if (isStudentContactsTab) showAddContactDialog(true) else showAddGroupLinkDialog(true)
+            } catch (e: Throwable) {
+                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
+            }
         }
         binding.btnAddContact.setOnClickListener {
-            showAddContactDialog(isStudentProfile)
+            try {
+                showAddContactDialog(isStudentProfile)
+            } catch (e: Throwable) {
+                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
+            }
         }
         binding.btnAddLink.setOnClickListener {
-            showAddGroupLinkDialog(isStudentProfile)
+            try {
+                showAddGroupLinkDialog(isStudentProfile)
+            } catch (e: Throwable) {
+                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
+            }
         }
         binding.btnWorkAddContact.setOnClickListener {
-            if (isWorkContactsTab) showAddContactDialog(false) else showAddGroupLinkDialog(false)
+            try {
+                if (isWorkContactsTab) showAddContactDialog(false) else showAddGroupLinkDialog(false)
+            } catch (e: Throwable) {
+                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
+            }
         }
     }
 
@@ -986,7 +1032,7 @@ class PortalFragment : Fragment() {
         dialog.show()
     }
 
-    private fun showAddContactDialog(isStudentContext: Boolean) {
+    private fun showAddContactDialog(isStudentContext: Boolean = isStudentProfile) {
         val activity = requireActivity()
         val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_contact, null)
 
@@ -1139,7 +1185,7 @@ class PortalFragment : Fragment() {
         }
     }
 
-    private fun showAddGroupLinkDialog(isStudentContext: Boolean) {
+    private fun showAddGroupLinkDialog(isStudentContext: Boolean = isStudentProfile) {
         val activity = requireActivity()
         val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_group_link, null)
 

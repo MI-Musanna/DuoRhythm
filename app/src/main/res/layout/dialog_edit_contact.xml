@@ -39,7 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline" />
+            android:textColorHint="?android:attr/textColorSecondary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- International Phone Input Container -->
@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="phone"
                 android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOutline"
+                android:textColorHint="?android:attr/textColorSecondary"
                 android:text="+1" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -87,7 +87,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOutline" />
+                android:textColorHint="?android:attr/textColorSecondary" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
@@ -106,7 +106,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline"
+            android:textColorHint="?android:attr/textColorSecondary"
             android:hint="e.g. Classmate, Teacher, CR" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -146,7 +146,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline" />
+            android:textColorHint="?android:attr/textColorSecondary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton

@@ -21,7 +21,7 @@
         android:minHeight="48dp"
         android:hint="Subject Name (e.g. Physics 2)"
         android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?attr/colorOutline"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="12dp" />
 
     <LinearLayout
@@ -38,7 +38,7 @@
             android:minHeight="48dp"
             android:hint="Code (e.g. 25922)"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline"
+            android:textColorHint="?android:attr/textColorSecondary"
             android:layout_marginEnd="8dp" />
 
         <EditText
@@ -50,7 +50,7 @@
             android:inputType="number"
             android:hint="Credits (e.g. 4)"
             android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline" />
+            android:textColorHint="?android:attr/textColorSecondary" />
     </LinearLayout>
 
     <EditText
@@ -60,7 +60,7 @@
         android:minHeight="48dp"
         android:hint="Instructor (Optional)"
         android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?attr/colorOutline"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="20dp" />
 
     <com.google.android.material.button.MaterialButton
