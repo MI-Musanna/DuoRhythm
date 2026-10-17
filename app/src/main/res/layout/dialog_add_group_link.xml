@@ -3,49 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_dialog_glass"
+    android:background="?attr/colorSurface"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="24dp">
 
     <TextView
         android:id="@+id/tvGroupLinkTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="Save Community / Group Link"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="Save study Discord, Telegram group, or client channel."
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <EditText
+        android:id="@+id/etGroupName"
+        android:tag="etGroupTitle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:boxBackgroundColor="@color/surface_variant"
-        app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="Community / Group Name (e.g. CS Study Discord)">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etGroupName"
-            android:tag="etGroupTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline" />
-    </com.google.android.material.textfield.TextInputLayout>
+        android:layout_height="52dp"
+        android:layout_marginBottom="12dp"
+        android:background="@android:drawable/editbox_background_normal"
+        android:hint="Community / Group Name (e.g. CS Study Discord)"
+        android:paddingHorizontal="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOutline" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -60,14 +47,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
                 android:text="Platform"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorOutline"
+                android:textSize="12sp" />
 
             <Spinner
                 android:id="@+id/spGroupPlatform"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_edit_text_dynamic" />
+                android:layout_height="48dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -82,60 +68,44 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
                 android:text="Profile Scope"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorOutline"
+                android:textSize="12sp" />
 
             <Spinner
                 android:id="@+id/spGroupScope"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:background="@drawable/bg_edit_text_dynamic" />
+                android:layout_height="48dp" />
         </LinearLayout>
     </LinearLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilGroupLink"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <EditText
+        android:id="@+id/etGroupLink"
+        android:tag="etGroupUrl"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:boxBackgroundColor="@color/surface_variant"
-        app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="Invite Link / URL (e.g. https://discord.gg/...)">
+        android:layout_height="52dp"
+        android:layout_marginBottom="12dp"
+        android:background="@android:drawable/editbox_background_normal"
+        android:hint="Invite Link / URL (e.g. https://discord.gg/...)"
+        android:paddingHorizontal="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOutline" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etGroupLink"
-            android:tag="etGroupUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <EditText
+        android:id="@+id/etGroupNotes"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:boxBackgroundColor="@color/surface_variant"
-        app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="Description / Guidelines (Optional)">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etGroupNotes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline" />
-    </com.google.android.material.textfield.TextInputLayout>
+        android:layout_height="52dp"
+        android:layout_marginBottom="20dp"
+        android:background="@android:drawable/editbox_background_normal"
+        android:hint="Description / Guidelines (Optional)"
+        android:paddingHorizontal="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOutline" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSaveGroupLink"
         android:tag="btnSave"
         android:layout_width="match_parent"
-        android:layout_height="46dp"
-        android:layout_marginTop="16dp"
-        android:text="Save Group Link"
+        android:layout_height="54dp"
+        android:text="SAVE GROUP LINK"
         app:cornerRadius="12dp" />
-
 </LinearLayout>

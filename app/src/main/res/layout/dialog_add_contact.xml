@@ -3,159 +3,104 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_dialog_glass"
+    android:background="?attr/colorSurface"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="24dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="Save Contact"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
+    <EditText
+        android:id="@+id/etContactName"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginBottom="12dp"
+        android:background="@android:drawable/editbox_background_normal"
+        android:hint="Full Name (e.g. Dr. Rahman, Alex)"
+        android:paddingHorizontal="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOutline" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etContactCountryCode"
+            android:layout_width="85dp"
+            android:layout_height="52dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:drawable/editbox_background_normal"
+            android:hint="Code"
+            android:inputType="phone"
+            android:paddingHorizontal="12dp"
+            android:text="+1"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
+
+        <EditText
+            android:id="@+id/etContactPhone"
+            android:tag="etPhoneNumber"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:background="@android:drawable/editbox_background_normal"
+            android:hint="Phone Number (e.g. 555 123 4567)"
+            android:inputType="phone"
+            android:paddingHorizontal="16dp"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/etContactRole"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginBottom="12dp"
+        android:background="@android:drawable/editbox_background_normal"
+        android:hint="Role / Tag (e.g. Classmate, Teacher, CR)"
+        android:paddingHorizontal="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOutline" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="Add person with Truecaller-style 1-tap call &amp; chat actions."
-        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="4dp"
+        android:text="Profile Scope"
+        android:textColor="?attr/colorOutline"
         android:textSize="12sp" />
 
-    <!-- Full Name -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <Spinner
+        android:id="@+id/spContactScope"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:boxBackgroundColor="@color/surface_variant"
-        app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="Full Name (e.g. Dr. Rahman, Alex)">
+        android:layout_height="48dp"
+        android:layout_marginBottom="12dp" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etContactName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- International Phone Input Container -->
-    <LinearLayout
+    <EditText
+        android:id="@+id/etContactNotes"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilContactCountryCode"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="95dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
-            app:boxBackgroundColor="@color/surface_variant"
-            app:boxStrokeColor="@color/card_stroke_bright"
-            android:hint="Code">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etContactCountryCode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="phone"
-                android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOutline"
-                android:text="+1" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilContactPhone"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:boxBackgroundColor="@color/surface_variant"
-            app:boxStrokeColor="@color/card_stroke_bright"
-            android:hint="Phone Number (e.g. 555 123 4567)">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etContactPhone"
-                android:tag="etPhoneNumber"
-                android:inputType="phone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOutline" />
-        </com.google.android.material.textfield.TextInputLayout>
-    </LinearLayout>
-
-    <!-- Free-Form Custom Role / Tag -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:boxBackgroundColor="@color/surface_variant"
-        app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="e.g. Classmate, Teacher, CR">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etContactRole"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline"
-            android:hint="e.g. Classmate, Teacher, CR" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Profile Scope Selection -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="Profile Scope"
-            android:textColor="@color/text_secondary"
-            android:textSize="11sp" />
-
-        <Spinner
-            android:id="@+id/spContactScope"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:background="@drawable/bg_edit_text_dynamic" />
-    </LinearLayout>
-
-    <!-- Notes (Optional) -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:boxBackgroundColor="@color/surface_variant"
-        app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="Notes / Office Hours (Optional)">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etContactNotes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?attr/colorOutline" />
-    </com.google.android.material.textfield.TextInputLayout>
+        android:layout_height="52dp"
+        android:layout_marginBottom="20dp"
+        android:background="@android:drawable/editbox_background_normal"
+        android:hint="Notes / Office Hours (Optional)"
+        android:paddingHorizontal="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOutline" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSaveContact"
         android:tag="btnSave"
         android:layout_width="match_parent"
-        android:layout_height="46dp"
-        android:layout_marginTop="16dp"
-        android:text="Save Contact"
+        android:layout_height="54dp"
+        android:text="SAVE CONTACT"
         app:cornerRadius="12dp" />
-
 </LinearLayout>

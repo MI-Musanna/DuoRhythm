@@ -4,4 +4,9 @@
     <item type="id" name="etGroupTitle" />
     <item type="id" name="etGroupUrl" />
     <item type="id" name="btnSave" />
+    <item type="id" name="etCredits" />
+    <item type="id" name="etInstructor" />
+    <item type="id" name="etSubjectCredits" />
+    <item type="id" name="etSubjectInstructor" />
+    <item type="id" name="etSubjectNotes" />
 </resources>

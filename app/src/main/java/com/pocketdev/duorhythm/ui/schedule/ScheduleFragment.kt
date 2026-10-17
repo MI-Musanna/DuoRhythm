@@ -18,7 +18,6 @@ import com.pocketdev.duorhythm.data.model.StudentSubject
 import com.pocketdev.duorhythm.data.local.db.DatabaseHelper
 import com.pocketdev.duorhythm.data.local.pref.AppSettings
 import com.pocketdev.duorhythm.databinding.DialogAddClassBinding
-import com.pocketdev.duorhythm.databinding.DialogAddSubjectBinding
 import com.pocketdev.duorhythm.databinding.FragmentScheduleBinding
 import com.pocketdev.duorhythm.service.ReminderManager
 import com.pocketdev.duorhythm.util.AnimationUtils
@@ -417,48 +416,48 @@ class ScheduleFragment : Fragment() {
     }
 
     private fun showAddSubjectDialog() {
-        try {
-            val ctx = context ?: return
-            val dialogBinding = DialogAddSubjectBinding.inflate(LayoutInflater.from(ctx))
-            val dialog = MaterialAlertDialogBuilder(ctx)
-                .setView(dialogBinding.root)
-                .create()
+        val activity = requireActivity()
+        val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_subject, null)
+        val etName = dialogView.findViewById<android.widget.EditText>(R.id.etSubjectName)
+        val etCode = dialogView.findViewById<android.widget.EditText>(R.id.etSubjectCode)
+        val etCredits = dialogView.findViewById<android.widget.EditText>(R.id.etCredits) ?: dialogView.findViewById<android.widget.EditText>(R.id.etSubjectCredits)
+        val etInstructor = dialogView.findViewById<android.widget.EditText>(R.id.etInstructor) ?: dialogView.findViewById<android.widget.EditText>(R.id.etSubjectInstructor)
+        val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveSubject)
 
-            dialogBinding.btnSaveSubject.setOnClickListener {
-                val name = dialogBinding.etSubjectName.text?.toString()?.trim().orEmpty()
-                val code = dialogBinding.etSubjectCode.text?.toString()?.trim().orEmpty()
-                val credits = dialogBinding.etSubjectCredits.text?.toString()?.trim()?.toIntOrNull() ?: 3
-                val instructor = dialogBinding.etSubjectInstructor.text?.toString()?.trim().orEmpty()
-                val notes = dialogBinding.etSubjectNotes.text?.toString()?.trim().orEmpty()
+        val dialog = MaterialAlertDialogBuilder(activity)
+            .setView(dialogView)
+            .create()
 
-                if (name.isEmpty()) {
-                    Toast.makeText(ctx, "Subject name is required", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                val subject = StudentSubject(
-                    name = name,
-                    code = code,
-                    colorHex = "#2563EB",
-                    notes = notes,
-                    credits = credits,
-                    instructorName = instructor
-                )
-                val autoTrack = AppSettings.isAutoTrackAttendanceEnabled(ctx)
-                dbHelper.insertStudentSubject(subject, autoTrackAttendance = autoTrack)
-                dialog.dismiss()
-                Toast.makeText(ctx, "Subject created!", Toast.LENGTH_SHORT).show()
-                showAddClassDialog()
+        btnSave?.setOnClickListener {
+            val name = etName?.text?.toString()?.trim().orEmpty()
+            if (name.isEmpty()) {
+                etName?.error = "Subject name is required"
+                return@setOnClickListener
             }
+            val code = etCode?.text?.toString()?.trim().orEmpty()
+            val credits = etCredits?.text?.toString()?.trim()?.toIntOrNull() ?: 3
+            val instructor = etInstructor?.text?.toString()?.trim().orEmpty()
 
-            dialog.window?.apply {
-                setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-                setDimAmount(0.65f)
-            }
-            dialog.show()
-        } catch (e: Exception) {
-            android.util.Log.e("ScheduleFragment", "Error showing add subject dialog", e)
+            val subject = StudentSubject(
+                name = name,
+                code = code,
+                colorHex = "#2563EB",
+                notes = "",
+                credits = credits,
+                instructorName = instructor
+            )
+            val autoTrack = AppSettings.isAutoTrackAttendanceEnabled(activity)
+            dbHelper.insertStudentSubject(subject, autoTrackAttendance = autoTrack)
+            dialog.dismiss()
+            Toast.makeText(activity, "Subject created!", Toast.LENGTH_SHORT).show()
+            showAddClassDialog()
         }
+
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
+        dialog.show()
     }
 
     private fun showEditClassDialog(classItem: ClassScheduleItem) {

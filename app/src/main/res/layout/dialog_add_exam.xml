@@ -67,8 +67,7 @@
         android:id="@+id/spExamSubject"
         android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:layout_marginTop="4dp"
-        android:background="@drawable/bg_edit_text_dynamic" />
+        android:layout_marginTop="4dp" />
 
     <!-- Exam Title -->
     <com.google.android.material.textfield.TextInputLayout
