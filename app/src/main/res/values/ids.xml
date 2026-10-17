@@ -1,12 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item type="id" name="etPhoneNumber" />
+    <item type="id" name="etContactPhone" />
+    <item type="id" name="etContactNotes" />
+    <item type="id" name="etContactCountryCode" />
+    <item type="id" name="spContactScope" />
     <item type="id" name="etGroupTitle" />
     <item type="id" name="etGroupUrl" />
+    <item type="id" name="etGroupName" />
+    <item type="id" name="etGroupLink" />
+    <item type="id" name="etGroupNotes" />
+    <item type="id" name="spGroupPlatform" />
+    <item type="id" name="spGroupScope" />
+    <item type="id" name="tvGroupLinkTitle" />
     <item type="id" name="btnSave" />
+    <item type="id" name="btnSaveGroupLink" />
     <item type="id" name="etCredits" />
     <item type="id" name="etInstructor" />
     <item type="id" name="etSubjectCredits" />
     <item type="id" name="etSubjectInstructor" />
     <item type="id" name="etSubjectNotes" />
+    <item type="id" name="categoryFilterScrollView" />
+    <item type="id" name="bottomNavigationView" />
+    <item type="id" name="ivEmptyTasks" />
+    <item type="id" name="tvNoTasks" />
+    <item type="id" name="btnAddFirstTask" />
+    <item type="id" name="ivEmptyGoals" />
+    <item type="id" name="tvNoGoals" />
+    <item type="id" name="btnAddFirstGoal" />
+    <item type="id" name="layoutEmptyGoals" />
 </resources>

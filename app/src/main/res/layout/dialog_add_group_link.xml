@@ -1,111 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/colorSurface"
     android:orientation="vertical"
     android:padding="24dp">
 
     <TextView
-        android:id="@+id/tvGroupLinkTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Save Community / Group Link"
-        android:textColor="?attr/colorOnSurface"
+        android:text="Add Community / Group Link"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginBottom="16dp" />
 
     <EditText
-        android:id="@+id/etGroupName"
-        android:tag="etGroupTitle"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginBottom="12dp"
-        android:background="@android:drawable/editbox_background_normal"
-        android:hint="Community / Group Name (e.g. CS Study Discord)"
-        android:paddingHorizontal="16dp"
-        android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?attr/colorOutline" />
-
-    <LinearLayout
+        android:id="@+id/etGroupTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="Platform"
-                android:textColor="?attr/colorOutline"
-                android:textSize="12sp" />
-
-            <Spinner
-                android:id="@+id/spGroupPlatform"
-                android:layout_width="match_parent"
-                android:layout_height="48dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="Profile Scope"
-                android:textColor="?attr/colorOutline"
-                android:textSize="12sp" />
-
-            <Spinner
-                android:id="@+id/spGroupScope"
-                android:layout_width="match_parent"
-                android:layout_height="48dp" />
-        </LinearLayout>
-    </LinearLayout>
+        android:minHeight="48dp"
+        android:hint="Group Title (e.g. CST Batch 2026)"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOutline"
+        android:layout_marginBottom="12dp" />
 
     <EditText
-        android:id="@+id/etGroupLink"
-        android:tag="etGroupUrl"
+        android:id="@+id/etGroupUrl"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginBottom="12dp"
-        android:background="@android:drawable/editbox_background_normal"
-        android:hint="Invite Link / URL (e.g. https://discord.gg/...)"
-        android:paddingHorizontal="16dp"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:inputType="textUri"
+        android:hint="Link (e.g. https://chat.whatsapp.com/...)"
         android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?attr/colorOutline" />
-
-    <EditText
-        android:id="@+id/etGroupNotes"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginBottom="20dp"
-        android:background="@android:drawable/editbox_background_normal"
-        android:hint="Description / Guidelines (Optional)"
-        android:paddingHorizontal="16dp"
-        android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?attr/colorOutline" />
+        android:textColorHint="?attr/colorOutline"
+        android:layout_marginBottom="20dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSaveGroupLink"
-        android:tag="btnSave"
         android:layout_width="match_parent"
-        android:layout_height="54dp"
-        android:text="SAVE GROUP LINK"
-        app:cornerRadius="12dp" />
+        android:layout_height="50dp"
+        android:text="SAVE LINK" />
 </LinearLayout>

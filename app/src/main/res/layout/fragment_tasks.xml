@@ -8,19 +8,22 @@
     android:clipToPadding="false"
     android:background="@drawable/bg_ambient_canvas">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:padding="16dp">
 
         <!-- 1. Top Header Row: Balanced Title Block + Goal Action Pill -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/layoutTasksHeader"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -70,14 +73,18 @@
         <!-- Layer Separation: [ 📋 Tasks | 🎯 Goals ] Tabs -->
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/toggleTasksGoals"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:padding="2dp"
             android:background="@drawable/bg_mode_switch_pill"
             app:checkedButton="@id/btnTabTasks"
             app:singleSelection="true"
-            app:selectionRequired="true">
+            app:selectionRequired="true"
+            app:layout_constraintTop_toBottomOf="@id/layoutTasksHeader"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTabTasks"
@@ -112,10 +119,13 @@
 
         <!-- 2. Filter Chips Strip wrapped in NestedScrollableHost -->
         <com.pocketdev.duorhythm.ui.common.NestedScrollableHost
-            android:id="@+id/hostTaskFilters"
-            android:layout_width="match_parent"
+            android:id="@+id/categoryFilterScrollView"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/toggleTasksGoals"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
@@ -194,89 +204,170 @@
             </HorizontalScrollView>
         </com.pocketdev.duorhythm.ui.common.NestedScrollableHost>
 
-        <!-- 3. Content Area: Active List OR Clean Centered Empty State Card -->
-        <FrameLayout
-            android:layout_width="match_parent"
+        <!-- Active Tasks RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTasks"
+            android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:clipToPadding="false"
+            android:paddingBottom="120dp"
+            android:layoutAnimation="@anim/layout_animation_slide_up"
+            tools:listitem="@layout/item_task"
+            app:layout_constraintTop_toBottomOf="@id/categoryFilterScrollView"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-            <!-- Active Tasks RecyclerView -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvTasks"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="120dp"
-                android:layoutAnimation="@anim/layout_animation_slide_up"
-                tools:listitem="@layout/item_task" />
+        <!-- Task Empty State Container -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/layoutEmptyTasks"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/categoryFilterScrollView"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.5"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/card_stroke"
+            app:cardBackgroundColor="@color/surface_card"
+            android:visibility="gone">
 
-            <!-- Clean Centered Empty State Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/layoutEmptyTasks"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginHorizontal="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/card_stroke"
-                app:cardBackgroundColor="@color/surface_card"
-                android:visibility="gone">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="28dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:id="@+id/ivEmptyTasks"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:src="@drawable/ic_tasks"
+                    app:tint="@color/water_cyan_bright" />
+
+                <TextView
+                    android:id="@+id/tvNoTasks"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="No tasks yet"
+                    android:textColor="@color/white"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvEmptyTasksSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
                     android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="28dp">
+                    android:text="Stay organized by adding your priorities for today."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
 
-                    <ImageView
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:src="@drawable/ic_tasks"
-                        app:tint="@color/water_cyan_bright" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddFirstTask"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="18dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="+ Add Your First Task"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#0284C7"
+                    app:cornerRadius="16dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-                    <TextView
-                        android:id="@+id/tvEmptyTasksTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:text="No tasks yet"
-                        android:textColor="@color/white"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
+        <!-- Goal Empty State Container -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/layoutEmptyGoals"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/categoryFilterScrollView"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.5"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/card_stroke"
+            app:cardBackgroundColor="@color/surface_card"
+            android:visibility="gone">
 
-                    <TextView
-                        android:id="@+id/tvEmptyTasksSubtitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="Stay organized by adding your priorities for today."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="28dp">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEmptyAddTask"
-                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:layout_marginTop="18dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="20dp"
-                        android:text="+ Add Your First Task"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="#0284C7"
-                        app:cornerRadius="16dp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                <ImageView
+                    android:id="@+id/ivEmptyGoals"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:src="@drawable/ic_target"
+                    app:tint="@color/accent_amber" />
 
-        </FrameLayout>
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/tvNoGoals"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="No milestone goals yet"
+                    android:textColor="@color/white"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvEmptyGoalsSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:text="Track long-term achievements and milestones."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddFirstGoal"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="18dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="+ Set Your First Goal"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#D97706"
+                    app:cornerRadius="16dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Bottom Layout Anchor -->
+        <View
+            android:id="@+id/bottomNavigationView"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Floating Action Button (FAB) -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

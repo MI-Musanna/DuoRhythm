@@ -1206,15 +1206,24 @@ class PortalFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val platformCode = when (platformSelected) {
-                "Discord" -> "DISCORD"
-                "Telegram" -> "TELEGRAM"
-                "WhatsApp Group" -> "WHATSAPP"
-                "Messenger" -> "MESSENGER"
+            val platformCode = when {
+                formattedLink.contains("discord", ignoreCase = true) -> "DISCORD"
+                formattedLink.contains("t.me", ignoreCase = true) || formattedLink.contains("telegram", ignoreCase = true) -> "TELEGRAM"
+                formattedLink.contains("whatsapp", ignoreCase = true) || formattedLink.contains("wa.me", ignoreCase = true) -> "WHATSAPP"
+                formattedLink.contains("m.me", ignoreCase = true) || formattedLink.contains("messenger", ignoreCase = true) -> "MESSENGER"
+                spPlatform != null -> {
+                    when (platformSelected) {
+                        "Discord" -> "DISCORD"
+                        "Telegram" -> "TELEGRAM"
+                        "WhatsApp Group" -> "WHATSAPP"
+                        "Messenger" -> "MESSENGER"
+                        else -> "OTHER"
+                    }
+                }
                 else -> "OTHER"
             }
 
-            btnSave.isEnabled = false
+            btnSave?.isEnabled = false
 
             val item = com.pocketdev.duorhythm.data.model.ContactGroupItem(
                 name = name,

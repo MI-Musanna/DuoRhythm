@@ -399,7 +399,7 @@ class TasksFragment : Fragment() {
                 binding.btnTabTasks.setTextColor(Color.WHITE)
                 binding.btnTabGoals.setBackgroundColor(Color.TRANSPARENT)
                 binding.btnTabGoals.setTextColor(Color.parseColor("#94A3B8"))
-                binding.hostTaskFilters.visibility = View.VISIBLE
+                binding.categoryFilterScrollView.visibility = View.VISIBLE
                 binding.tvTasksTitle.text = "My Tasks"
                 binding.fabAddTask.text = "New Task"
                 binding.fabAddTask.setIconResource(R.drawable.ic_add)
@@ -410,7 +410,7 @@ class TasksFragment : Fragment() {
                 binding.btnTabGoals.setTextColor(Color.WHITE)
                 binding.btnTabTasks.setBackgroundColor(Color.TRANSPARENT)
                 binding.btnTabTasks.setTextColor(Color.parseColor("#94A3B8"))
-                binding.hostTaskFilters.visibility = View.GONE
+                binding.categoryFilterScrollView.visibility = View.GONE
                 binding.tvTasksTitle.text = "Milestone Goals"
                 binding.fabAddTask.text = "New Goal"
                 binding.fabAddTask.setIconResource(R.drawable.ic_target)
@@ -424,12 +424,14 @@ class TasksFragment : Fragment() {
             binding.toggleTasksGoals.check(R.id.btnTabGoals)
             showCreateTaskDialog(isGoal = true)
         }
-        binding.btnEmptyAddTask.setOnClickListener { showCreateTaskDialog(isGoal = (currentTab == TaskTab.GOALS)) }
+        binding.btnAddFirstTask.setOnClickListener { showCreateTaskDialog(isGoal = false) }
+        binding.btnAddFirstGoal.setOnClickListener { showCreateTaskDialog(isGoal = true) }
 
         AnimationUtils.attachTactileFeedback(
             binding.fabAddTask,
             binding.btnAddGoal,
-            binding.btnEmptyAddTask,
+            binding.btnAddFirstTask,
+            binding.btnAddFirstGoal,
             binding.btnAddCustomCategory
         )
     }
@@ -485,16 +487,14 @@ class TasksFragment : Fragment() {
                 val pendingToday = allTasks.count { !it.isCompleted && !it.dueDate.isNullOrBlank() && it.dueDate <= today }
                 binding.tvTasksSubtitle.text = "$pendingToday pending today"
 
-                binding.tvEmptyTasksTitle.text = "No tasks yet"
-                binding.tvEmptyTasksSubtitle.text = "Stay organized by adding your priorities for today."
-                binding.btnEmptyAddTask.text = "+ Add Your First Task"
-
                 if (tasks.isEmpty()) {
                     binding.rvTasks.visibility = View.GONE
                     binding.layoutEmptyTasks.visibility = View.VISIBLE
+                    binding.layoutEmptyGoals.visibility = View.GONE
                 } else {
                     binding.rvTasks.visibility = View.VISIBLE
                     binding.layoutEmptyTasks.visibility = View.GONE
+                    binding.layoutEmptyGoals.visibility = View.GONE
                 }
             } else {
                 val goals = dbHelper.getAllTasks("ALL", isGoal = true)
@@ -503,16 +503,14 @@ class TasksFragment : Fragment() {
                 val activeGoals = goals.count { it.progress < 100 }
                 binding.tvTasksSubtitle.text = "$activeGoals active goals"
 
-                binding.tvEmptyTasksTitle.text = "No milestone goals yet"
-                binding.tvEmptyTasksSubtitle.text = "Track long-term achievements and milestones."
-                binding.btnEmptyAddTask.text = "+ Set Your First Goal"
-
                 if (goals.isEmpty()) {
                     binding.rvTasks.visibility = View.GONE
-                    binding.layoutEmptyTasks.visibility = View.VISIBLE
+                    binding.layoutEmptyTasks.visibility = View.GONE
+                    binding.layoutEmptyGoals.visibility = View.VISIBLE
                 } else {
                     binding.rvTasks.visibility = View.VISIBLE
                     binding.layoutEmptyTasks.visibility = View.GONE
+                    binding.layoutEmptyGoals.visibility = View.GONE
                 }
             }
         } catch (e: Throwable) {
