@@ -590,7 +590,7 @@
                         android:textSize="13sp" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEmptyAddSubject"
+                        android:id="@+id/btnEnrollFirstSubject"
                         style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                         android:layout_width="wrap_content"
                         android:layout_height="40dp"
@@ -604,6 +604,12 @@
                         android:textStyle="bold"
                         app:backgroundTint="#0284C7"
                         app:cornerRadius="16dp" />
+
+                    <View
+                        android:id="@+id/btnEmptyAddSubject"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -819,6 +825,20 @@
                         android:textStyle="bold"
                         app:backgroundTint="#0284C7"
                         app:cornerRadius="12dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddContact"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone"
+                        android:text="+ Contact" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddLink"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone"
+                        android:text="+ Add Link" />
                 </LinearLayout>
 
                 <!-- Segmented Dual-Tab Pill: Contacts vs Group Links -->

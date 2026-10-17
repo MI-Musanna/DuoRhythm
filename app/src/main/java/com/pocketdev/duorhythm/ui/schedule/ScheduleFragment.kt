@@ -1,6 +1,6 @@
 package com.pocketdev.duorhythm.ui.schedule
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,9 +14,11 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.pocketdev.duorhythm.R
 import com.pocketdev.duorhythm.data.model.ClassScheduleItem
+import com.pocketdev.duorhythm.data.model.StudentSubject
 import com.pocketdev.duorhythm.data.local.db.DatabaseHelper
 import com.pocketdev.duorhythm.data.local.pref.AppSettings
 import com.pocketdev.duorhythm.databinding.DialogAddClassBinding
+import com.pocketdev.duorhythm.databinding.DialogAddSubjectBinding
 import com.pocketdev.duorhythm.databinding.FragmentScheduleBinding
 import com.pocketdev.duorhythm.service.ReminderManager
 import com.pocketdev.duorhythm.util.AnimationUtils
@@ -108,7 +110,7 @@ class ScheduleFragment : Fragment() {
             emptyList(),
             selectedDay,
             onDeleteClick = { item ->
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Class")
                     .setMessage("Remove '${item.subjectName}' from timetable?")
                     .setPositiveButton("Delete") { _, _ ->
@@ -152,7 +154,7 @@ class ScheduleFragment : Fragment() {
                     "Reset Attendance Counters (0/0)",
                     "Delete Subject Attendance"
                 )
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Attendance: ${item.subjectName}")
                     .setItems(options) { _, which ->
                         when (which) {
@@ -162,7 +164,7 @@ class ScheduleFragment : Fragment() {
                                 Toast.makeText(requireContext(), "Attendance counters reset", Toast.LENGTH_SHORT).show()
                             }
                             1 -> {
-                                AlertDialog.Builder(requireContext())
+                                MaterialAlertDialogBuilder(requireContext())
                                     .setTitle("Confirm Delete")
                                     .setMessage("Remove attendance record for '${item.subjectName}'?")
                                     .setPositiveButton("Delete") { _, _ ->
@@ -338,10 +340,25 @@ class ScheduleFragment : Fragment() {
             editText.setText(String.format(java.util.Locale.US, "%02d:%02d %s", hour12, minute, amPm))
         }
 
-        picker.show(childFragmentManager, "ClassTimePicker")
+        try {
+            picker.show(parentFragmentManager, "ClassTimePicker")
+        } catch (e: Exception) {
+            try {
+                picker.show(childFragmentManager, "ClassTimePicker")
+            } catch (e2: Exception) {
+                android.util.Log.e("ScheduleFragment", "Error showing MaterialTimePicker", e2)
+            }
+        }
     }
 
     private fun showAddClassDialog() {
+        val enrolledSubjects = dbHelper.getAllStudentSubjects()
+        if (enrolledSubjects.isEmpty()) {
+            Toast.makeText(requireContext(), "Please add at least one subject first!", Toast.LENGTH_SHORT).show()
+            showAddSubjectDialog()
+            return
+        }
+
         val dialogBinding = DialogAddClassBinding.inflate(layoutInflater)
         val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
         val daysAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, days)
@@ -355,7 +372,7 @@ class ScheduleFragment : Fragment() {
         dialogBinding.etClassStartTime.setOnClickListener { showTimePicker(dialogBinding.etClassStartTime) }
         dialogBinding.etClassEndTime.setOnClickListener { showTimePicker(dialogBinding.etClassEndTime) }
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogBinding.root)
             .create()
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
@@ -399,6 +416,51 @@ class ScheduleFragment : Fragment() {
         dialog.show()
     }
 
+    private fun showAddSubjectDialog() {
+        try {
+            val ctx = context ?: return
+            val dialogBinding = DialogAddSubjectBinding.inflate(LayoutInflater.from(ctx))
+            val dialog = MaterialAlertDialogBuilder(ctx)
+                .setView(dialogBinding.root)
+                .create()
+
+            dialogBinding.btnSaveSubject.setOnClickListener {
+                val name = dialogBinding.etSubjectName.text?.toString()?.trim().orEmpty()
+                val code = dialogBinding.etSubjectCode.text?.toString()?.trim().orEmpty()
+                val credits = dialogBinding.etSubjectCredits.text?.toString()?.trim()?.toIntOrNull() ?: 3
+                val instructor = dialogBinding.etSubjectInstructor.text?.toString()?.trim().orEmpty()
+                val notes = dialogBinding.etSubjectNotes.text?.toString()?.trim().orEmpty()
+
+                if (name.isEmpty()) {
+                    Toast.makeText(ctx, "Subject name is required", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val subject = StudentSubject(
+                    name = name,
+                    code = code,
+                    colorHex = "#2563EB",
+                    notes = notes,
+                    credits = credits,
+                    instructorName = instructor
+                )
+                val autoTrack = AppSettings.isAutoTrackAttendanceEnabled(ctx)
+                dbHelper.insertStudentSubject(subject, autoTrackAttendance = autoTrack)
+                dialog.dismiss()
+                Toast.makeText(ctx, "Subject created!", Toast.LENGTH_SHORT).show()
+                showAddClassDialog()
+            }
+
+            dialog.window?.apply {
+                setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setDimAmount(0.65f)
+            }
+            dialog.show()
+        } catch (e: Exception) {
+            android.util.Log.e("ScheduleFragment", "Error showing add subject dialog", e)
+        }
+    }
+
     private fun showEditClassDialog(classItem: ClassScheduleItem) {
         val dialogBinding = DialogAddClassBinding.inflate(layoutInflater)
         dialogBinding.tvAddClassTitle.text = "Edit Class Schedule"
@@ -428,7 +490,7 @@ class ScheduleFragment : Fragment() {
         dialogBinding.etClassStartTime.setOnClickListener { showTimePicker(dialogBinding.etClassStartTime) }
         dialogBinding.etClassEndTime.setOnClickListener { showTimePicker(dialogBinding.etClassEndTime) }
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogBinding.root)
             .create()
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
@@ -478,3 +540,6 @@ class ScheduleFragment : Fragment() {
         _binding = null
     }
 }
+
+typealias TimetableFragment = ScheduleFragment
+

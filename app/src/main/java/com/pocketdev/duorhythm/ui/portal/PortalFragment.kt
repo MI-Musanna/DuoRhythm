@@ -1,6 +1,10 @@
 package com.pocketdev.duorhythm.ui.portal
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.content.Intent
@@ -137,7 +141,7 @@ class PortalFragment : Fragment() {
                 startActivity(intent)
             },
             onDeleteClick = { subject ->
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Subject")
                     .setMessage("Remove '${subject.name}' and all its homework/exams?")
                     .setPositiveButton("Delete") { _, _ ->
@@ -164,7 +168,7 @@ class PortalFragment : Fragment() {
                 loadWorkData()
             },
             onDeleteClick = { order ->
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Work Order")
                     .setMessage("Remove '${order.title}'?")
                     .setPositiveButton("Delete") { _, _ ->
@@ -183,7 +187,7 @@ class PortalFragment : Fragment() {
                 loadStudentData()
             },
             onDeleteClick = { item ->
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Exam")
                     .setMessage("Remove '${item.title}'?")
                     .setPositiveButton("Delete") { _, _ ->
@@ -208,7 +212,7 @@ class PortalFragment : Fragment() {
                 loadStudentData()
             },
             onDeleteClick = { item ->
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Class Test")
                     .setMessage("Remove '${item.title}'?")
                     .setPositiveButton("Delete") { _, _ ->
@@ -229,7 +233,7 @@ class PortalFragment : Fragment() {
         studentContactsAdapter = com.pocketdev.duorhythm.ui.tools.ContactsAdapter(
             emptyList(),
             onDeleteClick = { contact ->
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Contact")
                     .setMessage("Remove '${contact.name}'?")
                     .setPositiveButton("Delete") { _, _ ->
@@ -254,7 +258,7 @@ class PortalFragment : Fragment() {
         workContactsAdapter = com.pocketdev.duorhythm.ui.tools.ContactsAdapter(
             emptyList(),
             onDeleteClick = { contact ->
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Contact")
                     .setMessage("Remove '${contact.name}'?")
                     .setPositiveButton("Delete") { _, _ ->
@@ -290,8 +294,9 @@ class PortalFragment : Fragment() {
             }
         }
         binding.btnAddSubject.setOnClickListener { showAddSubjectDialog() }
-        binding.btnAddWorkOrder.setOnClickListener { showAddWorkOrderDialog() }
+        binding.btnEnrollFirstSubject.setOnClickListener { showAddSubjectDialog() }
         binding.btnEmptyAddSubject.setOnClickListener { showAddSubjectDialog() }
+        binding.btnAddWorkOrder.setOnClickListener { showAddWorkOrderDialog() }
         binding.btnEmptyAddWorkOrder.setOnClickListener { showAddWorkOrderDialog() }
         binding.btnStudentScheduleShortcut.setOnClickListener {
             (activity as? com.pocketdev.duorhythm.MainActivity)?.selectNavTab(R.id.nav_schedule)
@@ -353,6 +358,20 @@ class PortalFragment : Fragment() {
                 if (isStudentContactsTab) showAddContactDialog(true) else showAddGroupLinkDialog(true)
             } catch (e: Exception) {
                 Log.e("DirectoryFragment", "Error showing student directory dialog", e)
+            }
+        }
+        binding.btnAddContact.setOnClickListener {
+            try {
+                showAddContactDialog(isStudentProfile)
+            } catch (e: Exception) {
+                Log.e("DirectoryFragment", "Error showing add contact dialog", e)
+            }
+        }
+        binding.btnAddLink.setOnClickListener {
+            try {
+                showAddGroupLinkDialog(isStudentProfile)
+            } catch (e: Exception) {
+                Log.e("DirectoryFragment", "Error showing add link dialog", e)
             }
         }
         binding.btnWorkAddContact.setOnClickListener {
@@ -692,7 +711,7 @@ class PortalFragment : Fragment() {
         }
         dialogBinding.etExamTime.setOnClickListener(openTimePicker)
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogBinding.root)
             .create()
 
@@ -796,7 +815,7 @@ class PortalFragment : Fragment() {
         }
         dialogBinding.etQuizTime.setOnClickListener(openTimePicker)
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogBinding.root)
             .create()
 
@@ -936,7 +955,7 @@ class PortalFragment : Fragment() {
         }
         dialogBinding.etExamTime.setOnClickListener(openTimePicker)
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogBinding.root)
             .create()
 
@@ -1011,7 +1030,7 @@ class PortalFragment : Fragment() {
             val defaultCountryCode = CountryUtils.getDeviceCountryCode(ctx)
             etCountry?.setText(defaultCountryCode)
 
-            val dialog = AlertDialog.Builder(ctx)
+            val dialog = MaterialAlertDialogBuilder(ctx)
                 .setView(dialogView)
                 .create()
 
@@ -1103,7 +1122,7 @@ class PortalFragment : Fragment() {
             etCountry?.setText(defaultCountryCode)
             etPhone?.setText(contact.phoneNumber)
 
-            val dialog = AlertDialog.Builder(ctx)
+            val dialog = MaterialAlertDialogBuilder(ctx)
                 .setView(dialogView)
                 .create()
 
@@ -1185,7 +1204,7 @@ class PortalFragment : Fragment() {
             val defaultScopeIdx = if (isStudentContext) 0 else 1
             spScope?.setSelection(defaultScopeIdx)
 
-            val dialog = AlertDialog.Builder(ctx)
+            val dialog = MaterialAlertDialogBuilder(ctx)
                 .setView(dialogView)
                 .create()
 
@@ -1300,7 +1319,7 @@ class PortalFragment : Fragment() {
             etLink?.setText(groupLink.targetLink)
             etNotes?.setText(groupLink.notes)
 
-            val dialog = AlertDialog.Builder(ctx)
+            val dialog = MaterialAlertDialogBuilder(ctx)
                 .setView(dialogView)
                 .create()
 
@@ -1373,7 +1392,7 @@ class PortalFragment : Fragment() {
         try {
             val ctx = context ?: return
             val dialogBinding = DialogAddSubjectBinding.inflate(LayoutInflater.from(ctx))
-            val dialog = AlertDialog.Builder(ctx)
+            val dialog = MaterialAlertDialogBuilder(ctx)
                 .setView(dialogBinding.root)
                 .create()
 
@@ -1398,10 +1417,16 @@ class PortalFragment : Fragment() {
                     instructorName = instructor
                 )
                 val autoTrack = com.pocketdev.duorhythm.data.local.pref.AppSettings.isAutoTrackAttendanceEnabled(ctx)
-                dbHelper.insertStudentSubject(subject, autoTrackAttendance = autoTrack)
-                dialog.dismiss()
-                loadStudentData()
-                Toast.makeText(ctx, "Subject created!", Toast.LENGTH_SHORT).show()
+                dialogBinding.btnSaveSubject.isEnabled = false
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    dbHelper.insertStudentSubject(subject, autoTrackAttendance = autoTrack)
+                    withContext(Dispatchers.Main) {
+                        dialog.dismiss()
+                        loadStudentData()
+                        Toast.makeText(ctx, "Subject created!", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
 
             dialog.window?.apply {
@@ -1473,7 +1498,7 @@ class PortalFragment : Fragment() {
             pickOrderAttachmentLauncher.launch("*/*")
         }
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogBinding.root)
             .setOnDismissListener { activeOrderDialogBinding = null }
             .create()
@@ -1581,7 +1606,7 @@ class PortalFragment : Fragment() {
         layout.addView(etInst)
         layout.addView(etFaculty)
 
-        AlertDialog.Builder(context)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle("Academic Institution")
             .setView(layout)
             .setPositiveButton("Save") { _, _ ->

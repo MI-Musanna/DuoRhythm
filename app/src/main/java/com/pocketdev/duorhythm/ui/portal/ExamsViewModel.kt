@@ -35,3 +35,5 @@ class ExamsViewModel(application: Application) : AndroidViewModel(application) {
 
 typealias ExamsFragment = PortalFragment
 typealias DirectoryFragment = PortalFragment
+typealias AcademicOverviewFragment = PortalFragment
+typealias TimetableFragment = com.pocketdev.duorhythm.ui.schedule.ScheduleFragment
