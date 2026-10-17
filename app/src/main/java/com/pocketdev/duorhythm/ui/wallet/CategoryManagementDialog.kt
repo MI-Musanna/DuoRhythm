@@ -160,9 +160,9 @@ object CategoryManagementDialog {
                     btn.setTextColor(Color.WHITE)
                     btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
                 } else {
-                    btn.setBackgroundColor(Color.parseColor("#131D2F"))
-                    btn.setTextColor(Color.parseColor("#94A3B8"))
-                    btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#243654"))
+                    btn.setBackgroundColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
+                    btn.setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
+                    btn.strokeColor = ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(context, R.color.card_stroke))
                 }
             }
         }
@@ -237,12 +237,12 @@ object CategoryManagementDialog {
                         }
                         setStroke(dp(2), Color.WHITE)
                     } else {
-                        setColor(Color.parseColor("#1E293B"))
-                        setStroke(dp(1), Color.parseColor("#334155"))
+                        setColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
+                        setStroke(dp(1), androidx.core.content.ContextCompat.getColor(context, R.color.card_stroke))
                     }
                 }
                 iv.background = bg
-                iv.imageTintList = ColorStateList.valueOf(if (isSelected) Color.WHITE else Color.parseColor("#94A3B8"))
+                iv.imageTintList = ColorStateList.valueOf(if (isSelected) Color.WHITE else androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
             }
         }
 
@@ -382,9 +382,9 @@ object CategoryManagementDialog {
                     btn.setTextColor(Color.WHITE)
                     btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
                 } else {
-                    btn.setBackgroundColor(Color.parseColor("#131D2F"))
-                    btn.setTextColor(Color.parseColor("#94A3B8"))
-                    btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#243654"))
+                    btn.setBackgroundColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
+                    btn.setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
+                    btn.strokeColor = ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(context, R.color.card_stroke))
                 }
             }
         }
@@ -452,12 +452,12 @@ object CategoryManagementDialog {
                         }
                         setStroke(dp(2), Color.WHITE)
                     } else {
-                        setColor(Color.parseColor("#1E293B"))
-                        setStroke(dp(1), Color.parseColor("#334155"))
+                        setColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
+                        setStroke(dp(1), androidx.core.content.ContextCompat.getColor(context, R.color.card_stroke))
                     }
                 }
                 iv.background = bg
-                iv.imageTintList = ColorStateList.valueOf(if (isSelected) Color.WHITE else Color.parseColor("#94A3B8"))
+                iv.imageTintList = ColorStateList.valueOf(if (isSelected) Color.WHITE else androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
             }
         }
 

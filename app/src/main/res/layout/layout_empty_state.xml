@@ -15,8 +15,8 @@
         app:cardCornerRadius="28dp"
         app:cardElevation="0dp"
         app:strokeWidth="1dp"
-        app:strokeColor="#232F48"
-        app:cardBackgroundColor="#172033">
+        app:strokeColor="@color/card_stroke"
+        app:cardBackgroundColor="@color/surface_variant">
 
         <ImageView
             android:id="@+id/ivEmptyIcon"

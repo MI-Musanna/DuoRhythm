@@ -62,7 +62,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="6dp"
             android:text="Applicable To"
-            android:textColor="#94A3B8"
+            android:textColor="@color/text_secondary"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -84,7 +84,7 @@
                 android:text="Expense"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:strokeColor="#243654" />
+                app:strokeColor="@color/card_stroke" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTypeIncome"
@@ -97,7 +97,7 @@
                 android:text="Income"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:strokeColor="#243654" />
+                app:strokeColor="@color/card_stroke" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTypeBoth"
@@ -110,7 +110,7 @@
                 android:text="Both"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:strokeColor="#243654" />
+                app:strokeColor="@color/card_stroke" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <!-- 3. Choose Icon Row -->

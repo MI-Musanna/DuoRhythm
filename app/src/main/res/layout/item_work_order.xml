@@ -165,11 +165,11 @@
                 android:insetBottom="0dp"
                 android:paddingHorizontal="14dp"
                 android:text="Next Status ➔"
-                android:textColor="@color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 app:cornerRadius="12dp"
-                app:strokeColor="#2A364F"
+                app:strokeColor="@color/card_stroke"
                 app:strokeWidth="1dp" />
         </LinearLayout>
 

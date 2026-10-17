@@ -155,23 +155,27 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
         var selectedType = "LENT"
         dialogBinding.toggleDueType.check(R.id.btnTypeLent)
 
+        val unselectedStroke = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.card_stroke)
+        val unselectedText = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_secondary)
+        val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
         fun updateToggleStyles(isLent: Boolean) {
             if (isLent) {
-                dialogBinding.btnTypeLent.setBackgroundColor(Color.parseColor("#064E3B"))
-                dialogBinding.btnTypeLent.setTextColor(Color.parseColor("#34D399"))
-                dialogBinding.btnTypeLent.strokeColor = ColorStateList.valueOf(Color.parseColor("#059669"))
+                dialogBinding.btnTypeLent.setBackgroundColor(if (isNight) Color.parseColor("#064E3B") else Color.parseColor("#D1FAE5"))
+                dialogBinding.btnTypeLent.setTextColor(if (isNight) Color.parseColor("#34D399") else Color.parseColor("#065F46"))
+                dialogBinding.btnTypeLent.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#059669") else Color.parseColor("#10B981"))
 
                 dialogBinding.btnTypeBorrowed.setBackgroundColor(Color.TRANSPARENT)
-                dialogBinding.btnTypeBorrowed.setTextColor(Color.parseColor("#94A3B8"))
-                dialogBinding.btnTypeBorrowed.strokeColor = ColorStateList.valueOf(Color.parseColor("#203049"))
+                dialogBinding.btnTypeBorrowed.setTextColor(unselectedText)
+                dialogBinding.btnTypeBorrowed.strokeColor = ColorStateList.valueOf(unselectedStroke)
             } else {
-                dialogBinding.btnTypeBorrowed.setBackgroundColor(Color.parseColor("#4C1D24"))
-                dialogBinding.btnTypeBorrowed.setTextColor(Color.parseColor("#F87171"))
-                dialogBinding.btnTypeBorrowed.strokeColor = ColorStateList.valueOf(Color.parseColor("#991B1B"))
+                dialogBinding.btnTypeBorrowed.setBackgroundColor(if (isNight) Color.parseColor("#4C1D24") else Color.parseColor("#FEE2E2"))
+                dialogBinding.btnTypeBorrowed.setTextColor(if (isNight) Color.parseColor("#F87171") else Color.parseColor("#991B1B"))
+                dialogBinding.btnTypeBorrowed.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#991B1B") else Color.parseColor("#EF4444"))
 
                 dialogBinding.btnTypeLent.setBackgroundColor(Color.TRANSPARENT)
-                dialogBinding.btnTypeLent.setTextColor(Color.parseColor("#94A3B8"))
-                dialogBinding.btnTypeLent.strokeColor = ColorStateList.valueOf(Color.parseColor("#203049"))
+                dialogBinding.btnTypeLent.setTextColor(unselectedText)
+                dialogBinding.btnTypeLent.strokeColor = ColorStateList.valueOf(unselectedStroke)
             }
         }
         updateToggleStyles(true)

@@ -18,6 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@color/text_primary"
             app:title="Subject Section"
             app:titleTextColor="@color/text_primary" />
     </com.google.android.material.appbar.AppBarLayout>
@@ -73,11 +74,11 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="6dp"
-                            android:background="@drawable/bg_chip_selected"
+                            android:background="@drawable/bg_badge_credit"
                             android:paddingHorizontal="8dp"
                             android:paddingVertical="3dp"
                             android:text="3 Credits"
-                            android:textColor="@color/white"
+                            android:textColor="@color/badge_credit_text"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -85,11 +86,11 @@
                             android:id="@+id/tvDetailSubjectCode"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_chip_unselected"
+                            android:background="@drawable/bg_badge_code"
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="4dp"
                             android:text="ENG-101"
-                            android:textColor="@color/primary"
+                            android:textColor="@color/badge_code_text"
                             android:textSize="12sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -480,7 +481,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_tasks"
-                        app:tint="#2563EB" />
+                        app:tint="?attr/colorPrimary" />
                 </FrameLayout>
 
                 <TextView

@@ -79,7 +79,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-medium"
                             android:text="Welcome back,"
-                            android:textColor="#94A3B8"
+                            android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
                         <!-- User Name Label -->
@@ -92,7 +92,7 @@
                             android:singleLine="true"
                             android:text="User"
                             tools:text="User"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/text_primary"
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
@@ -103,7 +103,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="Wednesday, October 14"
-                            android:textColor="#64748B"
+                            android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
 

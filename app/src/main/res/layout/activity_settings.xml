@@ -2057,7 +2057,7 @@
                                 <View
                                     android:layout_width="match_parent"
                                     android:layout_height="1dp"
-                                    android:background="#1E293B" />
+                                    android:background="@color/card_stroke" />
 
                                 <!-- Link 2: GitHub -->
                                 <LinearLayout
@@ -2113,7 +2113,7 @@
                                 <View
                                     android:layout_width="match_parent"
                                     android:layout_height="1dp"
-                                    android:background="#1E293B" />
+                                    android:background="@color/card_stroke" />
 
                                 <!-- Link 3: Direct Contact -->
                                 <LinearLayout
@@ -2169,7 +2169,7 @@
                                 <View
                                     android:layout_width="match_parent"
                                     android:layout_height="1dp"
-                                    android:background="#1E293B" />
+                                    android:background="@color/card_stroke" />
 
                                 <!-- Link 4: Blog & Tech Arsenal -->
                                 <LinearLayout

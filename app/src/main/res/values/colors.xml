@@ -133,4 +133,24 @@
     <color name="badge_neutral_bg">#E2E8F0</color>
     <color name="badge_neutral_stroke">#CBD5E1</color>
     <color name="badge_neutral_text">#334155</color>
+
+    <!-- Subject / Course Badges & Chips (Light Mode) -->
+    <color name="badge_credit_bg">#E0F2FE</color>
+    <color name="badge_credit_stroke">#BAE6FD</color>
+    <color name="badge_credit_text">#0369A1</color>
+
+    <color name="badge_code_bg">#E0F2FE</color>
+    <color name="badge_code_stroke">#BAE6FD</color>
+    <color name="badge_code_text">#0284C7</color>
+
+    <!-- Dues & Debts Summary Cards (Light Mode) -->
+    <color name="lent_card_bg">#ECFDF5</color>
+    <color name="lent_card_stroke">#A7F3D0</color>
+    <color name="lent_card_label">#047857</color>
+    <color name="lent_card_amount">#065F46</color>
+
+    <color name="borrowed_card_bg">#FEF2F2</color>
+    <color name="borrowed_card_stroke">#FECACA</color>
+    <color name="borrowed_card_label">#B91C1C</color>
+    <color name="borrowed_card_amount">#991B1B</color>
 </resources>

@@ -79,8 +79,8 @@
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
             app:strokeWidth="1dp"
-            app:strokeColor="#065F46"
-            app:cardBackgroundColor="#064E3B">
+            app:strokeColor="@color/lent_card_stroke"
+            app:cardBackgroundColor="@color/lent_card_bg">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="THEY OWE ME (LENT)"
-                    android:textColor="#34D399"
+                    android:textColor="@color/lent_card_label"
                     android:textSize="10sp"
                     android:textStyle="bold" />
 
@@ -102,7 +102,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="+৳0.00"
-                    android:textColor="@color/white"
+                    android:textColor="@color/lent_card_amount"
                     android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -117,8 +117,8 @@
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
             app:strokeWidth="1dp"
-            app:strokeColor="#7F1D1D"
-            app:cardBackgroundColor="#4C1D24">
+            app:strokeColor="@color/borrowed_card_stroke"
+            app:cardBackgroundColor="@color/borrowed_card_bg">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -130,7 +130,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="I OWE (BORROWED)"
-                    android:textColor="#F87171"
+                    android:textColor="@color/borrowed_card_label"
                     android:textSize="10sp"
                     android:textStyle="bold" />
 
@@ -140,7 +140,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="-৳0.00"
-                    android:textColor="@color/white"
+                    android:textColor="@color/borrowed_card_amount"
                     android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>

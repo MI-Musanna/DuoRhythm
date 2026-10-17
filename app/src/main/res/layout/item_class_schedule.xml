@@ -131,7 +131,7 @@
                 android:layout_height="1dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="8dp"
-                android:background="#2A364F" />
+                android:background="@color/card_stroke" />
 
             <!-- Quick Attendance Actions Row -->
             <LinearLayout

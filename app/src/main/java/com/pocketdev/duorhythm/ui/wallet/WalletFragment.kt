@@ -739,10 +739,10 @@ class WalletFragment : Fragment() {
                     card.strokeWidth = (1.5f * resources.displayMetrics.density).toInt()
                     iv.setColorFilter(parsedColor)
                 } else {
-                    card.setCardBackgroundColor(Color.parseColor("#131D2F"))
-                    card.strokeColor = Color.parseColor("#243654")
+                    card.setCardBackgroundColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.surface_variant))
+                    card.strokeColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.card_stroke)
                     card.strokeWidth = (1f * resources.displayMetrics.density).toInt()
-                    iv.setColorFilter(Color.parseColor("#94A3B8"))
+                    iv.setColorFilter(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_secondary))
                 }
             }
         }
@@ -849,23 +849,45 @@ class WalletFragment : Fragment() {
     }
 
     private fun applyToggleStyles(binding: DialogAddTransactionBinding, mode: String) {
-        val incomeBg = if (mode == "INCOME") Color.parseColor("#064E3B") else Color.TRANSPARENT
-        val incomeText = if (mode == "INCOME") Color.parseColor("#34D399") else Color.parseColor("#94A3B8")
-        val incomeStroke = if (mode == "INCOME") Color.parseColor("#059669") else Color.parseColor("#203049")
+        val unselectedStroke = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.card_stroke)
+        val unselectedText = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_secondary)
+        val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+        val incomeBg = if (mode == "INCOME") {
+            if (isNight) Color.parseColor("#064E3B") else Color.parseColor("#D1FAE5")
+        } else Color.TRANSPARENT
+        val incomeText = if (mode == "INCOME") {
+            if (isNight) Color.parseColor("#34D399") else Color.parseColor("#065F46")
+        } else unselectedText
+        val incomeStroke = if (mode == "INCOME") {
+            if (isNight) Color.parseColor("#059669") else Color.parseColor("#10B981")
+        } else unselectedStroke
         binding.btnTypeIncome.setBackgroundColor(incomeBg)
         binding.btnTypeIncome.setTextColor(incomeText)
         binding.btnTypeIncome.strokeColor = android.content.res.ColorStateList.valueOf(incomeStroke)
 
-        val expenseBg = if (mode == "EXPENSE") Color.parseColor("#4C1D24") else Color.TRANSPARENT
-        val expenseText = if (mode == "EXPENSE") Color.parseColor("#F87171") else Color.parseColor("#94A3B8")
-        val expenseStroke = if (mode == "EXPENSE") Color.parseColor("#991B1B") else Color.parseColor("#203049")
+        val expenseBg = if (mode == "EXPENSE") {
+            if (isNight) Color.parseColor("#4C1D24") else Color.parseColor("#FEE2E2")
+        } else Color.TRANSPARENT
+        val expenseText = if (mode == "EXPENSE") {
+            if (isNight) Color.parseColor("#F87171") else Color.parseColor("#991B1B")
+        } else unselectedText
+        val expenseStroke = if (mode == "EXPENSE") {
+            if (isNight) Color.parseColor("#991B1B") else Color.parseColor("#EF4444")
+        } else unselectedStroke
         binding.btnTypeExpense.setBackgroundColor(expenseBg)
         binding.btnTypeExpense.setTextColor(expenseText)
         binding.btnTypeExpense.strokeColor = android.content.res.ColorStateList.valueOf(expenseStroke)
 
-        val transferBg = if (mode == "TRANSFER") Color.parseColor("#0C4A6E") else Color.TRANSPARENT
-        val transferText = if (mode == "TRANSFER") Color.parseColor("#38BDF8") else Color.parseColor("#94A3B8")
-        val transferStroke = if (mode == "TRANSFER") Color.parseColor("#0284C7") else Color.parseColor("#203049")
+        val transferBg = if (mode == "TRANSFER") {
+            if (isNight) Color.parseColor("#0C4A6E") else Color.parseColor("#E0F2FE")
+        } else Color.TRANSPARENT
+        val transferText = if (mode == "TRANSFER") {
+            if (isNight) Color.parseColor("#38BDF8") else Color.parseColor("#0369A1")
+        } else unselectedText
+        val transferStroke = if (mode == "TRANSFER") {
+            if (isNight) Color.parseColor("#0284C7") else Color.parseColor("#0284C7")
+        } else unselectedStroke
         binding.btnTypeTransfer.setBackgroundColor(transferBg)
         binding.btnTypeTransfer.setTextColor(transferText)
         binding.btnTypeTransfer.strokeColor = android.content.res.ColorStateList.valueOf(transferStroke)

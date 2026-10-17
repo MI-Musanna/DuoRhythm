@@ -183,27 +183,31 @@ class BucketAnalyticsBottomSheet : BottomSheetDialogFragment() {
             setPinchZoom(false)
             setScaleEnabled(false)
 
+            val textPrimary = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_primary)
+            val textSecondary = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_secondary)
+            val gridColorVal = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.card_stroke)
+
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
-                textColor = Color.WHITE
-                gridColor = Color.parseColor("#1E293B")
+                textColor = textPrimary
+                gridColor = gridColorVal
                 setDrawAxisLine(true)
-                axisLineColor = Color.parseColor("#243656")
+                axisLineColor = gridColorVal
                 granularity = 1f
                 setCenterAxisLabels(true)
             }
 
             axisLeft.apply {
-                textColor = Color.parseColor("#94A3B8")
-                gridColor = Color.parseColor("#1E293B")
-                axisLineColor = Color.parseColor("#243656")
+                textColor = textSecondary
+                gridColor = gridColorVal
+                axisLineColor = gridColorVal
                 axisMinimum = 0f
             }
 
             axisRight.isEnabled = false
 
             legend.apply {
-                textColor = Color.WHITE
+                textColor = textPrimary
                 verticalAlignment = Legend.LegendVerticalAlignment.TOP
                 horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT
                 orientation = Legend.LegendOrientation.HORIZONTAL
@@ -211,24 +215,26 @@ class BucketAnalyticsBottomSheet : BottomSheetDialogFragment() {
             }
         }
 
-        // Obsidian transparent styling for PieChart
+        // Dynamic styling for PieChart
         binding.sheetPieChart.apply {
+            val textPrimary = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_primary)
+            val gridColorVal = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.card_stroke)
             setBackgroundColor(Color.TRANSPARENT)
             description.isEnabled = false
             setUsePercentValues(true)
             isDrawHoleEnabled = true
             setHoleColor(Color.TRANSPARENT)
-            setTransparentCircleColor(Color.parseColor("#1E293B"))
+            setTransparentCircleColor(gridColorVal)
             setTransparentCircleAlpha(110)
             holeRadius = 55f
             transparentCircleRadius = 60f
             setDrawCenterText(true)
-            setCenterTextColor(Color.WHITE)
+            setCenterTextColor(textPrimary)
             setCenterTextSize(12f)
             setDrawEntryLabels(false)
 
             legend.apply {
-                textColor = Color.WHITE
+                textColor = textPrimary
                 verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
                 horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
                 orientation = Legend.LegendOrientation.HORIZONTAL

@@ -57,11 +57,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="6dp"
-                    android:background="@drawable/bg_chip_selected"
+                    android:background="@drawable/bg_badge_credit"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
                     tools:text="3 Credits"
-                    android:textColor="@color/white"
+                    android:textColor="@color/badge_credit_text"
                     android:textSize="10sp"
                     android:textStyle="bold" />
 
@@ -69,11 +69,11 @@
                     android:id="@+id/tvSubjectCode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_chip_unselected"
+                    android:background="@drawable/bg_badge_code"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
                     tools:text="CS-204"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/badge_code_text"
                     android:textSize="11sp"
                     android:textStyle="bold" />
 

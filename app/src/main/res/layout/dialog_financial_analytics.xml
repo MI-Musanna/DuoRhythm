@@ -87,10 +87,10 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:text="📊 Bar Trend"
-                android:textColor="@color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:strokeColor="#243656" />
+                app:strokeColor="@color/card_stroke" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnModeCategoryPie"
@@ -101,10 +101,10 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:text="🥧 Category Pie"
-                android:textColor="@color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:strokeColor="#243656" />
+                app:strokeColor="@color/card_stroke" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <!-- 2. Timeframe Filter Chips: [ Daily | Weekly | Monthly | Yearly ] -->
@@ -193,7 +193,7 @@
                 android:layout_width="1dp"
                 android:layout_height="24dp"
                 android:layout_marginHorizontal="8dp"
-                android:background="#243656" />
+                android:background="@color/card_stroke" />
 
             <!-- Expense -->
             <LinearLayout
@@ -225,7 +225,7 @@
                 android:layout_width="1dp"
                 android:layout_height="24dp"
                 android:layout_marginHorizontal="8dp"
-                android:background="#243656" />
+                android:background="@color/card_stroke" />
 
             <!-- Net Balance / Cashflow -->
             <LinearLayout

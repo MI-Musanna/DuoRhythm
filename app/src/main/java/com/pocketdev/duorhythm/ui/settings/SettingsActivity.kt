@@ -423,8 +423,8 @@ class SettingsActivity : AppCompatActivity() {
                         binding.dividerAccordionDataSlate.visibility = View.VISIBLE
                     }
                     Snackbar.make(binding.root, "Developer Options unlocked 🛠️", Snackbar.LENGTH_LONG)
-                        .setBackgroundTint(Color.parseColor("#1E293B"))
-                        .setTextColor(Color.WHITE)
+                        .setBackgroundTint(androidx.core.content.ContextCompat.getColor(this, R.color.surface_variant))
+                        .setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.text_primary))
                         .show()
                 }
             }
