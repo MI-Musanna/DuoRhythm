@@ -34,7 +34,7 @@ object UserProfileManager {
     }
 
     fun getDisplayName(context: Context): String {
-        return getUserName(context, default = "User")
+        return getUserName(context, default = "Mahdi Islam")
     }
 
     fun setUserName(context: Context, name: String) {

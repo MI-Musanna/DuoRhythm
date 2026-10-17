@@ -481,7 +481,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_tasks"
-                        app:tint="?attr/colorPrimary" />
+                        app:tint="@color/empty_state_icon_tint" />
                 </FrameLayout>
 
                 <TextView

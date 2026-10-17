@@ -135,13 +135,16 @@
     <color name="badge_neutral_text">#94A3B8</color>
 
     <!-- Subject / Course Badges & Chips (Night Mode) -->
-    <color name="badge_credit_bg">#1E293B</color>
-    <color name="badge_credit_stroke">#334155</color>
+    <color name="badge_credit_bg">#0F2942</color>
+    <color name="badge_credit_stroke">#0369A1</color>
     <color name="badge_credit_text">#38BDF8</color>
 
     <color name="badge_code_bg">#0F2942</color>
-    <color name="badge_code_stroke">#1E3A5F</color>
+    <color name="badge_code_stroke">#0369A1</color>
     <color name="badge_code_text">#38BDF8</color>
+
+    <!-- Empty State Icon Tint -->
+    <color name="empty_state_icon_tint">#38BDF8</color>
 
     <!-- Dues & Debts Summary Cards (Night Mode) -->
     <color name="lent_card_bg">#064E3B</color>

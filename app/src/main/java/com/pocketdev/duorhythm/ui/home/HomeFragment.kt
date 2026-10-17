@@ -121,9 +121,10 @@ class HomeFragment : Fragment() {
         try {
             val context = context ?: return
             val sharedPreferences = context.getSharedPreferences("duorhythm_user_profile_prefs", Context.MODE_PRIVATE)
-            val userName = sharedPreferences.getString(com.pocketdev.duorhythm.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.takeIf { it.isNotBlank() } ?: "User"
+            val profileName = sharedPreferences.getString(com.pocketdev.duorhythm.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.takeIf { it.isNotBlank() } ?: "Mahdi Islam"
             binding.tvHomeGreeting.text = "Welcome back,"
-            binding.tvHomeUserName.text = userName
+            binding.tvUserName.text = profileName
+            binding.tvUserName.visibility = View.VISIBLE
 
             val avatarBitmap = com.pocketdev.duorhythm.data.local.pref.UserProfileManager.loadCircularAvatarBitmap(context, 80)
             if (avatarBitmap != null) {
