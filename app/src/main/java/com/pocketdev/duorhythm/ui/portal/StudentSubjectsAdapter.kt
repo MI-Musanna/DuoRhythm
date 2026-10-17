@@ -75,10 +75,14 @@ class StudentSubjectsAdapter(
                 binding.badgeAttendance.visibility = View.VISIBLE
                 binding.tvAttendancePercentage.text = "--% Attendance"
                 binding.tvAttendanceRatio.text = "--% Attendance"
-                binding.badgeAttendance.setCardBackgroundColor(Color.parseColor("#1E293B")) // Neutral slate
-                binding.badgeAttendance.strokeColor = Color.parseColor("#334155")
-                binding.tvAttendancePercentage.setTextColor(Color.parseColor("#94A3B8"))
-                binding.ivAttendanceIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#94A3B8"))
+                val ctx = binding.root.context
+                val neutralBg = androidx.core.content.ContextCompat.getColor(ctx, com.pocketdev.duorhythm.R.color.badge_neutral_bg)
+                val neutralStroke = androidx.core.content.ContextCompat.getColor(ctx, com.pocketdev.duorhythm.R.color.badge_neutral_stroke)
+                val neutralText = androidx.core.content.ContextCompat.getColor(ctx, com.pocketdev.duorhythm.R.color.badge_neutral_text)
+                binding.badgeAttendance.setCardBackgroundColor(neutralBg)
+                binding.badgeAttendance.strokeColor = neutralStroke
+                binding.tvAttendancePercentage.setTextColor(neutralText)
+                binding.ivAttendanceIcon.imageTintList = ColorStateList.valueOf(neutralText)
             }
 
             // Dynamic Subject Progress based on completed tasks/assessments

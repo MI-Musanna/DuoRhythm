@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="#080C14">
+    android:background="?android:attr/colorBackground">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarBucket"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        android:background="@drawable/bg_cyber_header"
+        android:background="?android:attr/colorBackground"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -20,6 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:paddingHorizontal="16dp"
+            android:background="?android:attr/colorBackground"
             app:contentInsetStart="0dp"
             app:contentInsetEnd="0dp">
 
@@ -36,7 +37,8 @@
                     android:background="@drawable/bg_glass_squircle_action"
                     android:contentDescription="Back"
                     android:src="@drawable/ic_arrow_back"
-                    app:tint="@color/white" />
+                    android:tint="?attr/colorOnSurface"
+                    app:tint="?attr/colorOnSurface" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -50,7 +52,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Bucket Ledger"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:singleLine="true"
@@ -60,7 +62,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Dedicated Wallet Ledger"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="11sp" />
                 </LinearLayout>
 
@@ -79,7 +81,8 @@
                         android:background="@drawable/bg_glass_squircle_action"
                         android:contentDescription="Edit Bucket"
                         android:src="@drawable/ic_edit"
-                        app:tint="@color/white" />
+                        android:tint="?attr/colorOnSurface"
+                        app:tint="?attr/colorOnSurface" />
 
                     <ImageButton
                         android:id="@+id/btnDeleteBucket"
@@ -88,7 +91,8 @@
                         android:background="@drawable/bg_glass_squircle_action"
                         android:contentDescription="Delete Bucket"
                         android:src="@drawable/ic_delete"
-                        app:tint="@color/expense_red" />
+                        android:tint="?attr/colorOnSurface"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.appbar.MaterialToolbar>
@@ -146,7 +150,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Bucket Net Balance"
-                                android:textColor="#94A3B8"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
 
@@ -156,7 +160,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="$0.00"
-                                android:textColor="@color/white"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
 
@@ -260,7 +264,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="📊 / 🥧"
-                                        android:textColor="#38BDF8"
+                                        android:textColor="?attr/colorOnSurfaceVariant"
                                         android:textSize="10sp"
                                         android:textStyle="bold" />
                                 </LinearLayout>
@@ -346,7 +350,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Bucket Ledger History"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
@@ -362,21 +366,33 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:checked="true"
-                        android:text="All" />
+                        android:text="All"
+                        app:chipBackgroundColor="@color/chip_choice_background"
+                        app:chipStrokeColor="@color/chip_choice_stroke"
+                        app:chipStrokeWidth="1dp"
+                        android:textColor="@color/chip_choice_text" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipBucketIncome"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Income" />
+                        android:text="Income"
+                        app:chipBackgroundColor="@color/chip_choice_background"
+                        app:chipStrokeColor="@color/chip_choice_stroke"
+                        app:chipStrokeWidth="1dp"
+                        android:textColor="@color/chip_choice_text" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipBucketExpense"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Expense" />
+                        android:text="Expense"
+                        app:chipBackgroundColor="@color/chip_choice_background"
+                        app:chipStrokeColor="@color/chip_choice_stroke"
+                        app:chipStrokeWidth="1dp"
+                        android:textColor="@color/chip_choice_text" />
                 </com.google.android.material.chip.ChipGroup>
             </LinearLayout>
 

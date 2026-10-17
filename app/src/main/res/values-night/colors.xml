@@ -119,4 +119,18 @@
     <color name="card_emerald_end">#064E3B</color>
     <color name="card_amber_start">#B45309</color>
     <color name="card_amber_end">#78350F</color>
+
+    <!-- Semantic Dynamic Tokens (Night Mode) -->
+    <color name="surface_nav">#0D131F</color>
+    <color name="nav_divider">#1E293B</color>
+    <color name="nav_icon_inactive">#64748B</color>
+
+    <color name="settings_panel_bg">#131D2F</color>
+    <color name="settings_panel_stroke">#1E293B</color>
+    <color name="settings_panel_text">#FFFFFF</color>
+    <color name="settings_panel_text_muted">#94A3B8</color>
+
+    <color name="badge_neutral_bg">#1E293B</color>
+    <color name="badge_neutral_stroke">#334155</color>
+    <color name="badge_neutral_text">#94A3B8</color>
 </resources>

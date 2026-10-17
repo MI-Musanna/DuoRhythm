@@ -55,7 +55,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etItemTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -68,7 +70,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etItemDescription"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
@@ -88,7 +92,9 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etItemStartDate"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOutline" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -102,7 +108,9 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etItemEndDate"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOutline" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
@@ -116,7 +124,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etItemScore"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Attach file / image button -->

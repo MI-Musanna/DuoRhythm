@@ -239,7 +239,11 @@ class PortalFragment : Fragment() {
                     .show()
             },
             onItemClick = { contact ->
-                showEditContactDialog(contact)
+                if (contact.type.equals("GROUP", ignoreCase = true)) {
+                    showEditGroupLinkDialog(contact)
+                } else {
+                    showEditContactDialog(contact)
+                }
             }
         )
         binding.rvStudentContacts.layoutManager = LinearLayoutManager(requireContext())
@@ -260,7 +264,11 @@ class PortalFragment : Fragment() {
                     .show()
             },
             onItemClick = { contact ->
-                showEditContactDialog(contact)
+                if (contact.type.equals("GROUP", ignoreCase = true)) {
+                    showEditGroupLinkDialog(contact)
+                } else {
+                    showEditContactDialog(contact)
+                }
             }
         )
         binding.rvWorkContacts.layoutManager = LinearLayoutManager(requireContext())
@@ -995,9 +1003,19 @@ class PortalFragment : Fragment() {
             val notes = dialogBinding.etContactNotes.text?.toString()?.trim().orEmpty()
             val scope = scopes[dialogBinding.spContactScope.selectedItemPosition]
 
-            if (name.isEmpty() || cleanPhone.isEmpty()) {
-                Toast.makeText(requireContext(), "Name and a valid phone number are required", Toast.LENGTH_SHORT).show()
+            if (name.isEmpty()) {
+                dialogBinding.etContactName.error = "Please enter a name"
                 return@setOnClickListener
+            } else {
+                dialogBinding.etContactName.error = null
+            }
+
+            val phoneRegex = Regex("^\\+?[0-9]{7,15}$")
+            if (cleanPhone.isEmpty() || !phoneRegex.matches(cleanPhone)) {
+                dialogBinding.tilContactPhone.error = "Please enter a valid phone number"
+                return@setOnClickListener
+            } else {
+                dialogBinding.tilContactPhone.error = null
             }
 
             dialogBinding.btnSaveContact.isEnabled = false
@@ -1057,9 +1075,19 @@ class PortalFragment : Fragment() {
             val notes = dialogBinding.etContactNotes.text?.toString()?.trim().orEmpty()
             val scope = scopes[dialogBinding.spContactScope.selectedItemPosition]
 
-            if (name.isEmpty() || cleanPhone.isEmpty()) {
-                Toast.makeText(requireContext(), "Name and a valid phone number are required", Toast.LENGTH_SHORT).show()
+            if (name.isEmpty()) {
+                dialogBinding.etContactName.error = "Please enter a name"
                 return@setOnClickListener
+            } else {
+                dialogBinding.etContactName.error = null
+            }
+
+            val phoneRegex = Regex("^\\+?[0-9]{7,15}$")
+            if (cleanPhone.isEmpty() || !phoneRegex.matches(cleanPhone)) {
+                dialogBinding.tilContactPhone.error = "Please enter a valid phone number"
+                return@setOnClickListener
+            } else {
+                dialogBinding.tilContactPhone.error = null
             }
 
             dialogBinding.btnSaveContact.isEnabled = false
@@ -1107,9 +1135,28 @@ class PortalFragment : Fragment() {
             val platformSelected = platforms[dialogBinding.spGroupPlatform.selectedItemPosition]
             val scope = scopes[dialogBinding.spGroupScope.selectedItemPosition]
 
-            if (name.isEmpty() || link.isEmpty()) {
-                Toast.makeText(requireContext(), "Community name and link are required", Toast.LENGTH_SHORT).show()
+            if (name.isEmpty()) {
+                dialogBinding.etGroupName.error = "Please enter a name"
                 return@setOnClickListener
+            } else {
+                dialogBinding.etGroupName.error = null
+            }
+
+            if (link.isEmpty()) {
+                dialogBinding.tilGroupLink.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                return@setOnClickListener
+            }
+
+            var formattedLink = link
+            if (!formattedLink.startsWith("http://", ignoreCase = true) && !formattedLink.startsWith("https://", ignoreCase = true)) {
+                formattedLink = "https://$formattedLink"
+            }
+
+            if (!android.util.Patterns.WEB_URL.matcher(formattedLink).matches()) {
+                dialogBinding.tilGroupLink.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                return@setOnClickListener
+            } else {
+                dialogBinding.tilGroupLink.error = null
             }
 
             val platformCode = when (platformSelected) {
@@ -1124,7 +1171,7 @@ class PortalFragment : Fragment() {
                 name = name,
                 type = "GROUP",
                 platform = platformCode,
-                targetLink = link,
+                targetLink = formattedLink,
                 notes = notes,
                 role = if (isStudentContext) "Study Group" else "Client Channel",
                 scope = scope
@@ -1134,6 +1181,101 @@ class PortalFragment : Fragment() {
             dialog.dismiss()
             if (isStudentContext) loadStudentContacts() else loadWorkContacts()
             Toast.makeText(requireContext(), "Community group link saved!", Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
+    }
+
+    private fun showEditGroupLinkDialog(groupLink: com.pocketdev.duorhythm.data.model.ContactGroupItem) {
+        val dialogBinding = DialogAddGroupLinkBinding.inflate(layoutInflater)
+        dialogBinding.tvGroupLinkTitle.text = "Edit Community / Group Link"
+        dialogBinding.btnSaveGroupLink.text = "Update Group Link"
+
+        val platforms = listOf("Discord", "Telegram", "WhatsApp Group", "Messenger", "Other / Web")
+        dialogBinding.spGroupPlatform.adapter =
+            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, platforms)
+
+        val platformIdx = when (groupLink.platform.uppercase()) {
+            "DISCORD" -> 0
+            "TELEGRAM" -> 1
+            "WHATSAPP" -> 2
+            "MESSENGER" -> 3
+            else -> 4
+        }
+        dialogBinding.spGroupPlatform.setSelection(platformIdx)
+
+        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
+        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
+        dialogBinding.spGroupScope.adapter =
+            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
+        val currentScopeIdx = when (groupLink.scope) {
+            "STUDENT_ONLY" -> 0
+            "WORK_ONLY" -> 1
+            else -> 2
+        }
+        dialogBinding.spGroupScope.setSelection(currentScopeIdx)
+
+        dialogBinding.etGroupName.setText(groupLink.name)
+        dialogBinding.etGroupLink.setText(groupLink.targetLink)
+        dialogBinding.etGroupNotes.setText(groupLink.notes)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnSaveGroupLink.setOnClickListener {
+            val name = dialogBinding.etGroupName.text?.toString()?.trim().orEmpty()
+            val link = dialogBinding.etGroupLink.text?.toString()?.trim().orEmpty()
+            val notes = dialogBinding.etGroupNotes.text?.toString()?.trim().orEmpty()
+            val platformSelected = platforms[dialogBinding.spGroupPlatform.selectedItemPosition]
+            val scope = scopes[dialogBinding.spGroupScope.selectedItemPosition]
+
+            if (name.isEmpty()) {
+                dialogBinding.etGroupName.error = "Please enter a name"
+                return@setOnClickListener
+            } else {
+                dialogBinding.etGroupName.error = null
+            }
+
+            if (link.isEmpty()) {
+                dialogBinding.tilGroupLink.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                return@setOnClickListener
+            }
+
+            var formattedLink = link
+            if (!formattedLink.startsWith("http://", ignoreCase = true) && !formattedLink.startsWith("https://", ignoreCase = true)) {
+                formattedLink = "https://$formattedLink"
+            }
+
+            if (!android.util.Patterns.WEB_URL.matcher(formattedLink).matches()) {
+                dialogBinding.tilGroupLink.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                return@setOnClickListener
+            } else {
+                dialogBinding.tilGroupLink.error = null
+            }
+
+            val platformCode = when (platformSelected) {
+                "Discord" -> "DISCORD"
+                "Telegram" -> "TELEGRAM"
+                "WhatsApp Group" -> "WHATSAPP"
+                "Messenger" -> "MESSENGER"
+                else -> "OTHER"
+            }
+
+            val updated = groupLink.copy(
+                name = name,
+                platform = platformCode,
+                targetLink = formattedLink,
+                notes = notes,
+                scope = scope
+            )
+
+            dbHelper.updateContactGroup(updated)
+            dialog.dismiss()
+            loadStudentContacts()
+            loadWorkContacts()
+            Toast.makeText(requireContext(), "Community group link updated!", Toast.LENGTH_SHORT).show()
         }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))

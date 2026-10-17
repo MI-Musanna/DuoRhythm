@@ -8,6 +8,7 @@
     android:padding="20dp">
 
     <TextView
+        android:id="@+id/tvGroupLinkTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Save Community / Group Link"
@@ -33,7 +34,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etGroupName"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
@@ -88,6 +91,7 @@
     </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilGroupLink"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -97,7 +101,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etGroupLink"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -110,7 +116,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etGroupNotes"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton

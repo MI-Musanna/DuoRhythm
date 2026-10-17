@@ -126,6 +126,9 @@ class ScheduleFragment : Fragment() {
                 loadAttendance()
                 val statusStr = if (isPresent) "present" else "absent"
                 Toast.makeText(requireContext(), "Marked $subjectName as $statusStr", Toast.LENGTH_SHORT).show()
+            },
+            onItemClick = { item ->
+                showEditClassDialog(item)
             }
         )
         binding.rvDayClasses.layoutManager = LinearLayoutManager(requireContext())
@@ -302,6 +305,42 @@ class ScheduleFragment : Fragment() {
         }
     }
 
+    private fun showTimePicker(editText: android.widget.EditText) {
+        val currentText = editText.text?.toString()?.trim().orEmpty()
+        var initialHour = 9
+        var initialMinute = 0
+        val parsed = ReminderManager.parseTimeString(currentText)
+        if (parsed != null) {
+            initialHour = parsed.first
+            initialMinute = parsed.second
+        } else {
+            val cal = java.util.Calendar.getInstance()
+            initialHour = cal.get(java.util.Calendar.HOUR_OF_DAY)
+            initialMinute = cal.get(java.util.Calendar.MINUTE)
+        }
+
+        val picker = com.google.android.material.timepicker.MaterialTimePicker.Builder()
+            .setTimeFormat(com.google.android.material.timepicker.TimeFormat.CLOCK_12H)
+            .setHour(initialHour)
+            .setMinute(initialMinute)
+            .setTitleText("Select Time")
+            .build()
+
+        picker.addOnPositiveButtonClickListener {
+            val hourOfDay = picker.hour
+            val minute = picker.minute
+            val amPm = if (hourOfDay >= 12) "PM" else "AM"
+            val hour12 = when {
+                hourOfDay == 0 -> 12
+                hourOfDay > 12 -> hourOfDay - 12
+                else -> hourOfDay
+            }
+            editText.setText(String.format(java.util.Locale.US, "%02d:%02d %s", hour12, minute, amPm))
+        }
+
+        picker.show(childFragmentManager, "ClassTimePicker")
+    }
+
     private fun showAddClassDialog() {
         val dialogBinding = DialogAddClassBinding.inflate(layoutInflater)
         val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
@@ -313,27 +352,8 @@ class ScheduleFragment : Fragment() {
         val typesAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
         dialogBinding.spClassType.adapter = typesAdapter
 
-        fun pickTime(editText: android.widget.EditText) {
-            val cal = java.util.Calendar.getInstance()
-            android.app.TimePickerDialog(
-                requireContext(),
-                { _, hourOfDay, minute ->
-                    val amPm = if (hourOfDay >= 12) "PM" else "AM"
-                    val hour12 = when {
-                        hourOfDay == 0 -> 12
-                        hourOfDay > 12 -> hourOfDay - 12
-                        else -> hourOfDay
-                    }
-                    editText.setText(String.format(java.util.Locale.US, "%02d:%02d %s", hour12, minute, amPm))
-                },
-                cal.get(java.util.Calendar.HOUR_OF_DAY),
-                cal.get(java.util.Calendar.MINUTE),
-                false
-            ).show()
-        }
-
-        dialogBinding.etClassStartTime.setOnClickListener { pickTime(dialogBinding.etClassStartTime) }
-        dialogBinding.etClassEndTime.setOnClickListener { pickTime(dialogBinding.etClassEndTime) }
+        dialogBinding.etClassStartTime.setOnClickListener { showTimePicker(dialogBinding.etClassStartTime) }
+        dialogBinding.etClassEndTime.setOnClickListener { showTimePicker(dialogBinding.etClassEndTime) }
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogBinding.root)
@@ -374,6 +394,80 @@ class ScheduleFragment : Fragment() {
             dialog.dismiss()
             loadData()
             Toast.makeText(requireContext(), "$classType scheduled with 15m alarm reminder", Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.show()
+    }
+
+    private fun showEditClassDialog(classItem: ClassScheduleItem) {
+        val dialogBinding = DialogAddClassBinding.inflate(layoutInflater)
+        dialogBinding.tvAddClassTitle.text = "Edit Class Schedule"
+        dialogBinding.btnSaveClass.text = "Update Class"
+
+        val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+        val daysAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, days)
+        dialogBinding.spClassDay.adapter = daysAdapter
+        val safeDayIdx = (classItem.dayOfWeek - 1).coerceIn(0, days.size - 1)
+        dialogBinding.spClassDay.setSelection(safeDayIdx)
+
+        val types = listOf("Lecture", "Lab", "Tutorial", "Seminar")
+        val typesAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
+        dialogBinding.spClassType.adapter = typesAdapter
+        val typeIdx = types.indexOfFirst { it.equals(classItem.classType, ignoreCase = true) }
+        if (typeIdx >= 0) {
+            dialogBinding.spClassType.setSelection(typeIdx)
+        }
+
+        dialogBinding.etClassSubject.setText(classItem.subjectName)
+        dialogBinding.etClassRoom.setText(classItem.room)
+        dialogBinding.etClassTeacher.setText(classItem.teacher)
+        dialogBinding.etClassBuilding.setText(classItem.buildingOrLink)
+        dialogBinding.etClassStartTime.setText(classItem.startTime)
+        dialogBinding.etClassEndTime.setText(classItem.endTime)
+
+        dialogBinding.etClassStartTime.setOnClickListener { showTimePicker(dialogBinding.etClassStartTime) }
+        dialogBinding.etClassEndTime.setOnClickListener { showTimePicker(dialogBinding.etClassEndTime) }
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        dialogBinding.btnSaveClass.setOnClickListener {
+            val subject = dialogBinding.etClassSubject.text?.toString()?.trim().orEmpty()
+            val room = dialogBinding.etClassRoom.text?.toString()?.trim().orEmpty()
+            val teacher = dialogBinding.etClassTeacher.text?.toString()?.trim().orEmpty()
+            val building = dialogBinding.etClassBuilding.text?.toString()?.trim().orEmpty()
+            val startTime = dialogBinding.etClassStartTime.text?.toString()?.trim().orEmpty()
+            val endTime = dialogBinding.etClassEndTime.text?.toString()?.trim().orEmpty()
+            val dayOfWeek = dialogBinding.spClassDay.selectedItemPosition + 1
+            val classType = types[dialogBinding.spClassType.selectedItemPosition].uppercase()
+
+            if (subject.isEmpty() || startTime.isEmpty() || endTime.isEmpty()) {
+                Toast.makeText(requireContext(), "Subject name and times are required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val updated = classItem.copy(
+                subjectName = subject,
+                room = room,
+                teacher = teacher,
+                dayOfWeek = dayOfWeek,
+                startTime = startTime,
+                endTime = endTime,
+                classType = classType,
+                buildingOrLink = building
+            )
+
+            ReminderManager.cancelClassReminder(requireContext(), classItem.id)
+            com.pocketdev.duorhythm.automation.SmartAutomationManager.cancelClassDndForClass(requireContext(), classItem.id)
+            dbHelper.updateClassSchedule(updated)
+            ReminderManager.scheduleClassReminder(requireContext(), updated)
+            com.pocketdev.duorhythm.automation.SmartAutomationManager.scheduleClassDndForClass(requireContext(), updated)
+
+            dialog.dismiss()
+            loadData()
+            Toast.makeText(requireContext(), "Class schedule updated", Toast.LENGTH_SHORT).show()
         }
 
         dialog.show()
