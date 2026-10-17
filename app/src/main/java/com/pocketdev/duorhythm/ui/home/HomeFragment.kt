@@ -120,8 +120,10 @@ class HomeFragment : Fragment() {
         if (_binding == null) return
         try {
             val context = context ?: return
-            val sharedPreferences = context.getSharedPreferences("duorhythm_user_profile_prefs", Context.MODE_PRIVATE)
-            val profileName = sharedPreferences.getString(com.pocketdev.duorhythm.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.takeIf { it.isNotBlank() } ?: "Mahdi Islam"
+            val profilePrefs = context.getSharedPreferences("duorhythm_user_profile_prefs", Context.MODE_PRIVATE)
+            val savedName = profilePrefs.getString(com.pocketdev.duorhythm.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.trim()
+                ?: profilePrefs.getString("user_display_name", null)?.trim()
+            val profileName = if (!savedName.isNullOrEmpty()) savedName else "Scholar"
             binding.tvHomeGreeting.text = "Welcome back,"
             binding.tvUserName.text = profileName
             binding.tvUserName.visibility = View.VISIBLE
@@ -139,9 +141,11 @@ class HomeFragment : Fragment() {
                 binding.ivHomeAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
             }
 
-            binding.containerHomeAvatar.setOnClickListener {
+            val openSettings = View.OnClickListener {
                 startActivity(android.content.Intent(requireContext(), com.pocketdev.duorhythm.ui.settings.SettingsActivity::class.java))
             }
+            binding.containerHomeAvatar.setOnClickListener(openSettings)
+            binding.tvUserName.setOnClickListener(openSettings)
         } catch (e: Exception) {
             e.printStackTrace()
         }

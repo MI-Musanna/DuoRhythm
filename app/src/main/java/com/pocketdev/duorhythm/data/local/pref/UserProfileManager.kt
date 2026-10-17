@@ -34,11 +34,15 @@ object UserProfileManager {
     }
 
     fun getDisplayName(context: Context): String {
-        return getUserName(context, default = "Mahdi Islam")
+        return getUserName(context, default = "Scholar")
     }
 
     fun setUserName(context: Context, name: String) {
-        getPrefs(context).edit().putString(KEY_USER_NAME, name.trim()).apply()
+        val trimmed = name.trim()
+        getPrefs(context).edit()
+            .putString(KEY_USER_NAME, trimmed)
+            .putString("user_display_name", trimmed)
+            .apply()
     }
 
     fun getAvatarUri(context: Context): String {
