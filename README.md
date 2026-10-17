@@ -1,58 +1,78 @@
+<div align="center">
+
+<img src="art/app_icon.png" width="100" height="100" alt="DuoRhythm" style="border-radius: 22px;">
+
 # DuoRhythm
-### The Architectural Fusion of Personal Finance & Academic Engineering
+**Next-Gen Local-First Financial Ledger & Academic Companion**
 
-[![Download Latest APK](https://img.shields.io/badge/Download-v1.0.0--beta_APK-38BDF8?style=for-the-badge&logo=android&logoColor=white)](https://github.com/MI-Musanna/DuoRhythm/releases/latest)
-[![Platform](https://img.shields.io/badge/Platform-Android-10B981?style=for-the-badge&logo=android)](https://github.com/MI-Musanna/DuoRhythm)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean_MVVM-6366F1?style=for-the-badge)](https://github.com/MI-Musanna/DuoRhythm)
-[![License](https://img.shields.io/badge/License-MIT-gray?style=for-the-badge)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/MI-Musanna/DuoRhythm?color=38BDF8&label=Beta%20Build&style=flat-square)](https://github.com/MI-Musanna/DuoRhythm/releases/latest)
+[![Platform](https://img.shields.io/badge/Platform-Android_8.0+-10B981?style=flat-square)](https://github.com/MI-Musanna/DuoRhythm)
+[![Stack](https://img.shields.io/badge/Stack-Kotlin_%7C_Room_%7C_MVVM-6366F1?style=flat-square)](https://github.com/MI-Musanna/DuoRhythm)
+[![License](https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square)](LICENSE)
 
-DuoRhythm is an offline-first, privacy-focused productivity engine designed to eliminate the friction between financial discipline and academic performance. Built strictly with modern Android architecture and wrapped in a battery-friendly Deep Obsidian aesthetic, it bridges personal ledger accounting and student coursework into one coherent, distraction-free workflow.
+An offline, zero-telemetry Android suite built for students and independent builders who need strict capital accounting alongside coursework engineering.
+
+[**Download DuoRhythm APK**](https://github.com/MI-Musanna/DuoRhythm/releases/latest) • [**Issue Tracker**](https://github.com/MI-Musanna/DuoRhythm/issues)
+
+</div>
 
 ---
 
-## 📱 Visual Walkthrough & Interface
-| Home Dashboard | Financial Hub | Ledger & Analytics |
+## 📱 Interface Walkthrough
+
+<div align="center">
+
+| Home & Quick Brief | Wallet & Multi-Bucket | Dynamic Analytics |
 | :---: | :---: | :---: |
-| ![Home](screenshots/home.png) | ![Wallet](screenshots/wallet.png) | ![Ledger](screenshots/ledger.png) |
+| <img src="screenshots/home.png" width="230"/> | <img src="screenshots/wallet.png" width="230"/> | <img src="screenshots/ledger.png" width="230"/> |
 
-| Academic Portal | Timetable & Attendance | Inter-Account Transfer |
+| Academic Portal | Weekly Routine | Client Orders & Hub |
 | :---: | :---: | :---: |
-| ![Portal](screenshots/portal.png) | ![Timetable](screenshots/timetable.png) | ![Transfer](screenshots/transfer.png) |
+| <img src="screenshots/portal.png" width="230"/> | <img src="screenshots/timetable.png" width="230"/> | <img src="screenshots/transfer.png" width="230"/> |
+
+</div>
 
 ---
 
-## 🏛️ Comprehensive Feature Breakdown
+## ⚙️ Core Architecture & Capabilities
 
-### 💼 1. Autonomous Financial Vault & Sub-Account Ledgers
-Managing multiple wallets shouldn't require complex spreadsheet formulas. DuoRhythm introduces an isolated bucket architecture that mirrors real-world cashflow:
-- Dedicated Account Buckets: Segment your capital across up to 5 isolated buckets (e.g., Physical Cash, Primary Bank, Mobile Wallets like bKash/Nagad). Each account tracks its own distinct net balance and historical records.
-- Double-Entry Atomic Transfers: Move capital between buckets effortlessly. DuoRhythm handles debit and credit legs in a single transactional operation, ensuring zero ledger imbalance or phantom money.
-- Smart Adaptive Visualization: The analytics engine fuses income streams and expenditure categories into dynamic Donut Pie and Dual Bar charts. Whether you have single-sided income or mixed multi-category expenses, charts render proportions cleanly without misleading empty states.
-- Dues & Debt Settlement ("Duo Ledger"): A bilateral tracking module for borrowed and lent funds. Keep track of money owed to you or pending debts with one-tap status toggles and direct settlement logging.
-- Auditable Running Balance: Optional per-record ledger stamping displays your historical balance after every single transaction, making audits instant and effortless.
+### 💼 Smart Financial Ledger
+- **Multi-Account Buckets:** Isolate liquid cash into up to 5 dedicated wallets (Physical Cash, Bank, Mobile Financial Services) with independent running balances.
+- **Atomic Balance Transfers:** Inter-account fund shifting with double-entry integrity—eliminating discrepancies between sending and receiving ledgers.
+- **Adaptive Visual Analytics:** Live Donut breakdown for category expenditures alongside dual-column bar charts comparing total inflows against outflows.
+- **Bilateral Dues & Debt Tracker:** Clean ledger separating receivables ("They Owe") and liabilities ("You Owe") with one-tap partial or full settlement stamping.
+- **Direct Currency Parity:** Native 1:1 BDT (৳) recordkeeping without forced international conversion clutter.
 
-### 🎓 2. Academic Command Center & Study Portal
-Built specifically for technical and university students balancing rigorous coursework, assessments, and attendance requirements:
-- Coursework Management: Maintain complete course portfolios including subject codes, credit hours, instructor profiles, and dedicated contact channels.
-- Intelligent Timetable & Routine Sync: Map your weekly class routine with clear visual indicators for ongoing and upcoming lectures.
-- Threshold-Aware Attendance Tracker: Avoid attendance shortages with real-time target calculations. Configurable warning thresholds (such as 75% minimums) flag at-risk subjects before they become critical.
-- Assessment Pipeline (Semester Finals & Quizzes): Dedicated tracking for major semester finals, midterms, and routine class tests/quizzes. Features real-time countdowns, status toggles, and individual assessment editing.
-- Multi-Format Course Vault: Attach and organize lecture materials across formats (PDFs, high-resolution board photos, and plain text notes) backed by categorized filter chips and type-specific badges.
+### 🎓 Academic Command Center
+- **Coursework Management:** Maintain subject codes, credit hours, classroom locations, and faculty profiles in one unified card system.
+- **Dynamic Weekly Timetable:** Intelligent 7-day class routine highlighting active lectures with 12-hour MaterialTimePicker schedule editing.
+- **Attendance Threshold Engine:** Real-time attendance percentage calculator with early-warning alerts for institutional minimums (e.g. 75% target).
+- **Assessment Pipeline:** Track Semester Finals, Midterms, Class Tests, and Quizzes with deadline countdowns and status toggles.
+- **Multi-Format Document Vault:** Batch file importer for lecture PDFs, whiteboard captures, and notes with dynamic badges (`PDF`, `IMG`, `DOC`) and category filter chips.
 
-### 📋 3. Intentional Task Architecture & Long-Term Milestones
-Separating trivial everyday chores from career-defining milestones:
-- Dual-Layer Separation: Routine daily to-dos and high-stakes long-term goals are isolated into independent workspaces to prevent priority fatigue.
-- Milestone Progress Engine: Long-term goals track incremental completion from 0% to 100% with interactive progress adjustments and timeline boundaries.
-- Flexible Scheduling: Optional deadlines powered by Material DatePicker dialogs allow both open-ended task collection and strict time-bounded executions.
+### 🎯 Intentional Tasks & Milestone Goals
+- **Decoupled Task Engine:** Hard separation between fleeting daily checklists and long-term milestones to prevent priority overload.
+- **0–100% Milestone Tracking:** Granular progress control for multi-week projects with visual stage indicators.
+- **Material 3 Calendar Dialogs:** Native MaterialDatePicker integration supporting optional deadlines and dynamic Start/End date ranges.
 
-### ⚡ 4. Platform Performance & Design Philosophy
-- Deep Obsidian Theme: Engineered with true dark shades (#0A0E17 to #131D2F) and calibrated accent contrast for maximum readability and OLED power efficiency.
-- Zero Third-Party Tracking: 100% offline-first Room database execution. Your academic notes, contacts, and financial records never leave your physical device.
+### 💼 Work Portal & Fast Directory
+- **Client Job Board:** Track freelance jobs, technical specifications, and invoicing status without leaving your student dashboard.
+- **1-Tap Communications:** Speed directory supporting instant cellular calls, direct WhatsApp messaging, and verified community channel routing.
+
+### 🛡️ Privacy & Performance Standards
+- **100% Offline-First:** Powered entirely by SQLite/Room DB. All data stays encrypted on your local hardware.
+- **Zero Telemetry:** No analytics SDKs, no network pings, zero third-party data collection.
+- **Calibrated Dual Theme Engine:** Handcrafted Deep Obsidian Dark Mode (`#0A0E17` to `#131D2F`) alongside an adaptive, high-contrast Light Mode with crisp white surfaces and visible dialog typography.
 
 ---
 
-## 📥 Download & Installation
-You can download the compiled installer from the Releases section or click the banner at the top of this page.
+## 📥 Installation
 
-Clone the repository to inspect or contribute:
-git clone https://github.com/MI-Musanna/DuoRhythm.git
+1. Grab the latest package from [Releases](https://github.com/MI-Musanna/DuoRhythm/releases/latest).
+2. Install `DuoRhythm-v1.0.0-beta.apk` on Android 8.0 (API 26) or higher.
+3. Grant storage permissions for document attachment management if prompted.
+
+---
+
+## 📄 License
+Released under the [MIT License](LICENSE).
