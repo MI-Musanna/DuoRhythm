@@ -991,22 +991,11 @@ class PortalFragment : Fragment() {
         val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_contact, null)
 
         val etName = dialogView.findViewById<android.widget.EditText>(R.id.etContactName)
-        val etPhone = dialogView.findViewById<android.widget.EditText>(R.id.etContactPhone) ?: dialogView.findViewById(R.id.etPhoneNumber)
+        val etPhone = dialogView.findViewById<android.widget.EditText>(R.id.etPhoneNumber)
         val etRole = dialogView.findViewById<android.widget.EditText>(R.id.etContactRole)
-        val etNotes = dialogView.findViewById<android.widget.EditText>(R.id.etContactNotes)
-        val etCountry = dialogView.findViewById<android.widget.EditText>(R.id.etContactCountryCode)
-        val spScope = dialogView.findViewById<android.widget.Spinner>(R.id.spContactScope)
-        val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveContact) ?: dialogView.findViewById(R.id.btnSave)
-
-        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
-        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
-        spScope?.adapter =
-            android.widget.ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
-        val defaultScopeIdx = if (isStudentContext) 0 else 1
-        spScope?.setSelection(defaultScopeIdx)
+        val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveContact)
 
         val defaultCountryCode = CountryUtils.getDeviceCountryCode(activity)
-        etCountry?.setText(defaultCountryCode)
 
         val dialog = MaterialAlertDialogBuilder(activity)
             .setView(dialogView)
@@ -1014,13 +1003,10 @@ class PortalFragment : Fragment() {
 
         btnSave?.setOnClickListener {
             val name = etName?.text?.toString()?.trim().orEmpty()
-            val countryCode = etCountry?.text?.toString()?.trim().orEmpty().ifEmpty { defaultCountryCode }
             val phoneRaw = etPhone?.text?.toString()?.trim().orEmpty()
-            val cleanPhone = CountryUtils.getNormalizedInternationalNumber(phoneRaw, countryCode)
+            val cleanPhone = CountryUtils.getNormalizedInternationalNumber(phoneRaw, defaultCountryCode)
             val customRole = etRole?.text?.toString()?.trim().orEmpty().ifEmpty { "Contact" }
-            val notes = etNotes?.text?.toString()?.trim().orEmpty()
-            val scopePos = spScope?.selectedItemPosition ?: defaultScopeIdx
-            val scope = scopes.getOrElse(scopePos) { if (isStudentContext) "STUDENT_ONLY" else "WORK_ONLY" }
+            val scope = if (isStudentContext) "STUDENT_ONLY" else "WORK_ONLY"
 
             if (name.isEmpty()) {
                 etName?.error = "Please enter a name"
@@ -1040,7 +1026,7 @@ class PortalFragment : Fragment() {
                 type = "CONTACT",
                 platform = "PHONE",
                 targetLink = cleanPhone,
-                notes = notes,
+                notes = "",
                 phoneNumber = cleanPhone,
                 role = customRole,
                 scope = scope
@@ -1068,14 +1054,14 @@ class PortalFragment : Fragment() {
             val dialogBinding = DialogEditContactBinding.inflate(LayoutInflater.from(ctx))
             val dialogView = dialogBinding.root
 
-            val etName = dialogBinding.etContactName ?: dialogView.findViewById(R.id.etContactName)
-            val etPhone = dialogBinding.etContactPhone ?: dialogView.findViewById(R.id.etPhoneNumber) ?: dialogView.findViewById(R.id.etContactPhone)
-            val etRole = dialogBinding.etContactRole ?: dialogView.findViewById(R.id.etContactRole)
-            val etNotes = dialogBinding.etContactNotes ?: dialogView.findViewById(R.id.etContactNotes)
-            val etCountry = dialogBinding.etContactCountryCode ?: dialogView.findViewById(R.id.etContactCountryCode)
-            val spScope = dialogBinding.spContactScope ?: dialogView.findViewById(R.id.spContactScope)
-            val tilPhone = dialogBinding.tilContactPhone ?: dialogView.findViewById(R.id.tilContactPhone)
-            val btnSave = dialogBinding.btnSaveContact ?: dialogView.findViewById(R.id.btnSave) ?: dialogView.findViewById(R.id.btnSaveContact)
+            val etName = dialogBinding.etContactName
+            val etPhone = dialogBinding.etContactPhone
+            val etRole = dialogBinding.etContactRole
+            val etNotes = dialogBinding.etContactNotes
+            val etCountry = dialogBinding.etContactCountryCode
+            val spScope = dialogBinding.spContactScope
+            val tilPhone = dialogBinding.tilContactPhone
+            val btnSave = dialogBinding.btnSaveContact
 
             val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
             val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
@@ -1157,42 +1143,25 @@ class PortalFragment : Fragment() {
         val activity = requireActivity()
         val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_group_link, null)
 
-        val etName = dialogView.findViewById<android.widget.EditText>(R.id.etGroupName) ?: dialogView.findViewById(R.id.etGroupTitle)
-        val etLink = dialogView.findViewById<android.widget.EditText>(R.id.etGroupLink) ?: dialogView.findViewById(R.id.etGroupUrl)
-        val etNotes = dialogView.findViewById<android.widget.EditText>(R.id.etGroupNotes)
-        val spPlatform = dialogView.findViewById<android.widget.Spinner>(R.id.spGroupPlatform)
-        val spScope = dialogView.findViewById<android.widget.Spinner>(R.id.spGroupScope)
-        val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveGroupLink) ?: dialogView.findViewById(R.id.btnSave)
-
-        val platforms = listOf("Discord", "Telegram", "WhatsApp Group", "Messenger", "Other / Web")
-        spPlatform?.adapter =
-            android.widget.ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, platforms)
-
-        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
-        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
-        spScope?.adapter =
-            android.widget.ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
-        val defaultScopeIdx = if (isStudentContext) 0 else 1
-        spScope?.setSelection(defaultScopeIdx)
+        val etTitle = dialogView.findViewById<android.widget.EditText>(R.id.etGroupTitle)
+        val etUrl = dialogView.findViewById<android.widget.EditText>(R.id.etGroupUrl)
+        val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveGroupLink)
 
         val dialog = MaterialAlertDialogBuilder(activity)
             .setView(dialogView)
             .create()
 
         btnSave?.setOnClickListener {
-            val name = etName?.text?.toString()?.trim().orEmpty()
-            val link = etLink?.text?.toString()?.trim().orEmpty()
-            val notes = etNotes?.text?.toString()?.trim().orEmpty()
-            val platformSelected = platforms.getOrElse(spPlatform?.selectedItemPosition ?: 0) { "Other / Web" }
-            val scope = scopes.getOrElse(spScope?.selectedItemPosition ?: defaultScopeIdx) { if (isStudentContext) "STUDENT_ONLY" else "WORK_ONLY" }
+            val name = etTitle?.text?.toString()?.trim().orEmpty()
+            val link = etUrl?.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty()) {
-                etName?.error = "Please enter a name"
+                etTitle?.error = "Please enter a name"
                 return@setOnClickListener
             }
 
             if (link.isEmpty()) {
-                etLink?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                etUrl?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
                 return@setOnClickListener
             }
 
@@ -1202,7 +1171,7 @@ class PortalFragment : Fragment() {
             }
 
             if (!android.util.Patterns.WEB_URL.matcher(formattedLink).matches()) {
-                etLink?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                etUrl?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
                 return@setOnClickListener
             }
 
@@ -1211,26 +1180,19 @@ class PortalFragment : Fragment() {
                 formattedLink.contains("t.me", ignoreCase = true) || formattedLink.contains("telegram", ignoreCase = true) -> "TELEGRAM"
                 formattedLink.contains("whatsapp", ignoreCase = true) || formattedLink.contains("wa.me", ignoreCase = true) -> "WHATSAPP"
                 formattedLink.contains("m.me", ignoreCase = true) || formattedLink.contains("messenger", ignoreCase = true) -> "MESSENGER"
-                spPlatform != null -> {
-                    when (platformSelected) {
-                        "Discord" -> "DISCORD"
-                        "Telegram" -> "TELEGRAM"
-                        "WhatsApp Group" -> "WHATSAPP"
-                        "Messenger" -> "MESSENGER"
-                        else -> "OTHER"
-                    }
-                }
                 else -> "OTHER"
             }
 
-            btnSave?.isEnabled = false
+            val scope = if (isStudentContext) "STUDENT_ONLY" else "WORK_ONLY"
+
+            btnSave.isEnabled = false
 
             val item = com.pocketdev.duorhythm.data.model.ContactGroupItem(
                 name = name,
                 type = "GROUP",
                 platform = platformCode,
                 targetLink = formattedLink,
-                notes = notes,
+                notes = "",
                 role = if (isStudentContext) "Study Group" else "Client Channel",
                 scope = scope
             )
@@ -1256,65 +1218,29 @@ class PortalFragment : Fragment() {
         val activity = activity ?: return
         val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_group_link, null)
 
-        val tvTitle = dialogView.findViewById<android.widget.TextView>(R.id.tvGroupLinkTitle)
-        val etName = dialogView.findViewById<android.widget.EditText>(R.id.etGroupName) ?: dialogView.findViewById(R.id.etGroupTitle)
-        val etLink = dialogView.findViewById<android.widget.EditText>(R.id.etGroupLink) ?: dialogView.findViewById(R.id.etGroupUrl)
-        val etNotes = dialogView.findViewById<android.widget.EditText>(R.id.etGroupNotes)
-        val spPlatform = dialogView.findViewById<android.widget.Spinner>(R.id.spGroupPlatform)
-        val spScope = dialogView.findViewById<android.widget.Spinner>(R.id.spGroupScope)
-        val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveGroupLink) ?: dialogView.findViewById(R.id.btnSave)
+        val etTitle = dialogView.findViewById<android.widget.EditText>(R.id.etGroupTitle)
+        val etUrl = dialogView.findViewById<android.widget.EditText>(R.id.etGroupUrl)
+        val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveGroupLink)
 
-        tvTitle?.text = "Edit Community / Group Link"
-        btnSave?.text = "Update Group Link"
-
-        val platforms = listOf("Discord", "Telegram", "WhatsApp Group", "Messenger", "Other / Web")
-        spPlatform?.adapter =
-            android.widget.ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, platforms)
-
-        val platformIdx = when (groupLink.platform.uppercase()) {
-            "DISCORD" -> 0
-            "TELEGRAM" -> 1
-            "WHATSAPP" -> 2
-            "MESSENGER" -> 3
-            else -> 4
-        }
-        spPlatform?.setSelection(platformIdx)
-
-        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
-        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
-        spScope?.adapter =
-            android.widget.ArrayAdapter(activity, android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
-        val currentScopeIdx = when (groupLink.scope) {
-            "STUDENT_ONLY" -> 0
-            "WORK_ONLY" -> 1
-            else -> 2
-        }
-        spScope?.setSelection(currentScopeIdx)
-
-        etName?.setText(groupLink.name)
-        etLink?.setText(groupLink.targetLink)
-        etNotes?.setText(groupLink.notes)
+        btnSave?.text = "Update Link"
+        etTitle?.setText(groupLink.name)
+        etUrl?.setText(groupLink.targetLink)
 
         val dialog = MaterialAlertDialogBuilder(activity)
             .setView(dialogView)
             .create()
 
         btnSave?.setOnClickListener {
-            val name = etName?.text?.toString()?.trim().orEmpty()
-            val link = etLink?.text?.toString()?.trim().orEmpty()
-            val notes = etNotes?.text?.toString()?.trim().orEmpty()
-            val platformSelected = platforms.getOrElse(spPlatform?.selectedItemPosition ?: 0) { "Other / Web" }
-            val scopeSelected = scopes.getOrElse(spScope?.selectedItemPosition ?: currentScopeIdx) { "SHARED" }
+            val name = etTitle?.text?.toString()?.trim().orEmpty()
+            val link = etUrl?.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty()) {
-                etName?.error = "Please enter a name"
+                etTitle?.error = "Please enter a name"
                 return@setOnClickListener
-            } else {
-                etName?.error = null
             }
 
             if (link.isEmpty()) {
-                etLink?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                etUrl?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
                 return@setOnClickListener
             }
 
@@ -1324,26 +1250,22 @@ class PortalFragment : Fragment() {
             }
 
             if (!android.util.Patterns.WEB_URL.matcher(formattedLink).matches()) {
-                etLink?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                etUrl?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
                 return@setOnClickListener
-            } else {
-                etLink?.error = null
             }
 
-            val platformCode = when (platformSelected) {
-                "Discord" -> "DISCORD"
-                "Telegram" -> "TELEGRAM"
-                "WhatsApp Group" -> "WHATSAPP"
-                "Messenger" -> "MESSENGER"
-                else -> "OTHER"
+            val platformCode = when {
+                formattedLink.contains("discord", ignoreCase = true) -> "DISCORD"
+                formattedLink.contains("t.me", ignoreCase = true) || formattedLink.contains("telegram", ignoreCase = true) -> "TELEGRAM"
+                formattedLink.contains("whatsapp", ignoreCase = true) || formattedLink.contains("wa.me", ignoreCase = true) -> "WHATSAPP"
+                formattedLink.contains("m.me", ignoreCase = true) || formattedLink.contains("messenger", ignoreCase = true) -> "MESSENGER"
+                else -> groupLink.platform
             }
 
             val updated = groupLink.copy(
                 name = name,
                 platform = platformCode,
-                targetLink = formattedLink,
-                notes = notes,
-                scope = scopeSelected
+                targetLink = formattedLink
             )
 
             CoroutineScope(Dispatchers.IO).launch {
@@ -1369,8 +1291,8 @@ class PortalFragment : Fragment() {
         val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_subject, null)
         val etName = dialogView.findViewById<android.widget.EditText>(R.id.etSubjectName)
         val etCode = dialogView.findViewById<android.widget.EditText>(R.id.etSubjectCode)
-        val etCredits = dialogView.findViewById<android.widget.EditText>(R.id.etCredits) ?: dialogView.findViewById<android.widget.EditText>(R.id.etSubjectCredits)
-        val etInstructor = dialogView.findViewById<android.widget.EditText>(R.id.etInstructor) ?: dialogView.findViewById<android.widget.EditText>(R.id.etSubjectInstructor)
+        val etCredits = dialogView.findViewById<android.widget.EditText>(R.id.etCredits)
+        val etInstructor = dialogView.findViewById<android.widget.EditText>(R.id.etInstructor)
         val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveSubject)
 
         val dialog = MaterialAlertDialogBuilder(activity)

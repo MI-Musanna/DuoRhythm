@@ -420,8 +420,8 @@ class ScheduleFragment : Fragment() {
         val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_subject, null)
         val etName = dialogView.findViewById<android.widget.EditText>(R.id.etSubjectName)
         val etCode = dialogView.findViewById<android.widget.EditText>(R.id.etSubjectCode)
-        val etCredits = dialogView.findViewById<android.widget.EditText>(R.id.etCredits) ?: dialogView.findViewById<android.widget.EditText>(R.id.etSubjectCredits)
-        val etInstructor = dialogView.findViewById<android.widget.EditText>(R.id.etInstructor) ?: dialogView.findViewById<android.widget.EditText>(R.id.etSubjectInstructor)
+        val etCredits = dialogView.findViewById<android.widget.EditText>(R.id.etCredits)
+        val etInstructor = dialogView.findViewById<android.widget.EditText>(R.id.etInstructor)
         val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveSubject)
 
         val dialog = MaterialAlertDialogBuilder(activity)
