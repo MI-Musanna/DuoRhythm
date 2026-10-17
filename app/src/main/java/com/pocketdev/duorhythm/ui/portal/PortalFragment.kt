@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -348,10 +349,18 @@ class PortalFragment : Fragment() {
         }
 
         binding.btnStudentAddContact.setOnClickListener {
-            if (isStudentContactsTab) showAddContactDialog(true) else showAddGroupLinkDialog(true)
+            try {
+                if (isStudentContactsTab) showAddContactDialog(true) else showAddGroupLinkDialog(true)
+            } catch (e: Exception) {
+                Log.e("DirectoryFragment", "Error showing student directory dialog", e)
+            }
         }
         binding.btnWorkAddContact.setOnClickListener {
-            if (isWorkContactsTab) showAddContactDialog(false) else showAddGroupLinkDialog(false)
+            try {
+                if (isWorkContactsTab) showAddContactDialog(false) else showAddGroupLinkDialog(false)
+            } catch (e: Exception) {
+                Log.e("DirectoryFragment", "Error showing work directory dialog", e)
+            }
         }
     }
 
@@ -978,348 +987,431 @@ class PortalFragment : Fragment() {
     }
 
     private fun showAddContactDialog(isStudentContext: Boolean) {
-        val dialogBinding = DialogAddContactBinding.inflate(layoutInflater)
+        try {
+            val ctx = context ?: return
+            val dialogBinding = DialogAddContactBinding.inflate(LayoutInflater.from(ctx))
+            val dialogView = dialogBinding.root
 
-        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
-        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
-        dialogBinding.spContactScope.adapter =
-            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
-        val defaultScopeIdx = if (isStudentContext) 0 else 1
-        dialogBinding.spContactScope.setSelection(defaultScopeIdx)
+            val etName = dialogBinding.etContactName ?: dialogView.findViewById(R.id.etContactName)
+            val etPhone = dialogBinding.etContactPhone ?: dialogView.findViewById(R.id.etPhoneNumber) ?: dialogView.findViewById(R.id.etContactPhone)
+            val etRole = dialogBinding.etContactRole ?: dialogView.findViewById(R.id.etContactRole)
+            val etNotes = dialogBinding.etContactNotes ?: dialogView.findViewById(R.id.etContactNotes)
+            val etCountry = dialogBinding.etContactCountryCode ?: dialogView.findViewById(R.id.etContactCountryCode)
+            val spScope = dialogBinding.spContactScope ?: dialogView.findViewById(R.id.spContactScope)
+            val tilPhone = dialogBinding.tilContactPhone ?: dialogView.findViewById(R.id.tilContactPhone)
+            val btnSave = dialogBinding.btnSaveContact ?: dialogView.findViewById(R.id.btnSave) ?: dialogView.findViewById(R.id.btnSaveContact)
 
-        val defaultCountryCode = CountryUtils.getDeviceCountryCode(requireContext())
-        dialogBinding.etContactCountryCode.setText(defaultCountryCode)
+            val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
+            val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
+            spScope?.adapter =
+                android.widget.ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
+            val defaultScopeIdx = if (isStudentContext) 0 else 1
+            spScope?.setSelection(defaultScopeIdx)
 
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
+            val defaultCountryCode = CountryUtils.getDeviceCountryCode(ctx)
+            etCountry?.setText(defaultCountryCode)
 
-        dialogBinding.btnSaveContact.setOnClickListener {
-            val name = dialogBinding.etContactName.text?.toString()?.trim().orEmpty()
-            val countryCode = dialogBinding.etContactCountryCode.text?.toString()?.trim().orEmpty().ifEmpty { defaultCountryCode }
-            val phoneRaw = dialogBinding.etContactPhone.text?.toString()?.trim().orEmpty()
-            val cleanPhone = CountryUtils.getNormalizedInternationalNumber(phoneRaw, countryCode)
-            val customRole = dialogBinding.etContactRole.text?.toString()?.trim().orEmpty().ifEmpty { "Contact" }
-            val notes = dialogBinding.etContactNotes.text?.toString()?.trim().orEmpty()
-            val scope = scopes[dialogBinding.spContactScope.selectedItemPosition]
+            val dialog = AlertDialog.Builder(ctx)
+                .setView(dialogView)
+                .create()
 
-            if (name.isEmpty()) {
-                dialogBinding.etContactName.error = "Please enter a name"
-                return@setOnClickListener
-            } else {
-                dialogBinding.etContactName.error = null
+            btnSave?.setOnClickListener {
+                try {
+                    val name = etName?.text?.toString()?.trim().orEmpty()
+                    val countryCode = etCountry?.text?.toString()?.trim().orEmpty().ifEmpty { defaultCountryCode }
+                    val phoneRaw = etPhone?.text?.toString()?.trim().orEmpty()
+                    val cleanPhone = CountryUtils.getNormalizedInternationalNumber(phoneRaw, countryCode)
+                    val customRole = etRole?.text?.toString()?.trim().orEmpty().ifEmpty { "Contact" }
+                    val notes = etNotes?.text?.toString()?.trim().orEmpty()
+                    val scopePos = spScope?.selectedItemPosition ?: defaultScopeIdx
+                    val scope = scopes.getOrElse(scopePos) { if (isStudentContext) "STUDENT_ONLY" else "WORK_ONLY" }
+
+                    if (name.isEmpty()) {
+                        etName?.error = "Please enter a name"
+                        return@setOnClickListener
+                    } else {
+                        etName?.error = null
+                    }
+
+                    val phoneRegex = Regex("^\\+?[0-9]{7,15}$")
+                    if (cleanPhone.isEmpty() || !phoneRegex.matches(cleanPhone)) {
+                        tilPhone?.error = "Please enter a valid phone number"
+                        return@setOnClickListener
+                    } else {
+                        tilPhone?.error = null
+                    }
+
+                    btnSave.isEnabled = false
+
+                    val item = com.pocketdev.duorhythm.data.model.ContactGroupItem(
+                        name = name,
+                        type = "CONTACT",
+                        platform = "PHONE",
+                        targetLink = cleanPhone,
+                        notes = notes,
+                        phoneNumber = cleanPhone,
+                        role = customRole,
+                        scope = scope
+                    )
+                    dbHelper.insertContactGroup(item)
+                    dialog.dismiss()
+                    if (isStudentContext) loadStudentContacts() else loadWorkContacts()
+                    Toast.makeText(ctx, "Contact saved to Directory!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("DirectoryFragment", "Error saving contact", e)
+                }
             }
 
-            val phoneRegex = Regex("^\\+?[0-9]{7,15}$")
-            if (cleanPhone.isEmpty() || !phoneRegex.matches(cleanPhone)) {
-                dialogBinding.tilContactPhone.error = "Please enter a valid phone number"
-                return@setOnClickListener
-            } else {
-                dialogBinding.tilContactPhone.error = null
-            }
-
-            dialogBinding.btnSaveContact.isEnabled = false
-
-            val item = com.pocketdev.duorhythm.data.model.ContactGroupItem(
-                name = name,
-                type = "CONTACT",
-                platform = "PHONE",
-                targetLink = cleanPhone,
-                notes = notes,
-                phoneNumber = cleanPhone,
-                role = customRole,
-                scope = scope
-            )
-            dbHelper.insertContactGroup(item)
-            dialog.dismiss()
-            if (isStudentContext) loadStudentContacts() else loadWorkContacts()
-            Toast.makeText(requireContext(), "Contact saved to Directory!", Toast.LENGTH_SHORT).show()
+            dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            dialog.show()
+        } catch (e: Exception) {
+            Log.e("DirectoryFragment", "Error showing dialog", e)
         }
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        dialog.show()
     }
 
     private fun showEditContactDialog(contact: com.pocketdev.duorhythm.data.model.ContactGroupItem) {
-        val dialogBinding = DialogEditContactBinding.inflate(layoutInflater)
+        try {
+            val ctx = context ?: return
+            val dialogBinding = DialogEditContactBinding.inflate(LayoutInflater.from(ctx))
+            val dialogView = dialogBinding.root
 
-        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
-        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
-        dialogBinding.spContactScope.adapter =
-            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
-        val currentScopeIdx = when (contact.scope) {
-            "STUDENT_ONLY" -> 0
-            "WORK_ONLY" -> 1
-            else -> 2
-        }
-        dialogBinding.spContactScope.setSelection(currentScopeIdx)
+            val etName = dialogBinding.etContactName ?: dialogView.findViewById(R.id.etContactName)
+            val etPhone = dialogBinding.etContactPhone ?: dialogView.findViewById(R.id.etPhoneNumber) ?: dialogView.findViewById(R.id.etContactPhone)
+            val etRole = dialogBinding.etContactRole ?: dialogView.findViewById(R.id.etContactRole)
+            val etNotes = dialogBinding.etContactNotes ?: dialogView.findViewById(R.id.etContactNotes)
+            val etCountry = dialogBinding.etContactCountryCode ?: dialogView.findViewById(R.id.etContactCountryCode)
+            val spScope = dialogBinding.spContactScope ?: dialogView.findViewById(R.id.spContactScope)
+            val tilPhone = dialogBinding.tilContactPhone ?: dialogView.findViewById(R.id.tilContactPhone)
+            val btnSave = dialogBinding.btnSaveContact ?: dialogView.findViewById(R.id.btnSave) ?: dialogView.findViewById(R.id.btnSaveContact)
 
-        dialogBinding.etContactName.setText(contact.name)
-        dialogBinding.etContactRole.setText(contact.role)
-        dialogBinding.etContactNotes.setText(contact.notes)
+            val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
+            val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
+            spScope?.adapter =
+                android.widget.ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
+            val currentScopeIdx = when (contact.scope) {
+                "STUDENT_ONLY" -> 0
+                "WORK_ONLY" -> 1
+                else -> 2
+            }
+            spScope?.setSelection(currentScopeIdx)
 
-        val defaultCountryCode = CountryUtils.getDeviceCountryCode(requireContext())
-        dialogBinding.etContactCountryCode.setText(defaultCountryCode)
-        dialogBinding.etContactPhone.setText(contact.phoneNumber)
+            etName?.setText(contact.name)
+            etRole?.setText(contact.role)
+            etNotes?.setText(contact.notes)
 
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
+            val defaultCountryCode = CountryUtils.getDeviceCountryCode(ctx)
+            etCountry?.setText(defaultCountryCode)
+            etPhone?.setText(contact.phoneNumber)
 
-        dialogBinding.btnSaveContact.setOnClickListener {
-            val name = dialogBinding.etContactName.text?.toString()?.trim().orEmpty()
-            val countryCode = dialogBinding.etContactCountryCode.text?.toString()?.trim().orEmpty().ifEmpty { defaultCountryCode }
-            val phoneRaw = dialogBinding.etContactPhone.text?.toString()?.trim().orEmpty()
-            val cleanPhone = CountryUtils.getNormalizedInternationalNumber(phoneRaw, countryCode)
-            val customRole = dialogBinding.etContactRole.text?.toString()?.trim().orEmpty().ifEmpty { "Contact" }
-            val notes = dialogBinding.etContactNotes.text?.toString()?.trim().orEmpty()
-            val scope = scopes[dialogBinding.spContactScope.selectedItemPosition]
+            val dialog = AlertDialog.Builder(ctx)
+                .setView(dialogView)
+                .create()
 
-            if (name.isEmpty()) {
-                dialogBinding.etContactName.error = "Please enter a name"
-                return@setOnClickListener
-            } else {
-                dialogBinding.etContactName.error = null
+            btnSave?.setOnClickListener {
+                try {
+                    val name = etName?.text?.toString()?.trim().orEmpty()
+                    val countryCode = etCountry?.text?.toString()?.trim().orEmpty().ifEmpty { defaultCountryCode }
+                    val phoneRaw = etPhone?.text?.toString()?.trim().orEmpty()
+                    val cleanPhone = CountryUtils.getNormalizedInternationalNumber(phoneRaw, countryCode)
+                    val customRole = etRole?.text?.toString()?.trim().orEmpty().ifEmpty { "Contact" }
+                    val notes = etNotes?.text?.toString()?.trim().orEmpty()
+                    val scopePos = spScope?.selectedItemPosition ?: currentScopeIdx
+                    val scope = scopes.getOrElse(scopePos) { "SHARED" }
+
+                    if (name.isEmpty()) {
+                        etName?.error = "Please enter a name"
+                        return@setOnClickListener
+                    } else {
+                        etName?.error = null
+                    }
+
+                    val phoneRegex = Regex("^\\+?[0-9]{7,15}$")
+                    if (cleanPhone.isEmpty() || !phoneRegex.matches(cleanPhone)) {
+                        tilPhone?.error = "Please enter a valid phone number"
+                        return@setOnClickListener
+                    } else {
+                        tilPhone?.error = null
+                    }
+
+                    btnSave.isEnabled = false
+
+                    val updated = contact.copy(
+                        name = name,
+                        phoneNumber = cleanPhone,
+                        targetLink = cleanPhone,
+                        role = customRole,
+                        notes = notes,
+                        scope = scope
+                    )
+                    dbHelper.updateContactGroup(updated)
+                    dialog.dismiss()
+                    loadStudentContacts()
+                    loadWorkContacts()
+                    Toast.makeText(ctx, "Contact updated!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("DirectoryFragment", "Error updating contact", e)
+                }
             }
 
-            val phoneRegex = Regex("^\\+?[0-9]{7,15}$")
-            if (cleanPhone.isEmpty() || !phoneRegex.matches(cleanPhone)) {
-                dialogBinding.tilContactPhone.error = "Please enter a valid phone number"
-                return@setOnClickListener
-            } else {
-                dialogBinding.tilContactPhone.error = null
-            }
-
-            dialogBinding.btnSaveContact.isEnabled = false
-
-            val updated = contact.copy(
-                name = name,
-                phoneNumber = cleanPhone,
-                targetLink = cleanPhone,
-                role = customRole,
-                notes = notes,
-                scope = scope
-            )
-            dbHelper.updateContactGroup(updated)
-            dialog.dismiss()
-            loadStudentContacts()
-            loadWorkContacts()
-            Toast.makeText(requireContext(), "Contact updated!", Toast.LENGTH_SHORT).show()
+            dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            dialog.show()
+        } catch (e: Exception) {
+            Log.e("DirectoryFragment", "Error showing dialog", e)
         }
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        dialog.show()
     }
 
     private fun showAddGroupLinkDialog(isStudentContext: Boolean) {
-        val dialogBinding = DialogAddGroupLinkBinding.inflate(layoutInflater)
-        val platforms = listOf("Discord", "Telegram", "WhatsApp Group", "Messenger", "Other / Web")
-        dialogBinding.spGroupPlatform.adapter =
-            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, platforms)
+        try {
+            val ctx = context ?: return
+            val dialogBinding = DialogAddGroupLinkBinding.inflate(LayoutInflater.from(ctx))
+            val dialogView = dialogBinding.root
 
-        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
-        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
-        dialogBinding.spGroupScope.adapter =
-            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
-        val defaultScopeIdx = if (isStudentContext) 0 else 1
-        dialogBinding.spGroupScope.setSelection(defaultScopeIdx)
+            val etName = dialogBinding.etGroupName ?: dialogView.findViewById(R.id.etGroupTitle) ?: dialogView.findViewById(R.id.etGroupName)
+            val etLink = dialogBinding.etGroupLink ?: dialogView.findViewById(R.id.etGroupUrl) ?: dialogView.findViewById(R.id.etGroupLink)
+            val etNotes = dialogBinding.etGroupNotes ?: dialogView.findViewById(R.id.etGroupNotes)
+            val spPlatform = dialogBinding.spGroupPlatform ?: dialogView.findViewById(R.id.spGroupPlatform)
+            val spScope = dialogBinding.spGroupScope ?: dialogView.findViewById(R.id.spGroupScope)
+            val tilLink = dialogBinding.tilGroupLink ?: dialogView.findViewById(R.id.tilGroupLink)
+            val btnSave = dialogBinding.btnSaveGroupLink ?: dialogView.findViewById(R.id.btnSave) ?: dialogView.findViewById(R.id.btnSaveGroupLink)
 
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
+            val platforms = listOf("Discord", "Telegram", "WhatsApp Group", "Messenger", "Other / Web")
+            spPlatform?.adapter =
+                android.widget.ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, platforms)
 
-        dialogBinding.btnSaveGroupLink.setOnClickListener {
-            val name = dialogBinding.etGroupName.text?.toString()?.trim().orEmpty()
-            val link = dialogBinding.etGroupLink.text?.toString()?.trim().orEmpty()
-            val notes = dialogBinding.etGroupNotes.text?.toString()?.trim().orEmpty()
-            val platformSelected = platforms[dialogBinding.spGroupPlatform.selectedItemPosition]
-            val scope = scopes[dialogBinding.spGroupScope.selectedItemPosition]
+            val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
+            val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
+            spScope?.adapter =
+                android.widget.ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
+            val defaultScopeIdx = if (isStudentContext) 0 else 1
+            spScope?.setSelection(defaultScopeIdx)
 
-            if (name.isEmpty()) {
-                dialogBinding.etGroupName.error = "Please enter a name"
-                return@setOnClickListener
-            } else {
-                dialogBinding.etGroupName.error = null
+            val dialog = AlertDialog.Builder(ctx)
+                .setView(dialogView)
+                .create()
+
+            btnSave?.setOnClickListener {
+                try {
+                    val name = etName?.text?.toString()?.trim().orEmpty()
+                    val link = etLink?.text?.toString()?.trim().orEmpty()
+                    val notes = etNotes?.text?.toString()?.trim().orEmpty()
+                    val platformSelected = platforms.getOrElse(spPlatform?.selectedItemPosition ?: 0) { "Other / Web" }
+                    val scope = scopes.getOrElse(spScope?.selectedItemPosition ?: defaultScopeIdx) { if (isStudentContext) "STUDENT_ONLY" else "WORK_ONLY" }
+
+                    if (name.isEmpty()) {
+                        etName?.error = "Please enter a name"
+                        return@setOnClickListener
+                    } else {
+                        etName?.error = null
+                    }
+
+                    if (link.isEmpty()) {
+                        tilLink?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                        return@setOnClickListener
+                    }
+
+                    var formattedLink = link
+                    if (!formattedLink.startsWith("http://", ignoreCase = true) && !formattedLink.startsWith("https://", ignoreCase = true)) {
+                        formattedLink = "https://$formattedLink"
+                    }
+
+                    if (!android.util.Patterns.WEB_URL.matcher(formattedLink).matches()) {
+                        tilLink?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                        return@setOnClickListener
+                    } else {
+                        tilLink?.error = null
+                    }
+
+                    val platformCode = when (platformSelected) {
+                        "Discord" -> "DISCORD"
+                        "Telegram" -> "TELEGRAM"
+                        "WhatsApp Group" -> "WHATSAPP"
+                        "Messenger" -> "MESSENGER"
+                        else -> "OTHER"
+                    }
+
+                    val item = com.pocketdev.duorhythm.data.model.ContactGroupItem(
+                        name = name,
+                        type = "GROUP",
+                        platform = platformCode,
+                        targetLink = formattedLink,
+                        notes = notes,
+                        role = if (isStudentContext) "Study Group" else "Client Channel",
+                        scope = scope
+                    )
+
+                    dbHelper.insertContactGroup(item)
+                    dialog.dismiss()
+                    if (isStudentContext) loadStudentContacts() else loadWorkContacts()
+                    Toast.makeText(ctx, "Community group link saved!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("DirectoryFragment", "Error saving group link", e)
+                }
             }
 
-            if (link.isEmpty()) {
-                dialogBinding.tilGroupLink.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
-                return@setOnClickListener
-            }
-
-            var formattedLink = link
-            if (!formattedLink.startsWith("http://", ignoreCase = true) && !formattedLink.startsWith("https://", ignoreCase = true)) {
-                formattedLink = "https://$formattedLink"
-            }
-
-            if (!android.util.Patterns.WEB_URL.matcher(formattedLink).matches()) {
-                dialogBinding.tilGroupLink.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
-                return@setOnClickListener
-            } else {
-                dialogBinding.tilGroupLink.error = null
-            }
-
-            val platformCode = when (platformSelected) {
-                "Discord" -> "DISCORD"
-                "Telegram" -> "TELEGRAM"
-                "WhatsApp Group" -> "WHATSAPP"
-                "Messenger" -> "MESSENGER"
-                else -> "OTHER"
-            }
-
-            val item = com.pocketdev.duorhythm.data.model.ContactGroupItem(
-                name = name,
-                type = "GROUP",
-                platform = platformCode,
-                targetLink = formattedLink,
-                notes = notes,
-                role = if (isStudentContext) "Study Group" else "Client Channel",
-                scope = scope
-            )
-
-            dbHelper.insertContactGroup(item)
-            dialog.dismiss()
-            if (isStudentContext) loadStudentContacts() else loadWorkContacts()
-            Toast.makeText(requireContext(), "Community group link saved!", Toast.LENGTH_SHORT).show()
+            dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            dialog.show()
+        } catch (e: Exception) {
+            Log.e("DirectoryFragment", "Error showing dialog", e)
         }
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        dialog.show()
     }
 
     private fun showEditGroupLinkDialog(groupLink: com.pocketdev.duorhythm.data.model.ContactGroupItem) {
-        val dialogBinding = DialogAddGroupLinkBinding.inflate(layoutInflater)
-        dialogBinding.tvGroupLinkTitle.text = "Edit Community / Group Link"
-        dialogBinding.btnSaveGroupLink.text = "Update Group Link"
+        try {
+            val ctx = context ?: return
+            val dialogBinding = DialogAddGroupLinkBinding.inflate(LayoutInflater.from(ctx))
+            val dialogView = dialogBinding.root
 
-        val platforms = listOf("Discord", "Telegram", "WhatsApp Group", "Messenger", "Other / Web")
-        dialogBinding.spGroupPlatform.adapter =
-            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, platforms)
+            val etName = dialogBinding.etGroupName ?: dialogView.findViewById(R.id.etGroupTitle) ?: dialogView.findViewById(R.id.etGroupName)
+            val etLink = dialogBinding.etGroupLink ?: dialogView.findViewById(R.id.etGroupUrl) ?: dialogView.findViewById(R.id.etGroupLink)
+            val etNotes = dialogBinding.etGroupNotes ?: dialogView.findViewById(R.id.etGroupNotes)
+            val spPlatform = dialogBinding.spGroupPlatform ?: dialogView.findViewById(R.id.spGroupPlatform)
+            val spScope = dialogBinding.spGroupScope ?: dialogView.findViewById(R.id.spGroupScope)
+            val tilLink = dialogBinding.tilGroupLink ?: dialogView.findViewById(R.id.tilGroupLink)
+            val btnSave = dialogBinding.btnSaveGroupLink ?: dialogView.findViewById(R.id.btnSave) ?: dialogView.findViewById(R.id.btnSaveGroupLink)
 
-        val platformIdx = when (groupLink.platform.uppercase()) {
-            "DISCORD" -> 0
-            "TELEGRAM" -> 1
-            "WHATSAPP" -> 2
-            "MESSENGER" -> 3
-            else -> 4
+            dialogBinding.tvGroupLinkTitle?.text = "Edit Community / Group Link"
+            btnSave?.text = "Update Group Link"
+
+            val platforms = listOf("Discord", "Telegram", "WhatsApp Group", "Messenger", "Other / Web")
+            spPlatform?.adapter =
+                android.widget.ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, platforms)
+
+            val platformIdx = when (groupLink.platform.uppercase()) {
+                "DISCORD" -> 0
+                "TELEGRAM" -> 1
+                "WHATSAPP" -> 2
+                "MESSENGER" -> 3
+                else -> 4
+            }
+            spPlatform?.setSelection(platformIdx)
+
+            val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
+            val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
+            spScope?.adapter =
+                android.widget.ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
+            val currentScopeIdx = when (groupLink.scope) {
+                "STUDENT_ONLY" -> 0
+                "WORK_ONLY" -> 1
+                else -> 2
+            }
+            spScope?.setSelection(currentScopeIdx)
+
+            etName?.setText(groupLink.name)
+            etLink?.setText(groupLink.targetLink)
+            etNotes?.setText(groupLink.notes)
+
+            val dialog = AlertDialog.Builder(ctx)
+                .setView(dialogView)
+                .create()
+
+            btnSave?.setOnClickListener {
+                try {
+                    val name = etName?.text?.toString()?.trim().orEmpty()
+                    val link = etLink?.text?.toString()?.trim().orEmpty()
+                    val notes = etNotes?.text?.toString()?.trim().orEmpty()
+                    val platformSelected = platforms.getOrElse(spPlatform?.selectedItemPosition ?: 0) { "Other / Web" }
+                    val scopeSelected = scopes.getOrElse(spScope?.selectedItemPosition ?: currentScopeIdx) { "SHARED" }
+
+                    if (name.isEmpty()) {
+                        etName?.error = "Please enter a name"
+                        return@setOnClickListener
+                    } else {
+                        etName?.error = null
+                    }
+
+                    if (link.isEmpty()) {
+                        tilLink?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                        return@setOnClickListener
+                    }
+
+                    var formattedLink = link
+                    if (!formattedLink.startsWith("http://", ignoreCase = true) && !formattedLink.startsWith("https://", ignoreCase = true)) {
+                        formattedLink = "https://$formattedLink"
+                    }
+
+                    if (!android.util.Patterns.WEB_URL.matcher(formattedLink).matches()) {
+                        tilLink?.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
+                        return@setOnClickListener
+                    } else {
+                        tilLink?.error = null
+                    }
+
+                    val platformCode = when (platformSelected) {
+                        "Discord" -> "DISCORD"
+                        "Telegram" -> "TELEGRAM"
+                        "WhatsApp Group" -> "WHATSAPP"
+                        "Messenger" -> "MESSENGER"
+                        else -> "OTHER"
+                    }
+
+                    val updated = groupLink.copy(
+                        name = name,
+                        platform = platformCode,
+                        targetLink = formattedLink,
+                        notes = notes,
+                        scope = scopeSelected
+                    )
+
+                    dbHelper.updateContactGroup(updated)
+                    dialog.dismiss()
+                    loadStudentContacts()
+                    loadWorkContacts()
+                    Toast.makeText(ctx, "Community group link updated!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("DirectoryFragment", "Error updating group link", e)
+                }
+            }
+
+            dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            dialog.show()
+        } catch (e: Exception) {
+            Log.e("DirectoryFragment", "Error showing dialog", e)
         }
-        dialogBinding.spGroupPlatform.setSelection(platformIdx)
-
-        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
-        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
-        dialogBinding.spGroupScope.adapter =
-            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
-        val currentScopeIdx = when (groupLink.scope) {
-            "STUDENT_ONLY" -> 0
-            "WORK_ONLY" -> 1
-            else -> 2
-        }
-        dialogBinding.spGroupScope.setSelection(currentScopeIdx)
-
-        dialogBinding.etGroupName.setText(groupLink.name)
-        dialogBinding.etGroupLink.setText(groupLink.targetLink)
-        dialogBinding.etGroupNotes.setText(groupLink.notes)
-
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
-
-        dialogBinding.btnSaveGroupLink.setOnClickListener {
-            val name = dialogBinding.etGroupName.text?.toString()?.trim().orEmpty()
-            val link = dialogBinding.etGroupLink.text?.toString()?.trim().orEmpty()
-            val notes = dialogBinding.etGroupNotes.text?.toString()?.trim().orEmpty()
-            val platformSelected = platforms[dialogBinding.spGroupPlatform.selectedItemPosition]
-            val scope = scopes[dialogBinding.spGroupScope.selectedItemPosition]
-
-            if (name.isEmpty()) {
-                dialogBinding.etGroupName.error = "Please enter a name"
-                return@setOnClickListener
-            } else {
-                dialogBinding.etGroupName.error = null
-            }
-
-            if (link.isEmpty()) {
-                dialogBinding.tilGroupLink.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
-                return@setOnClickListener
-            }
-
-            var formattedLink = link
-            if (!formattedLink.startsWith("http://", ignoreCase = true) && !formattedLink.startsWith("https://", ignoreCase = true)) {
-                formattedLink = "https://$formattedLink"
-            }
-
-            if (!android.util.Patterns.WEB_URL.matcher(formattedLink).matches()) {
-                dialogBinding.tilGroupLink.error = "Please enter a valid URL (e.g. https://chat.whatsapp.com/...)"
-                return@setOnClickListener
-            } else {
-                dialogBinding.tilGroupLink.error = null
-            }
-
-            val platformCode = when (platformSelected) {
-                "Discord" -> "DISCORD"
-                "Telegram" -> "TELEGRAM"
-                "WhatsApp Group" -> "WHATSAPP"
-                "Messenger" -> "MESSENGER"
-                else -> "OTHER"
-            }
-
-            val updated = groupLink.copy(
-                name = name,
-                platform = platformCode,
-                targetLink = formattedLink,
-                notes = notes,
-                scope = scope
-            )
-
-            dbHelper.updateContactGroup(updated)
-            dialog.dismiss()
-            loadStudentContacts()
-            loadWorkContacts()
-            Toast.makeText(requireContext(), "Community group link updated!", Toast.LENGTH_SHORT).show()
-        }
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        dialog.show()
     }
 
     private fun showAddSubjectDialog() {
-        val dialogBinding = DialogAddSubjectBinding.inflate(layoutInflater)
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
+        try {
+            val ctx = context ?: return
+            val dialogBinding = DialogAddSubjectBinding.inflate(LayoutInflater.from(ctx))
+            val dialog = AlertDialog.Builder(ctx)
+                .setView(dialogBinding.root)
+                .create()
 
-        dialogBinding.btnSaveSubject.setOnClickListener {
-            val name = dialogBinding.etSubjectName.text?.toString()?.trim().orEmpty()
-            val code = dialogBinding.etSubjectCode.text?.toString()?.trim().orEmpty()
-            val credits = dialogBinding.etSubjectCredits.text?.toString()?.trim()?.toIntOrNull() ?: 3
-            val instructor = dialogBinding.etSubjectInstructor.text?.toString()?.trim().orEmpty()
-            val notes = dialogBinding.etSubjectNotes.text?.toString()?.trim().orEmpty()
+            dialogBinding.btnSaveSubject.setOnClickListener {
+                val name = dialogBinding.etSubjectName.text?.toString()?.trim().orEmpty()
+                val code = dialogBinding.etSubjectCode.text?.toString()?.trim().orEmpty()
+                val credits = dialogBinding.etSubjectCredits.text?.toString()?.trim()?.toIntOrNull() ?: 3
+                val instructor = dialogBinding.etSubjectInstructor.text?.toString()?.trim().orEmpty()
+                val notes = dialogBinding.etSubjectNotes.text?.toString()?.trim().orEmpty()
 
-            if (name.isEmpty()) {
-                Toast.makeText(requireContext(), "Subject name is required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+                if (name.isEmpty()) {
+                    Toast.makeText(ctx, "Subject name is required", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val subject = StudentSubject(
+                    name = name,
+                    code = code,
+                    colorHex = "#2563EB",
+                    notes = notes,
+                    credits = credits,
+                    instructorName = instructor
+                )
+                val autoTrack = com.pocketdev.duorhythm.data.local.pref.AppSettings.isAutoTrackAttendanceEnabled(ctx)
+                dbHelper.insertStudentSubject(subject, autoTrackAttendance = autoTrack)
+                dialog.dismiss()
+                loadStudentData()
+                Toast.makeText(ctx, "Subject created!", Toast.LENGTH_SHORT).show()
             }
 
-            val subject = StudentSubject(
-                name = name,
-                code = code,
-                colorHex = "#2563EB",
-                notes = notes,
-                credits = credits,
-                instructorName = instructor
-            )
-            val autoTrack = com.pocketdev.duorhythm.data.local.pref.AppSettings.isAutoTrackAttendanceEnabled(requireContext())
-            dbHelper.insertStudentSubject(subject, autoTrackAttendance = autoTrack)
-            dialog.dismiss()
-            loadStudentData()
-            Toast.makeText(requireContext(), "Subject created!", Toast.LENGTH_SHORT).show()
+            dialog.window?.apply {
+                setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setDimAmount(0.65f)
+            }
+            dialog.show()
+        } catch (e: Exception) {
+            Log.e("DirectoryFragment", "Error showing subject dialog", e)
         }
-
-        dialog.window?.apply {
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-            setDimAmount(0.65f)
-        }
-        dialog.show()
     }
 
     private fun saveOrderAttachmentFromUri(uri: Uri) {

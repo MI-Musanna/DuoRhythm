@@ -68,7 +68,7 @@
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="4dp"
-        android:background="@drawable/bg_chip_unselected" />
+        android:background="@drawable/bg_edit_text_dynamic" />
 
     <!-- Exam Title -->
     <com.google.android.material.textfield.TextInputLayout
@@ -77,12 +77,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Exam Title">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etExamTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Date & Time Row -->
@@ -98,6 +102,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
             android:hint="Exam Date">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -105,7 +111,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:cursorVisible="false"
-                android:focusable="false" />
+                android:focusable="false"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOutline" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -114,6 +122,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:layout_weight="1"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
             android:hint="Time (Optional)">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -121,7 +131,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:cursorVisible="false"
-                android:focusable="false" />
+                android:focusable="false"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOutline" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
@@ -131,12 +143,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Room / Hall / Location (e.g. Room 402, Main Aud)">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etExamRoom"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Syllabus & Notes -->
@@ -145,12 +161,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Syllabus / Topics / Notes (Optional)">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etExamNotes"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_dialog_obsidian_solid"
+    android:background="@drawable/bg_dialog_glass"
     android:orientation="vertical"
     android:padding="20dp">
 
@@ -20,15 +20,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        app:boxBackgroundColor="#101928"
-        app:boxStrokeColor="#263852"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Subject Name *">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEditSubjectName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline"
             android:inputType="textCapWords" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -44,15 +45,16 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            app:boxBackgroundColor="#101928"
-            app:boxStrokeColor="#263852"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
             android:hint="Course Code">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etEditSubjectCode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOutline"
                 android:inputType="textCapCharacters" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -62,15 +64,16 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:layout_weight="1"
-            app:boxBackgroundColor="#101928"
-            app:boxStrokeColor="#263852"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
             android:hint="Credit Hours">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etEditSubjectCredits"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_primary"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOutline"
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
@@ -80,15 +83,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:boxBackgroundColor="#101928"
-        app:boxStrokeColor="#263852"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Instructor Name">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEditSubjectInstructor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline"
             android:inputType="textPersonName" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -97,15 +101,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:boxBackgroundColor="#101928"
-        app:boxStrokeColor="#263852"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Instructor Email">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEditSubjectEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline"
             android:inputType="textEmailAddress" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -115,15 +120,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:boxBackgroundColor="#101928"
-        app:boxStrokeColor="#263852"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Instructor Phone Number">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEditSubjectPhone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline"
             android:inputType="phone" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -132,15 +138,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:boxBackgroundColor="#101928"
-        app:boxStrokeColor="#263852"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Course Outline / Syllabus Summary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEditSubjectSyllabus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOutline"
             android:inputType="textMultiLine"
             android:lines="3" />
     </com.google.android.material.textfield.TextInputLayout>

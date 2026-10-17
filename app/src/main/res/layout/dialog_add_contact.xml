@@ -29,6 +29,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Full Name (e.g. Dr. Rahman, Alex)">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -53,6 +55,8 @@
             android:layout_width="95dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
             android:hint="Code">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -71,10 +75,13 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
             android:hint="Phone Number (e.g. 555 123 4567)">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etContactPhone"
+                android:tag="etPhoneNumber"
                 android:inputType="phone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -89,6 +96,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="e.g. Classmate, Teacher, CR">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -119,7 +128,7 @@
             android:id="@+id/spContactScope"
             android:layout_width="match_parent"
             android:layout_height="44dp"
-            android:background="@drawable/bg_chip_unselected" />
+            android:background="@drawable/bg_edit_text_dynamic" />
     </LinearLayout>
 
     <!-- Notes (Optional) -->
@@ -128,6 +137,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
         android:hint="Notes / Office Hours (Optional)">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -140,6 +151,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSaveContact"
+        android:tag="btnSave"
         android:layout_width="match_parent"
         android:layout_height="46dp"
         android:layout_marginTop="16dp"
