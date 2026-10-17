@@ -259,7 +259,7 @@
                                         android:id="@+id/tvMiniChartToggleIcon"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="🥧 / 📊"
+                                        android:text="📊 / 🥧"
                                         android:textColor="#38BDF8"
                                         android:textSize="10sp"
                                         android:textStyle="bold" />
@@ -273,15 +273,17 @@
 
                                     <!-- Mini Pie Chart (Donut) -->
                                     <com.github.mikephil.charting.charts.PieChart
-                                        android:id="@+id/miniPieChart"
-                                        android:layout_width="100dp"
-                                        android:layout_height="100dp" />
-
-                                    <!-- Mini 7-Day Bar Trend -->
-                                    <com.github.mikephil.charting.charts.BarChart
-                                        android:id="@+id/miniBarChart"
+                                        android:id="@+id/bucketMiniPieChart"
                                         android:layout_width="100dp"
                                         android:layout_height="100dp"
+                                        android:layout_gravity="center" />
+
+                                    <!-- Mini Bar Chart (Dual Comparison Bars: Income vs Expense) -->
+                                    <com.github.mikephil.charting.charts.BarChart
+                                        android:id="@+id/bucketMiniBarChart"
+                                        android:layout_width="100dp"
+                                        android:layout_height="100dp"
+                                        android:layout_gravity="center"
                                         android:visibility="gone" />
 
                                     <!-- Empty State Subtle Dotted Ring -->

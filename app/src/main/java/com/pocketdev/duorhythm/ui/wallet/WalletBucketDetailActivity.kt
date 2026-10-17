@@ -163,7 +163,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
         binding.btnToggleMiniChartMode.setOnClickListener {
             miniChartMode = if (miniChartMode == MiniChartMode.PIE) MiniChartMode.BAR else MiniChartMode.PIE
-            binding.tvMiniChartToggleIcon.text = if (miniChartMode == MiniChartMode.PIE) "🥧 / 📊" else "📊 / 🥧"
+            binding.tvMiniChartToggleIcon.text = if (miniChartMode == MiniChartMode.PIE) "📊 / 🥧" else "🥧 / 📊"
             renderMiniChart()
         }
 
@@ -474,13 +474,13 @@ class WalletBucketDetailActivity : AppCompatActivity() {
     }
 
     private fun setupMiniCharts() {
-        binding.miniPieChart.apply {
+        binding.bucketMiniPieChart.apply {
             setBackgroundColor(Color.TRANSPARENT)
             description.isEnabled = false
             legend.isEnabled = false
             setDrawEntryLabels(false)
             isDrawHoleEnabled = true
-            setHoleColor(Color.parseColor("#131D2F"))
+            setHoleColor(Color.TRANSPARENT)
             holeRadius = 65f
             transparentCircleRadius = 0f
             setDrawCenterText(true)
@@ -490,29 +490,23 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             setTouchEnabled(false)
         }
 
-        binding.miniBarChart.apply {
+        binding.bucketMiniBarChart.apply {
             setBackgroundColor(Color.TRANSPARENT)
             description.isEnabled = false
             legend.isEnabled = false
+            xAxis.isEnabled = false
+            axisLeft.apply {
+                isEnabled = false
+                axisMinimum = 0f
+            }
+            axisRight.isEnabled = false
             setDrawGridBackground(false)
+            setDrawBorders(false)
+            setTouchEnabled(false)
             setDrawBarShadow(false)
             setDrawValueAboveBar(false)
             setPinchZoom(false)
             setScaleEnabled(false)
-            setTouchEnabled(false)
-
-            xAxis.apply {
-                setDrawGridLines(false)
-                setDrawAxisLine(false)
-                setDrawLabels(false)
-            }
-            axisLeft.apply {
-                setDrawGridLines(false)
-                setDrawAxisLine(false)
-                setDrawLabels(false)
-                axisMinimum = 0f
-            }
-            axisRight.isEnabled = false
         }
     }
 
@@ -523,13 +517,13 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         if (allTransactions.isEmpty()) {
             if (miniChartMode == MiniChartMode.PIE) {
                 binding.layoutMiniChartEmpty.visibility = View.GONE
-                binding.miniPieChart.visibility = View.VISIBLE
-                binding.miniBarChart.visibility = View.GONE
+                binding.bucketMiniPieChart.visibility = View.VISIBLE
+                binding.bucketMiniBarChart.visibility = View.GONE
                 renderMiniPieChart(emptyList())
             } else {
                 binding.layoutMiniChartEmpty.visibility = View.VISIBLE
-                binding.miniPieChart.visibility = View.GONE
-                binding.miniBarChart.visibility = View.GONE
+                binding.bucketMiniPieChart.visibility = View.GONE
+                binding.bucketMiniBarChart.visibility = View.GONE
             }
             return
         }
@@ -537,27 +531,26 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         binding.layoutMiniChartEmpty.visibility = View.GONE
 
         if (miniChartMode == MiniChartMode.PIE) {
-            binding.miniPieChart.visibility = View.VISIBLE
-            binding.miniBarChart.visibility = View.GONE
+            binding.bucketMiniPieChart.visibility = View.VISIBLE
+            binding.bucketMiniBarChart.visibility = View.GONE
             renderMiniPieChart(allTransactions)
         } else {
-            binding.miniPieChart.visibility = View.GONE
-            binding.miniBarChart.visibility = View.VISIBLE
+            binding.bucketMiniPieChart.visibility = View.GONE
+            binding.bucketMiniBarChart.visibility = View.VISIBLE
             renderMiniBarChart(allTransactions)
         }
     }
 
     private fun renderMiniPieChart(transactions: List<TransactionItem>) {
         if (transactions.isEmpty()) {
-            // Strictly show empty state ONLY when there are truly 0 total transactions
             val emptyEntries = arrayListOf(PieEntry(1f, ""))
             val emptyDataSet = PieDataSet(emptyEntries, "").apply {
                 colors = listOf(Color.parseColor("#334155"))
                 sliceSpace = 0f
                 setDrawValues(false)
             }
-            binding.miniPieChart.apply {
-                setHoleColor(Color.parseColor("#131D2F"))
+            binding.bucketMiniPieChart.apply {
+                setHoleColor(Color.TRANSPARENT)
                 centerText = "No Records"
                 setCenterTextColor(Color.parseColor("#94A3B8"))
                 setCenterTextSize(10f)
@@ -571,28 +564,19 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         val expenses = transactions.filter { it.type.equals("EXPENSE", ignoreCase = true) }
         val incomes = transactions.filter { it.type.equals("INCOME", ignoreCase = true) }
 
-        // Dynamic Income & Expense handling:
-        // Case A: User has expenses -> Render Expense Category Breakdown
-        // Case B: User has ONLY income (e.g. initial gift/deposit) -> Render Income Category Breakdown
-        val isIncomeOnly = expenses.isEmpty() && incomes.isNotEmpty()
-        val targetTx = if (isIncomeOnly) incomes else expenses
-        val targetTotal = targetTx.sumOf { it.amount }
+        val totalIncome = incomes.sumOf { it.amount }
+        val totalExpense = expenses.sumOf { it.amount }
+        val totalVolume = totalIncome + totalExpense
 
-        val categoryMap = mutableMapOf<String, Double>()
-        for (tx in targetTx) {
-            val cat = if (tx.category.isNotBlank()) tx.category.trim() else if (isIncomeOnly) "Income" else "Other"
-            categoryMap[cat] = (categoryMap[cat] ?: 0.0) + tx.amount
-        }
-
-        if (categoryMap.isEmpty() || targetTotal <= 0.0) {
+        if (totalVolume <= 0.0) {
             val emptyEntries = arrayListOf(PieEntry(1f, ""))
             val emptyDataSet = PieDataSet(emptyEntries, "").apply {
                 colors = listOf(Color.parseColor("#334155"))
                 sliceSpace = 0f
                 setDrawValues(false)
             }
-            binding.miniPieChart.apply {
-                setHoleColor(Color.parseColor("#131D2F"))
+            binding.bucketMiniPieChart.apply {
+                setHoleColor(Color.TRANSPARENT)
                 centerText = "No Records"
                 setCenterTextColor(Color.parseColor("#94A3B8"))
                 setCenterTextSize(10f)
@@ -616,7 +600,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             "allowance" to "#10B981",     // Emerald
             "food" to "#F59E0B",          // Amber
             "dining" to "#F59E0B",
-            "groceries" to "#10B981",     // Emerald
+            "groceries" to "#F97316",     // Orange (distinct from income emerald)
             "gadget" to "#8B5CF6",        // Violet
             "gadgets" to "#8B5CF6",       // Violet
             "electronics" to "#8B5CF6",
@@ -627,87 +611,135 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             "utilities" to "#0EA5E9",
             "transport" to "#06B6D4",     // Teal
             "travel" to "#38BDF8",
-            "health" to "#10B981",        // Emerald
-            "medical" to "#10B981",
+            "health" to "#EF4444",        // Red/Rose
+            "medical" to "#EF4444",
             "education" to "#6366F1",     // Indigo
             "study" to "#6366F1",
             "tuition" to "#6366F1",
             "subscription" to "#A855F7",
             "other" to "#64748B"
         )
-        val fallbackPalette = if (isIncomeOnly) {
-            listOf(
-                "#10B981", // Emerald
-                "#06B6D4", // Teal
-                "#34D399", // Mint
-                "#3B82F6", // Blue
-                "#8B5CF6", // Violet
-                "#14B8A6", // Teal light
-                "#6EE7B7"  // Pastel emerald
-            )
-        } else {
-            listOf(
-                "#8B5CF6", // Violet
-                "#06B6D4", // Teal
-                "#F59E0B", // Amber
-                "#10B981", // Emerald
-                "#38BDF8", // Sky
-                "#EC4899", // Pink
-                "#F43F5E", // Rose
-                "#F97316"  // Orange
-            )
-        }
+
+        val expenseFallbackPalette = listOf(
+            "#F43F5E", // Rose
+            "#F59E0B", // Amber
+            "#8B5CF6", // Violet
+            "#06B6D4", // Teal
+            "#38BDF8", // Sky
+            "#EC4899", // Pink
+            "#F97316", // Orange
+            "#6366F1"  // Indigo
+        )
+
+        val incomePalette = listOf(
+            "#10B981", // Emerald Green
+            "#059669", // Dark Emerald
+            "#34D399", // Mint / Light Emerald
+            "#14B8A6", // Teal-Green
+            "#6EE7B7"  // Light Green
+        )
 
         val entries = ArrayList<PieEntry>()
         val colors = ArrayList<Int>()
-        var colorIdx = 0
-        val sorted = categoryMap.entries.sortedByDescending { it.value }
-        for (entry in sorted) {
-            entries.add(PieEntry(entry.value.toFloat(), entry.key))
 
-            val catKey = entry.key.lowercase(Locale.US).trim()
-            val customCat = dbHelper.getTransactionCategoryByName(entry.key)
-            val colorHex = when {
-                customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0284C7" -> customCat.colorHex
-                defaultCategoryColors.containsKey(catKey) -> defaultCategoryColors[catKey]!!
-                customCat != null && customCat.colorHex.isNotBlank() -> customCat.colorHex
-                isIncomeOnly -> "#10B981"
-                else -> fallbackPalette[colorIdx % fallbackPalette.size]
+        // 1. If income exists, group and add Income slices (in Emerald Green)
+        if (incomes.isNotEmpty()) {
+            val incomeCatMap = mutableMapOf<String, Double>()
+            for (tx in incomes) {
+                val cat = if (tx.category.isNotBlank()) tx.category.trim() else "Income"
+                incomeCatMap[cat] = (incomeCatMap[cat] ?: 0.0) + tx.amount
             }
+            var incIdx = 0
+            val sortedIncome = incomeCatMap.entries.sortedByDescending { it.value }
+            for (entry in sortedIncome) {
+                val label = if (expenses.isNotEmpty() && !entry.key.startsWith("Income", ignoreCase = true)) {
+                    "Income: ${entry.key}"
+                } else {
+                    entry.key
+                }
+                entries.add(PieEntry(entry.value.toFloat(), label))
+                val colorHex = incomePalette[incIdx % incomePalette.size]
+                colors.add(Color.parseColor(colorHex))
+                incIdx++
+            }
+        }
 
-            val parsedColor = try {
-                Color.parseColor(colorHex)
-            } catch (_: Exception) {
-                Color.parseColor(fallbackPalette[colorIdx % fallbackPalette.size])
+        // 2. If expenses exist, group and add Expense slices (in Category Colors / Rose)
+        if (expenses.isNotEmpty()) {
+            val expenseCatMap = mutableMapOf<String, Double>()
+            for (tx in expenses) {
+                val cat = if (tx.category.isNotBlank()) tx.category.trim() else "Expense"
+                expenseCatMap[cat] = (expenseCatMap[cat] ?: 0.0) + tx.amount
             }
-            colors.add(parsedColor)
-            colorIdx++
+            var expIdx = 0
+            val sortedExpense = expenseCatMap.entries.sortedByDescending { it.value }
+            for (entry in sortedExpense) {
+                val catKey = entry.key.lowercase(Locale.US).trim()
+                val customCat = dbHelper.getTransactionCategoryByName(entry.key)
+                val colorHex = when {
+                    customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0284C7" -> customCat.colorHex
+                    defaultCategoryColors.containsKey(catKey) -> defaultCategoryColors[catKey]!!
+                    customCat != null && customCat.colorHex.isNotBlank() -> customCat.colorHex
+                    else -> expenseFallbackPalette[expIdx % expenseFallbackPalette.size]
+                }
+                val parsedColor = try {
+                    Color.parseColor(colorHex)
+                } catch (_: Exception) {
+                    Color.parseColor(expenseFallbackPalette[expIdx % expenseFallbackPalette.size])
+                }
+                entries.add(PieEntry(entry.value.toFloat(), entry.key))
+                colors.add(parsedColor)
+                expIdx++
+            }
         }
 
         val dataSet = PieDataSet(entries, "").apply {
             this.colors = colors
-            sliceSpace = if (entries.size > 1) 2f else 0f
+            sliceSpace = 2f
             setDrawValues(false)
         }
 
-        val formattedCenter = if (isIncomeOnly) {
-            if (targetTotal % 1.0 == 0.0) {
-                String.format(Locale.US, "+%s%,d", currentSymbol, targetTotal.toLong())
+        // Center Hole Net Summary calculation
+        val net = totalIncome - totalExpense
+        val formattedCenter: String
+        val centerTextColor: Int
+
+        if (incomes.isNotEmpty() && expenses.isNotEmpty()) {
+            // Dual-segment Cashflow Donut: display Net Cashflow
+            if (net >= 0) {
+                formattedCenter = if (net % 1.0 == 0.0) {
+                    String.format(Locale.US, "+%s%,d", currentSymbol, net.toLong())
+                } else {
+                    String.format(Locale.US, "+%s%,.0f", currentSymbol, net)
+                }
+                centerTextColor = Color.parseColor("#10B981") // Emerald Green
             } else {
-                String.format(Locale.US, "+%s%,.0f", currentSymbol, targetTotal)
+                val absNet = Math.abs(net)
+                formattedCenter = if (absNet % 1.0 == 0.0) {
+                    String.format(Locale.US, "-%s%,d", currentSymbol, absNet.toLong())
+                } else {
+                    String.format(Locale.US, "-%s%,.0f", currentSymbol, absNet)
+                }
+                centerTextColor = Color.parseColor("#F43F5E") // Rose
             }
+        } else if (incomes.isNotEmpty()) {
+            formattedCenter = if (totalIncome % 1.0 == 0.0) {
+                String.format(Locale.US, "+%s%,d", currentSymbol, totalIncome.toLong())
+            } else {
+                String.format(Locale.US, "+%s%,.0f", currentSymbol, totalIncome)
+            }
+            centerTextColor = Color.parseColor("#10B981")
         } else {
-            if (targetTotal % 1.0 == 0.0) {
-                String.format(Locale.US, "-%s%,d", currentSymbol, targetTotal.toLong())
+            formattedCenter = if (totalExpense % 1.0 == 0.0) {
+                String.format(Locale.US, "-%s%,d", currentSymbol, totalExpense.toLong())
             } else {
-                String.format(Locale.US, "-%s%,.0f", currentSymbol, targetTotal)
+                String.format(Locale.US, "-%s%,.0f", currentSymbol, totalExpense)
             }
+            centerTextColor = Color.parseColor("#F43F5E")
         }
 
-        val centerTextColor = if (isIncomeOnly) Color.parseColor("#10B981") else Color.parseColor("#F43F5E")
-
-        binding.miniPieChart.apply {
-            setHoleColor(Color.parseColor("#131D2F"))
+        binding.bucketMiniPieChart.apply {
+            setHoleColor(Color.TRANSPARENT)
             centerText = formattedCenter
             setCenterTextColor(centerTextColor)
             setCenterTextSize(10f)
@@ -718,33 +750,49 @@ class WalletBucketDetailActivity : AppCompatActivity() {
     }
 
     private fun renderMiniBarChart(transactions: List<TransactionItem>) {
-        val dayFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val dailyMap = mutableMapOf<String, Float>()
         val expenses = transactions.filter { it.type.equals("EXPENSE", ignoreCase = true) }
         val incomes = transactions.filter { it.type.equals("INCOME", ignoreCase = true) }
-        val isIncomeOnly = expenses.isEmpty() && incomes.isNotEmpty()
-        val targetTx = if (isIncomeOnly) incomes else expenses
 
-        for (tx in targetTx) {
-            dailyMap[tx.date] = (dailyMap[tx.date] ?: 0f) + tx.amount.toFloat()
-        }
+        val totalIncome = incomes.sumOf { it.amount }.toFloat()
+        val totalExpense = expenses.sumOf { it.amount }.toFloat()
 
-        val entries = ArrayList<BarEntry>()
-        for (i in 6 downTo 0) {
-            val c = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
-            val key = dayFormat.format(c.time)
-            val idx = 6 - i
-            entries.add(BarEntry(idx.toFloat(), dailyMap[key] ?: 0f))
-        }
+        val entries = arrayListOf(
+            BarEntry(0f, totalIncome),
+            BarEntry(1f, totalExpense)
+        )
 
-        val dataSet = BarDataSet(entries, "").apply {
-            color = Color.parseColor(if (isIncomeOnly) "#10B981" else "#EF4444")
+        val barDataSet = BarDataSet(entries, "Dual Comparison").apply {
+            colors = listOf(
+                Color.parseColor("#10B981"), // Emerald Green for Income
+                Color.parseColor("#EF4444")  // Rose Red for Expense
+            )
             setDrawValues(false)
         }
-        val barData = BarData(dataSet).apply {
-            barWidth = 0.5f
+
+        val barData = BarData(barDataSet).apply {
+            barWidth = 0.35f
         }
-        binding.miniBarChart.apply {
+
+        binding.bucketMiniBarChart.apply {
+            description.isEnabled = false
+            legend.isEnabled = false
+            xAxis.apply {
+                isEnabled = false
+                axisMinimum = -0.5f
+                axisMaximum = 1.5f
+            }
+            axisLeft.apply {
+                isEnabled = false
+                axisMinimum = 0f
+            }
+            axisRight.isEnabled = false
+            setDrawGridBackground(false)
+            setDrawBorders(false)
+            setTouchEnabled(false)
+            setDrawBarShadow(false)
+            setDrawValueAboveBar(false)
+            setPinchZoom(false)
+            setScaleEnabled(false)
             data = barData
             invalidate()
         }
@@ -1030,3 +1078,6 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
     }
 }
+
+typealias BucketLedgerActivity = WalletBucketDetailActivity
+

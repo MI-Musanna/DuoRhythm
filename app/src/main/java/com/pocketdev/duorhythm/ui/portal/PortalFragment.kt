@@ -22,11 +22,14 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import com.pocketdev.duorhythm.data.model.SubjectWorkItem
 import com.pocketdev.duorhythm.databinding.DialogAddContactBinding
+import com.pocketdev.duorhythm.databinding.DialogEditContactBinding
 import com.pocketdev.duorhythm.databinding.DialogAddExamBinding
+import com.pocketdev.duorhythm.databinding.DialogAddQuizBinding
 import com.pocketdev.duorhythm.databinding.DialogAddGroupLinkBinding
 import com.pocketdev.duorhythm.databinding.DialogAddSubjectBinding
 import com.pocketdev.duorhythm.databinding.DialogAddWorkOrderBinding
 import com.pocketdev.duorhythm.databinding.FragmentPortalBinding
+import com.pocketdev.duorhythm.util.CountryUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -188,6 +191,9 @@ class PortalFragment : Fragment() {
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
+            },
+            onItemClick = { item ->
+                showEditExamDialog(item)
             }
         )
         binding.rvSemesterFinals.layoutManager = LinearLayoutManager(requireContext())
@@ -210,6 +216,9 @@ class PortalFragment : Fragment() {
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
+            },
+            onItemClick = { item ->
+                showEditExamDialog(item)
             }
         )
         binding.rvClassTests.layoutManager = LinearLayoutManager(requireContext())
@@ -228,6 +237,9 @@ class PortalFragment : Fragment() {
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
+            },
+            onItemClick = { contact ->
+                showEditContactDialog(contact)
             }
         )
         binding.rvStudentContacts.layoutManager = LinearLayoutManager(requireContext())
@@ -246,6 +258,9 @@ class PortalFragment : Fragment() {
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
+            },
+            onItemClick = { contact ->
+                showEditContactDialog(contact)
             }
         )
         binding.rvWorkContacts.layoutManager = LinearLayoutManager(requireContext())
@@ -278,7 +293,7 @@ class PortalFragment : Fragment() {
         }
 
         binding.btnStudentAddFinalExam.setOnClickListener { showAddExamDialog("SEMESTER_FINAL") }
-        binding.btnStudentAddClassTest.setOnClickListener { showAddExamDialog("CLASS_TEST_QUIZ") }
+        binding.btnStudentAddClassTest.setOnClickListener { showAddQuizDialog() }
 
         binding.toggleStudentDirectoryTab.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
@@ -480,8 +495,8 @@ class PortalFragment : Fragment() {
         }
 
         // Load Semester Finals (SEMESTER_FINAL or MIDTERM)
-        val allFinals = dbHelper.getAllExams("SEMESTER_FINAL") + dbHelper.getAllExams("MIDTERM")
-        val finalsItems = allFinals.map { it.first }
+        val allExams = dbHelper.getAllExams().distinctBy { it.first.id }
+        val finalsItems = allExams.filter { it.first.examType == "SEMESTER_FINAL" || it.first.examType == "MIDTERM" }.map { it.first }
         semesterFinalsAdapter.updateList(finalsItems)
         binding.tvFinalExamsCountBadge.text = "${finalsItems.size} Scheduled"
         if (finalsItems.isEmpty()) {
@@ -493,8 +508,7 @@ class PortalFragment : Fragment() {
         }
 
         // Load Class Tests & Quizzes (CLASS_TEST_QUIZ or untagged exams)
-        val classTests = dbHelper.getAllExams("CLASS_TEST_QUIZ") + dbHelper.getAllExams("").filter { it.first.examType != "SEMESTER_FINAL" && it.first.examType != "MIDTERM" }
-        val testItems = classTests.map { it.first }
+        val testItems = allExams.filter { it.first.examType == "CLASS_TEST_QUIZ" || (it.first.examType != "SEMESTER_FINAL" && it.first.examType != "MIDTERM") }.map { it.first }
         classTestsAdapter.updateList(testItems)
         binding.tvClassTestsCountBadge.text = "${testItems.size} Active"
         if (testItems.isEmpty()) {
@@ -582,6 +596,10 @@ class PortalFragment : Fragment() {
     }
 
     private fun showAddExamDialog(preselectedExamType: String) {
+        if (preselectedExamType == "CLASS_TEST_QUIZ") {
+            showAddQuizDialog()
+            return
+        }
         val subjects = dbHelper.getAllStudentSubjects()
         if (subjects.isEmpty()) {
             Toast.makeText(requireContext(), "Please add at least one subject/course first!", Toast.LENGTH_LONG).show()
@@ -598,6 +616,8 @@ class PortalFragment : Fragment() {
             dialogBinding.tvExamTypeBadge.text = "SEMESTER FINAL"
             dialogBinding.tvExamTypeBadge.setTextColor(Color.parseColor("#38BDF8"))
             dialogBinding.tvExamTypeBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#220284C7"))
+            dialogBinding.tilExamTitle.hint = "Exam Title (e.g. Final Examination)"
+            dialogBinding.etExamTitle.hint = "Exam Title (e.g. Final Examination)"
             dialogBinding.etExamTitle.setText("Final Examination")
         } else {
             dialogBinding.tvExamDialogTitle.text = "Schedule Class Test / Quiz"
@@ -605,7 +625,9 @@ class PortalFragment : Fragment() {
             dialogBinding.tvExamTypeBadge.text = "CLASS TEST / QUIZ"
             dialogBinding.tvExamTypeBadge.setTextColor(Color.parseColor("#FBBF24"))
             dialogBinding.tvExamTypeBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22F59E0B"))
-            dialogBinding.etExamTitle.setText("Class Test / Quiz")
+            dialogBinding.tilExamTitle.hint = "e.g. Class Test 1, Quiz 2"
+            dialogBinding.etExamTitle.hint = "e.g. Class Test 1, Quiz 2"
+            dialogBinding.etExamTitle.setText("")
         }
 
         val subjectNames = subjects.map { if (it.code.isNotEmpty()) "${it.code} - ${it.name}" else it.name }
@@ -673,6 +695,8 @@ class PortalFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            dialogBinding.btnSaveExam.isEnabled = false
+
             val selectedSubject = subjects[dialogBinding.spExamSubject.selectedItemPosition]
             val descParts = mutableListOf<String>()
             if (time.isNotEmpty()) descParts.add("Time: $time")
@@ -701,9 +725,252 @@ class PortalFragment : Fragment() {
         dialog.show()
     }
 
+    private fun showAddQuizDialog() {
+        val subjects = dbHelper.getAllStudentSubjects()
+        if (subjects.isEmpty()) {
+            Toast.makeText(requireContext(), "Please add at least one subject/course first!", Toast.LENGTH_LONG).show()
+            showAddSubjectDialog()
+            return
+        }
+
+        val dialogBinding = DialogAddQuizBinding.inflate(layoutInflater)
+        val subjectNames = subjects.map { if (it.code.isNotEmpty()) "${it.code} - ${it.name}" else it.name }
+        dialogBinding.spQuizSubject.adapter =
+            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, subjectNames)
+
+        val cal = java.util.Calendar.getInstance()
+        val defaultDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
+        dialogBinding.etQuizDate.setText(defaultDate)
+
+        val openDatePicker = View.OnClickListener {
+            val now = java.util.Calendar.getInstance()
+            DatePickerDialog(
+                requireContext(),
+                { _, year, month, dayOfMonth ->
+                    val selected = java.util.Calendar.getInstance()
+                    selected.set(year, month, dayOfMonth)
+                    dialogBinding.etQuizDate.setText(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selected.time))
+                },
+                now.get(java.util.Calendar.YEAR),
+                now.get(java.util.Calendar.MONTH),
+                now.get(java.util.Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+        dialogBinding.etQuizDate.setOnClickListener(openDatePicker)
+
+        val openTimePicker = View.OnClickListener {
+            val now = java.util.Calendar.getInstance()
+            TimePickerDialog(
+                requireContext(),
+                { _, hourOfDay, minute ->
+                    val isPm = hourOfDay >= 12
+                    val displayHour = when {
+                        hourOfDay == 0 -> 12
+                        hourOfDay > 12 -> hourOfDay - 12
+                        else -> hourOfDay
+                    }
+                    val amPm = if (isPm) "PM" else "AM"
+                    dialogBinding.etQuizTime.setText(String.format(Locale.US, "%02d:%02d %s", displayHour, minute, amPm))
+                },
+                now.get(java.util.Calendar.HOUR_OF_DAY),
+                now.get(java.util.Calendar.MINUTE),
+                false
+            ).show()
+        }
+        dialogBinding.etQuizTime.setOnClickListener(openTimePicker)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnSaveQuiz.setOnClickListener {
+            val title = dialogBinding.etQuizTitle.text?.toString()?.trim().orEmpty()
+            val date = dialogBinding.etQuizDate.text?.toString()?.trim().orEmpty()
+            val time = dialogBinding.etQuizTime.text?.toString()?.trim().orEmpty()
+            val room = dialogBinding.etQuizRoom.text?.toString()?.trim().orEmpty()
+            val notes = dialogBinding.etQuizNotes.text?.toString()?.trim().orEmpty()
+
+            if (title.isEmpty()) {
+                Toast.makeText(requireContext(), "Quiz title is required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (date.isEmpty()) {
+                Toast.makeText(requireContext(), "Quiz date is required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Immediately disable save button to prevent double-tap insertion
+            dialogBinding.btnSaveQuiz.isEnabled = false
+
+            val selectedSubject = subjects[dialogBinding.spQuizSubject.selectedItemPosition]
+            val descParts = mutableListOf<String>()
+            if (time.isNotEmpty()) descParts.add("Time: $time")
+            if (room.isNotEmpty()) descParts.add("Room: $room")
+            if (notes.isNotEmpty()) descParts.add("Syllabus: $notes")
+            val description = descParts.joinToString(" • ")
+
+            val quizItem = SubjectWorkItem(
+                subjectId = selectedSubject.id,
+                itemType = "EXAM",
+                examType = "CLASS_TEST_QUIZ",
+                title = title,
+                description = description,
+                startDate = date,
+                endDate = date,
+                status = "PENDING"
+            )
+
+            dbHelper.insertSubjectWorkItem(quizItem)
+            dialog.dismiss()
+            loadStudentData()
+            Toast.makeText(requireContext(), "Class Test / Quiz scheduled successfully!", Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
+    }
+
+    private fun showEditExamDialog(item: SubjectWorkItem) {
+        val subjects = dbHelper.getAllStudentSubjects()
+        val dialogBinding = DialogAddExamBinding.inflate(layoutInflater)
+        val isFinal = item.examType == "SEMESTER_FINAL" || item.examType == "MIDTERM"
+
+        if (isFinal) {
+            dialogBinding.tvExamDialogTitle.text = "Edit Final Exam"
+            dialogBinding.tvExamDialogSubtitle.text = "Modify title, dates, and details for this exam."
+            dialogBinding.tvExamTypeBadge.text = if (item.examType == "MIDTERM") "MIDTERM EXAM" else "SEMESTER FINAL"
+            dialogBinding.tvExamTypeBadge.setTextColor(Color.parseColor("#38BDF8"))
+            dialogBinding.tvExamTypeBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#220284C7"))
+            dialogBinding.tilExamTitle.hint = "Exam Title"
+            dialogBinding.btnSaveExam.text = "Save Changes"
+        } else {
+            dialogBinding.tvExamDialogTitle.text = "Edit CT / Quiz"
+            dialogBinding.tvExamDialogSubtitle.text = "Update date, title, and syllabus notes."
+            dialogBinding.tvExamTypeBadge.text = "CLASS TEST / QUIZ"
+            dialogBinding.tvExamTypeBadge.setTextColor(Color.parseColor("#FBBF24"))
+            dialogBinding.tvExamTypeBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22F59E0B"))
+            dialogBinding.tilExamTitle.hint = "e.g. Class Test 1, Quiz 2"
+            dialogBinding.btnSaveExam.text = "Save Changes"
+        }
+
+        dialogBinding.etExamTitle.setText(item.title)
+        dialogBinding.etExamDate.setText(item.startDate)
+
+        var timeVal = ""
+        var roomVal = ""
+        var notesVal = ""
+        if (item.description.contains(" • ")) {
+            val parts = item.description.split(" • ")
+            for (p in parts) {
+                when {
+                    p.startsWith("Time: ") -> timeVal = p.removePrefix("Time: ").trim()
+                    p.startsWith("Room: ") -> roomVal = p.removePrefix("Room: ").trim()
+                    p.startsWith("Syllabus: ") -> notesVal = p.removePrefix("Syllabus: ").trim()
+                    else -> if (notesVal.isEmpty()) notesVal = p.trim() else notesVal += " $p"
+                }
+            }
+        } else if (item.description.isNotEmpty()) {
+            notesVal = item.description
+        }
+        dialogBinding.etExamTime.setText(timeVal)
+        dialogBinding.etExamRoom.setText(roomVal)
+        dialogBinding.etExamNotes.setText(notesVal)
+
+        val subjectNames = subjects.map { if (it.code.isNotEmpty()) "${it.code} - ${it.name}" else it.name }
+        dialogBinding.spExamSubject.adapter =
+            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, subjectNames)
+        val subIdx = subjects.indexOfFirst { it.id == item.subjectId }.coerceAtLeast(0)
+        dialogBinding.spExamSubject.setSelection(subIdx)
+
+        val openDatePicker = View.OnClickListener {
+            val now = java.util.Calendar.getInstance()
+            DatePickerDialog(
+                requireContext(),
+                { _, year, month, dayOfMonth ->
+                    val selected = java.util.Calendar.getInstance()
+                    selected.set(year, month, dayOfMonth)
+                    dialogBinding.etExamDate.setText(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selected.time))
+                },
+                now.get(java.util.Calendar.YEAR),
+                now.get(java.util.Calendar.MONTH),
+                now.get(java.util.Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+        dialogBinding.etExamDate.setOnClickListener(openDatePicker)
+
+        val openTimePicker = View.OnClickListener {
+            val now = java.util.Calendar.getInstance()
+            TimePickerDialog(
+                requireContext(),
+                { _, hourOfDay, minute ->
+                    val isPm = hourOfDay >= 12
+                    val displayHour = when {
+                        hourOfDay == 0 -> 12
+                        hourOfDay > 12 -> hourOfDay - 12
+                        else -> hourOfDay
+                    }
+                    val amPm = if (isPm) "PM" else "AM"
+                    dialogBinding.etExamTime.setText(String.format(Locale.US, "%02d:%02d %s", displayHour, minute, amPm))
+                },
+                now.get(java.util.Calendar.HOUR_OF_DAY),
+                now.get(java.util.Calendar.MINUTE),
+                false
+            ).show()
+        }
+        dialogBinding.etExamTime.setOnClickListener(openTimePicker)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnSaveExam.setOnClickListener {
+            val title = dialogBinding.etExamTitle.text?.toString()?.trim().orEmpty()
+            val date = dialogBinding.etExamDate.text?.toString()?.trim().orEmpty()
+            val time = dialogBinding.etExamTime.text?.toString()?.trim().orEmpty()
+            val room = dialogBinding.etExamRoom.text?.toString()?.trim().orEmpty()
+            val notes = dialogBinding.etExamNotes.text?.toString()?.trim().orEmpty()
+
+            if (title.isEmpty()) {
+                Toast.makeText(requireContext(), "Exam title is required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (date.isEmpty()) {
+                Toast.makeText(requireContext(), "Exam date is required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            dialogBinding.btnSaveExam.isEnabled = false
+
+            val selectedSubject = if (subjects.isNotEmpty() && dialogBinding.spExamSubject.selectedItemPosition in subjects.indices) {
+                subjects[dialogBinding.spExamSubject.selectedItemPosition]
+            } else null
+
+            val descParts = mutableListOf<String>()
+            if (time.isNotEmpty()) descParts.add("Time: $time")
+            if (room.isNotEmpty()) descParts.add("Room: $room")
+            if (notes.isNotEmpty()) descParts.add("Syllabus: $notes")
+            val description = descParts.joinToString(" • ")
+
+            val updated = item.copy(
+                subjectId = selectedSubject?.id ?: item.subjectId,
+                title = title,
+                description = description,
+                startDate = date,
+                endDate = date
+            )
+            dbHelper.updateSubjectWorkItem(updated)
+            dialog.dismiss()
+            loadStudentData()
+            val label = if (isFinal) "Final exam updated!" else "CT/Quiz updated!"
+            Toast.makeText(requireContext(), label, Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
+    }
+
     private fun showAddContactDialog(isStudentContext: Boolean) {
         val dialogBinding = DialogAddContactBinding.inflate(layoutInflater)
-        dialogBinding.etContactRole.setText(if (isStudentContext) "Classmate" else "Client")
 
         val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
         val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
@@ -712,14 +979,18 @@ class PortalFragment : Fragment() {
         val defaultScopeIdx = if (isStudentContext) 0 else 1
         dialogBinding.spContactScope.setSelection(defaultScopeIdx)
 
+        val defaultCountryCode = CountryUtils.getDeviceCountryCode(requireContext())
+        dialogBinding.etContactCountryCode.setText(defaultCountryCode)
+
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogBinding.root)
             .create()
 
         dialogBinding.btnSaveContact.setOnClickListener {
             val name = dialogBinding.etContactName.text?.toString()?.trim().orEmpty()
+            val countryCode = dialogBinding.etContactCountryCode.text?.toString()?.trim().orEmpty().ifEmpty { defaultCountryCode }
             val phoneRaw = dialogBinding.etContactPhone.text?.toString()?.trim().orEmpty()
-            val cleanPhone = phoneRaw.replace(Regex("[^0-9+]"), "")
+            val cleanPhone = CountryUtils.getNormalizedInternationalNumber(phoneRaw, countryCode)
             val customRole = dialogBinding.etContactRole.text?.toString()?.trim().orEmpty().ifEmpty { "Contact" }
             val notes = dialogBinding.etContactNotes.text?.toString()?.trim().orEmpty()
             val scope = scopes[dialogBinding.spContactScope.selectedItemPosition]
@@ -728,6 +999,8 @@ class PortalFragment : Fragment() {
                 Toast.makeText(requireContext(), "Name and a valid phone number are required", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
+            dialogBinding.btnSaveContact.isEnabled = false
 
             val item = com.pocketdev.duorhythm.data.model.ContactGroupItem(
                 name = name,
@@ -743,6 +1016,67 @@ class PortalFragment : Fragment() {
             dialog.dismiss()
             if (isStudentContext) loadStudentContacts() else loadWorkContacts()
             Toast.makeText(requireContext(), "Contact saved to Directory!", Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
+    }
+
+    private fun showEditContactDialog(contact: com.pocketdev.duorhythm.data.model.ContactGroupItem) {
+        val dialogBinding = DialogEditContactBinding.inflate(layoutInflater)
+
+        val scopes = listOf("STUDENT_ONLY", "WORK_ONLY", "SHARED")
+        val scopeDisplay = listOf("Student Portal", "Work Portal", "Both / Shared")
+        dialogBinding.spContactScope.adapter =
+            android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, scopeDisplay)
+        val currentScopeIdx = when (contact.scope) {
+            "STUDENT_ONLY" -> 0
+            "WORK_ONLY" -> 1
+            else -> 2
+        }
+        dialogBinding.spContactScope.setSelection(currentScopeIdx)
+
+        dialogBinding.etContactName.setText(contact.name)
+        dialogBinding.etContactRole.setText(contact.role)
+        dialogBinding.etContactNotes.setText(contact.notes)
+
+        val defaultCountryCode = CountryUtils.getDeviceCountryCode(requireContext())
+        dialogBinding.etContactCountryCode.setText(defaultCountryCode)
+        dialogBinding.etContactPhone.setText(contact.phoneNumber)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnSaveContact.setOnClickListener {
+            val name = dialogBinding.etContactName.text?.toString()?.trim().orEmpty()
+            val countryCode = dialogBinding.etContactCountryCode.text?.toString()?.trim().orEmpty().ifEmpty { defaultCountryCode }
+            val phoneRaw = dialogBinding.etContactPhone.text?.toString()?.trim().orEmpty()
+            val cleanPhone = CountryUtils.getNormalizedInternationalNumber(phoneRaw, countryCode)
+            val customRole = dialogBinding.etContactRole.text?.toString()?.trim().orEmpty().ifEmpty { "Contact" }
+            val notes = dialogBinding.etContactNotes.text?.toString()?.trim().orEmpty()
+            val scope = scopes[dialogBinding.spContactScope.selectedItemPosition]
+
+            if (name.isEmpty() || cleanPhone.isEmpty()) {
+                Toast.makeText(requireContext(), "Name and a valid phone number are required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            dialogBinding.btnSaveContact.isEnabled = false
+
+            val updated = contact.copy(
+                name = name,
+                phoneNumber = cleanPhone,
+                targetLink = cleanPhone,
+                role = customRole,
+                notes = notes,
+                scope = scope
+            )
+            dbHelper.updateContactGroup(updated)
+            dialog.dismiss()
+            loadStudentContacts()
+            loadWorkContacts()
+            Toast.makeText(requireContext(), "Contact updated!", Toast.LENGTH_SHORT).show()
         }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))

@@ -18,7 +18,7 @@
             android:id="@+id/tvAddDueTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Record Due / Debt (দেনা-পাওনা)"
+            android:text="Record Due / Debt"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />

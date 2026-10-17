@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
+            android:layout_marginBottom="10dp">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -67,8 +67,52 @@
                 app:strokeWidth="1dp" />
         </LinearLayout>
 
+        <!-- Layer Separation: [ 📋 Tasks | 🎯 Goals ] Tabs -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleTasksGoals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:padding="2dp"
+            android:background="@drawable/bg_mode_switch_pill"
+            app:checkedButton="@id/btnTabTasks"
+            app:singleSelection="true"
+            app:selectionRequired="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTabTasks"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="📋 Tasks"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:backgroundTint="#0284C7"
+                app:cornerRadius="14dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTabGoals"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="🎯 Goals"
+                android:textColor="#94A3B8"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:cornerRadius="14dp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
         <!-- 2. Filter Chips Strip wrapped in NestedScrollableHost -->
         <com.pocketdev.duorhythm.ui.common.NestedScrollableHost
+            android:id="@+id/hostTaskFilters"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
@@ -194,15 +238,17 @@
                         app:tint="@color/water_cyan_bright" />
 
                     <TextView
+                        android:id="@+id/tvEmptyTasksTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:text="No tasks or goals yet"
+                        android:text="No tasks yet"
                         android:textColor="@color/white"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvEmptyTasksSubtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"

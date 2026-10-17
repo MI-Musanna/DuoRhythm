@@ -1,134 +1,58 @@
-# DuoRhythm 🎵⚡
-> **Local-First Dual-Rhythm Productivity & Life Operations Cockpit for Android**
+# DuoRhythm
+### The Architectural Fusion of Personal Finance & Academic Engineering
 
-[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%2B)-brightgreen.svg)](https://developer.android.com)
-[![Kotlin](https://img.shields.io/badge/Language-Kotlin%201.9-purple.svg)](https://kotlinlang.org)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20Modular%20MVVM-blue.svg)](https://developer.android.com/topic/architecture)
-[![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg)](LICENSE)
-[![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local--First%20%2F%20Zero%20Tracking-success.svg)](#privacy--security-model)
+[![Download Latest APK](https://img.shields.io/badge/Download-v1.0.0--beta_APK-38BDF8?style=for-the-badge&logo=android&logoColor=white)](https://github.com/MI-Musanna/DuoRhythm/releases/latest)
+[![Platform](https://img.shields.io/badge/Platform-Android-10B981?style=for-the-badge&logo=android)](https://github.com/MI-Musanna/DuoRhythm)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean_MVVM-6366F1?style=for-the-badge)](https://github.com/MI-Musanna/DuoRhythm)
+[![License](https://img.shields.io/badge/License-MIT-gray?style=for-the-badge)](LICENSE)
 
----
-
-## 🌟 Overview
-
-**DuoRhythm** is a privacy-first, offline-capable productivity suite built for individuals who juggle dual rhythms of life — students balancing academic curriculums with freelancing, or professionals managing side gigs alongside personal goals. 
-
-Engineered with modern Kotlin, Android Jetpack, and a glassmorphic design system, DuoRhythm keeps your finances, timetables, tasks, focus tools, and sensitive documents entirely on your local device.
+DuoRhythm is an offline-first, privacy-focused productivity engine designed to eliminate the friction between financial discipline and academic performance. Built strictly with modern Android architecture and wrapped in a battery-friendly Deep Obsidian aesthetic, it bridges personal ledger accounting and student coursework into one coherent, distraction-free workflow.
 
 ---
 
-## 🚀 Key Features
+## 📱 Visual Walkthrough & Interface
+| Home Dashboard | Financial Hub | Ledger & Analytics |
+| :---: | :---: | :---: |
+| ![Home](screenshots/home.png) | ![Wallet](screenshots/wallet.png) | ![Ledger](screenshots/ledger.png) |
 
-### 💼 1. Financial Hub & Multi-Wallet Buckets
-- **Multi-Wallet Buckets**: Organize funds into custom buckets (Cash, Mobile Wallets like bKash/Nagad/Rocket, Bank Accounts, Emergency Funds, Credit Cards).
-- **On-Device Financial Alert Parser**: Automatically parses transactional payment notifications on your device with 1-tap `[Log Expense]` actions. Zero cloud transmission.
-- **Subscription Tracker**: Tracks recurring commitments, renewal schedules, and monthly cost equivalents.
-- **Multi-Currency Engine**: Built-in support for BDT, USD, EUR, GBP, JPY, INR, CAD, AUD with offline caching and live rate updates.
-
-### 📚 2. Academic Timetable & Smart Attendance
-- **Weekly Schedule**: Color-coded timetable for lectures, labs, tutorials, and seminars.
-- **Live Status Badges**: Automatically detects `IN SESSION NOW` and `NEXT UP` classes.
-- **Automated Silent/DND Mode**: Automatically silences device during class sessions and restores volume when lectures conclude.
-- **15-Minute Alarms**: Exact alarm reminders prior to scheduled classes.
-- **Attendance Monitor**: Live attendance percentage tracker with safety alerts when falling below the 75% threshold.
-
-### ✅ 3. To-Do Tasks & Goal Milestones
-- **Categorized Tasks**: Prioritize items by High, Medium, Low, or None.
-- **Goal Progress Tracking**: Interactive sliders to record milestone percentages (0%–100%).
-- **Custom Category System**: Add, manage, and filter by dynamic tags.
-- **Staggered Animations**: Smooth micro-interactions and tactile touch response on every action.
-
-### 🎓 4. Dual Portal: Academic vs. Work & Client Hub
-- **Student Profile**: Manage subjects, credit hours, instructors, syllabus files, exam timelines, and assignment deliverables.
-- **Client & Work Portal**: Track freelance work orders, unit pricing, client deliverables, contracts, and attachment documents.
-- **Seamless Switching**: 1-tap profile toggle that dynamically adapts the dashboard and shortcuts.
-
-### 🧘 5. Focus & Productivity Suite
-- **Procedural DSP Ambient Sounds**: Built-in procedural sound generator for Gentle Rain, Ocean Night Waves, Tibetan Singing Bowls, 10Hz Alpha Focus Pads, and Deep Brown Noise.
-- **Pomodoro Timer**: Customizable intervals with haptic feedback vibrations upon cycle completion.
-- **Percentage & Exam Calculator**: Compute X% of Y, discounts, grade scores, and percentage variance.
-- **Quick Notes Scratchpad**: Lightweight capture area on the home dashboard.
-
-### 🛡️ 6. Privacy, Security & Data Sovereignty
-- **100% Offline-Capable SQLite**: Everything stays on your local device. No telemetry, no third-party cloud sync, no tracking.
-- **Biometric Security**: Hardware-backed biometric authentication (Fingerprint, Face Unlock, Device PIN) to protect financial ledgers and settings.
-- **Automated Local Backups**: Background periodic JSON backups via Android WorkManager with automated pruning to maintain the 3 most recent snapshots.
-- **Storage Access Framework (SAF)**: Export and import database snapshots to user-selected locations (Local Storage, SD card, or user-managed cloud drives).
+| Academic Portal | Timetable & Attendance | Inter-Account Transfer |
+| :---: | :---: | :---: |
+| ![Portal](screenshots/portal.png) | ![Timetable](screenshots/timetable.png) | ![Transfer](screenshots/transfer.png) |
 
 ---
 
-## 🏗️ Architecture & Package Structure
+## 🏛️ Comprehensive Feature Breakdown
 
-DuoRhythm follows clean architecture principles with distinct separation of concerns:
+### 💼 1. Autonomous Financial Vault & Sub-Account Ledgers
+Managing multiple wallets shouldn't require complex spreadsheet formulas. DuoRhythm introduces an isolated bucket architecture that mirrors real-world cashflow:
+- Dedicated Account Buckets: Segment your capital across up to 5 isolated buckets (e.g., Physical Cash, Primary Bank, Mobile Wallets like bKash/Nagad). Each account tracks its own distinct net balance and historical records.
+- Double-Entry Atomic Transfers: Move capital between buckets effortlessly. DuoRhythm handles debit and credit legs in a single transactional operation, ensuring zero ledger imbalance or phantom money.
+- Smart Adaptive Visualization: The analytics engine fuses income streams and expenditure categories into dynamic Donut Pie and Dual Bar charts. Whether you have single-sided income or mixed multi-category expenses, charts render proportions cleanly without misleading empty states.
+- Dues & Debt Settlement ("Duo Ledger"): A bilateral tracking module for borrowed and lent funds. Keep track of money owed to you or pending debts with one-tap status toggles and direct settlement logging.
+- Auditable Running Balance: Optional per-record ledger stamping displays your historical balance after every single transaction, making audits instant and effortless.
 
-```
-com.pocketdev.duorhythm/
-├── data/
-│   ├── local/
-│   │   ├── db/          # DatabaseHelper (SQLite, migrations, queries)
-│   │   └── pref/        # UserProfileManager, ThemeManager (SharedPreferences)
-│   ├── model/           # Data models (CardItem, TaskItem, StudentSubject, etc.)
-│   └── repository/      # BackupService, CurrencyService
-├── ui/
-│   ├── common/          # Shared dialogs, PermissionRationaleDialogs
-│   ├── home/            # HomeFragment, dashboard widgets, quick notes
-│   ├── portal/          # PortalFragment, StudentSubjectDetailActivity, adapters
-│   ├── schedule/        # ScheduleFragment, ClassesAdapter, AttendanceAdapter
-│   ├── settings/        # SettingsActivity, accordions, theme selector
-│   ├── tasks/           # TasksFragment, TasksAdapter
-│   ├── tools/           # ToolsFragment, Pomodoro, Sound, Calculator dialogs
-│   └── wallet/          # WalletFragment, WalletBucketDetailActivity, adapters
-├── worker/              # LocalBackupWorker (WorkManager periodic backup)
-├── service/             # ReminderManager, FinancialNotificationListenerService
-├── receiver/            # ReminderReceiver, FinancialExpenseActionReceiver, etc.
-├── security/            # LifeSyncSecurityManager (Biometrics)
-├── audio/               # AmbientSoundPlayer (AudioTrack DSP synthesis)
-├── automation/          # SmartAutomationManager, FinancialExpenseParser
-└── util/                # BlurUtil, AnimationUtils
-```
+### 🎓 2. Academic Command Center & Study Portal
+Built specifically for technical and university students balancing rigorous coursework, assessments, and attendance requirements:
+- Coursework Management: Maintain complete course portfolios including subject codes, credit hours, instructor profiles, and dedicated contact channels.
+- Intelligent Timetable & Routine Sync: Map your weekly class routine with clear visual indicators for ongoing and upcoming lectures.
+- Threshold-Aware Attendance Tracker: Avoid attendance shortages with real-time target calculations. Configurable warning thresholds (such as 75% minimums) flag at-risk subjects before they become critical.
+- Assessment Pipeline (Semester Finals & Quizzes): Dedicated tracking for major semester finals, midterms, and routine class tests/quizzes. Features real-time countdowns, status toggles, and individual assessment editing.
+- Multi-Format Course Vault: Attach and organize lecture materials across formats (PDFs, high-resolution board photos, and plain text notes) backed by categorized filter chips and type-specific badges.
+
+### 📋 3. Intentional Task Architecture & Long-Term Milestones
+Separating trivial everyday chores from career-defining milestones:
+- Dual-Layer Separation: Routine daily to-dos and high-stakes long-term goals are isolated into independent workspaces to prevent priority fatigue.
+- Milestone Progress Engine: Long-term goals track incremental completion from 0% to 100% with interactive progress adjustments and timeline boundaries.
+- Flexible Scheduling: Optional deadlines powered by Material DatePicker dialogs allow both open-ended task collection and strict time-bounded executions.
+
+### ⚡ 4. Platform Performance & Design Philosophy
+- Deep Obsidian Theme: Engineered with true dark shades (#0A0E17 to #131D2F) and calibrated accent contrast for maximum readability and OLED power efficiency.
+- Zero Third-Party Tracking: 100% offline-first Room database execution. Your academic notes, contacts, and financial records never leave your physical device.
 
 ---
 
-## 🎨 UI/UX & Native Micro-Animations
+## 📥 Download & Installation
+You can download the compiled installer from the Releases section or click the banner at the top of this page.
 
-- **Fluid Accordions**: Smooth expand/collapse using `AutoTransition` with 180° chevron rotation.
-- **Staggered Entry**: RecyclerView items slide up from 30dp with alpha fade in 180ms.
-- **Tactile Feedback**: Spring scale-down (0.96f) on button press and release.
-- **Navigation Crossfade**: Seamless alpha transitions between bottom navigation destinations.
-- **Liquid Glassmorphism**: Translucent surfaces powered by Dimezis BlurView with hardware-accelerated RenderEffect on Android 12+.
-
----
-
-## 🛠️ Build & Installation
-
-### Requirements
-- **Android Studio**: Iguana (2023.2.1) or newer
-- **JDK**: Java 17
-- **Android SDK**: `minSdk 26`, `compileSdk 36`, `targetSdk 35`
-- **Gradle**: 8.x+
-
-### Command-Line Build
-To build the debug APK:
-```bash
-gradle assembleDebug
-```
-
-Output APK will be located at:
-```
-app/build/outputs/apk/debug/app-debug.apk
-```
-
----
-
-## 🔒 Privacy & Security Model
-
-- **No Remote Servers**: DuoRhythm operates without proprietary backends.
-- **Biometric Protection**: Sensitive financial information is gated behind Android BiometricPrompt.
-- **Local Notification Processing**: SMS / Notification Listener scans payment strings strictly in-memory; no raw message contents are logged or stored.
-- **Data Exportability**: All data is exportable as standard UTF-8 JSON via Android SAF.
-
----
-
-## 📄 License
-
-DuoRhythm is open-source software licensed under the [Apache License, Version 2.0](LICENSE).
+Clone the repository to inspect or contribute:
+git clone https://github.com/MI-Musanna/DuoRhythm.git

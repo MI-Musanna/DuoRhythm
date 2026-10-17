@@ -59,8 +59,44 @@ class TasksAdapter(
             }
 
             binding.tvTaskCategory.text = task.category
-            binding.tvTaskDueDate.text = task.dueDate
-            binding.tvTaskDueDate.visibility = if (task.dueDate.isEmpty()) View.GONE else View.VISIBLE
+
+            if (task.isGoal) {
+                val hasDue = !task.dueDate.isNullOrBlank()
+                val hasStart = !task.startDate.isNullOrBlank()
+                if (hasDue && hasStart) {
+                    binding.tvTaskDueDate.text = "${com.pocketdev.duorhythm.util.TaskDateUtils.formatDisplayDate(task.startDate)} → ${com.pocketdev.duorhythm.util.TaskDateUtils.formatDisplayDate(task.dueDate)}"
+                    binding.tvTaskDueDate.setTextColor(ContextCompat.getColor(context, R.color.accent_amber))
+                    binding.tvTaskDueDate.visibility = View.VISIBLE
+                } else if (hasDue) {
+                    binding.tvTaskDueDate.text = "Target: ${com.pocketdev.duorhythm.util.TaskDateUtils.formatDisplayDate(task.dueDate)}"
+                    binding.tvTaskDueDate.setTextColor(ContextCompat.getColor(context, R.color.accent_amber))
+                    binding.tvTaskDueDate.visibility = View.VISIBLE
+                } else if (hasStart) {
+                    binding.tvTaskDueDate.text = "Started: ${com.pocketdev.duorhythm.util.TaskDateUtils.formatDisplayDate(task.startDate)}"
+                    binding.tvTaskDueDate.setTextColor(ContextCompat.getColor(context, R.color.accent_amber))
+                    binding.tvTaskDueDate.visibility = View.VISIBLE
+                } else {
+                    binding.tvTaskDueDate.visibility = View.GONE
+                }
+            } else {
+                if (task.dueDate.isNullOrBlank()) {
+                    binding.tvTaskDueDate.visibility = View.GONE
+                } else {
+                    val today = com.pocketdev.duorhythm.util.TaskDateUtils.getTodayStorageDate()
+                    val formattedDue = com.pocketdev.duorhythm.util.TaskDateUtils.formatDisplayDate(task.dueDate)
+                    if (!task.isCompleted && task.dueDate < today) {
+                        binding.tvTaskDueDate.text = "$formattedDue (Overdue)"
+                        binding.tvTaskDueDate.setTextColor(ContextCompat.getColor(context, R.color.priority_high))
+                    } else if (task.dueDate == today) {
+                        binding.tvTaskDueDate.text = "Today"
+                        binding.tvTaskDueDate.setTextColor(ContextCompat.getColor(context, R.color.accent_sky))
+                    } else {
+                        binding.tvTaskDueDate.text = formattedDue
+                        binding.tvTaskDueDate.setTextColor(ContextCompat.getColor(context, R.color.text_muted))
+                    }
+                    binding.tvTaskDueDate.visibility = View.VISIBLE
+                }
+            }
 
             // Priority badge
             binding.tvTaskPriority.text = task.priority
@@ -83,12 +119,14 @@ class TasksAdapter(
                 }
             }
 
-            // Goal Progress
+            // Goal Progress vs Task Completion
             if (task.isGoal) {
+                binding.cbTaskCompleted.visibility = View.GONE
                 binding.layoutGoalProgress.visibility = View.VISIBLE
                 binding.pbGoalProgress.progress = task.progress
                 binding.tvGoalProgressPercent.text = "${task.progress}%"
             } else {
+                binding.cbTaskCompleted.visibility = View.VISIBLE
                 binding.layoutGoalProgress.visibility = View.GONE
             }
 

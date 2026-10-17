@@ -1,5 +1,6 @@
 package com.pocketdev.duorhythm.ui.tools
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
@@ -11,7 +12,8 @@ import com.pocketdev.duorhythm.databinding.ItemContactGroupBinding
 
 class ContactsAdapter(
     private var items: List<ContactGroupItem>,
-    private val onDeleteClick: (ContactGroupItem) -> Unit
+    private val onDeleteClick: (ContactGroupItem) -> Unit,
+    private val onItemClick: ((ContactGroupItem) -> Unit)? = null
 ) : RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>() {
 
     fun updateList(newItems: List<ContactGroupItem>) {
@@ -66,8 +68,15 @@ class ContactsAdapter(
             }
             binding.ivPlatformBadge.setImageResource(iconRes)
 
-            val phoneVal = if (item.phoneNumber.isNotBlank()) item.phoneNumber.trim() else item.targetLink.trim()
-            val cleanPhone = phoneVal.replace(Regex("[^0-9+]"), "")
+            val defaultCountryCode = com.pocketdev.duorhythm.util.CountryUtils.getDeviceCountryCode(context)
+            val rawPhone = if (item.phoneNumber.isNotBlank()) item.phoneNumber.trim() else item.targetLink.trim()
+            val normalizedPhone = com.pocketdev.duorhythm.util.CountryUtils.getNormalizedInternationalNumber(rawPhone, defaultCountryCode)
+            val digitsOnly = normalizedPhone.replace("+", "").replace(" ", "").replace("-", "")
+
+            // Make the entire card clickable to open Edit Contact
+            binding.root.setOnClickListener {
+                onItemClick?.invoke(item)
+            }
 
             if (!isGroup) {
                 // Truecaller-Style 1-Tap Action Buttons
@@ -77,30 +86,43 @@ class ContactsAdapter(
                 binding.btnActionTelegram.visibility = android.view.View.VISIBLE
                 binding.btnOpenContactLink.visibility = android.view.View.GONE
 
-                // 1-Tap Phone Call: Intent.ACTION_DIAL with tel:$cleanNumber
+                // 1-Tap Phone Call: Intent.ACTION_DIAL with tel:$cleanPhone (URI encoded)
                 binding.btnActionCall.setOnClickListener {
-                    if (cleanPhone.isNotEmpty()) {
+                    if (normalizedPhone.isNotEmpty()) {
                         try {
+                            val cleanPhone = Uri.encode(normalizedPhone.trim())
                             val callIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$cleanPhone"))
                             context.startActivity(callIntent)
+                        } catch (_: ActivityNotFoundException) {
+                            Toast.makeText(context, "No dialer app installed on this device", Toast.LENGTH_SHORT).show()
                         } catch (_: Exception) {
-                            Toast.makeText(context, "Cannot open dialer: $cleanPhone", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Cannot open dialer: $normalizedPhone", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         Toast.makeText(context, "No phone number available", Toast.LENGTH_SHORT).show()
                     }
                 }
 
-                // 1-Tap WhatsApp: Intent.ACTION_VIEW with https://api.whatsapp.com/send?phone=$cleanNumber
+                // Direct WhatsApp Chat Launch with ActivityNotFoundException safeguard
                 binding.btnActionWhatsApp.setOnClickListener {
-                    val waNumber = cleanPhone.replace("+", "")
-                    if (waNumber.isNotEmpty()) {
+                    if (digitsOnly.isNotEmpty()) {
                         try {
-                            val waUri = Uri.parse("https://api.whatsapp.com/send?phone=$waNumber")
-                            val waIntent = Intent(Intent.ACTION_VIEW, waUri)
-                            context.startActivity(waIntent)
-                        } catch (_: Exception) {
-                            Toast.makeText(context, "Cannot open WhatsApp for $cleanPhone", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse("https://api.whatsapp.com/send?phone=$digitsOnly")
+                                setPackage("com.whatsapp")
+                            }
+                            context.startActivity(intent)
+                        } catch (e: ActivityNotFoundException) {
+                            try {
+                                val fallbackIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://api.whatsapp.com/send?phone=$digitsOnly"))
+                                context.startActivity(fallbackIntent)
+                            } catch (_: ActivityNotFoundException) {
+                                Toast.makeText(context, "WhatsApp is not installed on this device", Toast.LENGTH_SHORT).show()
+                            } catch (_: Exception) {
+                                Toast.makeText(context, "WhatsApp is not installed on this device", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "WhatsApp is not installed on this device", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         Toast.makeText(context, "No valid phone number for WhatsApp", Toast.LENGTH_SHORT).show()
@@ -109,10 +131,9 @@ class ContactsAdapter(
 
                 // 1-Tap Telegram: https://t.me/+cleanNumber
                 binding.btnActionTelegram.setOnClickListener {
-                    val tgNumber = cleanPhone.replace("+", "")
-                    if (tgNumber.isNotEmpty()) {
+                    if (digitsOnly.isNotEmpty()) {
                         try {
-                            val tgUri = Uri.parse("https://t.me/+$tgNumber")
+                            val tgUri = Uri.parse("https://t.me/+$digitsOnly")
                             val tgIntent = Intent(Intent.ACTION_VIEW, tgUri)
                             context.startActivity(tgIntent)
                         } catch (_: Exception) {
@@ -124,7 +145,7 @@ class ContactsAdapter(
                                 }
                                 context.startActivity(shareIntent)
                             } catch (_: Exception) {
-                                Toast.makeText(context, "Cannot open Telegram for $cleanPhone", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Cannot open Telegram for $normalizedPhone", Toast.LENGTH_SHORT).show()
                             }
                         }
                     } else {

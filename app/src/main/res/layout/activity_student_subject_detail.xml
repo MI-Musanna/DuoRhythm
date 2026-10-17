@@ -122,6 +122,32 @@
                             android:textSize="12sp" />
                     </LinearLayout>
 
+                    <!-- Instructor Phone Row -->
+                    <LinearLayout
+                        android:id="@+id/layoutInstructorContact"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvDetailSubjectPhone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+8801700000000"
+                            android:textColor="@color/income_green"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:visibility="gone"
+                            app:drawableStartCompat="@drawable/ic_phone"
+                            app:drawableTint="@color/income_green"
+                            android:drawablePadding="6dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:paddingVertical="2dp"
+                            android:paddingHorizontal="4dp" />
+                    </LinearLayout>
+
                     <TextView
                         android:id="@+id/tvDetailSubjectNotes"
                         android:layout_width="wrap_content"
@@ -256,13 +282,58 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupDocumentFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:selectionRequired="true"
+                    app:singleLine="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDocFilterAll"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="All" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDocFilterPdfs"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📄 PDFs" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDocFilterImages"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🖼️ Images" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDocFilterDocs"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📝 Text/Docs" />
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvSubjectMaterials"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_subject_material" />
+                tools:listitem="@layout/item_course_document" />
 
             <!-- Empty Materials Placeholder -->
             <LinearLayout
@@ -275,23 +346,21 @@
                 android:padding="24dp"
                 android:visibility="gone">
 
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_article"
+                    app:tint="@color/text_muted"
+                    android:contentDescription="No documents" />
+
                 <TextView
+                    android:id="@+id/tvEmptyMaterials"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="No attached PDF documents or note images."
+                    android:layout_marginTop="8dp"
+                    android:text="No attached PDF documents or note images yet."
                     android:textColor="@color/text_muted"
                     android:textSize="12sp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnEmptyAddMaterial"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="34dp"
-                    android:layout_marginTop="8dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="+ Attach PDF / Image"
-                    android:textSize="11sp" />
             </LinearLayout>
 
             <!-- Actions Row: Add Homework/Item -->

@@ -17,7 +17,8 @@ import java.io.File
 class SubjectItemsAdapter(
     private var items: List<SubjectWorkItem>,
     private val onToggleStatus: (SubjectWorkItem, String) -> Unit,
-    private val onDeleteClick: (SubjectWorkItem) -> Unit
+    private val onDeleteClick: (SubjectWorkItem) -> Unit,
+    private val onItemClick: ((SubjectWorkItem) -> Unit)? = null
 ) : RecyclerView.Adapter<SubjectItemsAdapter.ItemViewHolder>() {
 
     fun updateList(newItems: List<SubjectWorkItem>) {
@@ -110,6 +111,11 @@ class SubjectItemsAdapter(
                 onToggleStatus(item, nextStatus)
             }
 
+            binding.root.setOnClickListener {
+                onItemClick?.invoke(item)
+            }
+
+            binding.btnDeleteWorkItem.visibility = View.VISIBLE
             binding.btnDeleteWorkItem.setOnClickListener {
                 onDeleteClick(item)
             }

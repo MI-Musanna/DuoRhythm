@@ -86,12 +86,15 @@ data class TaskItem(
     val title: String,
     val description: String = "",
     val category: String = "General", // "Personal", "Work", "Study", "Shopping", "Goals"
-    val dueDate: String = "",
+    val dueDate: String? = null,
     val priority: String = "MEDIUM", // "HIGH", "MEDIUM", "LOW", "NONE"
     val isCompleted: Boolean = false,
     val isGoal: Boolean = false,
-    val progress: Int = 0 // 0 to 100 for goals
+    val progress: Int = 0, // 0 to 100 for goals
+    val startDate: String? = null
 )
+
+typealias TasksEntity = TaskItem
 
 data class ClassScheduleItem(
     val id: Long = 0,
@@ -125,9 +128,13 @@ data class StudentSubject(
     val credits: Int = 3,
     val instructorName: String = "",
     val instructorEmail: String = "",
+    val instructorPhone: String = "",
     val syllabusText: String = "",
     val syllabusPath: String = ""
 )
+
+typealias Course = StudentSubject
+typealias CourseDocument = SubjectMaterial
 
 data class SubjectMaterial(
     val id: Long = 0,
@@ -215,3 +222,8 @@ data class CurrencyRate(
     val symbol: String,
     val lastUpdated: String
 )
+
+typealias ExamEntity = SubjectWorkItem
+typealias QuizEntity = SubjectWorkItem
+typealias Contact = ContactGroupItem
+

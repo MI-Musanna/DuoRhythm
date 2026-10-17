@@ -115,11 +115,12 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 title TEXT NOT NULL,
                 description TEXT DEFAULT '',
                 category TEXT DEFAULT 'General',
-                due_date TEXT DEFAULT '',
+                due_date TEXT DEFAULT NULL,
                 priority TEXT DEFAULT 'MEDIUM',
                 is_completed INTEGER DEFAULT 0,
                 is_goal INTEGER DEFAULT 0,
-                progress INTEGER DEFAULT 0
+                progress INTEGER DEFAULT 0,
+                start_date TEXT DEFAULT NULL
             )"""
         )
 
@@ -166,6 +167,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 credits INTEGER DEFAULT 3,
                 instructor_name TEXT DEFAULT '',
                 instructor_email TEXT DEFAULT '',
+                instructor_phone TEXT DEFAULT '',
                 syllabus_text TEXT DEFAULT '',
                 syllabus_path TEXT DEFAULT ''
             )"""
@@ -257,37 +259,57 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         seedInitialData(db)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion < 3) {
-            db.execSQL("DROP TABLE IF EXISTS cards")
-            db.execSQL("DROP TABLE IF EXISTS transactions")
-            db.execSQL("DROP TABLE IF EXISTS currency_rates")
-            db.execSQL("DROP TABLE IF EXISTS tasks")
-            db.execSQL("DROP TABLE IF EXISTS classes")
-            db.execSQL("DROP TABLE IF EXISTS attendance")
-            db.execSQL("DROP TABLE IF EXISTS student_subjects")
-            db.execSQL("DROP TABLE IF EXISTS subject_work_items")
-            db.execSQL("DROP TABLE IF EXISTS work_orders")
-            db.execSQL("DROP TABLE IF EXISTS notes")
-            db.execSQL("DROP TABLE IF EXISTS contacts_groups")
-            onCreate(db)
-        } else {
-            if (oldVersion < 5) {
-                // Completely erase any legacy default/demo/seed categories, buckets, subscriptions, and transactions
-                try {
-                    db.execSQL("DELETE FROM wallet_buckets")
-                    db.execSQL("DELETE FROM subscriptions")
-                    db.execSQL("DELETE FROM transactions")
-                    db.execSQL("DELETE FROM cards")
-                    appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
-                        .edit()
-                        .remove("cash_funds_usd")
-                        .putBoolean("clean_zero_state_v5_applied", true)
-                        .apply()
-                } catch (_: Exception) {}
-            }
-            ensureDefaultCurrencies(db)
+    fun dropAllTables(db: SQLiteDatabase) {
+        val tables = listOf(
+            "cards", "transactions", "currency_rates", "tasks", "task_categories",
+            "transaction_categories", "classes", "attendance", "student_subjects",
+            "subject_materials", "subject_work_items", "work_orders", "notes",
+            "contacts_groups", "wallet_buckets", "subscriptions", "dues_debts", "app_settings"
+        )
+        for (table in tables) {
+            try {
+                db.execSQL("DROP TABLE IF EXISTS $table")
+            } catch (_: Exception) {}
         }
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        try {
+            if (oldVersion < 3) {
+                dropAllTables(db)
+                onCreate(db)
+            } else {
+                if (oldVersion < 5) {
+                    // Completely erase any legacy default/demo/seed categories, buckets, subscriptions, and transactions
+                    try {
+                        db.execSQL("DELETE FROM wallet_buckets")
+                        db.execSQL("DELETE FROM subscriptions")
+                        db.execSQL("DELETE FROM transactions")
+                        db.execSQL("DELETE FROM cards")
+                        appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                            .edit()
+                            .remove("cash_funds_usd")
+                            .putBoolean("clean_zero_state_v5_applied", true)
+                            .apply()
+                    } catch (_: Exception) {}
+                }
+                ensureDefaultCurrencies(db)
+            }
+        } catch (e: Exception) {
+            // Fallback to destructive migration so older local installs don't crash on startup
+            try {
+                dropAllTables(db)
+                onCreate(db)
+            } catch (_: Exception) {}
+        }
+    }
+
+    override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        // Fallback to destructive migration so downgraded installs don't crash on startup
+        try {
+            dropAllTables(db)
+            onCreate(db)
+        } catch (_: Exception) {}
     }
 
     override fun onOpen(db: SQLiteDatabase) {
@@ -365,12 +387,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureColumnExists(db, "student_subjects", "credits", "INTEGER DEFAULT 3")
         ensureColumnExists(db, "student_subjects", "instructor_name", "TEXT DEFAULT ''")
         ensureColumnExists(db, "student_subjects", "instructor_email", "TEXT DEFAULT ''")
+        ensureColumnExists(db, "student_subjects", "instructor_phone", "TEXT DEFAULT ''")
         ensureColumnExists(db, "student_subjects", "syllabus_text", "TEXT DEFAULT ''")
         ensureColumnExists(db, "student_subjects", "syllabus_path", "TEXT DEFAULT ''")
         ensureColumnExists(db, "subject_work_items", "exam_type", "TEXT DEFAULT ''")
         ensureColumnExists(db, "contacts_groups", "phone_number", "TEXT DEFAULT ''")
         ensureColumnExists(db, "contacts_groups", "role", "TEXT DEFAULT 'Classmate'")
         ensureColumnExists(db, "contacts_groups", "scope", "TEXT DEFAULT 'SHARED'")
+        ensureColumnExists(db, "tasks", "start_date", "TEXT DEFAULT NULL")
 
         try {
             db.execSQL(
@@ -506,7 +530,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     put("balance", legacyCash)
                     put("note", "Converted from legacy cash balance")
                 }
-                val newId = db.insert("wallet_buckets", null, cv)
+                val newId = db.insertWithOnConflict("wallet_buckets", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
                 if (newId > 0) {
                     db.execSQL("UPDATE transactions SET bucket_id = ? WHERE bucket_id = 0", arrayOf(newId))
                     db.execSQL("UPDATE subscriptions SET bucket_id = ?, bucket_name = 'Cash in Hand' WHERE bucket_id = 0", arrayOf(newId))
@@ -826,12 +850,12 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     CardItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        cardName = it.getString(it.getColumnIndexOrThrow("card_name")),
-                        bankName = it.getString(it.getColumnIndexOrThrow("bank_name")),
-                        cardNumber = it.getString(it.getColumnIndexOrThrow("card_number")),
-                        holderName = it.getString(it.getColumnIndexOrThrow("holder_name")),
-                        cardType = it.getString(it.getColumnIndexOrThrow("card_type")),
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")),
+                        cardName = it.getString(it.getColumnIndexOrThrow("card_name")) ?: "",
+                        bankName = it.getString(it.getColumnIndexOrThrow("bank_name")) ?: "",
+                        cardNumber = it.getString(it.getColumnIndexOrThrow("card_number")) ?: "",
+                        holderName = it.getString(it.getColumnIndexOrThrow("holder_name")) ?: "",
+                        cardType = it.getString(it.getColumnIndexOrThrow("card_type")) ?: "VISA",
+                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#1E293B",
                         balance = it.getDouble(it.getColumnIndexOrThrow("balance"))
                     )
                 )
@@ -851,7 +875,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("color_hex", card.colorHex)
             put("balance", card.balance)
         }
-        return db.insert("cards", null, cv)
+        return db.insertWithOnConflict("cards", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateCardBalance(cardId: Long, newBalance: Double): Int {
@@ -898,14 +922,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     TransactionItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")),
+                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
                         amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")),
-                        category = it.getString(it.getColumnIndexOrThrow("category")),
-                        date = it.getString(it.getColumnIndexOrThrow("date")),
+                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "EXPENSE",
+                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "General",
+                        date = it.getString(it.getColumnIndexOrThrow("date")) ?: "",
                         cardId = it.getLong(it.getColumnIndexOrThrow("card_id")),
-                        currency = it.getString(it.getColumnIndexOrThrow("currency")),
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")),
+                        currency = it.getString(it.getColumnIndexOrThrow("currency")) ?: "USD",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
                         bucketId = bId
                     )
                 )
@@ -927,7 +951,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("notes", tx.notes)
             put("bucket_id", tx.bucketId)
         }
-        val id = db.insert("transactions", null, cv)
+        val id = db.insertWithOnConflict("transactions", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
         val delta = if (tx.type == "INCOME") tx.amount else -tx.amount
         var targetBucketId = tx.bucketId
         if (targetBucketId <= 0L) {
@@ -1053,7 +1077,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     list.add(
                         TransactionCategoryItem(
                             id = if (idCol >= 0) it.getLong(idCol) else 0L,
-                            name = if (nameCol >= 0) it.getString(nameCol) else "",
+                            name = if (nameCol >= 0) it.getString(nameCol) ?: "" else "",
                             type = if (typeCol >= 0) it.getString(typeCol) ?: "BOTH" else "BOTH",
                             isDefault = if (defCol >= 0) it.getInt(defCol) == 1 else false,
                             colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#0284C7" else "#0284C7",
@@ -1149,7 +1173,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     val iconCol = it.getColumnIndex("icon")
                     return TransactionCategoryItem(
                         id = if (idCol >= 0) it.getLong(idCol) else 0L,
-                        name = if (nameCol >= 0) it.getString(nameCol) else "",
+                        name = if (nameCol >= 0) it.getString(nameCol) ?: "" else "",
                         type = if (typeCol >= 0) it.getString(typeCol) ?: "BOTH" else "BOTH",
                         isDefault = if (defCol >= 0) it.getInt(defCol) == 1 else false,
                         colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#0284C7" else "#0284C7",
@@ -1173,12 +1197,12 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     WalletBucketItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        name = it.getString(it.getColumnIndexOrThrow("name")),
-                        icon = it.getString(it.getColumnIndexOrThrow("icon")),
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")),
-                        connectedAccounts = it.getString(it.getColumnIndexOrThrow("connected_accounts")),
+                        name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
+                        icon = it.getString(it.getColumnIndexOrThrow("icon")) ?: "wallet",
+                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#0284C7",
+                        connectedAccounts = it.getString(it.getColumnIndexOrThrow("connected_accounts")) ?: "",
                         balance = it.getDouble(it.getColumnIndexOrThrow("balance")),
-                        note = it.getString(it.getColumnIndexOrThrow("note"))
+                        note = it.getString(it.getColumnIndexOrThrow("note")) ?: ""
                     )
                 )
             }
@@ -1193,12 +1217,12 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             if (it.moveToFirst()) {
                 return WalletBucketItem(
                     id = it.getLong(it.getColumnIndexOrThrow("id")),
-                    name = it.getString(it.getColumnIndexOrThrow("name")),
-                    icon = it.getString(it.getColumnIndexOrThrow("icon")),
-                    colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")),
-                    connectedAccounts = it.getString(it.getColumnIndexOrThrow("connected_accounts")),
+                    name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
+                    icon = it.getString(it.getColumnIndexOrThrow("icon")) ?: "wallet",
+                    colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#0284C7",
+                    connectedAccounts = it.getString(it.getColumnIndexOrThrow("connected_accounts")) ?: "",
                     balance = it.getDouble(it.getColumnIndexOrThrow("balance")),
-                    note = it.getString(it.getColumnIndexOrThrow("note"))
+                    note = it.getString(it.getColumnIndexOrThrow("note")) ?: ""
                 )
             }
         }
@@ -1220,7 +1244,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("balance", bucket.balance)
             put("note", bucket.note)
         }
-        return db.insert("wallet_buckets", null, cv)
+        return db.insertWithOnConflict("wallet_buckets", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateWalletBucket(bucket: WalletBucketItem): Int {
@@ -1335,14 +1359,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     TransactionItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")),
+                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
                         amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")),
-                        category = it.getString(it.getColumnIndexOrThrow("category")),
-                        date = it.getString(it.getColumnIndexOrThrow("date")),
+                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "EXPENSE",
+                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "General",
+                        date = it.getString(it.getColumnIndexOrThrow("date")) ?: "",
                         cardId = it.getLong(it.getColumnIndexOrThrow("card_id")),
-                        currency = it.getString(it.getColumnIndexOrThrow("currency")),
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")),
+                        currency = it.getString(it.getColumnIndexOrThrow("currency")) ?: "USD",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
                         bucketId = bId
                     )
                 )
@@ -1365,15 +1389,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     SubscriptionItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        serviceName = it.getString(it.getColumnIndexOrThrow("service_name")),
+                        serviceName = it.getString(it.getColumnIndexOrThrow("service_name")) ?: "",
                         cost = it.getDouble(it.getColumnIndexOrThrow("cost")),
-                        currency = it.getString(it.getColumnIndexOrThrow("currency")),
-                        billingCycle = it.getString(it.getColumnIndexOrThrow("billing_cycle")),
-                        renewalDate = it.getString(it.getColumnIndexOrThrow("renewal_date")),
+                        currency = it.getString(it.getColumnIndexOrThrow("currency")) ?: "BDT",
+                        billingCycle = it.getString(it.getColumnIndexOrThrow("billing_cycle")) ?: "MONTHLY",
+                        renewalDate = it.getString(it.getColumnIndexOrThrow("renewal_date")) ?: "",
                         bucketId = it.getLong(it.getColumnIndexOrThrow("bucket_id")),
-                        bucketName = it.getString(it.getColumnIndexOrThrow("bucket_name")),
-                        category = it.getString(it.getColumnIndexOrThrow("category")),
-                        icon = it.getString(it.getColumnIndexOrThrow("icon")),
+                        bucketName = it.getString(it.getColumnIndexOrThrow("bucket_name")) ?: "",
+                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "Entertainment",
+                        icon = it.getString(it.getColumnIndexOrThrow("icon")) ?: "subscription",
                         isActive = it.getInt(it.getColumnIndexOrThrow("is_active")) == 1,
                         autoLog = autoLog
                     )
@@ -1398,7 +1422,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("is_active", if (sub.isActive) 1 else 0)
             put("auto_log", if (sub.autoLog) 1 else 0)
         }
-        return db.insert("subscriptions", null, cv)
+        return db.insertWithOnConflict("subscriptions", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateSubscription(sub: SubscriptionItem): Int {
@@ -1479,10 +1503,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             while (it.moveToNext()) {
                 list.add(
                     CurrencyRate(
-                        code = it.getString(it.getColumnIndexOrThrow("code")),
+                        code = it.getString(it.getColumnIndexOrThrow("code")) ?: "",
                         rate = it.getDouble(it.getColumnIndexOrThrow("rate")),
-                        symbol = it.getString(it.getColumnIndexOrThrow("symbol")),
-                        lastUpdated = it.getString(it.getColumnIndexOrThrow("last_updated"))
+                        symbol = it.getString(it.getColumnIndexOrThrow("symbol")) ?: "",
+                        lastUpdated = it.getString(it.getColumnIndexOrThrow("last_updated")) ?: ""
                     )
                 )
             }
@@ -1530,34 +1554,53 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // TASKS (TickTick style)
     // ==========================================
-    fun getAllTasks(filter: String = "ALL"): List<TaskItem> {
+    fun getAllTasks(filter: String = "ALL", isGoal: Boolean? = null): List<TaskItem> {
         val list = mutableListOf<TaskItem>()
         val db = readableDatabase
+        val goalClause = when (isGoal) {
+            true -> " AND is_goal = 1"
+            false -> " AND is_goal = 0"
+            null -> ""
+        }
+        val goalWhereOnly = when (isGoal) {
+            true -> " WHERE is_goal = 1"
+            false -> " WHERE is_goal = 0"
+            null -> ""
+        }
         val (query, args) = when (filter) {
             "TODAY" -> {
                 val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                Pair("SELECT * FROM tasks WHERE due_date = '$today' AND is_completed = 0 ORDER BY priority DESC, id DESC", null)
+                Pair("SELECT * FROM tasks WHERE due_date = '$today' AND is_completed = 0$goalClause ORDER BY priority DESC, id DESC", null)
             }
-            "COMPLETED" -> Pair("SELECT * FROM tasks WHERE is_completed = 1 ORDER BY id DESC", null)
+            "COMPLETED" -> Pair("SELECT * FROM tasks WHERE is_completed = 1$goalClause ORDER BY id DESC", null)
             "GOALS" -> Pair("SELECT * FROM tasks WHERE is_goal = 1 ORDER BY id DESC", null)
-            "HIGH" -> Pair("SELECT * FROM tasks WHERE priority = 'HIGH' AND is_completed = 0 ORDER BY id DESC", null)
-            "ALL" -> Pair("SELECT * FROM tasks ORDER BY is_completed ASC, priority DESC, id DESC", null)
-            else -> Pair("SELECT * FROM tasks WHERE category = ? ORDER BY is_completed ASC, priority DESC, id DESC", arrayOf(filter))
+            "HIGH" -> Pair("SELECT * FROM tasks WHERE priority = 'HIGH' AND is_completed = 0$goalClause ORDER BY id DESC", null)
+            "ALL" -> Pair("SELECT * FROM tasks$goalWhereOnly ORDER BY is_completed ASC, priority DESC, id DESC", null)
+            else -> Pair("SELECT * FROM tasks WHERE category = ?$goalClause ORDER BY is_completed ASC, priority DESC, id DESC", arrayOf(filter))
         }
         val cursor = db.rawQuery(query, args)
         cursor.use {
             while (it.moveToNext()) {
+                val dueCol = it.getColumnIndex("due_date")
+                val rawDue = if (dueCol >= 0 && !it.isNull(dueCol)) it.getString(dueCol) else null
+                val dueDate = if (rawDue.isNullOrBlank()) null else rawDue
+
+                val startCol = it.getColumnIndex("start_date")
+                val rawStart = if (startCol >= 0 && !it.isNull(startCol)) it.getString(startCol) else null
+                val startDate = if (rawStart.isNullOrBlank()) null else rawStart
+
                 list.add(
                     TaskItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")),
-                        description = it.getString(it.getColumnIndexOrThrow("description")),
-                        category = it.getString(it.getColumnIndexOrThrow("category")),
-                        dueDate = it.getString(it.getColumnIndexOrThrow("due_date")),
-                        priority = it.getString(it.getColumnIndexOrThrow("priority")),
+                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                        description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
+                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "General",
+                        dueDate = dueDate,
+                        priority = it.getString(it.getColumnIndexOrThrow("priority")) ?: "MEDIUM",
                         isCompleted = it.getInt(it.getColumnIndexOrThrow("is_completed")) == 1,
                         isGoal = it.getInt(it.getColumnIndexOrThrow("is_goal")) == 1,
-                        progress = it.getInt(it.getColumnIndexOrThrow("progress"))
+                        progress = it.getInt(it.getColumnIndexOrThrow("progress")),
+                        startDate = startDate
                     )
                 )
             }
@@ -1571,13 +1614,22 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("title", task.title)
             put("description", task.description)
             put("category", task.category)
-            put("due_date", task.dueDate)
+            if (!task.dueDate.isNullOrBlank()) {
+                put("due_date", task.dueDate.trim())
+            } else {
+                putNull("due_date")
+            }
+            if (!task.startDate.isNullOrBlank()) {
+                put("start_date", task.startDate.trim())
+            } else {
+                putNull("start_date")
+            }
             put("priority", task.priority)
             put("is_completed", if (task.isCompleted) 1 else 0)
             put("is_goal", if (task.isGoal) 1 else 0)
             put("progress", task.progress)
         }
-        return db.insert("tasks", null, cv)
+        return db.insertWithOnConflict("tasks", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateTaskCompletion(taskId: Long, isCompleted: Boolean) {
@@ -1606,7 +1658,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("title", task.title)
             put("description", task.description)
             put("category", task.category)
-            put("due_date", task.dueDate)
+            if (!task.dueDate.isNullOrBlank()) {
+                put("due_date", task.dueDate.trim())
+            } else {
+                putNull("due_date")
+            }
+            if (!task.startDate.isNullOrBlank()) {
+                put("start_date", task.startDate.trim())
+            } else {
+                putNull("start_date")
+            }
             put("priority", task.priority)
             put("is_completed", if (task.isCompleted) 1 else 0)
             put("is_goal", if (task.isGoal) 1 else 0)
@@ -1637,13 +1698,13 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     ClassScheduleItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")),
-                        room = it.getString(it.getColumnIndexOrThrow("room")),
-                        teacher = it.getString(it.getColumnIndexOrThrow("teacher")),
+                        subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")) ?: "",
+                        room = it.getString(it.getColumnIndexOrThrow("room")) ?: "",
+                        teacher = it.getString(it.getColumnIndexOrThrow("teacher")) ?: "",
                         dayOfWeek = it.getInt(it.getColumnIndexOrThrow("day_of_week")),
-                        startTime = it.getString(it.getColumnIndexOrThrow("start_time")),
-                        endTime = it.getString(it.getColumnIndexOrThrow("end_time")),
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")),
+                        startTime = it.getString(it.getColumnIndexOrThrow("start_time")) ?: "",
+                        endTime = it.getString(it.getColumnIndexOrThrow("end_time")) ?: "",
+                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#2563EB",
                         classType = if (classTypeIdx >= 0) it.getString(classTypeIdx) ?: "LECTURE" else "LECTURE",
                         buildingOrLink = if (buildingIdx >= 0) it.getString(buildingIdx) ?: "" else ""
                     )
@@ -1664,13 +1725,13 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     ClassScheduleItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")),
-                        room = it.getString(it.getColumnIndexOrThrow("room")),
-                        teacher = it.getString(it.getColumnIndexOrThrow("teacher")),
+                        subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")) ?: "",
+                        room = it.getString(it.getColumnIndexOrThrow("room")) ?: "",
+                        teacher = it.getString(it.getColumnIndexOrThrow("teacher")) ?: "",
                         dayOfWeek = it.getInt(it.getColumnIndexOrThrow("day_of_week")),
-                        startTime = it.getString(it.getColumnIndexOrThrow("start_time")),
-                        endTime = it.getString(it.getColumnIndexOrThrow("end_time")),
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")),
+                        startTime = it.getString(it.getColumnIndexOrThrow("start_time")) ?: "",
+                        endTime = it.getString(it.getColumnIndexOrThrow("end_time")) ?: "",
+                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#2563EB",
                         classType = if (classTypeIdx >= 0) it.getString(classTypeIdx) ?: "LECTURE" else "LECTURE",
                         buildingOrLink = if (buildingIdx >= 0) it.getString(buildingIdx) ?: "" else ""
                     )
@@ -1695,7 +1756,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
         // Auto add to attendance if not already present
         ensureSubjectAttendance(item.subjectName)
-        return db.insert("classes", null, cv)
+        return db.insertWithOnConflict("classes", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateClassSchedule(item: ClassScheduleItem): Int {
@@ -1728,7 +1789,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     SubjectAttendanceItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")),
+                        subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")) ?: "",
                         attendedClasses = it.getInt(it.getColumnIndexOrThrow("attended_classes")),
                         totalClasses = it.getInt(it.getColumnIndexOrThrow("total_classes"))
                     )
@@ -1778,7 +1839,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 put("attended_classes", 0)
                 put("total_classes", 0)
             }
-            db.insert("attendance", null, cv)
+            db.insertWithOnConflict("attendance", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
         }
     }
 
@@ -1793,19 +1854,21 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val creditsIdx = it.getColumnIndex("credits")
             val instructorNameIdx = it.getColumnIndex("instructor_name")
             val instructorEmailIdx = it.getColumnIndex("instructor_email")
+            val instructorPhoneIdx = it.getColumnIndex("instructor_phone")
             val syllabusTextIdx = it.getColumnIndex("syllabus_text")
             val syllabusPathIdx = it.getColumnIndex("syllabus_path")
             while (it.moveToNext()) {
                 list.add(
                     StudentSubject(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        name = it.getString(it.getColumnIndexOrThrow("name")),
-                        code = it.getString(it.getColumnIndexOrThrow("code")),
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")),
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")),
+                        name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
+                        code = it.getString(it.getColumnIndexOrThrow("code")) ?: "",
+                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#2563EB",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
                         credits = if (creditsIdx >= 0) it.getInt(creditsIdx) else 3,
                         instructorName = if (instructorNameIdx >= 0) it.getString(instructorNameIdx) ?: "" else "",
                         instructorEmail = if (instructorEmailIdx >= 0) it.getString(instructorEmailIdx) ?: "" else "",
+                        instructorPhone = if (instructorPhoneIdx >= 0) it.getString(instructorPhoneIdx) ?: "" else "",
                         syllabusText = if (syllabusTextIdx >= 0) it.getString(syllabusTextIdx) ?: "" else "",
                         syllabusPath = if (syllabusPathIdx >= 0) it.getString(syllabusPathIdx) ?: "" else ""
                     )
@@ -1823,17 +1886,19 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 val creditsIdx = it.getColumnIndex("credits")
                 val instructorNameIdx = it.getColumnIndex("instructor_name")
                 val instructorEmailIdx = it.getColumnIndex("instructor_email")
+                val instructorPhoneIdx = it.getColumnIndex("instructor_phone")
                 val syllabusTextIdx = it.getColumnIndex("syllabus_text")
                 val syllabusPathIdx = it.getColumnIndex("syllabus_path")
                 return StudentSubject(
                     id = it.getLong(it.getColumnIndexOrThrow("id")),
-                    name = it.getString(it.getColumnIndexOrThrow("name")),
-                    code = it.getString(it.getColumnIndexOrThrow("code")),
-                    colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")),
-                    notes = it.getString(it.getColumnIndexOrThrow("notes")),
+                    name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
+                    code = it.getString(it.getColumnIndexOrThrow("code")) ?: "",
+                    colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#2563EB",
+                    notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
                     credits = if (creditsIdx >= 0) it.getInt(creditsIdx) else 3,
                     instructorName = if (instructorNameIdx >= 0) it.getString(instructorNameIdx) ?: "" else "",
                     instructorEmail = if (instructorEmailIdx >= 0) it.getString(instructorEmailIdx) ?: "" else "",
+                    instructorPhone = if (instructorPhoneIdx >= 0) it.getString(instructorPhoneIdx) ?: "" else "",
                     syllabusText = if (syllabusTextIdx >= 0) it.getString(syllabusTextIdx) ?: "" else "",
                     syllabusPath = if (syllabusPathIdx >= 0) it.getString(syllabusPathIdx) ?: "" else ""
                 )
@@ -1852,13 +1917,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("credits", subject.credits)
             put("instructor_name", subject.instructorName)
             put("instructor_email", subject.instructorEmail)
+            put("instructor_phone", subject.instructorPhone)
             put("syllabus_text", subject.syllabusText)
             put("syllabus_path", subject.syllabusPath)
         }
         if (autoTrackAttendance) {
             ensureSubjectAttendance(subject.name)
         }
-        return db.insert("student_subjects", null, cv)
+        return db.insertWithOnConflict("student_subjects", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateStudentSubject(subject: StudentSubject): Int {
@@ -1871,6 +1937,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("credits", subject.credits)
             put("instructor_name", subject.instructorName)
             put("instructor_email", subject.instructorEmail)
+            put("instructor_phone", subject.instructorPhone)
             put("syllabus_text", subject.syllabusText)
             put("syllabus_path", subject.syllabusPath)
         }
@@ -1900,11 +1967,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     SubjectMaterial(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
                         subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")),
-                        filePath = it.getString(it.getColumnIndexOrThrow("file_path")),
-                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at")),
-                        notes = it.getString(it.getColumnIndexOrThrow("notes"))
+                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "PDF_DOCUMENT",
+                        filePath = it.getString(it.getColumnIndexOrThrow("file_path")) ?: "",
+                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: "",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: ""
                     )
                 )
             }
@@ -1922,7 +1989,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("created_at", material.createdAt)
             put("notes", material.notes)
         }
-        return db.insert("subject_materials", null, cv)
+        return db.insertWithOnConflict("subject_materials", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun deleteSubjectMaterial(id: Long): Int {
@@ -1984,14 +2051,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     SubjectWorkItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
                         subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id")),
-                        itemType = it.getString(it.getColumnIndexOrThrow("item_type")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")),
-                        description = it.getString(it.getColumnIndexOrThrow("description")),
-                        startDate = it.getString(it.getColumnIndexOrThrow("start_date")),
-                        endDate = it.getString(it.getColumnIndexOrThrow("end_date")),
-                        scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")),
-                        status = it.getString(it.getColumnIndexOrThrow("status")),
-                        attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")),
+                        itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "HOMEWORK",
+                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                        description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
+                        startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
+                        endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
+                        scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
+                        status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
+                        attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
                         examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else ""
                     )
                 )
@@ -2019,14 +2086,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 val item = SubjectWorkItem(
                     id = it.getLong(it.getColumnIndexOrThrow("id")),
                     subjectId = subjectId,
-                    itemType = it.getString(it.getColumnIndexOrThrow("item_type")),
-                    title = it.getString(it.getColumnIndexOrThrow("title")),
-                    description = it.getString(it.getColumnIndexOrThrow("description")),
-                    startDate = it.getString(it.getColumnIndexOrThrow("start_date")),
-                    endDate = it.getString(it.getColumnIndexOrThrow("end_date")),
-                    scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")),
-                    status = it.getString(it.getColumnIndexOrThrow("status")),
-                    attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")),
+                    itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "EXAM",
+                    title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                    description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
+                    startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
+                    endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
+                    scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
+                    status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
+                    attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
                     examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else ""
                 )
                 list.add(Pair(item, subject))
@@ -2053,14 +2120,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         SubjectWorkItem(
                             id = it.getLong(it.getColumnIndexOrThrow("id")),
                             subjectId = subjectId,
-                            itemType = it.getString(it.getColumnIndexOrThrow("item_type")),
-                            title = it.getString(it.getColumnIndexOrThrow("title")),
-                            description = it.getString(it.getColumnIndexOrThrow("description")),
-                            startDate = it.getString(it.getColumnIndexOrThrow("start_date")),
-                            endDate = it.getString(it.getColumnIndexOrThrow("end_date")),
-                            scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")),
-                            status = it.getString(it.getColumnIndexOrThrow("status")),
-                            attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")),
+                            itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "HOMEWORK",
+                            title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                            description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
+                            startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
+                            endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
+                            scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
+                            status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
+                            attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
                             examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else ""
                         ),
                         subject
@@ -2089,14 +2156,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         SubjectWorkItem(
                             id = it.getLong(it.getColumnIndexOrThrow("id")),
                             subjectId = subjectId,
-                            itemType = it.getString(it.getColumnIndexOrThrow("item_type")),
-                            title = it.getString(it.getColumnIndexOrThrow("title")),
-                            description = it.getString(it.getColumnIndexOrThrow("description")),
-                            startDate = it.getString(it.getColumnIndexOrThrow("start_date")),
-                            endDate = it.getString(it.getColumnIndexOrThrow("end_date")),
-                            scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")),
-                            status = it.getString(it.getColumnIndexOrThrow("status")),
-                            attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")),
+                            itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "EXAM",
+                            title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                            description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
+                            startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
+                            endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
+                            scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
+                            status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
+                            attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
                             examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else ""
                         ),
                         subject
@@ -2121,7 +2188,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("attachment_path", item.attachmentPath)
             put("exam_type", item.examType)
         }
-        return db.insert("subject_work_items", null, cv)
+        return db.insertWithOnConflict("subject_work_items", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateSubjectWorkItemStatus(id: Long, status: String) {
@@ -2130,10 +2197,30 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.update("subject_work_items", cv, "id = ?", arrayOf(id.toString()))
     }
 
+    fun updateSubjectWorkItem(item: SubjectWorkItem): Int {
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("subject_id", item.subjectId)
+            put("item_type", item.itemType)
+            put("title", item.title)
+            put("description", item.description)
+            put("start_date", item.startDate)
+            put("end_date", item.endDate)
+            put("score_or_marks", item.scoreOrMarks)
+            put("status", item.status)
+            put("attachment_path", item.attachmentPath)
+            put("exam_type", item.examType)
+        }
+        return db.update("subject_work_items", cv, "id = ?", arrayOf(item.id.toString()))
+    }
+
     fun deleteSubjectWorkItem(id: Long): Int {
         val db = writableDatabase
         return db.delete("subject_work_items", "id = ?", arrayOf(id.toString()))
     }
+
+    fun deleteById(id: Long): Int = deleteSubjectWorkItem(id)
+    fun deleteExamById(id: Long): Int = deleteSubjectWorkItem(id)
 
     // ==========================================
     // WORK PORTAL (Orders & Jobs)
@@ -2147,16 +2234,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     WorkOrder(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")),
-                        clientName = it.getString(it.getColumnIndexOrThrow("client_name")),
+                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                        clientName = it.getString(it.getColumnIndexOrThrow("client_name")) ?: "",
                         quantity = it.getInt(it.getColumnIndexOrThrow("quantity")),
                         unitPrice = it.getDouble(it.getColumnIndexOrThrow("unit_price")),
                         totalPrice = it.getDouble(it.getColumnIndexOrThrow("total_price")),
-                        startDate = it.getString(it.getColumnIndexOrThrow("start_date")),
-                        endDate = it.getString(it.getColumnIndexOrThrow("end_date")),
-                        status = it.getString(it.getColumnIndexOrThrow("status")),
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")),
-                        attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path"))
+                        startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
+                        endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
+                        status = it.getString(it.getColumnIndexOrThrow("status")) ?: "",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
+                        attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: ""
                     )
                 )
             }
@@ -2178,7 +2265,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("notes", order.notes)
             put("attachment_path", order.attachmentPath)
         }
-        return db.insert("work_orders", null, cv)
+        return db.insertWithOnConflict("work_orders", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateWorkOrderStatus(orderId: Long, status: String) {
@@ -2204,11 +2291,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     NoteItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")),
-                        content = it.getString(it.getColumnIndexOrThrow("content")),
-                        category = it.getString(it.getColumnIndexOrThrow("category")),
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")),
-                        updatedAt = it.getString(it.getColumnIndexOrThrow("updated_at"))
+                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                        content = it.getString(it.getColumnIndexOrThrow("content")) ?: "",
+                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "",
+                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "",
+                        updatedAt = it.getString(it.getColumnIndexOrThrow("updated_at")) ?: ""
                     )
                 )
             }
@@ -2225,7 +2312,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("color_hex", note.colorHex)
             put("updated_at", note.updatedAt)
         }
-        return db.insert("notes", null, cv)
+        return db.insertWithOnConflict("notes", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateNote(note: NoteItem): Int {
@@ -2257,11 +2344,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     ContactGroupItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        name = it.getString(it.getColumnIndexOrThrow("name")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")),
-                        platform = it.getString(it.getColumnIndexOrThrow("platform")),
-                        targetLink = it.getString(it.getColumnIndexOrThrow("target_link")),
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")),
+                        name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
+                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
+                        platform = it.getString(it.getColumnIndexOrThrow("platform")) ?: "",
+                        targetLink = it.getString(it.getColumnIndexOrThrow("target_link")) ?: "",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
                         phoneNumber = if (phoneIdx >= 0) it.getString(phoneIdx) ?: "" else "",
                         role = if (roleIdx >= 0) it.getString(roleIdx) ?: "Classmate" else "Classmate",
                         scope = if (scopeIdx >= 0) it.getString(scopeIdx) ?: "SHARED" else "SHARED"
@@ -2300,11 +2387,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 list.add(
                     ContactGroupItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        name = it.getString(it.getColumnIndexOrThrow("name")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")),
-                        platform = it.getString(it.getColumnIndexOrThrow("platform")),
-                        targetLink = it.getString(it.getColumnIndexOrThrow("target_link")),
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")),
+                        name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
+                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
+                        platform = it.getString(it.getColumnIndexOrThrow("platform")) ?: "",
+                        targetLink = it.getString(it.getColumnIndexOrThrow("target_link")) ?: "",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
                         phoneNumber = if (phoneIdx >= 0) it.getString(phoneIdx) ?: "" else "",
                         role = if (roleIdx >= 0) it.getString(roleIdx) ?: "Classmate" else "Classmate",
                         scope = if (scopeIdx >= 0) it.getString(scopeIdx) ?: "SHARED" else "SHARED"
@@ -2327,7 +2414,22 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("role", item.role)
             put("scope", item.scope)
         }
-        return db.insert("contacts_groups", null, cv)
+        return db.insertWithOnConflict("contacts_groups", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun updateContactGroup(item: ContactGroupItem): Int {
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("name", item.name)
+            put("type", item.type)
+            put("platform", item.platform)
+            put("target_link", item.targetLink)
+            put("notes", item.notes)
+            put("phone_number", item.phoneNumber)
+            put("role", item.role)
+            put("scope", item.scope)
+        }
+        return db.update("contacts_groups", cv, "id = ?", arrayOf(item.id.toString()))
     }
 
     fun deleteContactGroup(id: Long): Int {
@@ -2404,7 +2506,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                                     cv.put(key, value)
                                 }
                             }
-                            db.insert(table, null, cv)
+                            db.insertWithOnConflict(table, null, cv, SQLiteDatabase.CONFLICT_REPLACE)
                         }
                     }
                 }
@@ -2507,7 +2609,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("notes", item.notes.trim())
             put("created_at", if (item.createdAt.isNotBlank()) item.createdAt else SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()))
         }
-        return db.insert("dues_debts", null, cv)
+        return db.insertWithOnConflict("dues_debts", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun updateDueDebt(item: DueDebtItem): Boolean {
@@ -2542,14 +2644,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     list.add(
                         DueDebtItem(
                             id = it.getLong(it.getColumnIndexOrThrow("id")),
-                            personName = it.getString(it.getColumnIndexOrThrow("person_name")),
-                            phoneOrContact = it.getString(it.getColumnIndexOrThrow("phone_or_contact")),
+                            personName = it.getString(it.getColumnIndexOrThrow("person_name")) ?: "",
+                            phoneOrContact = it.getString(it.getColumnIndexOrThrow("phone_or_contact")) ?: "",
                             amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                            dueDate = it.getString(it.getColumnIndexOrThrow("due_date")),
-                            type = it.getString(it.getColumnIndexOrThrow("type")),
-                            status = it.getString(it.getColumnIndexOrThrow("status")),
-                            notes = it.getString(it.getColumnIndexOrThrow("notes")),
-                            createdAt = it.getString(it.getColumnIndexOrThrow("created_at"))
+                            dueDate = it.getString(it.getColumnIndexOrThrow("due_date")) ?: "",
+                            type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
+                            status = it.getString(it.getColumnIndexOrThrow("status")) ?: "",
+                            notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
+                            createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: ""
                         )
                     )
                 }
@@ -2567,14 +2669,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 if (it.moveToFirst()) {
                     return DueDebtItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        personName = it.getString(it.getColumnIndexOrThrow("person_name")),
-                        phoneOrContact = it.getString(it.getColumnIndexOrThrow("phone_or_contact")),
+                        personName = it.getString(it.getColumnIndexOrThrow("person_name")) ?: "",
+                        phoneOrContact = it.getString(it.getColumnIndexOrThrow("phone_or_contact")) ?: "",
                         amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                        dueDate = it.getString(it.getColumnIndexOrThrow("due_date")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")),
-                        status = it.getString(it.getColumnIndexOrThrow("status")),
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")),
-                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at"))
+                        dueDate = it.getString(it.getColumnIndexOrThrow("due_date")) ?: "",
+                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
+                        status = it.getString(it.getColumnIndexOrThrow("status")) ?: "",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
+                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: ""
                     )
                 }
             }

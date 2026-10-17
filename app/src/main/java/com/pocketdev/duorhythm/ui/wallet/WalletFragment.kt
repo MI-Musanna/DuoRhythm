@@ -270,7 +270,7 @@ class WalletFragment : Fragment() {
             popup.menu.add(0, 3, 2, "Create New Account")
             popup.menu.add(0, 4, 3, "Currency Settings")
             popup.menu.add(0, 5, 4, "Transfer Funds")
-            popup.menu.add(0, 6, 5, "Dues & Debts (দেনা-পাওনা)")
+            popup.menu.add(0, 6, 5, "Dues & Debts")
             popup.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     1 -> confirmResetAllBalances()

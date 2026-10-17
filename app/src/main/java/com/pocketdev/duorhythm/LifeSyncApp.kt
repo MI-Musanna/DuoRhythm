@@ -11,7 +11,8 @@ class LifeSyncApp : Application() {
         try {
             // Apply persisted theme preference before windows inflate
             com.pocketdev.duorhythm.data.local.pref.ThemeManager.applySavedTheme(this)
-            // Preload/verify database
+            // Preload/verify database with fallback destructive migration safety
+            com.pocketdev.duorhythm.data.local.db.AppDatabase.fallbackToDestructiveMigration(this)
             DatabaseHelper.getInstance(this).writableDatabase
         } catch (e: Exception) {
             e.printStackTrace()

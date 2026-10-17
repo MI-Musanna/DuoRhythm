@@ -1,11 +1,16 @@
 package com.pocketdev.duorhythm.ui.tasks
 
 import android.app.AlertDialog
+import android.app.DatePickerDialog
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.ViewCompat
@@ -16,13 +21,18 @@ import com.pocketdev.duorhythm.R
 import com.pocketdev.duorhythm.data.local.db.DatabaseHelper
 import com.pocketdev.duorhythm.data.model.TaskItem
 import com.pocketdev.duorhythm.databinding.DialogAddTaskBinding
+import com.pocketdev.duorhythm.databinding.DialogEditGoalBinding
+import com.pocketdev.duorhythm.databinding.DialogEditTaskBinding
 import com.pocketdev.duorhythm.databinding.FragmentTasksBinding
 import com.pocketdev.duorhythm.util.AnimationUtils
+import com.pocketdev.duorhythm.util.TaskDateUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class TasksFragment : Fragment() {
+
+    private enum class TaskTab { TASKS, GOALS }
 
     private var _binding: FragmentTasksBinding? = null
     private val binding get() = _binding!!
@@ -30,6 +40,7 @@ class TasksFragment : Fragment() {
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var tasksAdapter: TasksAdapter
     private var currentFilter = "ALL"
+    private var currentTab = TaskTab.TASKS
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -109,14 +120,15 @@ class TasksFragment : Fragment() {
             },
             onTaskClick = { task ->
                 if (task.isGoal) {
-                    showGoalProgressDialog(task)
+                    showEditGoalDialog(task)
                 } else {
                     showEditTaskDialog(task)
                 }
             },
             onDeleteClick = { task ->
+                val title = if (task.isGoal) "Delete Goal" else "Delete Task"
                 AlertDialog.Builder(requireContext())
-                    .setTitle("Delete Task")
+                    .setTitle(title)
                     .setMessage("Remove '${task.title}'?")
                     .setPositiveButton("Delete") { _, _ ->
                         dbHelper.deleteTask(task.id)
@@ -131,53 +143,152 @@ class TasksFragment : Fragment() {
         AnimationUtils.applySlideUpLayoutAnimation(binding.rvTasks)
     }
 
-    private fun showGoalProgressDialog(task: TaskItem) {
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(48, 32, 48, 16)
-        }
-        val label = android.widget.TextView(requireContext()).apply {
-            text = "Current Milestone Progress: ${task.progress}%"
-            textSize = 16f
-            setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_primary))
-        }
-        val seekBar = android.widget.SeekBar(requireContext()).apply {
-            max = 100
-            progress = task.progress
-            setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(sb: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
-                    label.text = "Current Milestone Progress: $progress%"
-                }
-                override fun onStartTrackingTouch(sb: android.widget.SeekBar?) {}
-                override fun onStopTrackingTouch(sb: android.widget.SeekBar?) {}
-            })
-        }
-        container.addView(label)
-        container.addView(seekBar)
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Update Goal: ${task.title}")
-            .setMessage("Drag slider to update achievement percentage:")
-            .setView(container)
-            .setPositiveButton("Update Progress") { _, _ ->
-                val newProgress = seekBar.progress
-                dbHelper.updateTaskProgress(task.id, newProgress)
-                loadTasks()
-                val msg = if (newProgress == 100) "Goal achieved (100%)" else "Goal progress updated to $newProgress%"
-                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+    private fun setupDatePicker(
+        editText: com.google.android.material.textfield.TextInputEditText,
+        textInputLayout: com.google.android.material.textfield.TextInputLayout,
+        btnClear: View,
+        initialDate: String?,
+        title: String,
+        onDateChanged: (String?) -> Unit = {}
+    ) {
+        fun updateDisplay(dateStr: String?) {
+            if (!dateStr.isNullOrBlank()) {
+                editText.setText(TaskDateUtils.formatDisplayDate(dateStr))
+                editText.tag = dateStr
+                btnClear.visibility = View.VISIBLE
+            } else {
+                editText.setText("")
+                editText.tag = null
+                btnClear.visibility = View.GONE
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
+
+        updateDisplay(initialDate)
+
+        fun launchPicker() {
+            val builder = com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker()
+            builder.setTitleText(title)
+            val currentTag = editText.tag as? String
+            val utcMillis = TaskDateUtils.toUtcMillis(currentTag)
+            if (utcMillis != null) {
+                builder.setSelection(utcMillis)
+            }
+            val picker = builder.build()
+            picker.addOnPositiveButtonClickListener { selectionMillis ->
+                val dateStr = TaskDateUtils.fromUtcMillisToStorage(selectionMillis)
+                updateDisplay(dateStr)
+                onDateChanged(dateStr)
+            }
+            picker.show(childFragmentManager, "TASK_DATE_PICKER_${System.currentTimeMillis()}")
+        }
+
+        editText.setOnClickListener { launchPicker() }
+        textInputLayout.setEndIconOnClickListener { launchPicker() }
+
+        btnClear.setOnClickListener {
+            updateDisplay(null)
+            onDateChanged(null)
+        }
+    }
+
+    private fun showEditGoalDialog(goal: TaskItem) {
+        val dialogBinding = DialogEditGoalBinding.inflate(layoutInflater)
+        dialogBinding.etGoalTitle.setText(goal.title)
+        dialogBinding.etGoalDescription.setText(goal.description)
+        dialogBinding.sbGoalProgress.progress = goal.progress
+        dialogBinding.tvGoalProgressValue.text = "${goal.progress}%"
+
+        setupDatePicker(
+            dialogBinding.etGoalStartDate,
+            dialogBinding.tilGoalStartDate,
+            dialogBinding.btnClearGoalStartDate,
+            goal.startDate,
+            "Select Start Date"
+        )
+
+        setupDatePicker(
+            dialogBinding.etGoalTargetDate,
+            dialogBinding.tilGoalTargetDate,
+            dialogBinding.btnClearGoalTargetDate,
+            goal.dueDate,
+            "Select Target Date"
+        )
+
+        dialogBinding.sbGoalProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                dialogBinding.tvGoalProgressValue.text = "$progress%"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        dialogBinding.btnSaveGoal.setOnClickListener {
+            val title = dialogBinding.etGoalTitle.text?.toString()?.trim().orEmpty()
+            val startDate = dialogBinding.etGoalStartDate.tag as? String
+            val targetDate = dialogBinding.etGoalTargetDate.tag as? String
+            val desc = dialogBinding.etGoalDescription.text?.toString()?.trim().orEmpty()
+            val progress = dialogBinding.sbGoalProgress.progress
+
+            if (title.isEmpty()) {
+                Toast.makeText(requireContext(), "Goal title is required", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val updated = goal.copy(
+                title = title,
+                startDate = startDate,
+                dueDate = targetDate,
+                description = desc,
+                progress = progress,
+                isCompleted = progress >= 100
+            )
+            dbHelper.updateTask(updated)
+            dialog.dismiss()
+            loadTasks()
+            val msg = if (progress == 100) "Goal achieved (100%)!" else "Goal updated ($progress%)"
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+        }
+
+        dialog.show()
     }
 
     private fun showEditTaskDialog(task: TaskItem) {
-        val dialogBinding = DialogAddTaskBinding.inflate(layoutInflater)
-        dialogBinding.tvTaskDialogHeader.text = "Edit Task"
+        val dialogBinding = DialogEditTaskBinding.inflate(layoutInflater)
+        dialogBinding.tvTaskDialogHeader.text = if (task.isGoal) "Edit Goal" else "Edit Task"
         dialogBinding.etTaskTitle.setText(task.title)
         dialogBinding.etTaskDescription.setText(task.description)
-        dialogBinding.etTaskDueDate.setText(task.dueDate)
         dialogBinding.cbIsGoal.isChecked = task.isGoal
         dialogBinding.btnSaveTask.text = "Save Changes"
+
+        dialogBinding.layoutGoalStartDate.visibility = if (task.isGoal) View.VISIBLE else View.GONE
+        dialogBinding.tilTaskDueDate.hint = if (task.isGoal) "Target Date (Optional)" else "Due Date (Optional)"
+
+        dialogBinding.cbIsGoal.setOnCheckedChangeListener { _, isChecked ->
+            dialogBinding.layoutGoalStartDate.visibility = if (isChecked) View.VISIBLE else View.GONE
+            dialogBinding.tilTaskDueDate.hint = if (isChecked) "Target Date (Optional)" else "Due Date (Optional)"
+            dialogBinding.tvTaskDialogHeader.text = if (isChecked) "Edit Goal" else "Edit Task"
+        }
+
+        setupDatePicker(
+            dialogBinding.etTaskStartDate,
+            dialogBinding.tilTaskStartDate,
+            dialogBinding.btnClearStartDate,
+            task.startDate,
+            "Select Start Date"
+        )
+
+        setupDatePicker(
+            dialogBinding.etTaskDueDate,
+            dialogBinding.tilTaskDueDate,
+            dialogBinding.btnClearDueDate,
+            task.dueDate,
+            "Select Due Date"
+        )
 
         val categories = dbHelper.getTaskCategories().ifEmpty { listOf(task.category.ifEmpty { "General" }) }
         val catAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories)
@@ -191,34 +302,19 @@ class TasksFragment : Fragment() {
         val prioIdx = priorities.indexOf(task.priority).coerceAtLeast(0)
         dialogBinding.spTaskPriority.setSelection(prioIdx)
 
-        dialogBinding.etTaskDueDate.setOnClickListener {
-            val calendar = java.util.Calendar.getInstance()
-            android.app.DatePickerDialog(
-                requireContext(),
-                { _, year, month, dayOfMonth ->
-                    val cal = java.util.Calendar.getInstance()
-                    cal.set(year, month, dayOfMonth)
-                    val formatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
-                    dialogBinding.etTaskDueDate.setText(formatted)
-                },
-                calendar.get(java.util.Calendar.YEAR),
-                calendar.get(java.util.Calendar.MONTH),
-                calendar.get(java.util.Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogBinding.root)
             .create()
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         dialogBinding.btnSaveTask.setOnClickListener {
             val title = dialogBinding.etTaskTitle.text?.toString()?.trim().orEmpty()
             val desc = dialogBinding.etTaskDescription.text?.toString()?.trim().orEmpty()
-            val dueDate = dialogBinding.etTaskDueDate.text?.toString()?.trim().orEmpty()
+            val isGoal = dialogBinding.cbIsGoal.isChecked
+            val startDate = if (isGoal) dialogBinding.etTaskStartDate.tag as? String else null
+            val dueDate = dialogBinding.etTaskDueDate.tag as? String
             val category = categories.getOrNull(dialogBinding.spTaskCategory.selectedItemPosition) ?: task.category.ifEmpty { "General" }
             val priority = priorities[dialogBinding.spTaskPriority.selectedItemPosition]
-            val isGoal = dialogBinding.cbIsGoal.isChecked
 
             if (title.isEmpty()) {
                 Toast.makeText(requireContext(), "Task title is required", Toast.LENGTH_SHORT).show()
@@ -229,6 +325,7 @@ class TasksFragment : Fragment() {
                 title = title,
                 description = desc,
                 category = category,
+                startDate = startDate,
                 dueDate = dueDate,
                 priority = priority,
                 isGoal = isGoal
@@ -236,7 +333,7 @@ class TasksFragment : Fragment() {
             dbHelper.updateTask(updated)
             dialog.dismiss()
             loadTasks()
-            Toast.makeText(requireContext(), "Task updated!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), if (isGoal) "Goal updated!" else "Task updated!", Toast.LENGTH_SHORT).show()
         }
 
         dialog.show()
@@ -294,9 +391,40 @@ class TasksFragment : Fragment() {
                 .show()
         }
 
-        binding.fabAddTask.setOnClickListener { showCreateTaskDialog(isGoal = false) }
-        binding.btnAddGoal.setOnClickListener { showCreateTaskDialog(isGoal = true) }
-        binding.btnEmptyAddTask.setOnClickListener { showCreateTaskDialog(isGoal = false) }
+        binding.toggleTasksGoals.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            if (checkedId == R.id.btnTabTasks) {
+                currentTab = TaskTab.TASKS
+                binding.btnTabTasks.setBackgroundColor(Color.parseColor("#0284C7"))
+                binding.btnTabTasks.setTextColor(Color.WHITE)
+                binding.btnTabGoals.setBackgroundColor(Color.TRANSPARENT)
+                binding.btnTabGoals.setTextColor(Color.parseColor("#94A3B8"))
+                binding.hostTaskFilters.visibility = View.VISIBLE
+                binding.tvTasksTitle.text = "My Tasks"
+                binding.fabAddTask.text = "New Task"
+                binding.fabAddTask.setIconResource(R.drawable.ic_add)
+                binding.fabAddTask.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#0284C7"))
+            } else if (checkedId == R.id.btnTabGoals) {
+                currentTab = TaskTab.GOALS
+                binding.btnTabGoals.setBackgroundColor(Color.parseColor("#D97706"))
+                binding.btnTabGoals.setTextColor(Color.WHITE)
+                binding.btnTabTasks.setBackgroundColor(Color.TRANSPARENT)
+                binding.btnTabTasks.setTextColor(Color.parseColor("#94A3B8"))
+                binding.hostTaskFilters.visibility = View.GONE
+                binding.tvTasksTitle.text = "Milestone Goals"
+                binding.fabAddTask.text = "New Goal"
+                binding.fabAddTask.setIconResource(R.drawable.ic_target)
+                binding.fabAddTask.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#D97706"))
+            }
+            loadTasks()
+        }
+
+        binding.fabAddTask.setOnClickListener { showCreateTaskDialog(isGoal = (currentTab == TaskTab.GOALS)) }
+        binding.btnAddGoal.setOnClickListener {
+            binding.toggleTasksGoals.check(R.id.btnTabGoals)
+            showCreateTaskDialog(isGoal = true)
+        }
+        binding.btnEmptyAddTask.setOnClickListener { showCreateTaskDialog(isGoal = (currentTab == TaskTab.GOALS)) }
 
         AnimationUtils.attachTactileFeedback(
             binding.fabAddTask,
@@ -348,20 +476,44 @@ class TasksFragment : Fragment() {
     fun loadTasks() {
         if (_binding == null || !isAdded || !::dbHelper.isInitialized || !::tasksAdapter.isInitialized) return
         try {
-            val tasks = dbHelper.getAllTasks(currentFilter)
-            tasksAdapter.updateList(tasks)
+            if (currentTab == TaskTab.TASKS) {
+                val tasks = dbHelper.getAllTasks(currentFilter, isGoal = false)
+                tasksAdapter.updateList(tasks)
 
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-            val allTasks = if (currentFilter == "ALL") tasks else dbHelper.getAllTasks("ALL")
-            val pendingToday = allTasks.count { !it.isCompleted && (it.dueDate.isEmpty() || it.dueDate <= today) }
-            binding.tvTasksSubtitle.text = "$pendingToday pending today"
+                val today = TaskDateUtils.getTodayStorageDate()
+                val allTasks = if (currentFilter == "ALL") tasks else dbHelper.getAllTasks("ALL", isGoal = false)
+                val pendingToday = allTasks.count { !it.isCompleted && !it.dueDate.isNullOrBlank() && it.dueDate <= today }
+                binding.tvTasksSubtitle.text = "$pendingToday pending today"
 
-            if (tasks.isEmpty()) {
-                binding.rvTasks.visibility = View.GONE
-                binding.layoutEmptyTasks.visibility = View.VISIBLE
+                binding.tvEmptyTasksTitle.text = "No tasks yet"
+                binding.tvEmptyTasksSubtitle.text = "Stay organized by adding your priorities for today."
+                binding.btnEmptyAddTask.text = "+ Add Your First Task"
+
+                if (tasks.isEmpty()) {
+                    binding.rvTasks.visibility = View.GONE
+                    binding.layoutEmptyTasks.visibility = View.VISIBLE
+                } else {
+                    binding.rvTasks.visibility = View.VISIBLE
+                    binding.layoutEmptyTasks.visibility = View.GONE
+                }
             } else {
-                binding.rvTasks.visibility = View.VISIBLE
-                binding.layoutEmptyTasks.visibility = View.GONE
+                val goals = dbHelper.getAllTasks("ALL", isGoal = true)
+                tasksAdapter.updateList(goals)
+
+                val activeGoals = goals.count { it.progress < 100 }
+                binding.tvTasksSubtitle.text = "$activeGoals active goals"
+
+                binding.tvEmptyTasksTitle.text = "No milestone goals yet"
+                binding.tvEmptyTasksSubtitle.text = "Track long-term achievements and milestones."
+                binding.btnEmptyAddTask.text = "+ Set Your First Goal"
+
+                if (goals.isEmpty()) {
+                    binding.rvTasks.visibility = View.GONE
+                    binding.layoutEmptyTasks.visibility = View.VISIBLE
+                } else {
+                    binding.rvTasks.visibility = View.VISIBLE
+                    binding.layoutEmptyTasks.visibility = View.GONE
+                }
             }
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -375,12 +527,47 @@ class TasksFragment : Fragment() {
             dialogBinding.tilTaskTitle.hint = "Goal Title (e.g. Master Kotlin, Save 100k BDT)"
             dialogBinding.btnSaveTask.text = "Create Goal"
             dialogBinding.btnSaveTask.setBackgroundColor(0xFFD97706.toInt()) // Amber
+            dialogBinding.tilTaskDueDate.hint = "Target Date (Optional)"
         } else {
             dialogBinding.tvTaskDialogHeader.text = "Create New Task"
             dialogBinding.tilTaskTitle.hint = "Task Title"
             dialogBinding.btnSaveTask.text = "Save Task"
+            dialogBinding.tilTaskDueDate.hint = "Due Date (Optional)"
         }
         dialogBinding.cbIsGoal.isChecked = isGoal
+        dialogBinding.layoutGoalStartDate.visibility = if (isGoal) View.VISIBLE else View.GONE
+
+        dialogBinding.cbIsGoal.setOnCheckedChangeListener { _, checked ->
+            dialogBinding.layoutGoalStartDate.visibility = if (checked) View.VISIBLE else View.GONE
+            dialogBinding.tilTaskDueDate.hint = if (checked) "Target Date (Optional)" else "Due Date (Optional)"
+            if (checked) {
+                dialogBinding.tvTaskDialogHeader.text = "Set a New Milestone Goal"
+                dialogBinding.tilTaskTitle.hint = "Goal Title (e.g. Master Kotlin, Save 100k BDT)"
+                dialogBinding.btnSaveTask.text = "Create Goal"
+                dialogBinding.btnSaveTask.setBackgroundColor(0xFFD97706.toInt())
+            } else {
+                dialogBinding.tvTaskDialogHeader.text = "Create New Task"
+                dialogBinding.tilTaskTitle.hint = "Task Title"
+                dialogBinding.btnSaveTask.text = "Save Task"
+                dialogBinding.btnSaveTask.setBackgroundColor(0xFF0284C7.toInt())
+            }
+        }
+
+        setupDatePicker(
+            dialogBinding.etTaskStartDate,
+            dialogBinding.tilTaskStartDate,
+            dialogBinding.btnClearStartDate,
+            initialDate = null,
+            title = "Select Start Date"
+        )
+
+        setupDatePicker(
+            dialogBinding.etTaskDueDate,
+            dialogBinding.tilTaskDueDate,
+            dialogBinding.btnClearDueDate,
+            initialDate = null,
+            title = "Select Due Date"
+        )
 
         val categories = dbHelper.getTaskCategories().ifEmpty { listOf("General") }
         val catAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories)
@@ -394,36 +581,19 @@ class TasksFragment : Fragment() {
         val prioAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, priorities)
         dialogBinding.spTaskPriority.adapter = prioAdapter
 
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        dialogBinding.etTaskDueDate.setText(today)
-        dialogBinding.etTaskDueDate.setOnClickListener {
-            val calendar = java.util.Calendar.getInstance()
-            android.app.DatePickerDialog(
-                requireContext(),
-                { _, year, month, dayOfMonth ->
-                    val cal = java.util.Calendar.getInstance()
-                    cal.set(year, month, dayOfMonth)
-                    val formatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
-                    dialogBinding.etTaskDueDate.setText(formatted)
-                },
-                calendar.get(java.util.Calendar.YEAR),
-                calendar.get(java.util.Calendar.MONTH),
-                calendar.get(java.util.Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogBinding.root)
             .create()
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         dialogBinding.btnSaveTask.setOnClickListener {
             val title = dialogBinding.etTaskTitle.text?.toString()?.trim().orEmpty()
             val desc = dialogBinding.etTaskDescription.text?.toString()?.trim().orEmpty()
-            val dueDate = dialogBinding.etTaskDueDate.text?.toString()?.trim().orEmpty()
+            val markedGoal = dialogBinding.cbIsGoal.isChecked
+            val startDate = if (markedGoal) dialogBinding.etTaskStartDate.tag as? String else null
+            val dueDate = dialogBinding.etTaskDueDate.tag as? String
             val category = categories.getOrNull(dialogBinding.spTaskCategory.selectedItemPosition) ?: "General"
             val priority = priorities[dialogBinding.spTaskPriority.selectedItemPosition]
-            val markedGoal = dialogBinding.cbIsGoal.isChecked
 
             if (title.isEmpty()) {
                 Toast.makeText(requireContext(), "Task title is required", Toast.LENGTH_SHORT).show()
@@ -434,11 +604,12 @@ class TasksFragment : Fragment() {
                 title = title,
                 description = desc,
                 category = category,
+                startDate = startDate,
                 dueDate = dueDate,
                 priority = priority,
                 isCompleted = false,
                 isGoal = markedGoal,
-                progress = if (markedGoal) 25 else 0
+                progress = 0
             )
             dbHelper.insertTask(task)
             dialog.dismiss()

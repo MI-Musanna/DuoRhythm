@@ -1,6 +1,7 @@
 package com.pocketdev.duorhythm.ui.portal
 
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
@@ -28,6 +29,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 class StudentSubjectDetailActivity : AppCompatActivity() {
 
@@ -38,11 +40,13 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStudentSubjectDetailBinding
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var itemsAdapter: SubjectItemsAdapter
-    private lateinit var materialsAdapter: SubjectMaterialsAdapter
+    private lateinit var materialsAdapter: CourseDocumentAdapter
 
     private var subjectId: Long = -1
     private var currentSubject: StudentSubject? = null
     private var currentFilter: String = "ALL"
+    private var allMaterials: List<SubjectMaterial> = emptyList()
+    private var currentDocFilter: String = "ALL"
     private var pendingAttachmentPath: String = ""
     private var activeDialogBinding: DialogAddSubjectItemBinding? = null
 
@@ -52,8 +56,10 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         }
 
     private val pickMaterialLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let { saveMaterialFromUri(it) }
+        registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+            if (uris.isNotEmpty()) {
+                saveMaterialsFromUris(uris)
+            }
         }
 
     private val pickSyllabusLauncher =
@@ -107,7 +113,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         binding.rvSubjectItems.adapter = itemsAdapter
         AnimationUtils.applySlideUpLayoutAnimation(binding.rvSubjectItems)
 
-        materialsAdapter = SubjectMaterialsAdapter(
+        materialsAdapter = CourseDocumentAdapter(
             emptyList(),
             onDeleteClick = { material ->
                 AlertDialog.Builder(this)
@@ -131,6 +137,16 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.chipGroupDocumentFilter.setOnCheckedChangeListener { _, checkedId ->
+            currentDocFilter = when (checkedId) {
+                R.id.chipDocFilterPdfs -> "PDF"
+                R.id.chipDocFilterImages -> "IMG"
+                R.id.chipDocFilterDocs -> "DOC"
+                else -> "ALL"
+            }
+            applyDocumentFilter()
+        }
+
         binding.chipGroupSubjectFilter.setOnCheckedChangeListener { _, checkedId ->
             currentFilter = when (checkedId) {
                 R.id.chipSubFilterHomework -> "HOMEWORK"
@@ -146,7 +162,6 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         binding.btnEmptyAddSubjectItem.setOnClickListener { showAddItemDialog() }
 
         binding.btnAddMaterial.setOnClickListener { pickMaterialLauncher.launch("*/*") }
-        binding.btnEmptyAddMaterial.setOnClickListener { pickMaterialLauncher.launch("*/*") }
 
         binding.btnAttachSyllabusFile.setOnClickListener { pickSyllabusLauncher.launch("*/*") }
         binding.btnViewSyllabusFile.setOnClickListener { openSyllabusFile() }
@@ -157,7 +172,6 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             binding.btnAddSubjectItem,
             binding.btnEmptyAddSubjectItem,
             binding.btnAddMaterial,
-            binding.btnEmptyAddMaterial,
             binding.btnAttachSyllabusFile,
             binding.btnViewSyllabusFile,
             binding.btnEditSubjectDetails
@@ -207,6 +221,26 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             binding.tvDetailSubjectEmail.visibility = View.GONE
         }
 
+        if (subject.instructorPhone.isNotBlank()) {
+            binding.tvDetailSubjectPhone.text = subject.instructorPhone
+            binding.tvDetailSubjectPhone.visibility = View.VISIBLE
+            binding.tvDetailSubjectPhone.setOnClickListener {
+                val clean = subject.instructorPhone.replace(Regex("[^0-9+]"), "").trim()
+                if (clean.isNotEmpty()) {
+                    try {
+                        val cleanPhone = Uri.encode(clean)
+                        startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$cleanPhone")))
+                    } catch (_: ActivityNotFoundException) {
+                        Toast.makeText(this, "No dialer app installed on this device", Toast.LENGTH_SHORT).show()
+                    } catch (_: Exception) {
+                        Toast.makeText(this, "Cannot open dialer for $clean", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        } else {
+            binding.tvDetailSubjectPhone.visibility = View.GONE
+        }
+
         binding.tvDetailSubjectNotes.text = subject.notes.ifEmpty { "No extra notes available." }
 
         // Syllabus
@@ -228,14 +262,41 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
     }
 
     private fun loadMaterials() {
-        val materials = dbHelper.getMaterialsForSubject(subjectId)
-        materialsAdapter.updateList(materials)
-        if (materials.isEmpty()) {
+        allMaterials = dbHelper.getMaterialsForSubject(subjectId)
+        applyDocumentFilter()
+    }
+
+    private fun applyDocumentFilter() {
+        val filtered = when (currentDocFilter) {
+            "PDF" -> allMaterials.filter { getFileTypeCategory(it) == "PDF" }
+            "IMG" -> allMaterials.filter { getFileTypeCategory(it) == "IMG" }
+            "DOC" -> allMaterials.filter { getFileTypeCategory(it) == "DOC" }
+            else -> allMaterials
+        }
+
+        materialsAdapter.updateList(filtered)
+        if (filtered.isEmpty()) {
             binding.rvSubjectMaterials.visibility = View.GONE
             binding.layoutEmptyMaterials.visibility = View.VISIBLE
+            binding.tvEmptyMaterials.text = if (allMaterials.isEmpty()) {
+                "No attached PDF documents or note images yet."
+            } else {
+                "No documents found matching this filter."
+            }
         } else {
             binding.rvSubjectMaterials.visibility = View.VISIBLE
             binding.layoutEmptyMaterials.visibility = View.GONE
+        }
+    }
+
+    private fun getFileTypeCategory(material: SubjectMaterial): String {
+        val ext = File(material.filePath).extension.lowercase()
+            .ifEmpty { material.title.substringAfterLast('.', "").lowercase() }
+        return when {
+            ext == "pdf" || (ext.isEmpty() && material.type == "PDF_DOCUMENT") -> "PDF"
+            ext in listOf("jpg", "jpeg", "png", "webp", "gif") || (ext.isEmpty() && material.type == "IMAGE_NOTE") -> "IMG"
+            ext in listOf("txt", "doc", "docx", "rtf") -> "DOC"
+            else -> "OTHER"
         }
     }
 
@@ -269,39 +330,60 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         return name
     }
 
-    private fun saveMaterialFromUri(uri: Uri) {
+    private fun saveMaterialsFromUris(uris: List<Uri>) {
         try {
-            val originalName = getFileNameFromUri(uri)
             val materialsDir = File(filesDir, "materials").apply { mkdirs() }
-            val destFile = File(materialsDir, "${System.currentTimeMillis()}_$originalName")
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+            var savedCount = 0
 
-            contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(destFile).use { output ->
-                    input.copyTo(output)
+            for (uri in uris) {
+                try {
+                    val originalName = getFileNameFromUri(uri)
+                    val uniquePrefix = "${System.currentTimeMillis()}_${UUID.randomUUID().toString().take(6)}"
+                    val destFile = File(materialsDir, "${uniquePrefix}_$originalName")
+
+                    contentResolver.openInputStream(uri)?.use { input ->
+                        FileOutputStream(destFile).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+
+                    val ext = originalName.substringAfterLast('.', "").lowercase()
+                    val type = when {
+                        ext == "pdf" -> "PDF_DOCUMENT"
+                        ext in listOf("jpg", "jpeg", "png", "webp", "gif") -> "IMAGE_NOTE"
+                        originalName.contains("syllabus", ignoreCase = true) -> "SYLLABUS"
+                        else -> "PDF_DOCUMENT"
+                    }
+
+                    val material = SubjectMaterial(
+                        subjectId = subjectId,
+                        title = originalName,
+                        type = type,
+                        filePath = destFile.absolutePath,
+                        createdAt = today
+                    )
+                    dbHelper.insertSubjectMaterial(material)
+                    savedCount++
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
 
-            val type = when {
-                originalName.endsWith(".pdf", ignoreCase = true) -> "PDF_DOCUMENT"
-                originalName.endsWith(".png", ignoreCase = true) || originalName.endsWith(".jpg", ignoreCase = true) || originalName.endsWith(".jpeg", ignoreCase = true) -> "IMAGE_NOTE"
-                originalName.contains("syllabus", ignoreCase = true) -> "SYLLABUS"
-                else -> "PDF_DOCUMENT"
+            if (savedCount > 0) {
+                loadMaterials()
+                val msg = if (savedCount == 1) "Document attached successfully!" else "$savedCount documents attached successfully!"
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Failed to attach documents", Toast.LENGTH_SHORT).show()
             }
-
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-            val material = SubjectMaterial(
-                subjectId = subjectId,
-                title = originalName,
-                type = type,
-                filePath = destFile.absolutePath,
-                createdAt = today
-            )
-            dbHelper.insertSubjectMaterial(material)
-            loadMaterials()
-            Toast.makeText(this, "Document attached successfully!", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to attach document: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to attach documents: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun saveMaterialFromUri(uri: Uri) {
+        saveMaterialsFromUris(listOf(uri))
     }
 
     private fun saveSyllabusFromUri(uri: Uri) {
@@ -356,6 +438,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         dialogBinding.etEditSubjectCredits.setText(subject.credits.toString())
         dialogBinding.etEditSubjectInstructor.setText(subject.instructorName)
         dialogBinding.etEditSubjectEmail.setText(subject.instructorEmail)
+        dialogBinding.etEditSubjectPhone.setText(subject.instructorPhone)
         dialogBinding.etEditSubjectSyllabus.setText(if (subject.syllabusText.isNotBlank()) subject.syllabusText else subject.notes)
 
         val dialog = AlertDialog.Builder(this)
@@ -368,6 +451,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             val credits = dialogBinding.etEditSubjectCredits.text?.toString()?.trim()?.toIntOrNull() ?: 3
             val instructor = dialogBinding.etEditSubjectInstructor.text?.toString()?.trim().orEmpty()
             val email = dialogBinding.etEditSubjectEmail.text?.toString()?.trim().orEmpty()
+            val phone = dialogBinding.etEditSubjectPhone.text?.toString()?.trim().orEmpty()
             val syllabus = dialogBinding.etEditSubjectSyllabus.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty()) {
@@ -381,6 +465,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 credits = credits,
                 instructorName = instructor,
                 instructorEmail = email,
+                instructorPhone = phone,
                 syllabusText = syllabus
             )
             dbHelper.updateStudentSubject(updated)
@@ -511,3 +596,5 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         dialog.show()
     }
 }
+
+typealias CourseDetailActivity = StudentSubjectDetailActivity
