@@ -1,5 +1,5 @@
 # Keep data models for JSON serialization and SQLite mapping
--keep class com.pocketdev.duorhythm.data.model.** { *; }
+-keep class com.duorhythm.app.data.model.** { *; }
 
 # Dimezis BlurView keep rules
 -keep class eightbitlab.com.blurview.** { *; }

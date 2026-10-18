@@ -172,7 +172,7 @@
                             android:id="@+id/tvDiagPackageName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="com.pocketdev.duorhythm"
+                            android:text="com.duorhythm.app"
                             android:textColor="@color/text_silver"
                             android:textSize="12sp" />
                     </LinearLayout>

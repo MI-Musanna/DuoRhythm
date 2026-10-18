@@ -118,7 +118,7 @@
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <!-- 2. Filter Chips Strip wrapped in NestedScrollableHost -->
-        <com.pocketdev.duorhythm.ui.common.NestedScrollableHost
+        <com.duorhythm.app.ui.common.NestedScrollableHost
             android:id="@+id/categoryFilterScrollView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -202,7 +202,7 @@
                         app:cornerRadius="16dp" />
                 </LinearLayout>
             </HorizontalScrollView>
-        </com.pocketdev.duorhythm.ui.common.NestedScrollableHost>
+        </com.duorhythm.app.ui.common.NestedScrollableHost>
 
         <!-- Active Tasks RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView

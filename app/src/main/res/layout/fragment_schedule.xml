@@ -57,6 +57,22 @@
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddClass"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="8dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="+ ADD CLASS"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#0284C7"
+                    app:cornerRadius="14dp" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnJumpToToday"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="wrap_content"
@@ -74,7 +90,7 @@
             </LinearLayout>
 
             <!-- 2. Sleek Horizontal Calendar Date Strip wrapped in NestedScrollableHost -->
-            <com.pocketdev.duorhythm.ui.common.NestedScrollableHost
+            <com.duorhythm.app.ui.common.NestedScrollableHost
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp">
@@ -142,7 +158,7 @@
                             android:text="Sun 18" />
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
-            </com.pocketdev.duorhythm.ui.common.NestedScrollableHost>
+            </com.duorhythm.app.ui.common.NestedScrollableHost>
 
             <!-- Day Summary text -->
             <TextView

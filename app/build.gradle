@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.pocketdev.duorhythm'
+    namespace 'com.duorhythm.app'
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.pocketdev.duorhythm"
+        applicationId "com.duorhythm.app"
         minSdk 26
         targetSdk 35
         versionCode 1

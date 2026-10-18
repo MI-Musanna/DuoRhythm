@@ -352,7 +352,7 @@
                         android:textSize="10sp" />
 
                     <!-- Electric Cyan Bezier Sparkline with Translucent Gradient Underfill -->
-                    <com.pocketdev.duorhythm.ui.home.SparklineTrendView
+                    <com.duorhythm.app.ui.home.SparklineTrendView
                         android:id="@+id/sparklineHomeBalance"
                         android:layout_width="match_parent"
                         android:layout_height="24dp"
@@ -413,7 +413,7 @@
                         android:orientation="horizontal">
 
                         <!-- Circular Progress Ring with Electric Glow -->
-                        <com.pocketdev.duorhythm.ui.home.CircularProgressRingView
+                        <com.duorhythm.app.ui.home.CircularProgressRingView
                             android:id="@+id/progressRingHomeTasks"
                             android:layout_width="44dp"
                             android:layout_height="44dp" />
@@ -510,7 +510,7 @@
                 </LinearLayout>
 
                 <!-- RecyclerView for Notes (Horizontal scroll wrapped in NestedScrollableHost) -->
-                <com.pocketdev.duorhythm.ui.common.NestedScrollableHost
+                <com.duorhythm.app.ui.common.NestedScrollableHost
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp">
@@ -524,7 +524,7 @@
                         android:orientation="horizontal"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         tools:listitem="@layout/item_quick_note_home" />
-                </com.pocketdev.duorhythm.ui.common.NestedScrollableHost>
+                </com.duorhythm.app.ui.common.NestedScrollableHost>
 
                 <!-- Empty State -->
                 <TextView

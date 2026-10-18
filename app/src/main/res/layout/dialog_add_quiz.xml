@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_dialog_glass"
+    android:background="?attr/colorSurface"
+    android:elevation="8dp"
     android:orientation="vertical"
     android:padding="20dp">
 
@@ -21,24 +22,28 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="Assign course, date, room, and syllabus for this class test/quiz."
+        android:text="Assign course, date, marks, and syllabus for this class test/quiz."
         android:textColor="@color/text_secondary"
         android:textSize="12sp" />
 
-    <!-- Subject Selector -->
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Subject Name Free Text -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilQuizSubject"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="Select Enrolled Subject"
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
+        app:boxBackgroundColor="@color/surface_variant"
+        app:boxStrokeColor="@color/card_stroke_bright"
+        android:hint="Subject / Course Name">
 
-    <Spinner
-        android:id="@+id/spQuizSubject"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginTop="4dp" />
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etQuizSubject"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?android:attr/textColorSecondary" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Quiz Title -->
     <com.google.android.material.textfield.TextInputLayout
@@ -46,10 +51,10 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         app:boxBackgroundColor="@color/surface_variant"
         app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="e.g. Class Test 1, Quiz 2">
+        android:hint="Quiz / Test Title (e.g. Class Test 1)">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etQuizTitle"
@@ -107,25 +112,52 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <!-- Room / Hall -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <!-- Total Marks & Room Row -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:boxBackgroundColor="@color/surface_variant"
-        app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="Room / Hall / Location (e.g. Room 402)">
+        android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etQuizRoom"
-            android:layout_width="match_parent"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?android:attr/textColorSecondary" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
+            android:hint="Total Marks (Optional)">
 
-    <!-- Syllabus & Notes -->
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etQuizMarks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?android:attr/textColorSecondary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
+            android:hint="Room / Hall (Optional)">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etQuizRoom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?android:attr/textColorSecondary" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <!-- Syllabus / Chapters -->
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
@@ -133,10 +165,10 @@
         android:layout_marginTop="8dp"
         app:boxBackgroundColor="@color/surface_variant"
         app:boxStrokeColor="@color/card_stroke_bright"
-        android:hint="Syllabus / Topics / Notes (Optional)">
+        android:hint="Syllabus / Chapters (Optional)">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etQuizNotes"
+            android:id="@+id/etQuizSyllabus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
