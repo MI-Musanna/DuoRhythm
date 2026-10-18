@@ -436,17 +436,18 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         binding.tvBucketInflow.text = String.format(Locale.US, "+%s%.2f", currentSymbol, income)
         binding.tvBucketOutflow.text = String.format(Locale.US, "-%s%.2f", currentSymbol, expense)
 
-        // Calculate chronological running balances for each transaction
+        // Calculate chronological running balances for each transaction (Previous Balance before transaction)
         val allBucketTransactions = dbHelper.getTransactionsByBucket(bucket.id, null)
         val runningBalances = mutableMapOf<Long, Double>()
         var runningBal = bucket.balance
         for (tx in allBucketTransactions) {
-            runningBalances[tx.id] = runningBal
-            if (tx.type == "INCOME") {
-                runningBal -= tx.amount
+            val prevBal = if (tx.type == "INCOME") {
+                runningBal - tx.amount
             } else {
-                runningBal += tx.amount
+                runningBal + tx.amount
             }
+            runningBalances[tx.id] = prevBal
+            runningBal = prevBal
         }
         val showRunningBalance = AppSettings.isShowRunningBalanceEnabled(this)
 

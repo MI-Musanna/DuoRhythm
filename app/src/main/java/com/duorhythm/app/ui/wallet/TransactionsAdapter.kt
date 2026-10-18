@@ -74,12 +74,18 @@ class TransactionsAdapter(
                 binding.tvTxAmount.setTextColor(ContextCompat.getColor(context, R.color.expense_red))
             }
 
-            // Running Balance underneath transaction amount
-            val runningBal = runningBalanceMap[tx.id]
+            // Running Balance underneath transaction amount (Previous / Starting Balance)
+            val runningBal = runningBalanceMap[tx.id] ?: if (tx.balanceAfter != 0.0) {
+                if (tx.type == "INCOME") tx.balanceAfter - tx.amount else tx.balanceAfter + tx.amount
+            } else null
             if (showRunningBalance && runningBal != null) {
                 binding.tvRunningBalance.visibility = View.VISIBLE
-                val displayLabel = if (currencyCode.isNotEmpty()) currencyCode else currencySymbol
-                binding.tvRunningBalance.text = String.format(Locale.US, "(%s %,.2f)", displayLabel, runningBal)
+                val prefix = when {
+                    currencyCode.isNotBlank() -> "$currencyCode "
+                    currencySymbol.isNotBlank() -> if (currencySymbol.endsWith(" ")) currencySymbol else "$currencySymbol "
+                    else -> ""
+                }
+                binding.tvRunningBalance.text = String.format(Locale.US, "%s%,.2f", prefix, runningBal)
             } else {
                 binding.tvRunningBalance.visibility = View.GONE
             }
@@ -107,3 +113,7 @@ class TransactionsAdapter(
         }
     }
 }
+
+typealias BucketLedgerAdapter = TransactionsAdapter
+typealias RecordsAdapter = TransactionsAdapter
+

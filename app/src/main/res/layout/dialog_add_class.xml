@@ -18,18 +18,20 @@
         android:textStyle="bold" />
 
     <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:id="@+id/tilSubjectName"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
         android:hint="Subject Name">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etClassSubject"
+        <AutoCompleteTextView
+            android:id="@+id/actvSubjectName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?android:attr/textColorSecondary" />
+            android:inputType="text"
+            android:textColor="?attr/colorOnSurface" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout

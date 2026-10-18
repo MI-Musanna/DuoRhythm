@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AutoCompleteTextView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.R
 import com.duorhythm.app.data.model.ClassScheduleItem
 import com.duorhythm.app.data.model.StudentSubject
+import com.duorhythm.app.data.model.instructor
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.AppSettings
 import com.duorhythm.app.databinding.DialogAddClassBinding
@@ -23,7 +25,12 @@ import com.duorhythm.app.service.ReminderManager
 import com.duorhythm.app.util.AnimationUtils
 import com.duorhythm.app.util.TimetableUtils
 
+val DialogAddClassBinding.etClassSubject: AutoCompleteTextView get() = actvSubjectName
+val DialogAddClassBinding.etTeacher: com.google.android.material.textfield.TextInputEditText get() = etClassTeacher
+
 class ScheduleFragment : Fragment() {
+
+    private val subjectDao get() = dbHelper
 
     private var _binding: FragmentScheduleBinding? = null
     private val binding get() = _binding!!
@@ -365,6 +372,23 @@ class ScheduleFragment : Fragment() {
         val typesAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
         dialogBinding.spClassType.adapter = typesAdapter
 
+        val enrolledSubjects = subjectDao.getAllSubjectsSync()
+        if (enrolledSubjects.isNotEmpty()) {
+            val subjectNames = enrolledSubjects.map { it.name }.distinct()
+            val subjectAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, subjectNames)
+            dialogBinding.actvSubjectName.setAdapter(subjectAdapter)
+            dialogBinding.actvSubjectName.setOnItemClickListener { _, _, position, _ ->
+                val selectedName = subjectAdapter.getItem(position) ?: return@setOnItemClickListener
+                val matchedSubject = enrolledSubjects.find { it.name.equals(selectedName, ignoreCase = true) }
+                if (matchedSubject != null && matchedSubject.instructor.isNotBlank()) {
+                    dialogBinding.etClassTeacher.setText(matchedSubject.instructor)
+                }
+            }
+            dialogBinding.actvSubjectName.setOnClickListener {
+                dialogBinding.actvSubjectName.showDropDown()
+            }
+        }
+
         dialogBinding.etClassStartTime.setOnClickListener { showTimePicker(dialogBinding.etClassStartTime) }
         dialogBinding.etClassEndTime.setOnClickListener { showTimePicker(dialogBinding.etClassEndTime) }
 
@@ -374,7 +398,7 @@ class ScheduleFragment : Fragment() {
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
         dialogBinding.btnSaveClass.setOnClickListener {
-            val subject = dialogBinding.etClassSubject.text?.toString()?.trim().orEmpty()
+            val subject = dialogBinding.actvSubjectName.text?.toString()?.trim().orEmpty()
             val room = dialogBinding.etClassRoom.text?.toString()?.trim().orEmpty()
             val teacher = dialogBinding.etClassTeacher.text?.toString()?.trim().orEmpty()
             val building = dialogBinding.etClassBuilding.text?.toString()?.trim().orEmpty()
@@ -489,7 +513,24 @@ class ScheduleFragment : Fragment() {
             dialogBinding.spClassType.setSelection(typeIdx)
         }
 
-        dialogBinding.etClassSubject.setText(classItem.subjectName)
+        dialogBinding.actvSubjectName.setText(classItem.subjectName)
+        val enrolledSubjects = subjectDao.getAllSubjectsSync()
+        if (enrolledSubjects.isNotEmpty()) {
+            val subjectNames = enrolledSubjects.map { it.name }.distinct()
+            val subjectAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, subjectNames)
+            dialogBinding.actvSubjectName.setAdapter(subjectAdapter)
+            dialogBinding.actvSubjectName.setOnItemClickListener { _, _, position, _ ->
+                val selectedName = subjectAdapter.getItem(position) ?: return@setOnItemClickListener
+                val matchedSubject = enrolledSubjects.find { it.name.equals(selectedName, ignoreCase = true) }
+                if (matchedSubject != null && matchedSubject.instructor.isNotBlank()) {
+                    dialogBinding.etClassTeacher.setText(matchedSubject.instructor)
+                }
+            }
+            dialogBinding.actvSubjectName.setOnClickListener {
+                dialogBinding.actvSubjectName.showDropDown()
+            }
+        }
+
         dialogBinding.etClassRoom.setText(classItem.room)
         dialogBinding.etClassTeacher.setText(classItem.teacher)
         dialogBinding.etClassBuilding.setText(classItem.buildingOrLink)
@@ -505,7 +546,7 @@ class ScheduleFragment : Fragment() {
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
         dialogBinding.btnSaveClass.setOnClickListener {
-            val subject = dialogBinding.etClassSubject.text?.toString()?.trim().orEmpty()
+            val subject = dialogBinding.actvSubjectName.text?.toString()?.trim().orEmpty()
             val room = dialogBinding.etClassRoom.text?.toString()?.trim().orEmpty()
             val teacher = dialogBinding.etClassTeacher.text?.toString()?.trim().orEmpty()
             val building = dialogBinding.etClassBuilding.text?.toString()?.trim().orEmpty()

@@ -89,7 +89,7 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="10sp"
                 android:visibility="gone"
-                tools:text="(BDT 22,160.00)" />
+                tools:text="BDT 24,160.00" />
         </LinearLayout>
 
         <!-- Delete Action -->

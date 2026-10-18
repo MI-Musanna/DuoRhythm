@@ -66,8 +66,15 @@ data class TransactionItem(
     val cardId: Long = 0,
     val currency: String = "USD",
     val notes: String = "",
-    val bucketId: Long = 0
+    val bucketId: Long = 0,
+    val balanceAfter: Double = 0.0
 )
+
+val TransactionItem.previousBalance: Double
+    get() = if (type == "INCOME") balanceAfter - amount else balanceAfter + amount
+
+typealias Record = TransactionItem
+typealias TransactionRecord = TransactionItem
 
 data class DueDebtItem(
     val id: Long = 0,
@@ -133,6 +140,8 @@ data class StudentSubject(
     val syllabusPath: String = ""
 )
 
+val StudentSubject.instructor: String get() = instructorName
+typealias SubjectEntity = StudentSubject
 typealias Course = StudentSubject
 typealias CourseDocument = SubjectMaterial
 

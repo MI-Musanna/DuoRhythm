@@ -1878,6 +1878,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
+    fun getAllSubjectsSync(): List<StudentSubject> = getAllStudentSubjects()
+
     fun getStudentSubjectById(subjectId: Long): StudentSubject? {
         val db = readableDatabase
         val cursor = db.rawQuery("SELECT * FROM student_subjects WHERE id = ?", arrayOf(subjectId.toString()))
