@@ -258,7 +258,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:text="No tasks yet"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
@@ -269,7 +269,7 @@
                     android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="Stay organized by adding your priorities for today."
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -330,7 +330,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:text="No milestone goals yet"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
@@ -341,7 +341,7 @@
                     android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="Track long-term achievements and milestones."
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
