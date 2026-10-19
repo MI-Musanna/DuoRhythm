@@ -22,9 +22,9 @@ An offline, zero-telemetry Android suite built for students and independent buil
 
 <div align="center">
 
-| Home & Quick Brief | Wallet & Multi-Bucket | Dynamic Analytics |
+| Home & Quick Brief | Wallet & Multi-Bucket | Task & Goal |
 | :---: | :---: | :---: |
-| <img src="screenshots/Home.png" width="230"/> | <img src="screenshots/Wallet.png" width="230"/> | <img src="screenshots/ledger.png" width="230"/> |
+| <img src="screenshots/Home.png" width="230"/> | <img src="screenshots/Wallet.png" width="230"/> | <img src="screenshots/Task.png" width="230"/> |
 
 | Academic Portal | Weekly Routine | Focus Suite |
 | :---: | :---: | :---: |
