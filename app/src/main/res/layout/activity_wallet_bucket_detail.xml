@@ -74,17 +74,6 @@
                     android:orientation="horizontal">
 
                     <ImageButton
-                        android:id="@+id/btnEditBucket"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:layout_marginEnd="8dp"
-                        android:background="@drawable/bg_glass_squircle_action"
-                        android:contentDescription="Edit Bucket"
-                        android:src="@drawable/ic_edit"
-                        android:tint="?attr/colorOnSurface"
-                        app:tint="?attr/colorOnSurface" />
-
-                    <ImageButton
                         android:id="@+id/btnDeleteBucket"
                         android:layout_width="38dp"
                         android:layout_height="38dp"
@@ -338,63 +327,105 @@
             </eightbitlab.com.blurview.BlurView>
 
             <!-- Ledger History Header & Filter -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvLedgerHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:text="Bucket Ledger History"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="17sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Bucket Ledger History"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+            <!-- Horizontally scrollable filter chips (Type and Category Filters) -->
+            <HorizontalScrollView
+                android:id="@+id/hsvFilters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none"
+                android:overScrollMode="never">
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupBucketTxFilter"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:singleSelection="true">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipBucketAll"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                    <!-- Type Filter: All, Income, Expense -->
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupBucketTxFilter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="All"
+                        app:singleLine="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipBucketAll"
+                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="All"
+                            app:chipBackgroundColor="@color/chip_choice_background"
+                            app:chipStrokeColor="@color/chip_choice_stroke"
+                            app:chipStrokeWidth="1dp"
+                            android:textColor="@color/chip_choice_text" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipBucketIncome"
+                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Income"
+                            app:chipBackgroundColor="@color/chip_choice_background"
+                            app:chipStrokeColor="@color/chip_choice_stroke"
+                            app:chipStrokeWidth="1dp"
+                            android:textColor="@color/chip_choice_text" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipBucketExpense"
+                            style="@style/Widget.MaterialComponents.Chip.Choice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Expense"
+                            app:chipBackgroundColor="@color/chip_choice_background"
+                            app:chipStrokeColor="@color/chip_choice_stroke"
+                            app:chipStrokeWidth="1dp"
+                            android:textColor="@color/chip_choice_text" />
+                    </com.google.android.material.chip.ChipGroup>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="20dp"
+                        android:layout_marginHorizontal="8dp"
+                        android:background="@color/card_stroke" />
+
+                    <!-- Category Filter Dropdown Chip -->
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipBucketCategory"
+                        style="@style/Widget.MaterialComponents.Chip.Action"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Category ▾"
+                        app:chipIcon="@drawable/ic_filter_list"
+                        app:chipIconTint="?attr/colorOnSurfaceVariant"
                         app:chipBackgroundColor="@color/chip_choice_background"
                         app:chipStrokeColor="@color/chip_choice_stroke"
                         app:chipStrokeWidth="1dp"
-                        android:textColor="@color/chip_choice_text" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipBucketIncome"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                    <!-- Dynamic Category Chips Container -->
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupCategoryFilter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Income"
-                        app:chipBackgroundColor="@color/chip_choice_background"
-                        app:chipStrokeColor="@color/chip_choice_stroke"
-                        app:chipStrokeWidth="1dp"
-                        android:textColor="@color/chip_choice_text" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipBucketExpense"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Expense"
-                        app:chipBackgroundColor="@color/chip_choice_background"
-                        app:chipStrokeColor="@color/chip_choice_stroke"
-                        app:chipStrokeWidth="1dp"
-                        android:textColor="@color/chip_choice_text" />
-                </com.google.android.material.chip.ChipGroup>
-            </LinearLayout>
+                        android:layout_marginStart="4dp"
+                        app:singleLine="true"
+                        app:singleSelection="true" />
+                </LinearLayout>
+            </HorizontalScrollView>
 
             <!-- Transactions List -->
             <androidx.recyclerview.widget.RecyclerView

@@ -9,6 +9,7 @@ import android.widget.Toast
 import android.content.res.ColorStateList
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
@@ -20,6 +21,7 @@ import com.duorhythm.app.data.model.TransactionItem
 import com.duorhythm.app.data.model.WalletBucketItem
 import com.duorhythm.app.databinding.ActivityWalletBucketDetailBinding
 import com.duorhythm.app.databinding.DialogAddTransactionBinding
+import com.duorhythm.app.databinding.DialogTransactionSummaryBinding
 import com.duorhythm.app.util.AnimationUtils
 import com.duorhythm.app.util.CurrencyUtils
 import com.github.mikephil.charting.data.BarData
@@ -46,6 +48,9 @@ class WalletBucketDetailActivity : AppCompatActivity() {
     private var bucketId: Long = 0
     private var currentBucket: WalletBucketItem? = null
     private var currentFilter = "ALL"
+    private var currentCategoryFilter: String? = null
+    private var allBucketTransactionsCache: List<TransactionItem> = emptyList()
+    private var cachedRunningBalances: Map<Long, Double> = emptyMap()
     private var currentCurrency = "USD"
     private var currentRate = 1.0
     private var currentSymbol = "$"
@@ -113,7 +118,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             currentSymbol,
             1.0,
             onTxClick = { tx ->
-                showEditTransactionDialog(tx)
+                showTransactionSummaryDialog(tx)
             },
             onDeleteClick = { tx ->
                 AlertDialog.Builder(this)
@@ -126,6 +131,9 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
+            },
+            onEditClick = { tx ->
+                showEditTransactionDialog(tx)
             }
         )
         binding.rvBucketTransactions.layoutManager = LinearLayoutManager(this)
@@ -136,16 +144,12 @@ class WalletBucketDetailActivity : AppCompatActivity() {
     private fun setupListeners() {
         binding.btnBucketBack.setOnClickListener { finish() }
 
-        binding.btnEditBucket.setOnClickListener {
-            showAdjustOrResetBalanceDialog()
-        }
-        binding.btnEditBucket.setOnLongClickListener {
-            showEditBucketDialog()
-            true
-        }
-
         binding.btnAdjustBalanceHero.setOnClickListener {
             showAdjustOrResetBalanceDialog()
+        }
+        binding.btnAdjustBalanceHero.setOnLongClickListener {
+            showEditBucketDialog()
+            true
         }
 
         binding.btnDeleteBucket.setOnClickListener {
@@ -158,7 +162,23 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 R.id.chipBucketExpense -> "EXPENSE"
                 else -> "ALL"
             }
-            loadBucketData()
+            applyLedgerFilter()
+        }
+
+        binding.chipBucketCategory.setOnClickListener {
+            if (currentCategoryFilter != null) {
+                currentCategoryFilter = null
+                binding.chipBucketCategory.text = "Category ▾"
+                binding.chipBucketCategory.isChecked = false
+                binding.chipGroupCategoryFilter.clearCheck()
+                applyLedgerFilter()
+            } else {
+                showCategoryFilterMenu()
+            }
+        }
+        binding.chipBucketCategory.setOnLongClickListener {
+            showCategoryFilterMenu()
+            true
         }
 
         binding.btnToggleMiniChartMode.setOnClickListener {
@@ -179,9 +199,9 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
         AnimationUtils.attachTactileFeedback(
             binding.btnBucketBack,
-            binding.btnEditBucket,
             binding.btnAdjustBalanceHero,
             binding.btnDeleteBucket,
+            binding.chipBucketCategory,
             binding.btnToggleMiniChartMode,
             binding.containerBucketMiniChart,
             binding.fabAddBucketRecord
@@ -438,6 +458,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
         // Calculate chronological running balances for each transaction (Previous Balance before transaction)
         val allBucketTransactions = dbHelper.getTransactionsByBucket(bucket.id, null)
+        allBucketTransactionsCache = allBucketTransactions
         val runningBalances = mutableMapOf<Long, Double>()
         var runningBal = bucket.balance
         for (tx in allBucketTransactions) {
@@ -449,29 +470,184 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             runningBalances[tx.id] = prevBal
             runningBal = prevBal
         }
-        val showRunningBalance = AppSettings.isShowRunningBalanceEnabled(this)
+        cachedRunningBalances = runningBalances
 
-        // Load filtered transactions for this bucket
-        val transactions = dbHelper.getTransactionsByBucket(bucket.id, currentFilter)
+        // Populate dynamic category chips for distinct categories in this bucket
+        val distinctCats = allBucketTransactions.map { it.category.trim() }.filter { it.isNotEmpty() }.distinct().sorted()
+        populateDynamicCategoryChips(distinctCats)
+
+        applyLedgerFilter()
+        renderMiniChart()
+    }
+
+    private fun populateDynamicCategoryChips(categories: List<String>) {
+        binding.chipGroupCategoryFilter.removeAllViews()
+        for (cat in categories) {
+            val chip = Chip(this).apply {
+                text = cat
+                isCheckable = true
+                isClickable = true
+                setChipBackgroundColorResource(R.color.chip_choice_background)
+                setChipStrokeColorResource(R.color.chip_choice_stroke)
+                chipStrokeWidth = 1f
+                setTextColor(ContextCompat.getColorStateList(this@WalletBucketDetailActivity, R.color.chip_choice_text))
+                isChecked = currentCategoryFilter.equals(cat, ignoreCase = true)
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        currentCategoryFilter = cat
+                        binding.chipBucketCategory.text = "Category: $cat ✕"
+                        binding.chipBucketCategory.isChecked = true
+                    } else {
+                        if (currentCategoryFilter.equals(cat, ignoreCase = true)) {
+                            currentCategoryFilter = null
+                            binding.chipBucketCategory.text = "Category ▾"
+                            binding.chipBucketCategory.isChecked = false
+                        }
+                    }
+                    applyLedgerFilter()
+                }
+            }
+            binding.chipGroupCategoryFilter.addView(chip)
+        }
+    }
+
+    private fun showCategoryFilterMenu() {
+        val popup = androidx.appcompat.widget.PopupMenu(this, binding.chipBucketCategory)
+        popup.menu.add(0, 0, 0, "All Categories")
+        val categories = allBucketTransactionsCache.map { it.category.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .sorted()
+        categories.forEachIndexed { index, cat ->
+            popup.menu.add(0, index + 1, index + 1, cat)
+        }
+        popup.setOnMenuItemClickListener { item ->
+            if (item.itemId == 0) {
+                currentCategoryFilter = null
+                binding.chipBucketCategory.text = "Category ▾"
+                binding.chipBucketCategory.isChecked = false
+                binding.chipGroupCategoryFilter.clearCheck()
+            } else {
+                val selectedCat = categories[item.itemId - 1]
+                currentCategoryFilter = selectedCat
+                binding.chipBucketCategory.text = "Category: $selectedCat ✕"
+                binding.chipBucketCategory.isChecked = true
+                for (i in 0 until binding.chipGroupCategoryFilter.childCount) {
+                    val chip = binding.chipGroupCategoryFilter.getChildAt(i) as? Chip
+                    if (chip?.text?.toString().equals(selectedCat, ignoreCase = true)) {
+                        chip?.isChecked = true
+                        break
+                    }
+                }
+            }
+            applyLedgerFilter()
+            true
+        }
+        popup.show()
+    }
+
+    private fun applyLedgerFilter() {
+        val allTransactions = allBucketTransactionsCache
+
+        var filtered = when (currentFilter) {
+            "INCOME" -> allTransactions.filter { it.type.equals("INCOME", ignoreCase = true) }
+            "EXPENSE" -> allTransactions.filter { it.type.equals("EXPENSE", ignoreCase = true) }
+            else -> allTransactions
+        }
+
+        val catFilter = currentCategoryFilter
+        if (!catFilter.isNullOrBlank() && !catFilter.equals("ALL", ignoreCase = true)) {
+            filtered = filtered.filter { it.category.equals(catFilter, ignoreCase = true) }
+        }
+
         transactionsAdapter.updateData(
-            newTransactions = transactions,
+            newTransactions = filtered,
             newCards = emptyMap(),
             newSymbol = currentSymbol,
             newRate = 1.0,
-            newRunningBalances = runningBalances,
-            newShowRunningBalance = showRunningBalance,
+            newRunningBalances = cachedRunningBalances,
+            newShowRunningBalance = AppSettings.isShowRunningBalanceEnabled(this),
             newCurrencyCode = currentCurrency
         )
 
-        if (transactions.isEmpty()) {
+        if (filtered.isEmpty()) {
             binding.rvBucketTransactions.visibility = View.GONE
             binding.tvEmptyBucketTransactions.visibility = View.VISIBLE
+            binding.tvEmptyBucketTransactions.text = if (allTransactions.isEmpty()) {
+                "No transactions recorded for this bucket yet.\nTap '+ Add Record' below to record a transaction."
+            } else {
+                "No transactions matching the selected filters."
+            }
         } else {
             binding.rvBucketTransactions.visibility = View.VISIBLE
             binding.tvEmptyBucketTransactions.visibility = View.GONE
         }
+    }
 
-        renderMiniChart()
+    private fun showTransactionSummaryDialog(tx: TransactionItem) {
+        val bucket = currentBucket ?: return
+        val dialogBinding = DialogTransactionSummaryBinding.inflate(layoutInflater)
+        val prefix = when {
+            currentCurrency.isNotBlank() -> "$currentCurrency "
+            currentSymbol.isNotBlank() -> if (currentSymbol.endsWith(" ")) currentSymbol else "$currentSymbol "
+            else -> ""
+        }
+
+        val isIncome = tx.type.equals("INCOME", ignoreCase = true)
+        val amountColor = ContextCompat.getColor(this, if (isIncome) R.color.income_green else R.color.expense_red)
+        val sign = if (isIncome) "+" else "-"
+        dialogBinding.tvSummaryAmount.text = String.format(Locale.US, "%s%s%,.2f", sign, prefix, tx.amount)
+        dialogBinding.tvSummaryAmount.setTextColor(amountColor)
+
+        dialogBinding.tvSummaryType.text = if (isIncome) "INCOME" else "EXPENSE"
+        dialogBinding.tvSummaryType.setTextColor(amountColor)
+        dialogBinding.ivSummaryBadge.setColorFilter(amountColor)
+
+        val iconRes = when (tx.category.lowercase(Locale.US)) {
+            "salary" -> R.drawable.ic_wallet
+            "education" -> R.drawable.ic_school
+            "subscription", "subscriptions" -> R.drawable.ic_subscription
+            "bank", "transfer" -> R.drawable.ic_bank
+            "bills" -> R.drawable.ic_article
+            "work orders", "work" -> R.drawable.ic_portal
+            "calendar", "schedule" -> R.drawable.ic_calendar
+            else -> R.drawable.ic_credit_card
+        }
+        dialogBinding.ivSummaryBadge.setImageResource(iconRes)
+
+        dialogBinding.tvSummaryTitle.text = tx.title.ifBlank { tx.category }
+        dialogBinding.tvSummaryCategory.text = tx.category
+        dialogBinding.tvSummaryDate.text = tx.date
+        dialogBinding.tvSummaryAccount.text = bucket.name
+
+        val prevBal = cachedRunningBalances[tx.id] ?: if (tx.balanceAfter != 0.0) {
+            if (isIncome) tx.balanceAfter - tx.amount else tx.balanceAfter + tx.amount
+        } else 0.0
+        val endingBal = if (tx.balanceAfter != 0.0) {
+            tx.balanceAfter
+        } else {
+            if (isIncome) prevBal + tx.amount else prevBal - tx.amount
+        }
+        dialogBinding.tvSummaryPrevBalance.text = String.format(Locale.US, "%s%,.2f", prefix, prevBal)
+        dialogBinding.tvSummaryEndingBalance.text = String.format(Locale.US, "%s%,.2f", prefix, endingBal)
+
+        if (tx.notes.isBlank()) {
+            dialogBinding.tvSummaryNotes.text = "(No notes provided)"
+            dialogBinding.tvSummaryNotes.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+        } else {
+            dialogBinding.tvSummaryNotes.text = tx.notes
+            dialogBinding.tvSummaryNotes.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnSummaryCloseIcon.setOnClickListener { dialog.dismiss() }
+        dialogBinding.btnSummaryClose.setOnClickListener { dialog.dismiss() }
+
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
     }
 
     private fun setupMiniCharts() {
@@ -997,7 +1173,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                     date = today,
                     cardId = 0L,
                     currency = currentCurrency,
-                    notes = if (notes.isNotBlank()) "$notes (${bucket.name})" else "Account: ${bucket.name}",
+                    notes = notes,
                     bucketId = bucket.id
                 )
                 dbHelper.insertTransaction(tx)

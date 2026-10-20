@@ -21,7 +21,8 @@ class TransactionsAdapter(
     private var showRunningBalance: Boolean = true,
     private var currencyCode: String = "",
     private val onTxClick: ((TransactionItem) -> Unit)? = null,
-    private val onDeleteClick: (TransactionItem) -> Unit
+    private val onDeleteClick: (TransactionItem) -> Unit = {},
+    private val onEditClick: ((TransactionItem) -> Unit)? = null
 ) : RecyclerView.Adapter<TransactionsAdapter.TxViewHolder>() {
 
     fun updateData(
@@ -107,12 +108,30 @@ class TransactionsAdapter(
                 onTxClick?.invoke(tx)
             }
 
-            binding.btnDeleteTx.setOnClickListener {
-                onDeleteClick(tx)
+            binding.btnMoreTx.setOnClickListener { v ->
+                val popup = androidx.appcompat.widget.PopupMenu(v.context, v)
+                popup.menu.add(0, 1, 0, "Edit Record")
+                popup.menu.add(0, 2, 1, "Delete Record")
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        1 -> {
+                            onEditClick?.invoke(tx)
+                            true
+                        }
+                        2 -> {
+                            onDeleteClick(tx)
+                            true
+                        }
+                        else -> false
+                    }
+                }
+                popup.show()
             }
         }
     }
 }
+
+val ItemTransactionBinding.btnDeleteTx: android.widget.ImageButton get() = btnMoreTx
 
 typealias BucketLedgerAdapter = TransactionsAdapter
 typealias RecordsAdapter = TransactionsAdapter

@@ -92,15 +92,15 @@
                 tools:text="BDT 24,160.00" />
         </LinearLayout>
 
-        <!-- Delete Action -->
+        <!-- Options Menu (⋮) -->
         <ImageButton
-            android:id="@+id/btnDeleteTx"
+            android:id="@+id/btnMoreTx"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Delete"
-            android:src="@drawable/ic_delete"
-            app:tint="@color/text_muted" />
+            android:contentDescription="Record Options"
+            android:src="@drawable/ic_more_vert"
+            app:tint="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
