@@ -15,7 +15,7 @@ class ClassesAdapter(
     private var classes: List<ClassScheduleItem>,
     private var selectedDayOfWeek: Int = 1,
     private val onDeleteClick: (ClassScheduleItem) -> Unit,
-    private val onRecordAttendance: (subjectName: String, isPresent: Boolean) -> Unit,
+    private val onRecordAttendance: ((subjectName: String, isPresent: Boolean) -> Unit)? = null,
     private val onItemClick: ((ClassScheduleItem) -> Unit)? = null
 ) : RecyclerView.Adapter<ClassesAdapter.ClassViewHolder>() {
 
@@ -139,21 +139,13 @@ class ClassesAdapter(
                 binding.tvClassLiveStatus.visibility = View.GONE
             }
 
-            // Quick Attendance
-            binding.btnQuickPresent.setOnClickListener {
-                onRecordAttendance(item.subjectName, true)
-            }
-            binding.btnQuickAbsent.setOnClickListener {
-                onRecordAttendance(item.subjectName, false)
-            }
-
             binding.btnDeleteClass.setOnClickListener {
                 onDeleteClick(item)
             }
             binding.root.setOnClickListener {
                 onItemClick?.invoke(item)
             }
-            AnimationUtils.attachTactileFeedback(binding.btnQuickPresent, binding.btnQuickAbsent, binding.btnDeleteClass)
+            AnimationUtils.attachTactileFeedback(binding.btnDeleteClass)
         }
 
         private fun isNextUpcomingClass(nowMinutes: Int, thisStartMinutes: Int): Boolean {

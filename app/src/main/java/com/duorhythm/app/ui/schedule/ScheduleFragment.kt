@@ -37,7 +37,6 @@ class ScheduleFragment : Fragment() {
 
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var classesAdapter: ClassesAdapter
-    private lateinit var attendanceAdapter: AttendanceAdapter
     private var selectedDay = TimetableUtils.calendarDayToDbDay(java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK))
 
     override fun onCreateView(
@@ -129,12 +128,6 @@ class ScheduleFragment : Fragment() {
                     .setNegativeButton("Cancel", null)
                     .show()
             },
-            onRecordAttendance = { subjectName, isPresent ->
-                dbHelper.recordAttendance(subjectName, isPresent)
-                loadAttendance()
-                val statusStr = if (isPresent) "present" else "absent"
-                Toast.makeText(requireContext(), "Marked $subjectName as $statusStr", Toast.LENGTH_SHORT).show()
-            },
             onItemClick = { item ->
                 showEditClassDialog(item)
             }
@@ -142,54 +135,6 @@ class ScheduleFragment : Fragment() {
         binding.rvDayClasses.layoutManager = LinearLayoutManager(requireContext())
         binding.rvDayClasses.adapter = classesAdapter
         AnimationUtils.applySlideUpLayoutAnimation(binding.rvDayClasses)
-
-        attendanceAdapter = AttendanceAdapter(
-            emptyList(),
-            onMarkPresent = { item ->
-                dbHelper.recordAttendance(item.subjectName, true)
-                loadAttendance()
-                Toast.makeText(requireContext(), "Marked present for ${item.subjectName}", Toast.LENGTH_SHORT).show()
-            },
-            onMarkAbsent = { item ->
-                dbHelper.recordAttendance(item.subjectName, false)
-                loadAttendance()
-                Toast.makeText(requireContext(), "Marked absent for ${item.subjectName}", Toast.LENGTH_SHORT).show()
-            },
-            onItemClick = { item ->
-                val options = arrayOf(
-                    "Reset Attendance Counters (0/0)",
-                    "Delete Subject Attendance"
-                )
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Attendance: ${item.subjectName}")
-                    .setItems(options) { _, which ->
-                        when (which) {
-                            0 -> {
-                                dbHelper.resetAttendance(item.subjectName)
-                                loadAttendance()
-                                Toast.makeText(requireContext(), "Attendance counters reset", Toast.LENGTH_SHORT).show()
-                            }
-                            1 -> {
-                                MaterialAlertDialogBuilder(requireContext())
-                                    .setTitle("Confirm Delete")
-                                    .setMessage("Remove attendance record for '${item.subjectName}'?")
-                                    .setPositiveButton("Delete") { _, _ ->
-                                        dbHelper.deleteAttendance(item.subjectName)
-                                        loadAttendance()
-                                        Toast.makeText(requireContext(), "Attendance record removed", Toast.LENGTH_SHORT).show()
-                                    }
-                                    .setNegativeButton("Cancel", null)
-                                    .show()
-                            }
-                        }
-                    }
-                    .setNegativeButton("Close", null)
-                    .show()
-            }
-        )
-        binding.rvAttendance.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvAttendance.adapter = attendanceAdapter
-        AnimationUtils.applySlideUpLayoutAnimation(binding.rvAttendance)
     }
 
     private fun getChipForDay(day: Int): com.google.android.material.chip.Chip {
@@ -276,10 +221,9 @@ class ScheduleFragment : Fragment() {
     }
 
     fun loadData() {
-        if (_binding == null || !isAdded || !::dbHelper.isInitialized || !::classesAdapter.isInitialized || !::attendanceAdapter.isInitialized) return
+        if (_binding == null || !isAdded || !::dbHelper.isInitialized || !::classesAdapter.isInitialized) return
         try {
             loadClasses()
-            loadAttendance()
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -301,19 +245,6 @@ class ScheduleFragment : Fragment() {
         } else {
             binding.rvDayClasses.visibility = View.VISIBLE
             binding.layoutEmptyClasses.visibility = View.GONE
-        }
-    }
-
-    private fun loadAttendance() {
-        if (_binding == null) return
-        val attendance = dbHelper.getAllAttendance()
-        attendanceAdapter.updateList(attendance)
-        if (attendance.isEmpty()) {
-            binding.rvAttendance.visibility = View.GONE
-            binding.layoutEmptyAttendance.visibility = View.VISIBLE
-        } else {
-            binding.rvAttendance.visibility = View.VISIBLE
-            binding.layoutEmptyAttendance.visibility = View.GONE
         }
     }
 

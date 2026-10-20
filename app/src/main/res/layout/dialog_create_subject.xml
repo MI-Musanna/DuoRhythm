@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="48dp"
-        android:hint="Subject Name (e.g. Physics 2)"
+        android:hint="Subject Name (e.g. Mathematics)"
         android:textColor="?attr/colorOnSurface"
         android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="12dp" />
@@ -38,7 +38,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
-            android:hint="Code (e.g. 25922)"
+            android:hint="Subject Code (e.g. 101)"
             android:textColor="?attr/colorOnSurface"
             android:textColorHint="?android:attr/textColorSecondary"
             android:layout_marginEnd="8dp" />
@@ -50,7 +50,7 @@
             android:layout_height="wrap_content"
             android:minHeight="48dp"
             android:inputType="number"
-            android:hint="Credits (e.g. 4)"
+            android:hint="Credits (e.g. 3)"
             android:textColor="?attr/colorOnSurface"
             android:textColorHint="?android:attr/textColorSecondary" />
     </LinearLayout>
