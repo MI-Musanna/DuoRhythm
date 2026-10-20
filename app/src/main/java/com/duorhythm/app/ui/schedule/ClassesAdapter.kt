@@ -15,7 +15,6 @@ class ClassesAdapter(
     private var classes: List<ClassScheduleItem>,
     private var selectedDayOfWeek: Int = 1,
     private val onDeleteClick: (ClassScheduleItem) -> Unit,
-    private val onRecordAttendance: ((subjectName: String, isPresent: Boolean) -> Unit)? = null,
     private val onItemClick: ((ClassScheduleItem) -> Unit)? = null
 ) : RecyclerView.Adapter<ClassesAdapter.ClassViewHolder>() {
 

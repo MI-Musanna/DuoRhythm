@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="6dp"
+    app:cardBackgroundColor="@color/surface"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/card_stroke"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="14dp">
+
+        <!-- Left Subject Color Pill -->
+        <View
+            android:id="@+id/viewClassColor"
+            android:layout_width="4dp"
+            android:layout_height="44dp"
+            android:background="#2563EB" />
+
+        <!-- Subject Info Block -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvClassSubject"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    tools:text="Computer Architecture" />
+
+                <TextView
+                    android:id="@+id/tvClassType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_glass_pill_outline"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="1dp"
+                    android:textColor="@color/neon_cyan"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    tools:text="LECTURE" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvClassTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                tools:text="09:00 AM - 10:30 AM" />
+
+            <TextView
+                android:id="@+id/tvClassDetails"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp"
+                tools:text="Room: 302 • Dr. Watson" />
+        </LinearLayout>
+
+        <!-- Attendance Status Actions: Present & Absent -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Compact Present Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAttendancePresent"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginEnd="6dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:text="Present"
+                android:textAllCaps="false"
+                android:textColor="#10B981"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_check"
+                app:iconPadding="4dp"
+                app:iconSize="12dp"
+                app:iconTint="#10B981"
+                app:strokeColor="#10B981"
+                app:strokeWidth="1dp" />
+
+            <!-- Compact Absent Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAttendanceAbsent"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:text="Absent"
+                android:textAllCaps="false"
+                android:textColor="#EF4444"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_close"
+                app:iconPadding="4dp"
+                app:iconSize="12dp"
+                app:iconTint="#EF4444"
+                app:strokeColor="#EF4444"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -17,7 +17,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     companion object {
         const val DATABASE_NAME = "lifesync.db"
-        const val DATABASE_VERSION = 5
+        const val DATABASE_VERSION = 6
 
         @Volatile
         private var instance: DatabaseHelper? = null
@@ -158,6 +158,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         )
 
         db.execSQL(
+            """CREATE TABLE IF NOT EXISTS attendance_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                subjectName TEXT NOT NULL,
+                date TEXT NOT NULL,
+                dayOfWeek TEXT NOT NULL,
+                status TEXT NOT NULL,
+                UNIQUE(subjectName, date) ON CONFLICT REPLACE
+            )"""
+        )
+
+        db.execSQL(
             """CREATE TABLE IF NOT EXISTS student_subjects (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -262,7 +273,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun dropAllTables(db: SQLiteDatabase) {
         val tables = listOf(
             "cards", "transactions", "currency_rates", "tasks", "task_categories",
-            "transaction_categories", "classes", "attendance", "student_subjects",
+            "transaction_categories", "classes", "attendance", "attendance_records", "student_subjects",
             "subject_materials", "subject_work_items", "work_orders", "notes",
             "contacts_groups", "wallet_buckets", "subscriptions", "dues_debts", "app_settings"
         )
@@ -293,6 +304,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                             .apply()
                     } catch (_: Exception) {}
                 }
+                if (oldVersion < 6) {
+                    try {
+                        db.execSQL(
+                            """CREATE TABLE IF NOT EXISTS attendance_records (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                subjectName TEXT NOT NULL,
+                                date TEXT NOT NULL,
+                                dayOfWeek TEXT NOT NULL,
+                                status TEXT NOT NULL,
+                                UNIQUE(subjectName, date) ON CONFLICT REPLACE
+                            )"""
+                        )
+                    } catch (_: Exception) {}
+                }
                 ensureDefaultCurrencies(db)
             }
         } catch (e: Exception) {
@@ -314,6 +339,18 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
+        try {
+            db.execSQL(
+                """CREATE TABLE IF NOT EXISTS attendance_records (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    subjectName TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    dayOfWeek TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    UNIQUE(subjectName, date) ON CONFLICT REPLACE
+                )"""
+            )
+        } catch (_: Exception) {}
         try {
             db.execSQL(
                 """CREATE TABLE IF NOT EXISTS app_settings (
@@ -1840,6 +1877,102 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 put("total_classes", 0)
             }
             db.insertWithOnConflict("attendance", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        }
+    }
+
+    // ==========================================
+    // CALENDAR ATTENDANCE RECORDS (Room Entity / DAO backing)
+    // ==========================================
+    private val attendanceRecordFlowTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
+
+    fun recordAttendance(record: database.entities.AttendanceRecord) {
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("subjectName", record.subjectName)
+            put("date", record.date)
+            put("dayOfWeek", record.dayOfWeek)
+            put("status", record.status)
+        }
+        db.insertWithOnConflict("attendance_records", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        attendanceRecordFlowTrigger.tryEmit(Unit)
+    }
+
+    fun deleteAttendanceRecord(subjectName: String, date: String) {
+        val db = writableDatabase
+        db.delete("attendance_records", "subjectName = ? AND date = ?", arrayOf(subjectName, date))
+        attendanceRecordFlowTrigger.tryEmit(Unit)
+    }
+
+    fun getAttendanceRecordsByDate(date: String): List<database.entities.AttendanceRecord> {
+        val list = mutableListOf<database.entities.AttendanceRecord>()
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM attendance_records WHERE date = ?", arrayOf(date))
+        cursor.use {
+            while (it.moveToNext()) {
+                list.add(
+                    database.entities.AttendanceRecord(
+                        id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        subjectName = it.getString(it.getColumnIndexOrThrow("subjectName")),
+                        date = it.getString(it.getColumnIndexOrThrow("date")),
+                        dayOfWeek = it.getString(it.getColumnIndexOrThrow("dayOfWeek")),
+                        status = it.getString(it.getColumnIndexOrThrow("status"))
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun getAttendanceRecordsFlow(date: String): kotlinx.coroutines.flow.Flow<List<database.entities.AttendanceRecord>> = kotlinx.coroutines.flow.flow {
+        emit(getAttendanceRecordsByDate(date))
+        attendanceRecordFlowTrigger.collect {
+            emit(getAttendanceRecordsByDate(date))
+        }
+    }
+
+    val attendanceDao: database.dao.AttendanceDao by lazy {
+        object : database.dao.AttendanceDao {
+            override fun getRecordsByDate(date: String): kotlinx.coroutines.flow.Flow<List<database.entities.AttendanceRecord>> {
+                return getAttendanceRecordsFlow(date)
+            }
+
+            override suspend fun recordAttendance(record: database.entities.AttendanceRecord) {
+                this@DatabaseHelper.recordAttendance(record)
+            }
+
+            override suspend fun deleteRecord(subjectName: String, date: String) {
+                this@DatabaseHelper.deleteAttendanceRecord(subjectName, date)
+            }
+        }
+    }
+
+    val timetableDao: database.dao.TimetableDao by lazy {
+        object : database.dao.TimetableDao {
+            override fun getClassesForDay(dayOfWeek: Int): List<ClassScheduleItem> {
+                return this@DatabaseHelper.getScheduleForDay(dayOfWeek)
+            }
+
+            override fun getClassesForDay(dayOfWeekName: String): List<ClassScheduleItem> {
+                return getScheduleForDay(dayOfWeekName)
+            }
+
+            override fun getScheduleForDay(dayOfWeek: Int): List<ClassScheduleItem> {
+                return this@DatabaseHelper.getScheduleForDay(dayOfWeek)
+            }
+
+            override fun getScheduleForDay(dayOfWeekName: String): List<ClassScheduleItem> {
+                val dbDay = when (dayOfWeekName.trim().lowercase()) {
+                    "monday", "mon" -> 1
+                    "tuesday", "tue" -> 2
+                    "wednesday", "wed" -> 3
+                    "thursday", "thu" -> 4
+                    "friday", "fri" -> 5
+                    "saturday", "sat" -> 6
+                    "sunday", "sun" -> 7
+                    else -> 1
+                }
+                return this@DatabaseHelper.getScheduleForDay(dbDay)
+            }
         }
     }
 

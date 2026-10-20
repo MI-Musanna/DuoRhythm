@@ -1,14 +1,28 @@
 package com.duorhythm.app.data.local.db
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
+import androidx.room.Database
+import database.dao.AttendanceDao
+import database.dao.TimetableDao
+import database.entities.AttendanceRecord
 
 /**
  * AppDatabase entrypoint providing Room-compatible architecture interface
  * and safe fallback destructive migration capabilities for older local installs.
  */
+@Database(
+    entities = [AttendanceRecord::class],
+    version = DatabaseHelper.DATABASE_VERSION,
+    exportSchema = false
+)
 class AppDatabase private constructor(context: Context) {
-    private val dbHelper = DatabaseHelper.getInstance(context)
+    private val dbHelper: DatabaseHelper = DatabaseHelper.getInstance(context)
+
+    fun attendanceDao(): AttendanceDao = dbHelper.attendanceDao
+    fun timetableDao(): TimetableDao = dbHelper.timetableDao
+
+    val attendanceDao: AttendanceDao get() = dbHelper.attendanceDao
+    val timetableDao: TimetableDao get() = dbHelper.timetableDao
 
     companion object {
         const val DATABASE_NAME = DatabaseHelper.DATABASE_NAME
@@ -21,6 +35,9 @@ class AppDatabase private constructor(context: Context) {
             instance ?: synchronized(this) {
                 instance ?: AppDatabase(context.applicationContext).also { instance = it }
             }
+
+        fun getAttendanceDao(context: Context): AttendanceDao = getInstance(context).attendanceDao()
+        fun getTimetableDao(context: Context): TimetableDao = getInstance(context).timetableDao()
 
         /**
          * Verifies and configures fallback to destructive migration for database instances

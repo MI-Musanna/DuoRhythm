@@ -66,13 +66,18 @@ class ToolsFragment : Fragment() {
             }
         }
 
+        binding.cardToolAttendanceLog.setOnClickListener {
+            CalendarAttendanceBottomSheetDialog(requireContext()).show()
+        }
+
         com.duorhythm.app.util.AnimationUtils.attachTactileFeedback(
             binding.btnBackTools,
             binding.cardToolPomodoro,
             binding.cardToolSound,
             binding.cardToolCalc,
             binding.cardToolCurrency,
-            binding.cardToolDND
+            binding.cardToolDND,
+            binding.cardToolAttendanceLog
         )
     }
 
