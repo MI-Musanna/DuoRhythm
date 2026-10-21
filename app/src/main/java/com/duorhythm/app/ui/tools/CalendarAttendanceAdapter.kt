@@ -3,11 +3,10 @@ package com.duorhythm.app.ui.tools
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.duorhythm.app.data.model.ClassScheduleItem
-import com.duorhythm.app.databinding.ItemCalendarClassAttendanceBinding
+import com.duorhythm.app.databinding.ItemAttendanceClassBinding
 import com.duorhythm.app.util.AnimationUtils
 
 class CalendarAttendanceAdapter(
@@ -24,7 +23,7 @@ class CalendarAttendanceAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AttendanceClassViewHolder {
-        val binding = ItemCalendarClassAttendanceBinding.inflate(
+        val binding = ItemAttendanceClassBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -40,25 +39,15 @@ class CalendarAttendanceAdapter(
     override fun getItemCount(): Int = classes.size
 
     inner class AttendanceClassViewHolder(
-        private val binding: ItemCalendarClassAttendanceBinding
+        private val binding: ItemAttendanceClassBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: ClassScheduleItem) {
             val context = binding.root.context
             val density = context.resources.displayMetrics.density
 
-            binding.tvClassSubject.text = item.subjectName
-
-            // Details (Room & Teacher)
-            val detailParts = mutableListOf<String>()
-            if (item.room.isNotBlank()) detailParts.add("Room: ${item.room}")
-            if (item.teacher.isNotBlank()) detailParts.add(item.teacher)
-            if (item.buildingOrLink.isNotBlank()) detailParts.add(item.buildingOrLink)
-            val detailsText = detailParts.joinToString(" • ")
-            binding.tvClassDetails.text = detailsText
-            binding.tvClassDetails.visibility = if (detailsText.isEmpty()) View.GONE else View.VISIBLE
-
-            // Class Type
+            // Row 1: Subject Name & Class Type
+            binding.tvSubjectName.text = item.subjectName
             val typeStr = item.classType.ifBlank { "LECTURE" }
             binding.tvClassType.text = typeStr
             when (typeStr.uppercase()) {
@@ -80,80 +69,85 @@ class CalendarAttendanceAdapter(
                 }
             }
 
-            // Time text
+            // Row 2: Class Timing
             binding.tvClassTime.text = "${item.startTime} - ${item.endTime}"
 
-            // Color bar indicator
-            val parsedColor = try {
-                Color.parseColor(item.colorHex)
-            } catch (_: Exception) {
-                0xFF2563EB.toInt()
+            // Row 3: Room & Teacher Info
+            val roomPart = if (item.room.isNotBlank()) "Room: ${item.room}" else ""
+            val teacherPart = if (item.teacher.isNotBlank()) "Teacher: ${item.teacher}" else ""
+            val roomAndTeacher = when {
+                roomPart.isNotEmpty() && teacherPart.isNotEmpty() -> "$roomPart • $teacherPart"
+                roomPart.isNotEmpty() -> roomPart
+                teacherPart.isNotEmpty() -> teacherPart
+                item.buildingOrLink.isNotBlank() -> item.buildingOrLink
+                else -> "Room & Teacher: Not specified"
             }
-            val pillDrawable = android.graphics.drawable.GradientDrawable().apply {
-                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
-                cornerRadius = 2f * density
-                setColor(parsedColor)
-            }
-            binding.viewClassColor.background = pillDrawable
+            binding.tvRoomAndTeacher.text = roomAndTeacher
 
-            // Status: PRESENT vs ABSENT
+            // Row 4: Attendance Status & Actions
             val currentStatus = attendanceMap[item.subjectName]?.uppercase()
-
             val greenColor = 0xFF10B981.toInt()
             val redColor = 0xFFEF4444.toInt()
 
-            if (currentStatus == "PRESENT") {
-                // Highlight Present
-                binding.btnAttendancePresent.backgroundTintList = ColorStateList.valueOf(greenColor)
-                binding.btnAttendancePresent.setTextColor(Color.WHITE)
-                binding.btnAttendancePresent.iconTint = ColorStateList.valueOf(Color.WHITE)
-                binding.btnAttendancePresent.strokeWidth = 0
+            when (currentStatus) {
+                "PRESENT" -> {
+                    binding.tvAttendanceStatus.text = "Status: Present"
+                    binding.tvAttendanceStatus.setTextColor(greenColor)
 
-                // Mute Absent
-                binding.btnAttendanceAbsent.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-                binding.btnAttendanceAbsent.setTextColor(0x88EF4444.toInt())
-                binding.btnAttendanceAbsent.iconTint = ColorStateList.valueOf(0x88EF4444.toInt())
-                binding.btnAttendanceAbsent.strokeColor = ColorStateList.valueOf(0x44EF4444.toInt())
-                binding.btnAttendanceAbsent.strokeWidth = (1 * density).toInt()
-            } else if (currentStatus == "ABSENT") {
-                // Mute Present
-                binding.btnAttendancePresent.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-                binding.btnAttendancePresent.setTextColor(0x8810B981.toInt())
-                binding.btnAttendancePresent.iconTint = ColorStateList.valueOf(0x8810B981.toInt())
-                binding.btnAttendancePresent.strokeColor = ColorStateList.valueOf(0x4410B981.toInt())
-                binding.btnAttendancePresent.strokeWidth = (1 * density).toInt()
+                    // Highlight Present
+                    binding.btnPresent.backgroundTintList = ColorStateList.valueOf(greenColor)
+                    binding.btnPresent.setTextColor(Color.WHITE)
+                    binding.btnPresent.strokeWidth = 0
 
-                // Highlight Absent
-                binding.btnAttendanceAbsent.backgroundTintList = ColorStateList.valueOf(redColor)
-                binding.btnAttendanceAbsent.setTextColor(Color.WHITE)
-                binding.btnAttendanceAbsent.iconTint = ColorStateList.valueOf(Color.WHITE)
-                binding.btnAttendanceAbsent.strokeWidth = 0
-            } else {
-                // Neutral state (neither marked)
-                binding.btnAttendancePresent.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-                binding.btnAttendancePresent.setTextColor(greenColor)
-                binding.btnAttendancePresent.iconTint = ColorStateList.valueOf(greenColor)
-                binding.btnAttendancePresent.strokeColor = ColorStateList.valueOf(0x6610B981)
-                binding.btnAttendancePresent.strokeWidth = (1 * density).toInt()
+                    // Mute Absent
+                    binding.btnAbsent.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+                    binding.btnAbsent.setTextColor(0x88EF4444.toInt())
+                    binding.btnAbsent.strokeColor = ColorStateList.valueOf(0x44EF4444.toInt())
+                    binding.btnAbsent.strokeWidth = (1 * density).toInt()
+                }
+                "ABSENT" -> {
+                    binding.tvAttendanceStatus.text = "Status: Absent"
+                    binding.tvAttendanceStatus.setTextColor(redColor)
 
-                binding.btnAttendanceAbsent.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-                binding.btnAttendanceAbsent.setTextColor(redColor)
-                binding.btnAttendanceAbsent.iconTint = ColorStateList.valueOf(redColor)
-                binding.btnAttendanceAbsent.strokeColor = ColorStateList.valueOf(0x66EF4444)
-                binding.btnAttendanceAbsent.strokeWidth = (1 * density).toInt()
+                    // Mute Present
+                    binding.btnPresent.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+                    binding.btnPresent.setTextColor(0x8810B981.toInt())
+                    binding.btnPresent.strokeColor = ColorStateList.valueOf(0x4410B981.toInt())
+                    binding.btnPresent.strokeWidth = (1 * density).toInt()
+
+                    // Highlight Absent
+                    binding.btnAbsent.backgroundTintList = ColorStateList.valueOf(redColor)
+                    binding.btnAbsent.setTextColor(Color.WHITE)
+                    binding.btnAbsent.strokeWidth = 0
+                }
+                else -> {
+                    binding.tvAttendanceStatus.text = "Status: Not Marked"
+                    binding.tvAttendanceStatus.setTextColor(0xFF94A3B8.toInt())
+
+                    // Default outlined buttons
+                    binding.btnPresent.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+                    binding.btnPresent.setTextColor(greenColor)
+                    binding.btnPresent.strokeColor = ColorStateList.valueOf(greenColor)
+                    binding.btnPresent.strokeWidth = (1 * density).toInt()
+
+                    binding.btnAbsent.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+                    binding.btnAbsent.setTextColor(redColor)
+                    binding.btnAbsent.strokeColor = ColorStateList.valueOf(redColor)
+                    binding.btnAbsent.strokeWidth = (1 * density).toInt()
+                }
             }
 
-            binding.btnAttendancePresent.setOnClickListener {
+            binding.btnPresent.setOnClickListener {
                 onMarkPresent(item)
             }
 
-            binding.btnAttendanceAbsent.setOnClickListener {
+            binding.btnAbsent.setOnClickListener {
                 onMarkAbsent(item)
             }
 
             AnimationUtils.attachTactileFeedback(
-                binding.btnAttendancePresent,
-                binding.btnAttendanceAbsent
+                binding.btnPresent,
+                binding.btnAbsent
             )
         }
     }

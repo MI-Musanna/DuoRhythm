@@ -17,7 +17,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     companion object {
         const val DATABASE_NAME = "lifesync.db"
-        const val DATABASE_VERSION = 6
+        const val DATABASE_VERSION = 7
 
         @Volatile
         private var instance: DatabaseHelper? = null
@@ -169,6 +169,13 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         )
 
         db.execSQL(
+            """CREATE TABLE IF NOT EXISTS holiday_records (
+                date TEXT PRIMARY KEY NOT NULL,
+                title TEXT NOT NULL DEFAULT 'Holiday'
+            )"""
+        )
+
+        db.execSQL(
             """CREATE TABLE IF NOT EXISTS student_subjects (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -273,7 +280,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun dropAllTables(db: SQLiteDatabase) {
         val tables = listOf(
             "cards", "transactions", "currency_rates", "tasks", "task_categories",
-            "transaction_categories", "classes", "attendance", "attendance_records", "student_subjects",
+            "transaction_categories", "classes", "attendance", "attendance_records", "holiday_records", "student_subjects",
             "subject_materials", "subject_work_items", "work_orders", "notes",
             "contacts_groups", "wallet_buckets", "subscriptions", "dues_debts", "app_settings"
         )
@@ -318,6 +325,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         )
                     } catch (_: Exception) {}
                 }
+                if (oldVersion < 7) {
+                    try {
+                        db.execSQL(
+                            """CREATE TABLE IF NOT EXISTS holiday_records (
+                                date TEXT PRIMARY KEY NOT NULL,
+                                title TEXT NOT NULL DEFAULT 'Holiday'
+                            )"""
+                        )
+                    } catch (_: Exception) {}
+                }
                 ensureDefaultCurrencies(db)
             }
         } catch (e: Exception) {
@@ -348,6 +365,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     dayOfWeek TEXT NOT NULL,
                     status TEXT NOT NULL,
                     UNIQUE(subjectName, date) ON CONFLICT REPLACE
+                )"""
+            )
+        } catch (_: Exception) {}
+        try {
+            db.execSQL(
+                """CREATE TABLE IF NOT EXISTS holiday_records (
+                    date TEXT PRIMARY KEY NOT NULL,
+                    title TEXT NOT NULL DEFAULT 'Holiday'
                 )"""
             )
         } catch (_: Exception) {}
@@ -782,6 +807,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.execSQL("DELETE FROM tasks")
             db.execSQL("DELETE FROM classes")
             db.execSQL("DELETE FROM attendance")
+            db.execSQL("DELETE FROM attendance_records")
+            db.execSQL("DELETE FROM holiday_records")
             db.execSQL("DELETE FROM student_subjects")
             db.execSQL("DELETE FROM subject_work_items")
             db.execSQL("DELETE FROM subject_materials")
@@ -1972,6 +1999,61 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     else -> 1
                 }
                 return this@DatabaseHelper.getScheduleForDay(dbDay)
+            }
+        }
+    }
+
+    private val holidayFlowTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
+
+    fun isHoliday(date: String): Boolean {
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT 1 FROM holiday_records WHERE date = ? LIMIT 1", arrayOf(date))
+        return cursor.use { it.moveToFirst() }
+    }
+
+    fun setHoliday(date: String, title: String = "Holiday") {
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("date", date)
+            put("title", title)
+        }
+        db.insertWithOnConflict("holiday_records", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        holidayFlowTrigger.tryEmit(Unit)
+    }
+
+    fun removeHoliday(date: String) {
+        val db = writableDatabase
+        db.delete("holiday_records", "date = ?", arrayOf(date))
+        holidayFlowTrigger.tryEmit(Unit)
+    }
+
+    fun isHolidayFlow(date: String): kotlinx.coroutines.flow.Flow<Boolean> = kotlinx.coroutines.flow.flow {
+        emit(isHoliday(date))
+        holidayFlowTrigger.collect {
+            emit(isHoliday(date))
+        }
+    }
+
+    val holidayDao: database.dao.HolidayDao by lazy {
+        object : database.dao.HolidayDao {
+            override fun isHoliday(date: String): kotlinx.coroutines.flow.Flow<Boolean> {
+                return isHolidayFlow(date)
+            }
+
+            override suspend fun insertHoliday(record: database.entities.HolidayRecord) {
+                this@DatabaseHelper.setHoliday(record.date, record.title)
+            }
+
+            override suspend fun setHoliday(date: String) {
+                this@DatabaseHelper.setHoliday(date)
+            }
+
+            override suspend fun setHoliday(record: database.entities.HolidayRecord) {
+                this@DatabaseHelper.setHoliday(record.date, record.title)
+            }
+
+            override suspend fun removeHoliday(date: String) {
+                this@DatabaseHelper.removeHoliday(date)
             }
         }
     }

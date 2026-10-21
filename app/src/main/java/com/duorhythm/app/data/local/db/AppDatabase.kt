@@ -3,15 +3,17 @@ package com.duorhythm.app.data.local.db
 import android.content.Context
 import androidx.room.Database
 import database.dao.AttendanceDao
+import database.dao.HolidayDao
 import database.dao.TimetableDao
 import database.entities.AttendanceRecord
+import database.entities.HolidayRecord
 
 /**
  * AppDatabase entrypoint providing Room-compatible architecture interface
  * and safe fallback destructive migration capabilities for older local installs.
  */
 @Database(
-    entities = [AttendanceRecord::class],
+    entities = [AttendanceRecord::class, HolidayRecord::class],
     version = DatabaseHelper.DATABASE_VERSION,
     exportSchema = false
 )
@@ -20,9 +22,11 @@ class AppDatabase private constructor(context: Context) {
 
     fun attendanceDao(): AttendanceDao = dbHelper.attendanceDao
     fun timetableDao(): TimetableDao = dbHelper.timetableDao
+    fun holidayDao(): HolidayDao = dbHelper.holidayDao
 
     val attendanceDao: AttendanceDao get() = dbHelper.attendanceDao
     val timetableDao: TimetableDao get() = dbHelper.timetableDao
+    val holidayDao: HolidayDao get() = dbHelper.holidayDao
 
     companion object {
         const val DATABASE_NAME = DatabaseHelper.DATABASE_NAME
@@ -38,6 +42,7 @@ class AppDatabase private constructor(context: Context) {
 
         fun getAttendanceDao(context: Context): AttendanceDao = getInstance(context).attendanceDao()
         fun getTimetableDao(context: Context): TimetableDao = getInstance(context).timetableDao()
+        fun getHolidayDao(context: Context): HolidayDao = getInstance(context).holidayDao()
 
         /**
          * Verifies and configures fallback to destructive migration for database instances
