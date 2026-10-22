@@ -8,3 +8,5 @@ data class TransactionCategoryItem(
     val colorHex: String = "#0284C7",
     val icon: String = "category"
 )
+
+typealias CategoryEntity = database.entities.CategoryEntity

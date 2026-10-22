@@ -2058,6 +2058,30 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
     }
 
+    val categoryDao: database.dao.CategoryDao by lazy {
+        object : database.dao.CategoryDao {
+            override fun getAllCategories(): List<database.entities.CategoryEntity> {
+                return getAllTransactionCategories(null).map { database.entities.CategoryEntity.fromItem(it) }
+            }
+
+            override fun getAllCategoriesFlow(): kotlinx.coroutines.flow.Flow<List<database.entities.CategoryEntity>> = kotlinx.coroutines.flow.flow {
+                emit(getAllCategories())
+            }
+
+            override fun getCategoriesByType(type: String): List<database.entities.CategoryEntity> {
+                return getAllTransactionCategories(type).map { database.entities.CategoryEntity.fromItem(it) }
+            }
+
+            override suspend fun insertCategory(category: database.entities.CategoryEntity): Long {
+                return insertTransactionCategory(category.name, category.type, category.color_hex, category.icon)
+            }
+
+            override suspend fun deleteCategory(id: Long) {
+                deleteTransactionCategory(id)
+            }
+        }
+    }
+
     // ==========================================
     // STUDENT PORTAL (Sections, Homework, Exams)
     // ==========================================

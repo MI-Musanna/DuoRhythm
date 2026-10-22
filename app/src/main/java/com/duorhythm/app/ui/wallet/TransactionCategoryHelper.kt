@@ -14,8 +14,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.google.android.material.chip.Chip
 import com.duorhythm.app.R
+import com.duorhythm.app.data.local.db.AppDatabase
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.TransactionCategoryItem
+import database.dao.CategoryDao
+import database.entities.CategoryEntity
 
 class TransactionCategoryHelper(
     private val context: Context,
@@ -27,8 +30,13 @@ class TransactionCategoryHelper(
     private val onCategorySelectedCallback: ((String) -> Unit)? = null
 ) {
 
+    private var masterCategoryList: List<CategoryEntity> = emptyList()
     private val categoriesList = mutableListOf<TransactionCategoryItem>()
     private lateinit var adapter: CategoryDropdownAdapter
+
+    private val categoryDao: CategoryDao by lazy {
+        AppDatabase.getInstance(context).categoryDao
+    }
 
     init {
         setup(initialCategory)
@@ -67,7 +75,7 @@ class TransactionCategoryHelper(
 
         actvCategory.setAdapter(adapter)
 
-        // Select initial if provided, otherwise leave empty or select first if user had already created one
+        // Select initial if provided, otherwise select first available in filtered or clear text
         if (!initialCategory.isNullOrBlank()) {
             actvCategory.setText(initialCategory, false)
         } else if (categoriesList.isNotEmpty()) {
@@ -96,7 +104,7 @@ class TransactionCategoryHelper(
             val item = adapter.getItem(position)
             when (item.id) {
                 -1L -> {
-                    // "➕ Add New Category" or "➕ Create '$name'"
+                    // "+ Add New Category" or "➕ Create '$name'"
                     actvCategory.dismissDropDown()
                     val currentText = actvCategory.text?.toString()?.trim().orEmpty()
                     val suggested = if (currentText.startsWith("➕") || currentText.startsWith("+ Add")) "" else currentText
@@ -104,7 +112,7 @@ class TransactionCategoryHelper(
                     showAddCategoryDialog(suggested)
                 }
                 -2L -> {
-                    // "⚙️ Manage Categories"
+                    // "Manage Categories"
                     actvCategory.dismissDropDown()
                     CategoryManagementDialog.show(context, dbHelper) {
                         loadCategoriesFromDb()
@@ -170,29 +178,54 @@ class TransactionCategoryHelper(
     }
 
     private fun loadCategoriesFromDb() {
+        masterCategoryList = try {
+            categoryDao.getAllCategories()
+        } catch (_: Exception) {
+            dbHelper.getAllTransactionCategories(null).map { CategoryEntity.fromItem(it) }
+        }
+        filterCategoriesForCurrentType()
+    }
+
+    private fun filterCategoriesForCurrentType() {
+        val currentType = currentTxType.uppercase()
+        val filtered = masterCategoryList.filter {
+            it.type.equals(currentType, ignoreCase = true) || it.type.equals("BOTH", ignoreCase = true)
+        }
         categoriesList.clear()
-        // Pure custom categories: start completely empty if 0 exist. No default seeding!
-        val fromDb = dbHelper.getAllTransactionCategories(currentTxType)
-        categoriesList.addAll(fromDb)
+        categoriesList.addAll(filtered.map { it.toItem() })
     }
 
     fun setTxType(newType: String) {
         currentTxType = newType
-        loadCategoriesFromDb()
+        val currentType = newType.uppercase()
+
+        // 3. Re-filter from master on tab switch (always filter from masterCategoryList)
+        val filtered = masterCategoryList.filter {
+            it.type.equals(currentType, ignoreCase = true) || it.type.equals("BOTH", ignoreCase = true)
+        }
+
+        categoriesList.clear()
+        categoriesList.addAll(filtered.map { it.toItem() })
         adapter.updateCategories(categoriesList)
 
-        val currentSelected = actvCategory.text?.toString()?.trim().orEmpty()
-        val existsInNewList = categoriesList.any { it.name.equals(currentSelected, ignoreCase = true) }
-        if (!existsInNewList) {
+        // 4. Prevent Selection Bleed:
+        // Clear previously selected category so invalid category is not retained.
+        // If filtered is not empty, select first available; otherwise clear text field.
+        if (categoriesList.isNotEmpty()) {
+            val firstCategory = categoriesList.first().name
+            actvCategory.setText(firstCategory, false)
+            onCategorySelectedCallback?.invoke(firstCategory)
+        } else {
             actvCategory.setText("", false)
             onCategorySelectedCallback?.invoke("")
         }
+
         updateQuickCreateChip(actvCategory.text?.toString()?.trim().orEmpty())
     }
 
     fun getSelectedCategoryAndEnsurePersisted(): String {
         val raw = actvCategory.text?.toString()?.trim().orEmpty()
-        val clean = if (raw.startsWith("➕") || raw.startsWith("+ Add") || raw.startsWith("⚙️")) {
+        val clean = if (raw.startsWith("➕") || raw.startsWith("+ Add") || raw.startsWith("⚙️") || raw.startsWith("Manage")) {
             categoriesList.firstOrNull()?.name ?: ""
         } else {
             raw
@@ -258,24 +291,26 @@ class TransactionCategoryHelper(
 
 class CategoryDropdownAdapter(
     private val context: Context,
-    private val allCategories: MutableList<TransactionCategoryItem>,
+    allCategories: List<TransactionCategoryItem>,
     private val onEditClicked: (TransactionCategoryItem) -> Unit,
     private val onDeleteClicked: (TransactionCategoryItem) -> Unit,
     private val onManageClicked: () -> Unit
 ) : BaseAdapter(), Filterable {
 
+    private val allCategoriesList = mutableListOf<TransactionCategoryItem>()
     private val displayedItems = mutableListOf<TransactionCategoryItem>()
     private var lastConstraint: String = ""
 
     init {
-        updateDisplayed(allCategories, "")
+        allCategoriesList.addAll(allCategories)
+        updateDisplayed(allCategoriesList, "")
     }
 
     fun updateCategories(newList: List<TransactionCategoryItem>) {
-        allCategories.clear()
-        allCategories.addAll(newList)
+        allCategoriesList.clear()
+        allCategoriesList.addAll(newList)
         lastConstraint = ""
-        updateDisplayed(allCategories, "")
+        updateDisplayed(allCategoriesList, "")
         notifyDataSetChanged()
     }
 
@@ -290,13 +325,10 @@ class CategoryDropdownAdapter(
         val addLabel = if (query.isNotEmpty() && !source.any { it.name.equals(query, ignoreCase = true) }) {
             "➕ Create \"$query\""
         } else {
-            "➕ Add New Category"
+            "+ Add New Category"
         }
         filtered.add(TransactionCategoryItem(id = -1L, name = addLabel, type = "", isDefault = false))
-
-        if (source.isNotEmpty()) {
-            filtered.add(TransactionCategoryItem(id = -2L, name = "⚙️ Manage Categories", type = "", isDefault = false))
-        }
+        filtered.add(TransactionCategoryItem(id = -2L, name = "Manage Categories", type = "", isDefault = false))
 
         displayedItems.addAll(filtered)
     }
@@ -319,7 +351,7 @@ class CategoryDropdownAdapter(
 
         when (item.id) {
             -1L -> {
-                // "➕ Add New Category" / "➕ Create '$name'"
+                // "+ Add New Category" / "➕ Create '$name'"
                 tvName.text = item.name
                 tvName.setTextColor(Color.parseColor("#0284C7"))
                 tvName.typeface = Typeface.DEFAULT_BOLD
@@ -331,7 +363,7 @@ class CategoryDropdownAdapter(
                 btnDelete.visibility = View.GONE
             }
             -2L -> {
-                // "⚙️ Manage Categories"
+                // "Manage Categories"
                 tvName.text = item.name
                 tvName.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
                 tvName.typeface = Typeface.DEFAULT
@@ -380,19 +412,18 @@ class CategoryDropdownAdapter(
                 val query = constraint?.toString()?.trim() ?: ""
                 lastConstraint = query
                 val filtered = if (query.isEmpty()) {
-                    allCategories.filter { it.id > 0 }.toMutableList()
+                    allCategoriesList.filter { it.id > 0 }.toMutableList()
                 } else {
-                    allCategories.filter { it.id > 0 && it.name.contains(query, ignoreCase = true) }.toMutableList()
+                    allCategoriesList.filter { it.id > 0 && it.name.contains(query, ignoreCase = true) }.toMutableList()
                 }
-                val addLabel = if (query.isNotEmpty() && !allCategories.any { it.name.equals(query, ignoreCase = true) }) {
+                val addLabel = if (query.isNotEmpty() && !allCategoriesList.any { it.name.equals(query, ignoreCase = true) }) {
                     "➕ Create \"$query\""
                 } else {
-                    "➕ Add New Category"
+                    "+ Add New Category"
                 }
                 filtered.add(TransactionCategoryItem(id = -1L, name = addLabel, type = "", isDefault = false))
-                if (allCategories.isNotEmpty()) {
-                    filtered.add(TransactionCategoryItem(id = -2L, name = "⚙️ Manage Categories", type = "", isDefault = false))
-                }
+                filtered.add(TransactionCategoryItem(id = -2L, name = "Manage Categories", type = "", isDefault = false))
+
                 results.values = filtered
                 results.count = filtered.size
                 return results

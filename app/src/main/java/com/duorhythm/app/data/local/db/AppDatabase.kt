@@ -3,9 +3,11 @@ package com.duorhythm.app.data.local.db
 import android.content.Context
 import androidx.room.Database
 import database.dao.AttendanceDao
+import database.dao.CategoryDao
 import database.dao.HolidayDao
 import database.dao.TimetableDao
 import database.entities.AttendanceRecord
+import database.entities.CategoryEntity
 import database.entities.HolidayRecord
 
 /**
@@ -13,7 +15,7 @@ import database.entities.HolidayRecord
  * and safe fallback destructive migration capabilities for older local installs.
  */
 @Database(
-    entities = [AttendanceRecord::class, HolidayRecord::class],
+    entities = [AttendanceRecord::class, HolidayRecord::class, CategoryEntity::class],
     version = DatabaseHelper.DATABASE_VERSION,
     exportSchema = false
 )
@@ -23,10 +25,12 @@ class AppDatabase private constructor(context: Context) {
     fun attendanceDao(): AttendanceDao = dbHelper.attendanceDao
     fun timetableDao(): TimetableDao = dbHelper.timetableDao
     fun holidayDao(): HolidayDao = dbHelper.holidayDao
+    fun categoryDao(): CategoryDao = dbHelper.categoryDao
 
     val attendanceDao: AttendanceDao get() = dbHelper.attendanceDao
     val timetableDao: TimetableDao get() = dbHelper.timetableDao
     val holidayDao: HolidayDao get() = dbHelper.holidayDao
+    val categoryDao: CategoryDao get() = dbHelper.categoryDao
 
     companion object {
         const val DATABASE_NAME = DatabaseHelper.DATABASE_NAME
@@ -43,6 +47,7 @@ class AppDatabase private constructor(context: Context) {
         fun getAttendanceDao(context: Context): AttendanceDao = getInstance(context).attendanceDao()
         fun getTimetableDao(context: Context): TimetableDao = getInstance(context).timetableDao()
         fun getHolidayDao(context: Context): HolidayDao = getInstance(context).holidayDao()
+        fun getCategoryDao(context: Context): CategoryDao = getInstance(context).categoryDao()
 
         /**
          * Verifies and configures fallback to destructive migration for database instances
