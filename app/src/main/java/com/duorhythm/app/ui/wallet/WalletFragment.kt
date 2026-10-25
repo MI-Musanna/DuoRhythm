@@ -31,6 +31,12 @@ import com.duorhythm.app.security.LifeSyncSecurityManager
 import com.duorhythm.app.util.AnimationUtils
 import com.duorhythm.app.util.CurrencyUtils
 import com.duorhythm.app.ui.tools.CurrencyConverterDialog
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.formatter.ValueFormatter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -319,6 +325,9 @@ class WalletFragment : Fragment() {
         binding.layoutDuesDebtsHeader.setOnClickListener { showDuesDebtsTracker() }
         binding.btnHeroDuesDebts.setOnClickListener { showDuesDebtsTracker() }
 
+        // Monthly Overview Card
+        binding.cardMonthlyOverview.setOnClickListener { showMonthYearPickerDialog() }
+
         // Quick Actions
         binding.btnHeroRecordTx.setOnClickListener { showAddTransactionDialog("INCOME") }
         binding.btnHeroTransfer.setOnClickListener { showAddTransactionDialog("TRANSFER") }
@@ -327,6 +336,7 @@ class WalletFragment : Fragment() {
         AnimationUtils.attachTactileFeedback(
             binding.btnWalletCardMenu,
             binding.layoutAccountsSummaryPill,
+            binding.cardMonthlyOverview,
             binding.btnSetupFirstAccount,
             binding.layoutAnalyticsAccordionHeader,
             binding.layoutSubscriptionsAccordionHeader,
@@ -569,8 +579,105 @@ class WalletFragment : Fragment() {
             } else {
                 "Rate: 1 USD = ${String.format(Locale.US, "%.2f", rateObj?.rate ?: 1.0)} $currentCurrency • Updated: $lastUpdate"
             }
+
+            renderMonthlyCashFlowChart(totalIncome, totalExpenses, monthFormat.format(selectedCalendar.time))
         } catch (e: Throwable) {
             e.printStackTrace()
+        }
+    }
+
+    private fun renderMonthlyCashFlowChart(totalIncome: Double, totalExpenses: Double, monthName: String) {
+        if (_binding == null) return
+        binding.tvMonthlyChartSubtitle.text = "$monthName • Cash Flow"
+        binding.tvChartInflowBadge.text = String.format(Locale.US, "＋ In: %s%,.0f", currentSymbol, totalIncome)
+        binding.tvChartOutflowBadge.text = String.format(Locale.US, "－ Out: %s%,.0f", currentSymbol, totalExpenses)
+
+        val netFlow = totalIncome - totalExpenses
+        binding.tvChartNetFlow.text = String.format(
+            Locale.US,
+            "Net Flow: %s%s%,.2f",
+            if (netFlow < 0) "-" else "+",
+            currentSymbol,
+            kotlin.math.abs(netFlow)
+        )
+
+        when {
+            netFlow > 0 -> {
+                binding.tvChartNetStatus.text = "Positive Inflow"
+                binding.tvChartNetStatus.setTextColor(Color.parseColor("#10B981"))
+            }
+            netFlow < 0 -> {
+                binding.tvChartNetStatus.text = "Deficit"
+                binding.tvChartNetStatus.setTextColor(Color.parseColor("#EF4444"))
+            }
+            else -> {
+                binding.tvChartNetStatus.text = "Balanced"
+                binding.tvChartNetStatus.setTextColor(Color.parseColor("#38BDF8"))
+            }
+        }
+
+        val entries = arrayListOf(
+            BarEntry(0f, totalIncome.toFloat()),
+            BarEntry(1f, totalExpenses.toFloat())
+        )
+
+        val barDataSet = BarDataSet(entries, "Cash Flow").apply {
+            colors = listOf(
+                Color.parseColor("#10B981"), // Emerald Inflow
+                Color.parseColor("#EF4444")  // Rose Spending
+            )
+            setDrawValues(true)
+            valueTextColor = ContextCompat.getColor(requireContext(), R.color.text_secondary)
+            valueTextSize = 10f
+            valueTypeface = Typeface.DEFAULT_BOLD
+            valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String {
+                    return if (value > 0) String.format(Locale.US, "%s%,.0f", currentSymbol, value) else ""
+                }
+            }
+        }
+
+        val barData = BarData(barDataSet).apply {
+            barWidth = 0.42f
+        }
+
+        binding.chartMonthlyFlow.apply {
+            description.isEnabled = false
+            legend.isEnabled = false
+            setDrawGridBackground(false)
+            setDrawBorders(false)
+            setTouchEnabled(false)
+            setDrawBarShadow(false)
+            setDrawValueAboveBar(true)
+            setPinchZoom(false)
+            setScaleEnabled(false)
+
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                setDrawGridLines(false)
+                setDrawAxisLine(false)
+                textColor = ContextCompat.getColor(requireContext(), R.color.text_secondary)
+                textSize = 11f
+                typeface = Typeface.DEFAULT_BOLD
+                granularity = 1f
+                valueFormatter = IndexAxisValueFormatter(arrayOf("Inflow", "Spending"))
+                axisMinimum = -0.5f
+                axisMaximum = 1.5f
+            }
+
+            axisLeft.apply {
+                setDrawGridLines(true)
+                gridColor = Color.parseColor("#1594A3B8")
+                setDrawAxisLine(false)
+                textColor = ContextCompat.getColor(requireContext(), R.color.text_secondary)
+                textSize = 9f
+                axisMinimum = 0f
+            }
+            axisRight.isEnabled = false
+
+            data = barData
+            animateY(500)
+            invalidate()
         }
     }
 

@@ -487,6 +487,19 @@ class TasksFragment : Fragment() {
                 val pendingToday = allTasks.count { !it.isCompleted && !it.dueDate.isNullOrBlank() && it.dueDate <= today }
                 binding.tvTasksSubtitle.text = "$pendingToday pending today"
 
+                // Update Circular Goal/Task Progress Header
+                val totalTasks = allTasks.size
+                val completedTasks = allTasks.count { it.isCompleted }
+                val taskPercent = if (totalTasks > 0) ((completedTasks * 100) / totalTasks) else 0
+
+                binding.tvGoalProgressHeader.text = "Task Progress"
+                binding.tvGoalProgressSubtitle.text = "$completedTasks of $totalTasks Completed"
+                binding.progressGoalCircular.setIndicatorColor(Color.parseColor("#0284C7"))
+                binding.progressGoalHorizontal.setIndicatorColor(Color.parseColor("#0284C7"))
+                binding.progressGoalCircular.setProgressCompat(taskPercent, true)
+                binding.progressGoalHorizontal.setProgressCompat(taskPercent, true)
+                binding.tvGoalPercentText.text = "$taskPercent%"
+
                 if (tasks.isEmpty()) {
                     binding.rvTasks.visibility = View.GONE
                     binding.layoutEmptyTasks.visibility = View.VISIBLE
@@ -502,6 +515,21 @@ class TasksFragment : Fragment() {
 
                 val activeGoals = goals.count { it.progress < 100 }
                 binding.tvTasksSubtitle.text = "$activeGoals active goals"
+
+                // Update Circular Goal/Task Progress Header
+                val totalGoals = goals.size
+                val completedGoals = goals.count { it.isCompleted || it.progress >= 100 }
+                val goalPercent = if (totalGoals > 0) {
+                    (goals.sumOf { it.progress.coerceIn(0, 100) } / totalGoals)
+                } else 0
+
+                binding.tvGoalProgressHeader.text = "Goal Progress"
+                binding.tvGoalProgressSubtitle.text = "$completedGoals of $totalGoals Completed"
+                binding.progressGoalCircular.setIndicatorColor(Color.parseColor("#D97706"))
+                binding.progressGoalHorizontal.setIndicatorColor(Color.parseColor("#D97706"))
+                binding.progressGoalCircular.setProgressCompat(goalPercent, true)
+                binding.progressGoalHorizontal.setProgressCompat(goalPercent, true)
+                binding.tvGoalPercentText.text = "$goalPercent%"
 
                 if (goals.isEmpty()) {
                     binding.rvTasks.visibility = View.GONE

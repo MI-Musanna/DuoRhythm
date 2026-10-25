@@ -38,6 +38,7 @@ An offline, zero-telemetry Android suite built for students and independent buil
 
 ### 💼 Smart Financial Ledger
 - **Multi-Account Buckets:** Isolate liquid cash into up to 5 dedicated wallets (Physical Cash, Bank, Mobile Financial Services) with independent running balances.
+- **Monthly Financial Cash-Flow Bar Chart:** Visual dual comparative bars for monthly Inflow vs Spending with dynamic net flow calculations and cycle tracking.
 - **Atomic Balance Transfers:** Inter-account fund shifting with double-entry integrity—eliminating discrepancies between sending and receiving ledgers.
 - **Adaptive Visual Analytics:** Live Donut breakdown for category expenditures alongside dual-column bar charts comparing total inflows against outflows.
 - **Bilateral Dues & Debt Tracker:** Clean ledger separating receivables ("They Owe") and liabilities ("You Owe") with one-tap partial or full settlement stamping.
@@ -46,11 +47,13 @@ An offline, zero-telemetry Android suite built for students and independent buil
 ### 🎓 Academic Command Center
 - **Coursework Management:** Maintain subject codes, credit hours, classroom locations, and faculty profiles in one unified card system.
 - **Dynamic Weekly Timetable:** Intelligent 7-day class routine highlighting active lectures with 12-hour MaterialTimePicker schedule editing.
+- **Interactive Calendar Attendance:** Full-screen monthly calendar heatmap with drag-to-expand sheet, single-tap holiday and off-day exclusions, and real-time minimum margin warnings.
 - **Attendance Threshold Engine:** Real-time attendance percentage calculator with early-warning alerts for institutional minimums (e.g. 75% target).
 - **Assessment Pipeline:** Track Semester Finals, Midterms, Class Tests, and Quizzes with deadline countdowns and status toggles.
 - **Multi-Format Document Vault:** Batch file importer for lecture PDFs, whiteboard captures, and notes with dynamic badges (`PDF`, `IMG`, `DOC`) and category filter chips.
 
 ### 🎯 Intentional Tasks & Milestone Goals
+- **Task & Goal Circular Progress Analytics Header:** Dynamic circular progress ring and secondary linear bar calculating overall completion rate for active tasks and milestone targets.
 - **Decoupled Task Engine:** Hard separation between fleeting daily checklists and long-term milestones to prevent priority overload.
 - **0–100% Milestone Tracking:** Granular progress control for multi-week projects with visual stage indicators.
 - **Material 3 Calendar Dialogs:** Native MaterialDatePicker integration supporting optional deadlines and dynamic Start/End date ranges.
@@ -67,22 +70,22 @@ An offline, zero-telemetry Android suite built for students and independent buil
 ### 👤 3-Profile Workspace Isolation
 - **Multi-Identity Architecture:** Maintain up to 3 completely isolated workspace profiles (Slot 1, Slot 2, Slot 3) on the same device.
 - **Independent Databases:** Separate timetables, tasks, milestone goals, attendance records, wallets, and subscriptions for each profile.
-- **Secure Switching:** Password hash authentication (`SHA-256`) with "Remember this email on this profile" support and instant toolbar switching.
+- **Secure Switching:** Local SHA-256 password hash protection with "Remember this email on this profile" support and instant toolbar switching.
 
 ### 🚀 First-Run Setup & In-App Updates
-- **5-Step Onboarding Wizard:** First-launch interactive setup covering feature highlights, permission grants, primary profile creation, and quick launch.
-- **GitHub Release Checker:** Built-in update detector querying official GitHub releases with full release notes display and direct APK download link.
+- **5-Step Streamlined First-Run Onboarding:** First-launch interactive wizard featuring a pure hero welcome, consolidated feature showcase, dedicated notification and storage permission controls, Profile 1 configuration, and verified developer contact links.
+- **In-App GitHub Update Detection:** Built-in update detector querying official GitHub releases with full release notes display and direct APK download link.
 
 ---
 
 ## 📜 Changelog
 
 ### [v1.0.1-beta] - 2026-10-25
-- **3-Profile System:** Added multi-slot profile isolation across tasks, goals, timetables, attendance, and wallets with password hash authentication.
-- **5-Step Onboarding Wizard:** Implemented interactive first-launch setup with permission manager and profile 1 initialization.
-- **GitHub Release Checker:** Integrated automated and manual update checking using GitHub REST API and OkHttp.
-- **Toolbar & Settings Integration:** Added quick profile switcher to main navigation header and dedicated workspace management in settings.
-- **Database & Architecture:** Upgraded SQLite/Room schema to Version 8 with seamless backward compatibility.
+- Unified onboarding feature showcase and added storage permission check.
+- Corrected developer links to Contact Hub and eliminated duplicate action buttons.
+- Integrated Circular Goal Progress Ring in Tasks module.
+- Added Monthly Inflow/Outflow Bar Chart to Wallet Ledger.
+- Bumped version to v1.0.1-beta.
 
 ---
 

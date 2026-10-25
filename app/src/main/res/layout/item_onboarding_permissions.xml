@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="24dp"
-        android:paddingVertical="24dp">
+        android:paddingVertical="20dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -24,18 +24,18 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="4dp"
             android:lineSpacingExtra="3dp"
             android:text="DuoRhythm operates 100% on-device. No telemetry, analytics, or cloud tracking."
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
 
-        <!-- Notification Permission Card -->
+        <!-- 1. Notification Permission Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="14dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="12dp"
             app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
@@ -74,7 +74,7 @@
                             android:layout_height="wrap_content"
                             android:text="Smart Notifications"
                             android:textColor="@color/text_primary"
-                            android:textSize="15sp"
+                            android:textSize="14.5sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -83,13 +83,13 @@
                             android:layout_marginTop="2dp"
                             android:text="Timely class reminders, exam alerts, and daily schedule briefings."
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="11.5sp" />
                     </LinearLayout>
 
                     <ImageView
                         android:id="@+id/ivCheckNotification"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:src="@drawable/ic_check"
                         android:visibility="gone"
                         app:tint="@color/neon_green" />
@@ -99,20 +99,101 @@
                     android:id="@+id/btnGrantNotifications"
                     style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                     android:layout_width="match_parent"
-                    android:layout_height="42dp"
-                    android:layout_marginTop="14dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="12dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:text="Enable Notifications"
                     android:textColor="@color/white"
-                    android:textSize="13sp"
+                    android:textSize="12.5sp"
                     android:textStyle="bold"
                     app:backgroundTint="@color/primary"
                     app:cornerRadius="10dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Alarm / Battery Whitelist Note -->
+        <!-- 2. Media & Profile Storage Permission Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="@color/surface_card"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/card_stroke"
+            app:strokeWidth="1.5dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_glass_squircle_action"
+                        android:gravity="center"
+                        android:text="🖼️"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Media &amp; Profile Storage"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Required to choose custom profile avatars and save local backup archives."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11.5sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/ivCheckStorage"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:src="@drawable/ic_check"
+                        android:visibility="gone"
+                        app:tint="@color/neon_green" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGrantStorage"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="12dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="GRANT ACCESS"
+                    android:textColor="@color/white"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/primary"
+                    app:cornerRadius="10dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 3. Exact Alarms & Boot Sync Note -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -128,15 +209,15 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="16dp">
+                android:padding="14dp">
 
                 <TextView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:background="@drawable/bg_glass_squircle_action"
                     android:gravity="center"
                     android:text="⏰"
-                    android:textSize="18sp" />
+                    android:textSize="17sp" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -150,7 +231,7 @@
                         android:layout_height="wrap_content"
                         android:text="Exact Alarms &amp; Boot Sync"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="13.5sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -159,7 +240,7 @@
                         android:layout_marginTop="2dp"
                         android:text="Alarms automatically reschedule after device reboot for uninterrupted daily rhythms."
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="11.5sp" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

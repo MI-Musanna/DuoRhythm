@@ -52,6 +52,14 @@ class OnboardingActivity : AppCompatActivity() {
             }
         }
 
+    private val requestStoragePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            updateStoragePermissionUI(isGranted)
+            if (isGranted) {
+                Toast.makeText(this, "Storage access granted!", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     private val pickAvatarLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
@@ -111,7 +119,7 @@ class OnboardingActivity : AppCompatActivity() {
         binding.btnOnboardingSkip.visibility = if (position < 3) View.VISIBLE else View.GONE
         binding.btnOnboardingBack.visibility = if (position == 0) View.INVISIBLE else View.VISIBLE
 
-        binding.btnOnboardingNext.text = if (position == 4) "Get Started" else "Next"
+        binding.btnOnboardingNext.text = if (position == 4) "GET STARTED" else "Next"
 
         // Update Dots
         val activeDrawable = ContextCompat.getDrawable(this, R.drawable.bg_ocean_pill_btn)
@@ -127,9 +135,10 @@ class OnboardingActivity : AppCompatActivity() {
             dot.layoutParams = lp
         }
 
-        // If on permissions page, ensure state is updated
+        // If on permissions page, ensure both states are updated
         if (position == 2) {
             checkAndRefreshNotificationState()
+            checkAndRefreshStorageState()
         }
     }
 
@@ -179,13 +188,35 @@ class OnboardingActivity : AppCompatActivity() {
     private fun updateNotificationPermissionUI(isGranted: Boolean) {
         val b = permissionsBinding ?: return
         if (isGranted) {
-            b.btnGrantNotifications.text = "Notifications Enabled ✓"
+            b.btnGrantNotifications.text = "NOTIFICATIONS ENABLED ✓"
             b.btnGrantNotifications.isEnabled = false
             b.ivCheckNotification.visibility = View.VISIBLE
         } else {
-            b.btnGrantNotifications.text = "Enable Notifications"
+            b.btnGrantNotifications.text = "ENABLE NOTIFICATIONS"
             b.btnGrantNotifications.isEnabled = true
             b.ivCheckNotification.visibility = View.GONE
+        }
+    }
+
+    private fun checkAndRefreshStorageState() {
+        val isGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
+        updateStoragePermissionUI(isGranted)
+    }
+
+    private fun updateStoragePermissionUI(isGranted: Boolean) {
+        val b = permissionsBinding ?: return
+        if (isGranted) {
+            b.btnGrantStorage.text = "ACCESS GRANTED ✓"
+            b.btnGrantStorage.isEnabled = false
+            b.ivCheckStorage.visibility = View.VISIBLE
+        } else {
+            b.btnGrantStorage.text = "GRANT ACCESS"
+            b.btnGrantStorage.isEnabled = true
+            b.ivCheckStorage.visibility = View.GONE
         }
     }
 
@@ -339,6 +370,8 @@ class OnboardingActivity : AppCompatActivity() {
         RecyclerView.ViewHolder(binding.root) {
         fun bind() {
             checkAndRefreshNotificationState()
+            checkAndRefreshStorageState()
+
             binding.btnGrantNotifications.setOnClickListener {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -346,6 +379,19 @@ class OnboardingActivity : AppCompatActivity() {
                     updateNotificationPermissionUI(true)
                 }
             }
+
+            binding.btnGrantStorage.setOnClickListener {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    requestStoragePermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                } else {
+                    requestStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
+            }
+
+            AnimationUtils.attachTactileFeedback(
+                binding.btnGrantNotifications,
+                binding.btnGrantStorage
+            )
         }
     }
 
@@ -378,16 +424,12 @@ class OnboardingActivity : AppCompatActivity() {
             binding.btnGitHubStar.setOnClickListener {
                 openExternalUrl("https://github.com/MI-Musanna")
             }
-            binding.btnPortfolio.setOnClickListener {
+            binding.btnContact.setOnClickListener {
                 openExternalUrl("https://taplink.cc/mi2007")
-            }
-            binding.btnLaunchApp.setOnClickListener {
-                saveProfileAndComplete()
             }
             AnimationUtils.attachTactileFeedback(
                 binding.btnGitHubStar,
-                binding.btnPortfolio,
-                binding.btnLaunchApp
+                binding.btnContact
             )
         }
     }
