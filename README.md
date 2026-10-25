@@ -48,6 +48,8 @@ An offline, zero-telemetry Android suite built for students and independent buil
 
 ### 💼 Smart Financial Ledger
 - **Multi-Account Buckets:** Isolate liquid cash into up to 5 dedicated wallets (Physical Cash, Bank, Mobile Financial Services) with independent running balances.
+- **120+ Searchable Vector Icon Library:** Comprehensive categorized icon registry with keyword search and bottom sheet grid picker for personalized account buckets and categories.
+- **Expanded Palette & Custom Color Picker:** 16 curated non-duplicate Material accent colors plus custom RGB slider and Hex code picker dialog with live preview.
 - **Monthly Financial Cash-Flow Bar Chart:** Visual dual comparative bars for monthly Inflow vs Spending with dynamic net flow calculations and cycle tracking.
 - **Atomic Balance Transfers:** Inter-account fund shifting with double-entry integrity—eliminating discrepancies between sending and receiving ledgers.
 - **Adaptive Visual Analytics:** Live Donut breakdown for category expenditures alongside dual-column bar charts comparing total inflows against outflows.

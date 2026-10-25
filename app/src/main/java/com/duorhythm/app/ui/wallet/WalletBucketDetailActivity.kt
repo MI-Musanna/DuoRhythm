@@ -22,6 +22,8 @@ import com.duorhythm.app.data.model.WalletBucketItem
 import com.duorhythm.app.databinding.ActivityWalletBucketDetailBinding
 import com.duorhythm.app.databinding.DialogAddTransactionBinding
 import com.duorhythm.app.databinding.DialogTransactionSummaryBinding
+import com.duorhythm.app.ui.common.AppIconRegistry
+import com.duorhythm.app.ui.common.ColorPickerHelper
 import com.duorhythm.app.util.AnimationUtils
 import com.duorhythm.app.util.CurrencyUtils
 import com.github.mikephil.charting.data.BarData
@@ -273,67 +275,36 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         var selectedIcon = bucket.icon
         var selectedColor = bucket.colorHex
 
-        val iconOptions = listOf(
-            Triple("cash", dialogBinding.btnIconCash, dialogBinding.ivIconCash),
-            Triple("wallet", dialogBinding.btnIconWallet, dialogBinding.ivIconWallet),
-            Triple("bank", dialogBinding.btnIconBank, dialogBinding.ivIconBank),
-            Triple("card", dialogBinding.btnIconCard, dialogBinding.ivIconCard),
-            Triple("piggybank", dialogBinding.btnIconPiggy, dialogBinding.ivIconPiggy),
-            Triple("vault", dialogBinding.btnIconVault, dialogBinding.ivIconVault)
-        )
+        var updateIconsRow: ((String, String) -> Unit)? = null
+        var updateColorsRow: ((String) -> Unit)? = null
 
-        val colorOptions = listOf(
-            Triple("#06B6D4", dialogBinding.btnColorCyan, Pair(dialogBinding.ringColorCyan, dialogBinding.checkColorCyan)),
-            Triple("#10B981", dialogBinding.btnColorEmerald, Pair(dialogBinding.ringColorEmerald, dialogBinding.checkColorEmerald)),
-            Triple("#8B5CF6", dialogBinding.btnColorViolet, Pair(dialogBinding.ringColorViolet, dialogBinding.checkColorViolet)),
-            Triple("#F59E0B", dialogBinding.btnColorAmber, Pair(dialogBinding.ringColorAmber, dialogBinding.checkColorAmber)),
-            Triple("#F43F5E", dialogBinding.btnColorRose, Pair(dialogBinding.ringColorRose, dialogBinding.checkColorRose)),
-            Triple("#38BDF8", dialogBinding.btnColorSkyBlue, Pair(dialogBinding.ringColorSkyBlue, dialogBinding.checkColorSkyBlue))
-        )
-
-        fun updateColorSelectionUi() {
+        fun updateUiColors() {
             val parsedColor = try { Color.parseColor(selectedColor) } catch (_: Exception) { Color.parseColor("#06B6D4") }
-            val glowColor = ColorUtils.setAlphaComponent(parsedColor, (255 * 0.18).toInt())
-
-            for ((hex, _, views) in colorOptions) {
-                val isSelected = hex.equals(selectedColor, ignoreCase = true)
-                views.first.visibility = if (isSelected) View.VISIBLE else View.GONE
-                views.second.visibility = if (isSelected) View.VISIBLE else View.GONE
-            }
-
             dialogBinding.btnSaveBucket.backgroundTintList = ColorStateList.valueOf(parsedColor)
-
-            for ((iconKey, card, iv) in iconOptions) {
-                val isSelected = iconKey.equals(selectedIcon, ignoreCase = true)
-                if (isSelected) {
-                    card.setCardBackgroundColor(glowColor)
-                    card.strokeColor = parsedColor
-                    card.strokeWidth = (1.5f * resources.displayMetrics.density).toInt()
-                    iv.setColorFilter(parsedColor)
-                } else {
-                    card.setCardBackgroundColor(androidx.core.content.ContextCompat.getColor(this, R.color.surface_variant))
-                    card.strokeColor = androidx.core.content.ContextCompat.getColor(this, R.color.card_stroke)
-                    card.strokeWidth = (1f * resources.displayMetrics.density).toInt()
-                    iv.setColorFilter(androidx.core.content.ContextCompat.getColor(this, R.color.text_secondary))
-                }
-            }
+            updateIconsRow?.invoke(selectedIcon, selectedColor)
         }
 
-        for ((iconKey, card, _) in iconOptions) {
-            card.setOnClickListener {
-                selectedIcon = iconKey
-                updateColorSelectionUi()
-            }
+        updateIconsRow = AppIconRegistry.setupQuickPickIconsRow(
+            context = this,
+            container = dialogBinding.layoutBucketIcons,
+            initialIcon = selectedIcon,
+            fragmentManager = supportFragmentManager,
+            initialAccentColor = selectedColor
+        ) { newIcon ->
+            selectedIcon = newIcon
+            updateIconsRow?.invoke(selectedIcon, selectedColor)
         }
 
-        for ((hex, button, _) in colorOptions) {
-            button.setOnClickListener {
-                selectedColor = hex
-                updateColorSelectionUi()
-            }
+        updateColorsRow = ColorPickerHelper.setupPaletteRow(
+            context = this,
+            container = dialogBinding.layoutBucketColors,
+            initialColor = selectedColor
+        ) { newColor ->
+            selectedColor = newColor
+            updateUiColors()
         }
 
-        updateColorSelectionUi()
+        updateUiColors()
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogBinding.root)

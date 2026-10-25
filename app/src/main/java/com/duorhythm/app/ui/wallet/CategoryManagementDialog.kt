@@ -21,26 +21,14 @@ import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.TransactionCategoryItem
 import com.duorhythm.app.databinding.DialogAddCategoryBinding
+import com.duorhythm.app.ui.common.AppIconRegistry
+import com.duorhythm.app.ui.common.ColorPickerHelper
 import java.util.Locale
 
 object CategoryManagementDialog {
 
     fun getCategoryIconRes(iconName: String): Int {
-        return when (iconName.lowercase(Locale.US)) {
-            "card", "credit_card" -> R.drawable.ic_credit_card
-            "cash" -> R.drawable.ic_cash
-            "target" -> R.drawable.ic_target
-            "bolt" -> R.drawable.ic_bolt
-            "school" -> R.drawable.ic_school
-            "tools" -> R.drawable.ic_tools
-            "analytics" -> R.drawable.ic_analytics
-            "subscription" -> R.drawable.ic_subscription
-            "calendar" -> R.drawable.ic_calendar
-            "person" -> R.drawable.ic_person
-            "settings" -> R.drawable.ic_settings
-            "tasks" -> R.drawable.ic_tasks
-            else -> R.drawable.ic_wallet
-        }
+        return AppIconRegistry.getIconDrawable(iconName)
     }
 
     fun show(
@@ -173,116 +161,38 @@ object CategoryManagementDialog {
 
         var selectedColor = itemToEdit?.colorHex ?: "#0284C7"
         var selectedIcon = itemToEdit?.icon ?: "wallet"
-        val dp = { value: Int -> (value * context.resources.displayMetrics.density).toInt() }
 
-        val colors = listOf(
-            "#0284C7", // Sky Blue
-            "#10B981", // Emerald Green
-            "#F59E0B", // Amber
-            "#EF4444", // Rose Red
-            "#8B5CF6", // Purple
-            "#EC4899", // Pink
-            "#14B8A6", // Teal
-            "#64748B"  // Slate
-        )
-        val colorViews = mutableListOf<ImageView>()
+        var updateIconsRow: ((String, String) -> Unit)? = null
+        var updateColorsRow: ((String) -> Unit)? = null
 
-        val iconList = listOf(
-            Pair("wallet", R.drawable.ic_wallet),
-            Pair("card", R.drawable.ic_credit_card),
-            Pair("cash", R.drawable.ic_cash),
-            Pair("target", R.drawable.ic_target),
-            Pair("bolt", R.drawable.ic_bolt),
-            Pair("school", R.drawable.ic_school),
-            Pair("tools", R.drawable.ic_tools),
-            Pair("analytics", R.drawable.ic_analytics),
-            Pair("subscription", R.drawable.ic_subscription)
-        )
-        val iconViews = mutableListOf<ImageView>()
-
-        fun updateColorSelection() {
-            for ((idx, cHex) in colors.withIndex()) {
-                val iv = colorViews.getOrNull(idx) ?: continue
-                val isSelected = cHex.equals(selectedColor, ignoreCase = true)
-                val drawable = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(Color.parseColor(cHex))
-                    if (isSelected) {
-                        setStroke(dp(3), Color.WHITE)
-                    } else {
-                        setStroke(dp(1), Color.parseColor("#334155"))
-                    }
-                }
-                iv.background = drawable
-                if (isSelected) {
-                    iv.setImageResource(R.drawable.ic_check)
-                    iv.imageTintList = ColorStateList.valueOf(Color.WHITE)
-                } else {
-                    iv.setImageDrawable(null)
-                }
-            }
+        fun updateUiColors() {
+            val parsedColor = try { Color.parseColor(selectedColor) } catch (_: Exception) { Color.parseColor("#0284C7") }
+            binding.btnSaveCategory.backgroundTintList = ColorStateList.valueOf(parsedColor)
+            updateIconsRow?.invoke(selectedIcon, selectedColor)
         }
 
-        fun updateIconSelection() {
-            for ((idx, pair) in iconList.withIndex()) {
-                val iv = iconViews.getOrNull(idx) ?: continue
-                val isSelected = pair.first.equals(selectedIcon, ignoreCase = true)
-                val bg = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    if (isSelected) {
-                        try {
-                            setColor(Color.parseColor(selectedColor))
-                        } catch (_: Exception) {
-                            setColor(Color.parseColor("#0284C7"))
-                        }
-                        setStroke(dp(2), Color.WHITE)
-                    } else {
-                        setColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
-                        setStroke(dp(1), androidx.core.content.ContextCompat.getColor(context, R.color.card_stroke))
-                    }
-                }
-                iv.background = bg
-                iv.imageTintList = ColorStateList.valueOf(if (isSelected) Color.WHITE else androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
-            }
+        val fm = (context as? androidx.fragment.app.FragmentActivity)?.supportFragmentManager
+        updateIconsRow = AppIconRegistry.setupQuickPickIconsRow(
+            context = context,
+            container = binding.layoutCategoryIcons,
+            initialIcon = selectedIcon,
+            fragmentManager = fm,
+            initialAccentColor = selectedColor
+        ) { newIcon ->
+            selectedIcon = newIcon
+            updateIconsRow?.invoke(selectedIcon, selectedColor)
         }
 
-        for (cHex in colors) {
-            val iv = ImageView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(34), dp(34)).apply {
-                    marginEnd = dp(10)
-                }
-                setPadding(dp(6), dp(6), dp(6), dp(6))
-                isClickable = true
-                isFocusable = true
-                setOnClickListener {
-                    selectedColor = cHex
-                    updateColorSelection()
-                    updateIconSelection()
-                }
-            }
-            colorViews.add(iv)
-            binding.layoutCategoryColors.addView(iv)
+        updateColorsRow = ColorPickerHelper.setupPaletteRow(
+            context = context,
+            container = binding.layoutCategoryColors,
+            initialColor = selectedColor
+        ) { newColor ->
+            selectedColor = newColor
+            updateUiColors()
         }
-        updateColorSelection()
 
-        for (pair in iconList) {
-            val iv = ImageView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(38), dp(38)).apply {
-                    marginEnd = dp(10)
-                }
-                setImageResource(pair.second)
-                setPadding(dp(8), dp(8), dp(8), dp(8))
-                isClickable = true
-                isFocusable = true
-                setOnClickListener {
-                    selectedIcon = pair.first
-                    updateIconSelection()
-                }
-            }
-            iconViews.add(iv)
-            binding.layoutCategoryIcons.addView(iv)
-        }
-        updateIconSelection()
+        updateUiColors()
 
         binding.btnCancelCategory.setOnClickListener {
             dialog.dismiss()
@@ -395,109 +305,30 @@ object CategoryManagementDialog {
 
         var selectedColor = initialColor
         var selectedIcon = initialIcon
-        val dp = { value: Int -> (value * context.resources.displayMetrics.density).toInt() }
 
-        val colors = listOf(
-            "#0284C7", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#14B8A6", "#64748B"
-        )
-        val colorViews = mutableListOf<ImageView>()
+        var updateIconsRow: ((String, String) -> Unit)? = null
+        var updateColorsRow: ((String) -> Unit)? = null
 
-        val iconList = listOf(
-            Pair("wallet", R.drawable.ic_wallet),
-            Pair("card", R.drawable.ic_credit_card),
-            Pair("cash", R.drawable.ic_cash),
-            Pair("target", R.drawable.ic_target),
-            Pair("bolt", R.drawable.ic_bolt),
-            Pair("school", R.drawable.ic_school),
-            Pair("tools", R.drawable.ic_tools),
-            Pair("analytics", R.drawable.ic_analytics),
-            Pair("subscription", R.drawable.ic_subscription)
-        )
-        val iconViews = mutableListOf<ImageView>()
-
-        fun updateColorSelection() {
-            for ((idx, cHex) in colors.withIndex()) {
-                val iv = colorViews.getOrNull(idx) ?: continue
-                val isSelected = cHex.equals(selectedColor, ignoreCase = true)
-                val drawable = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(Color.parseColor(cHex))
-                    if (isSelected) {
-                        setStroke(dp(3), Color.WHITE)
-                    } else {
-                        setStroke(dp(1), Color.parseColor("#334155"))
-                    }
-                }
-                iv.background = drawable
-                if (isSelected) {
-                    iv.setImageResource(R.drawable.ic_check)
-                    iv.imageTintList = ColorStateList.valueOf(Color.WHITE)
-                } else {
-                    iv.setImageDrawable(null)
-                }
-            }
+        val fm = (context as? androidx.fragment.app.FragmentActivity)?.supportFragmentManager
+        updateIconsRow = AppIconRegistry.setupQuickPickIconsRow(
+            context = context,
+            container = binding.layoutCategoryIcons,
+            initialIcon = selectedIcon,
+            fragmentManager = fm,
+            initialAccentColor = selectedColor
+        ) { newIcon ->
+            selectedIcon = newIcon
+            updateIconsRow?.invoke(selectedIcon, selectedColor)
         }
 
-        fun updateIconSelection() {
-            for ((idx, pair) in iconList.withIndex()) {
-                val iv = iconViews.getOrNull(idx) ?: continue
-                val isSelected = pair.first.equals(selectedIcon, ignoreCase = true)
-                val bg = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    if (isSelected) {
-                        try {
-                            setColor(Color.parseColor(selectedColor))
-                        } catch (_: Exception) {
-                            setColor(Color.parseColor("#0284C7"))
-                        }
-                        setStroke(dp(2), Color.WHITE)
-                    } else {
-                        setColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
-                        setStroke(dp(1), androidx.core.content.ContextCompat.getColor(context, R.color.card_stroke))
-                    }
-                }
-                iv.background = bg
-                iv.imageTintList = ColorStateList.valueOf(if (isSelected) Color.WHITE else androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
-            }
+        updateColorsRow = ColorPickerHelper.setupPaletteRow(
+            context = context,
+            container = binding.layoutCategoryColors,
+            initialColor = selectedColor
+        ) { newColor ->
+            selectedColor = newColor
+            updateIconsRow?.invoke(selectedIcon, selectedColor)
         }
-
-        for (cHex in colors) {
-            val iv = ImageView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(34), dp(34)).apply {
-                    marginEnd = dp(10)
-                }
-                setPadding(dp(6), dp(6), dp(6), dp(6))
-                isClickable = true
-                isFocusable = true
-                setOnClickListener {
-                    selectedColor = cHex
-                    updateColorSelection()
-                    updateIconSelection()
-                }
-            }
-            colorViews.add(iv)
-            binding.layoutCategoryColors.addView(iv)
-        }
-        updateColorSelection()
-
-        for (pair in iconList) {
-            val iv = ImageView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(38), dp(38)).apply {
-                    marginEnd = dp(10)
-                }
-                setImageResource(pair.second)
-                setPadding(dp(8), dp(8), dp(8), dp(8))
-                isClickable = true
-                isFocusable = true
-                setOnClickListener {
-                    selectedIcon = pair.first
-                    updateIconSelection()
-                }
-            }
-            iconViews.add(iv)
-            binding.layoutCategoryIcons.addView(iv)
-        }
-        updateIconSelection()
 
         val getter = {
             val name = binding.etCategoryName.text?.toString()?.trim().orEmpty()

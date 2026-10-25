@@ -5,6 +5,9 @@ Detailed release history and changelog for DuoRhythm builds.
 ---
 
 ### [v1.0.1-beta] - 2026-10-25
+- **Searchable Vector Icon Library (120+ Icons):** Added 120+ searchable vector icon library with dedicated bottom sheet grid picker.
+- **Expanded 16-Color Palette:** Expanded accent color palette to 16 curated non-duplicate shades.
+- **Custom RGB/Hex Color Picker:** Integrated custom RGB/Hex color picker dialog for custom bucket and category personalization.
 - **Touch Gesture Navigation:** Re-enabled touch gesture swiping across dashboard tabs with synchronized bottom navigation callbacks and `offscreenPageLimit = 4` memory caching.
 - **OLED Dark Mode Standard:** Enforced unified OLED Dark Mode ecosystem application-wide, optimizing battery life and visual ergonomics.
 - **Cleaned Settings Hub:** Removed redundant "Appearance & Theme" accordion from settings in favor of system-wide dark mode.

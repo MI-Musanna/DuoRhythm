@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.duorhythm.app.R
 import com.duorhythm.app.data.model.WalletBucketItem
 import com.duorhythm.app.databinding.ItemWalletBucketBinding
+import com.duorhythm.app.ui.common.AppIconRegistry
 import com.duorhythm.app.util.AnimationUtils
 import java.util.Locale
 
@@ -64,20 +65,11 @@ class WalletBucketsAdapter(
             )
 
             // Dynamic Icon selection
-            val iconRes = when (bucket.icon.lowercase(Locale.US)) {
-                "cash" -> R.drawable.ic_cash
-                "wallet" -> R.drawable.ic_wallet
-                "bank" -> R.drawable.ic_bank
-                "card", "credit_card" -> R.drawable.ic_credit_card
-                "piggybank", "piggy", "savings", "target" -> R.drawable.ic_piggy_bank
-                "vault", "shield", "emergency" -> R.drawable.ic_vault
-                "phone", "mfs", "mobile", "bkash", "nagad" -> R.drawable.ic_smartphone
-                "crypto", "coin", "bolt" -> R.drawable.ic_bolt
-                "globe", "online", "upwork" -> R.drawable.ic_globe
-                "tools", "work", "mess" -> R.drawable.ic_tools
-                "school", "study" -> R.drawable.ic_school
-                "analytics" -> R.drawable.ic_analytics
-                else -> when {
+            val resolved = AppIconRegistry.getIconDrawable(bucket.icon)
+            val iconRes = if (resolved != R.drawable.ic_wallet || bucket.icon.equals("wallet", ignoreCase = true) || bucket.icon.equals("ic_wallet", ignoreCase = true)) {
+                resolved
+            } else {
+                when {
                     bucket.name.contains("cash", ignoreCase = true) -> R.drawable.ic_cash
                     bucket.name.contains("bank", ignoreCase = true) -> R.drawable.ic_bank
                     bucket.name.contains("card", ignoreCase = true) -> R.drawable.ic_credit_card
