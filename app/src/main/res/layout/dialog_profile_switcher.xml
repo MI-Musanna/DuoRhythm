@@ -108,9 +108,22 @@
                     android:background="@drawable/bg_ocean_pill_btn"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
-                    android:text="ACTIVE"
+                    android:text="✓ ACTIVE"
                     android:textColor="@color/white"
                     android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/btnSwitchSlot1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ocean_pill_btn"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:text="Switch"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
             </LinearLayout>
@@ -194,9 +207,22 @@
                     android:background="@drawable/bg_ocean_pill_btn"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
-                    android:text="ACTIVE"
+                    android:text="✓ ACTIVE"
                     android:textColor="@color/white"
                     android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/btnSwitchSlot2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ocean_pill_btn"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:text="Switch"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
             </LinearLayout>
@@ -280,9 +306,22 @@
                     android:background="@drawable/bg_ocean_pill_btn"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
-                    android:text="ACTIVE"
+                    android:text="✓ ACTIVE"
                     android:textColor="@color/white"
                     android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/btnSwitchSlot3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_ocean_pill_btn"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:text="Switch"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
             </LinearLayout>

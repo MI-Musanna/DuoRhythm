@@ -293,7 +293,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnQuickProfile.setOnClickListener {
-            com.duorhythm.app.ui.profile.ProfileSwitcherDialog(this).show()
+            val homeFrag = pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment
+            if (homeFrag != null && homeFrag.isAdded) {
+                homeFrag.openProfileSwitcher()
+            } else {
+                com.duorhythm.app.ui.profile.ProfileSwitcherDialog(this) {
+                    val hf = pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment
+                    hf?.loadUserProfile()
+                    hf?.loadDashboardData()
+                }.show()
+            }
         }
 
         binding.btnQuickPomodoro.setOnClickListener {

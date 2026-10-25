@@ -94,9 +94,9 @@
                     android:layout_height="38dp"
                     android:layout_marginStart="8dp"
                     android:background="@drawable/bg_glass_squircle_action"
-                    android:contentDescription="Workspace Profiles"
+                    android:contentDescription="Switch Workspace Profile"
                     android:padding="8dp"
-                    android:src="@drawable/ic_account_circle"
+                    android:src="@drawable/ic_switch_account"
                     app:tint="@color/text_secondary" />
 
                 <!-- Dedicated Settings Action Icon -->

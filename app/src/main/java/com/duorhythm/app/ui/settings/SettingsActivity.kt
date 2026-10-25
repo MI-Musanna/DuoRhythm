@@ -67,19 +67,6 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-    private val pickAvatarLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let {
-                val savedPath = com.duorhythm.app.data.local.pref.UserProfileManager.saveAvatarFromUri(this, it)
-                if (savedPath != null) {
-                    refreshProfileAvatar()
-                    Toast.makeText(this, "Profile picture updated", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
@@ -92,7 +79,6 @@ class SettingsActivity : AppCompatActivity() {
 
             setupWindowInsets()
             setupToolbar()
-            setupProfileSection()
             setupAccordions()
             setupPreferencesSection()
             setupThemeSelector()
@@ -110,7 +96,6 @@ class SettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         isHydratingUI = true
-        refreshProfileUI()
         refreshStartOfWeekUI()
         refreshCategoriesCountUI()
         refreshAutoTrackAttendanceUI()
@@ -122,62 +107,7 @@ class SettingsActivity : AppCompatActivity() {
         isHydratingUI = false
     }
 
-    private fun setupProfileSection() {
-        refreshProfileUI()
 
-        binding.containerSettingsAvatarPicker.setOnClickListener {
-            pickAvatarLauncher.launch("image/*")
-        }
-
-        binding.btnSaveProfile.setOnClickListener {
-            val name = binding.etSettingsUserName.text?.toString() ?: ""
-            val inst = binding.etSettingsInstitutionName.text?.toString() ?: ""
-            val faculty = binding.etSettingsAcademicFaculty.text?.toString() ?: ""
-
-            com.duorhythm.app.data.local.pref.UserProfileManager.setUserName(this, name)
-            com.duorhythm.app.data.local.pref.UserProfileManager.setInstitutionName(this, inst)
-            com.duorhythm.app.data.local.pref.UserProfileManager.setAcademicFaculty(this, faculty)
-
-            // Also update active profile record in DB
-            val activeId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(this)
-            val activeProfile = dbHelper.profileDao.getProfileById(activeId)
-            if (activeProfile != null) {
-                dbHelper.profileDao.updateProfile(
-                    activeProfile.copy(
-                        name = name.ifBlank { activeProfile.name },
-                        institution = inst,
-                        department = faculty
-                    )
-                )
-            }
-
-            Toast.makeText(this, "Profile & institution updated", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.btnSwitchProfile.setOnClickListener {
-            com.duorhythm.app.ui.profile.ProfileSwitcherDialog(this) {
-                refreshProfileUI()
-            }.show()
-        }
-    }
-
-    private fun refreshProfileUI() {
-        binding.etSettingsUserName.setText(com.duorhythm.app.data.local.pref.UserProfileManager.getUserName(this))
-        binding.etSettingsInstitutionName.setText(com.duorhythm.app.data.local.pref.UserProfileManager.getInstitutionName(this))
-        binding.etSettingsAcademicFaculty.setText(com.duorhythm.app.data.local.pref.UserProfileManager.getAcademicFaculty(this))
-        refreshProfileAvatar()
-    }
-
-    private fun refreshProfileAvatar() {
-        val bitmap = com.duorhythm.app.data.local.pref.UserProfileManager.loadCircularAvatarBitmap(this, 128)
-        if (bitmap != null) {
-            binding.ivSettingsAvatar.imageTintList = null
-            binding.ivSettingsAvatar.setImageBitmap(bitmap)
-        } else {
-            binding.ivSettingsAvatar.setImageResource(R.drawable.ic_person)
-            binding.ivSettingsAvatar.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#38BDF8"))
-        }
-    }
 
     private fun setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.settingsRoot) { _, insets ->
@@ -204,9 +134,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupAccordions() {
-        binding.headerAccordionProfile.setOnClickListener {
-            toggleAccordion(binding.bodyAccordionProfile, binding.dividerAccordionProfile, binding.ivChevronProfile)
-        }
         binding.headerAccordionAppearance.setOnClickListener {
             toggleAccordion(binding.bodyAccordionAppearance, binding.dividerAccordionAppearance, binding.ivChevronAppearance)
         }
@@ -485,7 +412,6 @@ class SettingsActivity : AppCompatActivity() {
             binding.btnLoadDemoData,
             binding.btnOpenAboutModal,
             binding.btnCheckUpdates,
-            binding.btnSwitchProfile,
             binding.cardAboutHub,
             binding.cardAboutGithub,
             binding.cardAboutTelegram,

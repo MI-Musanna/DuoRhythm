@@ -68,6 +68,8 @@ An offline, zero-telemetry Android suite built for students and independent buil
 - **Calibrated Dual Theme Engine:** Handcrafted Deep Obsidian Dark Mode (`#0A0E17` to `#131D2F`) alongside an adaptive, high-contrast Light Mode with crisp white surfaces and visible dialog typography.
 
 ### 👤 3-Profile Workspace Isolation
+- **Dedicated Profile Workstation:** Direct full-screen profile hub accessible via the home avatar, supporting real-time academic info edits, photo personalization, and password management.
+- **Fast Workspace Switcher:** Top-bar account switcher icon providing instantaneous switching between the 3 isolated user workspaces.
 - **Multi-Identity Architecture:** Maintain up to 3 completely isolated workspace profiles (Slot 1, Slot 2, Slot 3) on the same device.
 - **Independent Databases:** Separate timetables, tasks, milestone goals, attendance records, wallets, and subscriptions for each profile.
 - **Secure Switching:** Local SHA-256 password hash protection with "Remember this email on this profile" support and instant toolbar switching.
@@ -81,6 +83,10 @@ An offline, zero-telemetry Android suite built for students and independent buil
 ## 📜 Changelog
 
 ### [v1.0.1-beta] - 2026-10-25
+- Decoupled user profile from the settings screen into a dedicated ProfileActivity.
+- Bound Home welcome avatar directly to the profile workstation.
+- Added dedicated workspace switcher icon in top header for instant 3-profile switching.
+- Cleaned Settings Hub by removing redundant profile accordions.
 - Unified onboarding feature showcase and added storage permission check.
 - Corrected developer links to Contact Hub and eliminated duplicate action buttons.
 - Integrated Circular Goal Progress Ring in Tasks module.

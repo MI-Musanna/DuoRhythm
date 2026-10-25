@@ -23,6 +23,9 @@ import com.duorhythm.app.ui.wallet.WalletDataSyncManager
 import com.duorhythm.app.util.BlurUtil
 import com.duorhythm.app.util.AnimationUtils
 import android.content.Context
+import android.content.Intent
+import com.duorhythm.app.ui.profile.ProfileActivity
+import com.duorhythm.app.ui.profile.ProfileSwitcherDialog
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -130,22 +133,25 @@ class HomeFragment : Fragment() {
 
             val avatarBitmap = com.duorhythm.app.data.local.pref.UserProfileManager.loadCircularAvatarBitmap(context, 80)
             if (avatarBitmap != null) {
-                binding.ivHomeAvatar.setPadding(0, 0, 0, 0)
-                binding.ivHomeAvatar.imageTintList = null
-                binding.ivHomeAvatar.setImageBitmap(avatarBitmap)
+                binding.ivUserAvatar.setPadding(0, 0, 0, 0)
+                binding.ivUserAvatar.imageTintList = null
+                binding.ivUserAvatar.setImageBitmap(avatarBitmap)
             } else {
                 val density = resources.displayMetrics.density
                 val pad8 = (8 * density).toInt()
-                binding.ivHomeAvatar.setPadding(pad8, pad8, pad8, pad8)
-                binding.ivHomeAvatar.setImageResource(R.drawable.ic_person)
-                binding.ivHomeAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                binding.ivUserAvatar.setPadding(pad8, pad8, pad8, pad8)
+                binding.ivUserAvatar.setImageResource(R.drawable.ic_person)
+                binding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
             }
 
-            val openSettings = View.OnClickListener {
-                startActivity(android.content.Intent(requireContext(), com.duorhythm.app.ui.settings.SettingsActivity::class.java))
+            val openProfile = View.OnClickListener {
+                val intent = Intent(requireContext(), ProfileActivity::class.java)
+                startActivity(intent)
             }
-            binding.containerHomeAvatar.setOnClickListener(openSettings)
-            binding.tvUserName.setOnClickListener(openSettings)
+            binding.ivUserAvatar.setOnClickListener(openProfile)
+            binding.containerHomeAvatar.setOnClickListener(openProfile)
+            binding.layoutUserInfo.setOnClickListener(openProfile)
+            binding.tvUserName.setOnClickListener(openProfile)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -273,6 +279,11 @@ class HomeFragment : Fragment() {
                 showAddNoteDialog()
             }
 
+            // Fast Workspace Profile Switcher Header Button
+            activity?.findViewById<View>(R.id.btnQuickProfile)?.setOnClickListener {
+                openProfileSwitcher()
+            }
+
             AnimationUtils.attachTactileFeedback(
                 binding.cardHomeWallet,
                 binding.cardHomeTasks,
@@ -298,6 +309,14 @@ class HomeFragment : Fragment() {
                 loc.language.equals("bn", ignoreCase = true) ||
                 tz.contains("Dhaka", ignoreCase = true) ||
                 tz.contains("Bangladesh", ignoreCase = true)
+    }
+
+    fun openProfileSwitcher() {
+        val act = activity ?: return
+        ProfileSwitcherDialog(act) {
+            loadUserProfile()
+            loadDashboardData()
+        }.show()
     }
 
     fun loadDashboardData() {

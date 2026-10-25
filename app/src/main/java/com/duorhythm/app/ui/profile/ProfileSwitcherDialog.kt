@@ -65,6 +65,7 @@ class ProfileSwitcherDialog(
             isActive = (slot1?.id == activeProfileId),
             card = binding.cardSlot1,
             badge = binding.badgeActiveSlot1,
+            btnSwitch = binding.btnSwitchSlot1,
             tvName = binding.tvSlot1Name,
             tvEmail = binding.tvSlot1Email,
             tvDept = binding.tvSlot1Dept,
@@ -80,6 +81,7 @@ class ProfileSwitcherDialog(
             isActive = (slot2?.id == activeProfileId),
             card = binding.cardSlot2,
             badge = binding.badgeActiveSlot2,
+            btnSwitch = binding.btnSwitchSlot2,
             tvName = binding.tvSlot2Name,
             tvEmail = binding.tvSlot2Email,
             tvDept = binding.tvSlot2Dept,
@@ -95,6 +97,7 @@ class ProfileSwitcherDialog(
             isActive = (slot3?.id == activeProfileId),
             card = binding.cardSlot3,
             badge = binding.badgeActiveSlot3,
+            btnSwitch = binding.btnSwitchSlot3,
             tvName = binding.tvSlot3Name,
             tvEmail = binding.tvSlot3Email,
             tvDept = binding.tvSlot3Dept,
@@ -110,6 +113,7 @@ class ProfileSwitcherDialog(
         isActive: Boolean,
         card: com.google.android.material.card.MaterialCardView,
         badge: View,
+        btnSwitch: View,
         tvName: android.widget.TextView,
         tvEmail: android.widget.TextView,
         tvDept: android.widget.TextView,
@@ -118,6 +122,7 @@ class ProfileSwitcherDialog(
         parentDialog: AlertDialog
     ) {
         badge.visibility = if (isActive) View.VISIBLE else View.GONE
+        btnSwitch.visibility = if (!isActive && profile != null) View.VISIBLE else View.GONE
         card.strokeColor = if (isActive) primaryColor else strokeColor
         card.strokeWidth = if (isActive) 4 else 2
 
@@ -129,16 +134,18 @@ class ProfileSwitcherDialog(
                 .joinToString(" • ")
             tvDept.text = if (meta.isNotBlank()) meta else "Workspace Slot $slotNumber"
 
-            card.setOnClickListener {
+            val onSlotAction = View.OnClickListener {
                 if (isActive) {
                     Toast.makeText(activity, "Currently in ${profile.name}'s workspace", Toast.LENGTH_SHORT).show()
                 } else {
                     showLoginDialog(parentDialog, profile)
                 }
             }
+            card.setOnClickListener(onSlotAction)
+            btnSwitch.setOnClickListener(onSlotAction)
         } else {
-            tvName.text = "Empty Slot $slotNumber"
-            tvEmail.text = "Tap to create workspace"
+            tvName.text = "+ Set Up Profile Slot $slotNumber"
+            tvEmail.text = "Tap to initialize isolated workspace"
             tvDept.text = "Available workspace slot"
 
             card.setOnClickListener {
