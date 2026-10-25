@@ -1,24 +1,17 @@
 package com.duorhythm.app.ui.common
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.SeekBar
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.duorhythm.app.R
-import com.duorhythm.app.databinding.DialogCustomColorPickerBinding
-import java.util.Locale
+import com.duorhythm.app.ui.dialogs.CustomColorPickerDialog
 
 object ColorPickerHelper {
 
@@ -48,103 +41,7 @@ object ColorPickerHelper {
         initialColorHex: String = "#EF4444",
         onColorSelected: (String) -> Unit
     ) {
-        val binding = DialogCustomColorPickerBinding.inflate(LayoutInflater.from(context))
-        val dialog = AlertDialog.Builder(context)
-            .setView(binding.root)
-            .create()
-
-        var currentHex = if (initialColorHex.startsWith("#")) initialColorHex else "#$initialColorHex"
-        var parsed = try {
-            Color.parseColor(currentHex)
-        } catch (_: Exception) {
-            Color.parseColor("#EF4444")
-        }
-
-        var r = Color.red(parsed)
-        var g = Color.green(parsed)
-        var b = Color.blue(parsed)
-
-        var isUpdatingFromSlider = false
-        var isUpdatingFromText = false
-
-        fun updateUi(updateText: Boolean = true, updateSliders: Boolean = true) {
-            val color = Color.rgb(r, g, b)
-            val hexString = String.format(Locale.US, "#%02X%02X%02X", r, g, b)
-            currentHex = hexString
-
-            binding.viewColorPreview.setBackgroundColor(color)
-            binding.btnApplyColor.backgroundTintList = ColorStateList.valueOf(color)
-
-            binding.tvRedValue.text = r.toString()
-            binding.tvGreenValue.text = g.toString()
-            binding.tvBlueValue.text = b.toString()
-
-            if (updateSliders) {
-                binding.seekRed.progress = r
-                binding.seekGreen.progress = g
-                binding.seekBlue.progress = b
-            }
-
-            if (updateText && !isUpdatingFromText) {
-                isUpdatingFromSlider = true
-                binding.etHexCode.setText(hexString)
-                binding.etHexCode.setSelection(hexString.length)
-                isUpdatingFromSlider = false
-            }
-        }
-
-        updateUi(updateText = true, updateSliders = true)
-
-        val seekListener = object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    when (seekBar?.id) {
-                        R.id.seekRed -> r = progress
-                        R.id.seekGreen -> g = progress
-                        R.id.seekBlue -> b = progress
-                    }
-                    updateUi(updateText = true, updateSliders = false)
-                }
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        }
-
-        binding.seekRed.setOnSeekBarChangeListener(seekListener)
-        binding.seekGreen.setOnSeekBarChangeListener(seekListener)
-        binding.seekBlue.setOnSeekBarChangeListener(seekListener)
-
-        binding.etHexCode.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                if (isUpdatingFromSlider) return
-                val text = s?.toString()?.trim().orEmpty()
-                val candidate = if (text.startsWith("#")) text else "#$text"
-                if (candidate.length == 7 && candidate.matches(Regex("^#[0-9A-Fa-f]{6}$"))) {
-                    try {
-                        val parsedColor = Color.parseColor(candidate)
-                        r = Color.red(parsedColor)
-                        g = Color.green(parsedColor)
-                        b = Color.blue(parsedColor)
-                        isUpdatingFromText = true
-                        updateUi(updateText = false, updateSliders = true)
-                        isUpdatingFromText = false
-                    } catch (_: Exception) {}
-                }
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        })
-
-        binding.btnCancelColor.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        binding.btnApplyColor.setOnClickListener {
-            onColorSelected(currentHex)
-            dialog.dismiss()
-        }
-
-        dialog.show()
+        CustomColorPickerDialog.show(context, initialColorHex, onColorSelected)
     }
 
     /**

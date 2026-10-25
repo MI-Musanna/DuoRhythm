@@ -5,6 +5,7 @@ Detailed release history and changelog for DuoRhythm builds.
 ---
 
 ### [v1.0.1-beta] - 2026-10-25
+- **Photoshop-Style 2D HSV Color Studio:** Integrated Photoshop-style 2D HSV color picker dialog replacing basic RGB sliders.
 - **Searchable Vector Icon Library (120+ Icons):** Added 120+ searchable vector icon library with dedicated bottom sheet grid picker.
 - **Expanded 16-Color Palette:** Expanded accent color palette to 16 curated non-duplicate shades.
 - **Custom RGB/Hex Color Picker:** Integrated custom RGB/Hex color picker dialog for custom bucket and category personalization.
