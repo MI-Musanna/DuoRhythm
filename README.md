@@ -17,10 +17,7 @@ An offline, zero-telemetry Android suite built for students and independent buil
     <img src="https://img.shields.io/badge/Download_APK-v1.0.1--beta-0284C7?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
   </a>
   <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=duorhythm">
-    <img src="https://img.shields.io/badge/Orion_Store-Get_It_Here-7C3AED?style=for-the-badge&logo=googleplay&logoColor=white" alt="Get it on Orion Store" />
-  </a>
-  <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=duorhythm">
-    <img src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png" height="28" alt="Orion Store Badge" />
+    <img src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png" height="28" alt="Get it on Orion Store" />
   </a>
   <a href="https://github.com/MI-Musanna/DuoRhythm/issues">
     <img src="https://img.shields.io/badge/Issue_Tracker-Report_Bug-EA580C?style=for-the-badge&logo=github&logoColor=white" alt="Issue Tracker" />
@@ -94,27 +91,8 @@ An offline, zero-telemetry Android suite built for students and independent buil
 
 ---
 
-## 📜 Changelog
-
-### [v1.0.1-beta] - 2026-10-25
-- Re-enabled touch gesture swiping across dashboard tabs with synchronized bottom navigation callbacks.
-- Enforced unified OLED Dark Mode ecosystem to optimize battery life and ensure visual consistency across all modules.
-- Corrected official developer GitHub link (MI-Musanna).
-- Removed intermediate tab scroll animation during bottom bar navigation.
-- Enabled persistent ViewPager2 tab caching (offscreenPageLimit = 4) for zero-latency switching.
-- Integrated interactive release download buttons, Orion Store badges, and Issue Tracker quick links in documentation.
-- Fixed delayed notifications caused by Android Doze mode using setExactAndAllowWhileIdle.
-- Implemented smart lookahead logic for back-to-back classes to seamlessly preserve DND without unmuting.
-- Added unique request codes for pre-class, start, and end alarms to stop intent collision.
-- Decoupled user profile from the settings screen into a dedicated ProfileActivity.
-- Bound Home welcome avatar directly to the profile workstation.
-- Added dedicated workspace switcher icon in top header for instant 3-profile switching.
-- Cleaned Settings Hub by removing redundant profile accordions.
-- Unified onboarding feature showcase and added storage permission check.
-- Corrected developer links to Contact Hub and eliminated duplicate action buttons.
-- Integrated Circular Goal Progress Ring in Tasks module.
-- Added Monthly Inflow/Outflow Bar Chart to Wallet Ledger.
-- Bumped version to v1.0.1-beta.
+### 📜 Release Notes & Changelog
+Detailed version history and release notes are maintained in the [GitHub Releases](https://github.com/MI-Musanna/DuoRhythm/releases) tab.
 
 ---
 

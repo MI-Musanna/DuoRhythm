@@ -22,7 +22,6 @@ import com.duorhythm.app.automation.SmartAutomationManager
 import com.duorhythm.app.data.repository.BackupService
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.AppSettings
-import com.duorhythm.app.data.local.pref.ThemeManager
 import com.duorhythm.app.databinding.ActivitySettingsBinding
 import com.duorhythm.app.ui.wallet.CategoryManagementDialog
 import com.duorhythm.app.security.LifeSyncSecurityManager
@@ -81,7 +80,6 @@ class SettingsActivity : AppCompatActivity() {
             setupToolbar()
             setupAccordions()
             setupPreferencesSection()
-            setupThemeSelector()
             setupAutoBackup()
             setupListeners()
             syncSwitchStates()
@@ -100,7 +98,6 @@ class SettingsActivity : AppCompatActivity() {
         refreshCategoriesCountUI()
         refreshAutoTrackAttendanceUI()
         refreshShowRunningBalanceUI()
-        updateThemeSelectorUI(ThemeManager.getSavedThemeMode(this))
         syncSwitchStates()
         syncAutoBackupState()
         updateBackupUI()
@@ -134,9 +131,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupAccordions() {
-        binding.headerAccordionAppearance.setOnClickListener {
-            toggleAccordion(binding.bodyAccordionAppearance, binding.dividerAccordionAppearance, binding.ivChevronAppearance)
-        }
         binding.headerAccordionPreferences.setOnClickListener {
             toggleAccordion(binding.bodyAccordionPreferences, binding.dividerAccordionPreferences, binding.ivChevronPreferences)
         }
@@ -530,90 +524,5 @@ class SettingsActivity : AppCompatActivity() {
             val msg = if (isChecked) "Work Portal module enabled" else "Work Portal disabled (Student Mode only)"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun setupThemeSelector() {
-        val currentMode = ThemeManager.getSavedThemeMode(this)
-        updateThemeSelectorUI(currentMode)
-
-        binding.toggleThemeGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isHydratingUI || !isChecked) return@addOnButtonCheckedListener
-
-            val selectedMode = when (checkedId) {
-                R.id.btnThemeLight -> ThemeManager.THEME_LIGHT
-                R.id.btnThemeDark -> ThemeManager.THEME_DARK
-                R.id.btnThemeSystem -> ThemeManager.THEME_SYSTEM
-                else -> return@addOnButtonCheckedListener
-            }
-
-            if (selectedMode != ThemeManager.getSavedThemeMode(this)) {
-                ThemeManager.setThemeMode(this, selectedMode)
-            }
-        }
-
-        binding.btnThemeDialog.setOnClickListener {
-            showThemeSelectionDialog()
-        }
-
-        binding.cardThemeSettings.setOnClickListener {
-            showThemeSelectionDialog()
-        }
-    }
-
-    private fun updateThemeSelectorUI(themeMode: String) {
-        val checkedButtonId = when (themeMode) {
-            ThemeManager.THEME_LIGHT -> R.id.btnThemeLight
-            ThemeManager.THEME_DARK -> R.id.btnThemeDark
-            else -> R.id.btnThemeSystem
-        }
-
-        if (binding.toggleThemeGroup.checkedButtonId != checkedButtonId) {
-            binding.toggleThemeGroup.check(checkedButtonId)
-        }
-
-        when (themeMode) {
-            ThemeManager.THEME_LIGHT -> {
-                binding.tvCurrentThemeDetails.text =
-                    "Light Mode: Clean Slate White (#F8FAFC) & Surface (#FFFFFF) with high-contrast text (#0F172A)"
-            }
-            ThemeManager.THEME_DARK -> {
-                binding.tvCurrentThemeDetails.text =
-                    "Dark Mode: Obsidian Navy (#0A0E17 / #131B2E) with deep ambient glass"
-            }
-            else -> {
-                binding.tvCurrentThemeDetails.text =
-                    "System Default: Automatically matches OS Battery Saver and Day/Night settings"
-            }
-        }
-    }
-
-    private fun showThemeSelectionDialog() {
-        val options = arrayOf(
-            "System Default (Follow OS Battery/Day-Night setting)",
-            "Light Mode (Clean Slate White #F8FAFC / Surface #FFFFFF)",
-            "Dark Mode (Obsidian Navy #0A0E17 / #131B2E)"
-        )
-        val currentMode = ThemeManager.getSavedThemeMode(this)
-        val checkedIndex = when (currentMode) {
-            ThemeManager.THEME_LIGHT -> 1
-            ThemeManager.THEME_DARK -> 2
-            else -> 0
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Appearance & Theme")
-            .setSingleChoiceItems(options, checkedIndex) { dialog, which ->
-                val selectedMode = when (which) {
-                    1 -> ThemeManager.THEME_LIGHT
-                    2 -> ThemeManager.THEME_DARK
-                    else -> ThemeManager.THEME_SYSTEM
-                }
-                dialog.dismiss()
-                if (selectedMode != ThemeManager.getSavedThemeMode(this)) {
-                    ThemeManager.setThemeMode(this, selectedMode)
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 }
