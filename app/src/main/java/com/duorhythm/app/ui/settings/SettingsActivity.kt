@@ -389,7 +389,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.cardAboutGithub.setOnClickListener {
-            openExternalUrl("https://github.com/LittleEagle2007")
+            openExternalUrl("https://github.com/MI-Musanna")
         }
 
         binding.cardAboutTelegram.setOnClickListener {

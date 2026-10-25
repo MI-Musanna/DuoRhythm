@@ -207,7 +207,9 @@ class MainActivity : AppCompatActivity() {
     private fun setupViewPager() {
         pagerAdapter = MainPagerAdapter(this)
         binding.mainViewPager.adapter = pagerAdapter
-        binding.mainViewPager.offscreenPageLimit = 1
+        binding.mainViewPager.offscreenPageLimit = 4
+        binding.mainViewPager.isUserInputEnabled = false
+        binding.mainViewPager.setPageTransformer(null)
         binding.mainViewPager.setCurrentItem(MainPagerAdapter.INDEX_HOME, false)
 
         val recyclerView = binding.mainViewPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
@@ -384,7 +386,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (binding.mainViewPager.currentItem != targetPosition) {
-            binding.mainViewPager.setCurrentItem(targetPosition, true)
+            binding.mainViewPager.setCurrentItem(targetPosition, false)
         } else if (selectedPosition != targetPosition) {
             onTabPageSelected(targetPosition)
         }

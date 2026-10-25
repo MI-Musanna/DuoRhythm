@@ -1839,7 +1839,7 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="1dp"
-                                            android:text="github.com/LittleEagle2007"
+                                            android:text="github.com/MI-Musanna"
                                             android:textColor="#94A3B8"
                                             android:textSize="11sp" />
                                     </LinearLayout>

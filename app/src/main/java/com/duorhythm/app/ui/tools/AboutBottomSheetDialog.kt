@@ -26,7 +26,7 @@ class AboutBottomSheetDialog(context: Context) : BottomSheetDialog(context) {
         }
 
         binding.btnLinkGithub.setOnClickListener {
-            openUrl("https://github.com/LittleEagle2007")
+            openUrl("https://github.com/MI-Musanna")
         }
 
         binding.btnLinkTelegram.setOnClickListener {

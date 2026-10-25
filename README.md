@@ -12,7 +12,20 @@
 
 An offline, zero-telemetry Android suite built for students and independent builders who need strict capital accounting alongside coursework engineering.
 
-[**Download DuoRhythm APK**](https://github.com/MI-Musanna/DuoRhythm/releases/latest) • [**Issue Tracker**](https://github.com/MI-Musanna/DuoRhythm/issues)
+<p align="center">
+  <a href="https://github.com/MI-Musanna/DuoRhythm/releases/latest">
+    <img src="https://img.shields.io/badge/Download_APK-v1.0.1--beta-0284C7?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
+  </a>
+  <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=duorhythm">
+    <img src="https://img.shields.io/badge/Orion_Store-Get_It_Here-7C3AED?style=for-the-badge&logo=googleplay&logoColor=white" alt="Get it on Orion Store" />
+  </a>
+  <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=duorhythm">
+    <img src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png" height="28" alt="Orion Store Badge" />
+  </a>
+  <a href="https://github.com/MI-Musanna/DuoRhythm/issues">
+    <img src="https://img.shields.io/badge/Issue_Tracker-Report_Bug-EA580C?style=for-the-badge&logo=github&logoColor=white" alt="Issue Tracker" />
+  </a>
+</p>
 
 </div>
 
@@ -84,6 +97,10 @@ An offline, zero-telemetry Android suite built for students and independent buil
 ## 📜 Changelog
 
 ### [v1.0.1-beta] - 2026-10-25
+- Corrected official developer GitHub link (MI-Musanna).
+- Removed intermediate tab scroll animation during bottom bar navigation.
+- Enabled persistent ViewPager2 tab caching (offscreenPageLimit = 4) for zero-latency switching.
+- Integrated interactive release download buttons, Orion Store badges, and Issue Tracker quick links in documentation.
 - Fixed delayed notifications caused by Android Doze mode using setExactAndAllowWhileIdle.
 - Implemented smart lookahead logic for back-to-back classes to seamlessly preserve DND without unmuting.
 - Added unique request codes for pre-class, start, and end alarms to stop intent collision.
