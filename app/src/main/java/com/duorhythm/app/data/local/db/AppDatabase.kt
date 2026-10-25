@@ -5,17 +5,19 @@ import androidx.room.Database
 import database.dao.AttendanceDao
 import database.dao.CategoryDao
 import database.dao.HolidayDao
+import database.dao.ProfileDao
 import database.dao.TimetableDao
 import database.entities.AttendanceRecord
 import database.entities.CategoryEntity
 import database.entities.HolidayRecord
+import database.entities.ProfileEntity
 
 /**
  * AppDatabase entrypoint providing Room-compatible architecture interface
  * and safe fallback destructive migration capabilities for older local installs.
  */
 @Database(
-    entities = [AttendanceRecord::class, HolidayRecord::class, CategoryEntity::class],
+    entities = [AttendanceRecord::class, HolidayRecord::class, CategoryEntity::class, ProfileEntity::class],
     version = DatabaseHelper.DATABASE_VERSION,
     exportSchema = false
 )
@@ -26,11 +28,13 @@ class AppDatabase private constructor(context: Context) {
     fun timetableDao(): TimetableDao = dbHelper.timetableDao
     fun holidayDao(): HolidayDao = dbHelper.holidayDao
     fun categoryDao(): CategoryDao = dbHelper.categoryDao
+    fun profileDao(): ProfileDao = dbHelper.profileDao
 
     val attendanceDao: AttendanceDao get() = dbHelper.attendanceDao
     val timetableDao: TimetableDao get() = dbHelper.timetableDao
     val holidayDao: HolidayDao get() = dbHelper.holidayDao
     val categoryDao: CategoryDao get() = dbHelper.categoryDao
+    val profileDao: ProfileDao get() = dbHelper.profileDao
 
     companion object {
         const val DATABASE_NAME = DatabaseHelper.DATABASE_NAME
@@ -48,6 +52,7 @@ class AppDatabase private constructor(context: Context) {
         fun getTimetableDao(context: Context): TimetableDao = getInstance(context).timetableDao()
         fun getHolidayDao(context: Context): HolidayDao = getInstance(context).holidayDao()
         fun getCategoryDao(context: Context): CategoryDao = getInstance(context).categoryDao()
+        fun getProfileDao(context: Context): ProfileDao = getInstance(context).profileDao()
 
         /**
          * Verifies and configures fallback to destructive migration for database instances

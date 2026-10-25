@@ -64,12 +64,32 @@ An offline, zero-telemetry Android suite built for students and independent buil
 - **Zero Telemetry:** No analytics SDKs, no network pings, zero third-party data collection.
 - **Calibrated Dual Theme Engine:** Handcrafted Deep Obsidian Dark Mode (`#0A0E17` to `#131D2F`) alongside an adaptive, high-contrast Light Mode with crisp white surfaces and visible dialog typography.
 
+### 👤 3-Profile Workspace Isolation
+- **Multi-Identity Architecture:** Maintain up to 3 completely isolated workspace profiles (Slot 1, Slot 2, Slot 3) on the same device.
+- **Independent Databases:** Separate timetables, tasks, milestone goals, attendance records, wallets, and subscriptions for each profile.
+- **Secure Switching:** Password hash authentication (`SHA-256`) with "Remember this email on this profile" support and instant toolbar switching.
+
+### 🚀 First-Run Setup & In-App Updates
+- **5-Step Onboarding Wizard:** First-launch interactive setup covering feature highlights, permission grants, primary profile creation, and quick launch.
+- **GitHub Release Checker:** Built-in update detector querying official GitHub releases with full release notes display and direct APK download link.
+
+---
+
+## 📜 Changelog
+
+### [v1.0.1-beta] - 2026-10-25
+- **3-Profile System:** Added multi-slot profile isolation across tasks, goals, timetables, attendance, and wallets with password hash authentication.
+- **5-Step Onboarding Wizard:** Implemented interactive first-launch setup with permission manager and profile 1 initialization.
+- **GitHub Release Checker:** Integrated automated and manual update checking using GitHub REST API and OkHttp.
+- **Toolbar & Settings Integration:** Added quick profile switcher to main navigation header and dedicated workspace management in settings.
+- **Database & Architecture:** Upgraded SQLite/Room schema to Version 8 with seamless backward compatibility.
+
 ---
 
 ## 📥 Installation
 
 1. Grab the latest package from [Releases](https://github.com/MI-Musanna/DuoRhythm/releases/latest).
-2. Install `DuoRhythm-v1.0.0-beta.apk` on Android 8.0 (API 26) or higher.
+2. Install `DuoRhythm-v1.0.1-beta.apk` on Android 8.0 (API 26) or higher.
 3. Grant storage permissions for document attachment management if prompted.
 
 ---

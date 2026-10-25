@@ -6,6 +6,7 @@ import java.util.Locale
 
 data class CardItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val cardName: String,
     val bankName: String,
     val cardNumber: String, // e.g. "**** 4821"
@@ -17,6 +18,7 @@ data class CardItem(
 
 data class WalletBucketItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val name: String,
     val icon: String = "wallet",
     val colorHex: String = "#0284C7",
@@ -27,6 +29,7 @@ data class WalletBucketItem(
 
 data class SubscriptionItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val serviceName: String,
     val cost: Double,
     val currency: String = "BDT",
@@ -58,6 +61,7 @@ data class SubscriptionItem(
 
 data class TransactionItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val title: String,
     val amount: Double,
     val type: String, // "INCOME" or "EXPENSE"
@@ -78,6 +82,7 @@ typealias TransactionRecord = TransactionItem
 
 data class DueDebtItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val personName: String,
     val phoneOrContact: String = "",
     val amount: Double,
@@ -90,6 +95,7 @@ data class DueDebtItem(
 
 data class TaskItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val title: String,
     val description: String = "",
     val category: String = "General", // "Personal", "Work", "Study", "Shopping", "Goals"
@@ -105,6 +111,7 @@ typealias TasksEntity = TaskItem
 
 data class ClassScheduleItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val subjectName: String,
     val room: String = "",
     val teacher: String = "",
@@ -128,6 +135,7 @@ data class SubjectAttendanceItem(
 
 data class StudentSubject(
     val id: Long = 0,
+    val profileId: Long = 1,
     val name: String,
     val code: String = "",
     val colorHex: String = "#2563EB",
@@ -164,6 +172,7 @@ data class CategoryExpense(
 
 data class SubjectWorkItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val subjectId: Long,
     val itemType: String, // "HOMEWORK", "PRACTICAL", "EXAM", "ASSIGNMENT"
     val title: String,
@@ -206,6 +215,7 @@ data class WorkOrder(
 
 data class NoteItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val title: String,
     val content: String,
     val category: String = "General",

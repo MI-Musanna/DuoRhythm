@@ -87,6 +87,18 @@
                     android:src="@drawable/ic_bolt"
                     app:tint="@color/text_secondary" />
 
+                <!-- Profile Switcher Action Icon -->
+                <ImageButton
+                    android:id="@+id/btnQuickProfile"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_glass_squircle_action"
+                    android:contentDescription="Workspace Profiles"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_account_circle"
+                    app:tint="@color/text_secondary" />
+
                 <!-- Dedicated Settings Action Icon -->
                 <ImageButton
                     android:id="@+id/btnQuickSettings"

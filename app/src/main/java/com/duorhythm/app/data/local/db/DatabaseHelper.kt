@@ -17,7 +17,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     companion object {
         const val DATABASE_NAME = "lifesync.db"
-        const val DATABASE_VERSION = 7
+        const val DATABASE_VERSION = 8
 
         @Volatile
         private var instance: DatabaseHelper? = null
@@ -46,6 +46,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS cards (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 card_name TEXT NOT NULL,
                 bank_name TEXT NOT NULL,
                 card_number TEXT NOT NULL,
@@ -59,6 +60,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS transactions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 title TEXT NOT NULL,
                 amount REAL NOT NULL,
                 type TEXT NOT NULL,
@@ -74,6 +76,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS wallet_buckets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 name TEXT NOT NULL,
                 icon TEXT DEFAULT 'wallet',
                 color_hex TEXT DEFAULT '#0284C7',
@@ -86,6 +89,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS subscriptions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 service_name TEXT NOT NULL,
                 cost REAL NOT NULL,
                 currency TEXT DEFAULT 'BDT',
@@ -112,6 +116,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 title TEXT NOT NULL,
                 description TEXT DEFAULT '',
                 category TEXT DEFAULT 'General',
@@ -136,6 +141,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS classes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 subject_name TEXT NOT NULL,
                 room TEXT DEFAULT '',
                 teacher TEXT DEFAULT '',
@@ -160,6 +166,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS attendance_records (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 subjectName TEXT NOT NULL,
                 date TEXT NOT NULL,
                 dayOfWeek TEXT NOT NULL,
@@ -171,6 +178,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS holiday_records (
                 date TEXT PRIMARY KEY NOT NULL,
+                profile_id INTEGER DEFAULT 1,
                 title TEXT NOT NULL DEFAULT 'Holiday'
             )"""
         )
@@ -178,6 +186,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS student_subjects (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 name TEXT NOT NULL,
                 code TEXT DEFAULT '',
                 color_hex TEXT DEFAULT '#2563EB',
@@ -206,6 +215,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS subject_work_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 subject_id INTEGER NOT NULL,
                 item_type TEXT NOT NULL,
                 title TEXT NOT NULL,
@@ -238,6 +248,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS notes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
                 category TEXT DEFAULT 'General',
@@ -263,6 +274,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS dues_debts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 person_name TEXT NOT NULL,
                 phone_or_contact TEXT DEFAULT '',
                 amount REAL NOT NULL,
@@ -274,6 +286,21 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             )"""
         )
 
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS profiles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                slotNumber INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                passwordHash TEXT NOT NULL,
+                institution TEXT DEFAULT '',
+                department TEXT DEFAULT '',
+                semester TEXT DEFAULT '',
+                avatarUri TEXT,
+                rememberEmail INTEGER DEFAULT 0
+            )"""
+        )
+
         seedInitialData(db)
     }
 
@@ -282,7 +309,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             "cards", "transactions", "currency_rates", "tasks", "task_categories",
             "transaction_categories", "classes", "attendance", "attendance_records", "holiday_records", "student_subjects",
             "subject_materials", "subject_work_items", "work_orders", "notes",
-            "contacts_groups", "wallet_buckets", "subscriptions", "dues_debts", "app_settings"
+            "contacts_groups", "wallet_buckets", "subscriptions", "dues_debts", "app_settings", "profiles"
         )
         for (table in tables) {
             try {
@@ -335,6 +362,35 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         )
                     } catch (_: Exception) {}
                 }
+                if (oldVersion < 8) {
+                    try {
+                        db.execSQL(
+                            """CREATE TABLE IF NOT EXISTS profiles (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                slotNumber INTEGER NOT NULL,
+                                name TEXT NOT NULL,
+                                email TEXT NOT NULL,
+                                passwordHash TEXT NOT NULL,
+                                institution TEXT DEFAULT '',
+                                department TEXT DEFAULT '',
+                                semester TEXT DEFAULT '',
+                                avatarUri TEXT,
+                                rememberEmail INTEGER DEFAULT 0
+                            )"""
+                        )
+                    } catch (_: Exception) {}
+
+                    val tablesToAddProfileId = listOf(
+                        "cards", "transactions", "wallet_buckets", "subscriptions",
+                        "tasks", "classes", "attendance_records", "holiday_records",
+                        "student_subjects", "subject_work_items", "notes", "dues_debts"
+                    )
+                    for (table in tablesToAddProfileId) {
+                        try {
+                            db.execSQL("ALTER TABLE $table ADD COLUMN profile_id INTEGER DEFAULT 1")
+                        } catch (_: Exception) {}
+                    }
+                }
                 ensureDefaultCurrencies(db)
             }
         } catch (e: Exception) {
@@ -384,6 +440,31 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 )"""
             )
         } catch (_: Exception) {}
+        try {
+            db.execSQL(
+                """CREATE TABLE IF NOT EXISTS profiles (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    slotNumber INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    passwordHash TEXT NOT NULL,
+                    institution TEXT DEFAULT '',
+                    department TEXT DEFAULT '',
+                    semester TEXT DEFAULT '',
+                    avatarUri TEXT,
+                    rememberEmail INTEGER DEFAULT 0
+                )"""
+            )
+        } catch (_: Exception) {}
+
+        val tablesToAddProfileId = listOf(
+            "cards", "transactions", "wallet_buckets", "subscriptions",
+            "tasks", "classes", "attendance_records", "holiday_records",
+            "student_subjects", "subject_work_items", "notes", "dues_debts"
+        )
+        for (table in tablesToAddProfileId) {
+            ensureColumnExists(db, table, "profile_id", "INTEGER DEFAULT 1")
+        }
 
         // One-time fallback wipe to ensure 100% clean zero state
         val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
@@ -905,15 +986,18 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // CARDS & WALLET CRUD
     // ==========================================
-    fun getAllCards(): List<CardItem> {
+    fun getAllCards(profileId: Long = getActiveProfileId()): List<CardItem> {
         val list = mutableListOf<CardItem>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM cards ORDER BY id ASC", null)
+        val cursor = db.rawQuery("SELECT * FROM cards WHERE profile_id = ? ORDER BY id ASC", arrayOf(profileId.toString()))
         cursor.use {
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     CardItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         cardName = it.getString(it.getColumnIndexOrThrow("card_name")) ?: "",
                         bankName = it.getString(it.getColumnIndexOrThrow("bank_name")) ?: "",
                         cardNumber = it.getString(it.getColumnIndexOrThrow("card_number")) ?: "",
@@ -930,7 +1014,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertCard(card: CardItem): Long {
         val db = writableDatabase
+        val pId = if (card.profileId > 0) card.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("card_name", card.cardName)
             put("bank_name", card.bankName)
             put("card_number", card.cardNumber)
@@ -958,11 +1044,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // TRANSACTIONS CRUD
     // ==========================================
-    fun getAllTransactions(typeFilter: String? = null, cardIdFilter: Long? = null, bucketIdFilter: Long? = null): List<TransactionItem> {
+    fun getAllTransactions(typeFilter: String? = null, cardIdFilter: Long? = null, bucketIdFilter: Long? = null, profileId: Long = getActiveProfileId()): List<TransactionItem> {
         val list = mutableListOf<TransactionItem>()
         val db = readableDatabase
         val clauses = mutableListOf<String>()
         val args = mutableListOf<String>()
+
+        clauses.add("profile_id = ?")
+        args.add(profileId.toString())
 
         if (!typeFilter.isNullOrEmpty() && typeFilter != "ALL") {
             clauses.add("type = ?")
@@ -981,11 +1070,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val cursor = db.rawQuery("SELECT * FROM transactions $where ORDER BY date DESC, id DESC", args.toTypedArray())
         cursor.use {
             val bIdCol = it.getColumnIndex("bucket_id")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
                 val bId = if (bIdCol >= 0) it.getLong(bIdCol) else 0L
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     TransactionItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
                         amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
                         type = it.getString(it.getColumnIndexOrThrow("type")) ?: "EXPENSE",
@@ -1004,7 +1096,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertTransaction(tx: TransactionItem): Long {
         val db = writableDatabase
+        val pId = if (tx.profileId > 0) tx.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("title", tx.title)
             put("amount", tx.amount)
             put("type", tx.type)
@@ -1252,15 +1346,18 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // WALLET BUCKETS CRUD
     // ==========================================
-    fun getAllWalletBuckets(): List<WalletBucketItem> {
+    fun getAllWalletBuckets(profileId: Long = getActiveProfileId()): List<WalletBucketItem> {
         val list = mutableListOf<WalletBucketItem>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM wallet_buckets ORDER BY id ASC", null)
+        val cursor = db.rawQuery("SELECT * FROM wallet_buckets WHERE profile_id = ? ORDER BY id ASC", arrayOf(profileId.toString()))
         cursor.use {
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     WalletBucketItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
                         icon = it.getString(it.getColumnIndexOrThrow("icon")) ?: "wallet",
                         colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#0284C7",
@@ -1279,8 +1376,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val cursor = db.rawQuery("SELECT * FROM wallet_buckets WHERE id = ?", arrayOf(id.toString()))
         cursor.use {
             if (it.moveToFirst()) {
+                val pIdCol = it.getColumnIndex("profile_id")
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 return WalletBucketItem(
                     id = it.getLong(it.getColumnIndexOrThrow("id")),
+                    profileId = pId,
                     name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
                     icon = it.getString(it.getColumnIndexOrThrow("icon")) ?: "wallet",
                     colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#0284C7",
@@ -1295,12 +1395,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertWalletBucket(bucket: WalletBucketItem): Long {
         val db = writableDatabase
-        val countCursor = db.rawQuery("SELECT COUNT(*) FROM wallet_buckets", null)
+        val pId = if (bucket.profileId > 0) bucket.profileId else getActiveProfileId()
+        val countCursor = db.rawQuery("SELECT COUNT(*) FROM wallet_buckets WHERE profile_id = ?", arrayOf(pId.toString()))
         var count = 0
         countCursor.use { if (it.moveToFirst()) count = it.getInt(0) }
         if (count >= 5) return -1L
 
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("name", bucket.name)
             put("icon", bucket.icon)
             put("color_hex", bucket.colorHex)
@@ -1357,9 +1459,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
     }
 
-    fun getTotalBucketBalance(): Double {
+    fun getTotalBucketBalance(profileId: Long = getActiveProfileId()): Double {
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT SUM(balance) FROM wallet_buckets", null)
+        val cursor = db.rawQuery("SELECT SUM(balance) FROM wallet_buckets WHERE profile_id = ?", arrayOf(profileId.toString()))
         cursor.use {
             if (it.moveToFirst() && !it.isNull(0)) return it.getDouble(0)
         }
@@ -1442,14 +1544,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // RECURRING SUBSCRIPTIONS CRUD
     // ==========================================
-    fun getAllSubscriptions(): List<SubscriptionItem> {
+    fun getAllSubscriptions(profileId: Long = getActiveProfileId()): List<SubscriptionItem> {
         val list = mutableListOf<SubscriptionItem>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM subscriptions ORDER BY renewal_date ASC, id ASC", null)
+        val cursor = db.rawQuery("SELECT * FROM subscriptions WHERE profile_id = ? ORDER BY renewal_date ASC, id ASC", arrayOf(profileId.toString()))
         cursor.use {
             val autoLogIdx = it.getColumnIndex("auto_log")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
                 val autoLog = if (autoLogIdx >= 0) it.getInt(autoLogIdx) == 1 else true
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     SubscriptionItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
@@ -1463,7 +1567,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         category = it.getString(it.getColumnIndexOrThrow("category")) ?: "Entertainment",
                         icon = it.getString(it.getColumnIndexOrThrow("icon")) ?: "subscription",
                         isActive = it.getInt(it.getColumnIndexOrThrow("is_active")) == 1,
-                        autoLog = autoLog
+                        autoLog = autoLog,
+                        profileId = pId
                     )
                 )
             }
@@ -1473,6 +1578,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertSubscription(sub: SubscriptionItem): Long {
         val db = writableDatabase
+        val pId = if (sub.profileId > 0) sub.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
             put("service_name", sub.serviceName)
             put("cost", sub.cost)
@@ -1485,6 +1591,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("icon", sub.icon)
             put("is_active", if (sub.isActive) 1 else 0)
             put("auto_log", if (sub.autoLog) 1 else 0)
+            put("profile_id", pId)
         }
         return db.insertWithOnConflict("subscriptions", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
@@ -1528,28 +1635,28 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
     }
 
-    fun getTotalIncome(monthPrefix: String? = null): Double {
+    fun getTotalIncome(monthPrefix: String? = null, profileId: Long = getActiveProfileId()): Double {
         val db = readableDatabase
         val query = if (!monthPrefix.isNullOrEmpty()) {
-            "SELECT SUM(amount) FROM transactions WHERE type = 'INCOME' AND date LIKE ?"
+            "SELECT SUM(amount) FROM transactions WHERE type = 'INCOME' AND date LIKE ? AND profile_id = ?"
         } else {
-            "SELECT SUM(amount) FROM transactions WHERE type = 'INCOME'"
+            "SELECT SUM(amount) FROM transactions WHERE type = 'INCOME' AND profile_id = ?"
         }
-        val args = if (!monthPrefix.isNullOrEmpty()) arrayOf("$monthPrefix%") else null
+        val args = if (!monthPrefix.isNullOrEmpty()) arrayOf("$monthPrefix%", profileId.toString()) else arrayOf(profileId.toString())
         val c = db.rawQuery(query, args)
         c.use {
             return if (it.moveToFirst() && !it.isNull(0)) it.getDouble(0) else 0.0
         }
     }
 
-    fun getTotalExpenses(monthPrefix: String? = null): Double {
+    fun getTotalExpenses(monthPrefix: String? = null, profileId: Long = getActiveProfileId()): Double {
         val db = readableDatabase
         val query = if (!monthPrefix.isNullOrEmpty()) {
-            "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND date LIKE ?"
+            "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND date LIKE ? AND profile_id = ?"
         } else {
-            "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE'"
+            "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND profile_id = ?"
         }
-        val args = if (!monthPrefix.isNullOrEmpty()) arrayOf("$monthPrefix%") else null
+        val args = if (!monthPrefix.isNullOrEmpty()) arrayOf("$monthPrefix%", profileId.toString()) else arrayOf(profileId.toString())
         val c = db.rawQuery(query, args)
         c.use {
             return if (it.moveToFirst() && !it.isNull(0)) it.getDouble(0) else 0.0
@@ -1618,7 +1725,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // TASKS (TickTick style)
     // ==========================================
-    fun getAllTasks(filter: String = "ALL", isGoal: Boolean? = null): List<TaskItem> {
+    fun getAllTasks(filter: String = "ALL", isGoal: Boolean? = null, profileId: Long = getActiveProfileId()): List<TaskItem> {
         val list = mutableListOf<TaskItem>()
         val db = readableDatabase
         val goalClause = when (isGoal) {
@@ -1626,24 +1733,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             false -> " AND is_goal = 0"
             null -> ""
         }
-        val goalWhereOnly = when (isGoal) {
-            true -> " WHERE is_goal = 1"
-            false -> " WHERE is_goal = 0"
-            null -> ""
-        }
         val (query, args) = when (filter) {
             "TODAY" -> {
                 val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                Pair("SELECT * FROM tasks WHERE due_date = '$today' AND is_completed = 0$goalClause ORDER BY priority DESC, id DESC", null)
+                Pair("SELECT * FROM tasks WHERE due_date = '$today' AND is_completed = 0 AND profile_id = ?$goalClause ORDER BY priority DESC, id DESC", arrayOf(profileId.toString()))
             }
-            "COMPLETED" -> Pair("SELECT * FROM tasks WHERE is_completed = 1$goalClause ORDER BY id DESC", null)
-            "GOALS" -> Pair("SELECT * FROM tasks WHERE is_goal = 1 ORDER BY id DESC", null)
-            "HIGH" -> Pair("SELECT * FROM tasks WHERE priority = 'HIGH' AND is_completed = 0$goalClause ORDER BY id DESC", null)
-            "ALL" -> Pair("SELECT * FROM tasks$goalWhereOnly ORDER BY is_completed ASC, priority DESC, id DESC", null)
-            else -> Pair("SELECT * FROM tasks WHERE category = ?$goalClause ORDER BY is_completed ASC, priority DESC, id DESC", arrayOf(filter))
+            "COMPLETED" -> Pair("SELECT * FROM tasks WHERE is_completed = 1 AND profile_id = ?$goalClause ORDER BY id DESC", arrayOf(profileId.toString()))
+            "GOALS" -> Pair("SELECT * FROM tasks WHERE is_goal = 1 AND profile_id = ? ORDER BY id DESC", arrayOf(profileId.toString()))
+            "HIGH" -> Pair("SELECT * FROM tasks WHERE priority = 'HIGH' AND is_completed = 0 AND profile_id = ?$goalClause ORDER BY id DESC", arrayOf(profileId.toString()))
+            "ALL" -> Pair("SELECT * FROM tasks WHERE profile_id = ?$goalClause ORDER BY is_completed ASC, priority DESC, id DESC", arrayOf(profileId.toString()))
+            else -> Pair("SELECT * FROM tasks WHERE category = ? AND profile_id = ?$goalClause ORDER BY is_completed ASC, priority DESC, id DESC", arrayOf(filter, profileId.toString()))
         }
         val cursor = db.rawQuery(query, args)
         cursor.use {
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
                 val dueCol = it.getColumnIndex("due_date")
                 val rawDue = if (dueCol >= 0 && !it.isNull(dueCol)) it.getString(dueCol) else null
@@ -1652,10 +1755,12 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 val startCol = it.getColumnIndex("start_date")
                 val rawStart = if (startCol >= 0 && !it.isNull(startCol)) it.getString(startCol) else null
                 val startDate = if (rawStart.isNullOrBlank()) null else rawStart
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
 
                 list.add(
                     TaskItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
                         description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
                         category = it.getString(it.getColumnIndexOrThrow("category")) ?: "General",
@@ -1674,7 +1779,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertTask(task: TaskItem): Long {
         val db = writableDatabase
+        val pId = if (task.profileId > 0) task.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("title", task.title)
             put("description", task.description)
             put("category", task.category)
@@ -1748,20 +1855,23 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // SCHEDULE & ATTENDANCE
     // ==========================================
-    fun getScheduleForDay(dayOfWeek: Int): List<ClassScheduleItem> {
+    fun getScheduleForDay(dayOfWeek: Int, profileId: Long = getActiveProfileId()): List<ClassScheduleItem> {
         val list = mutableListOf<ClassScheduleItem>()
         val db = readableDatabase
         val cursor = db.rawQuery(
-            "SELECT * FROM classes WHERE day_of_week = ? ORDER BY start_time ASC",
-            arrayOf(dayOfWeek.toString())
+            "SELECT * FROM classes WHERE day_of_week = ? AND profile_id = ? ORDER BY start_time ASC",
+            arrayOf(dayOfWeek.toString(), profileId.toString())
         )
         cursor.use {
             val classTypeIdx = it.getColumnIndex("class_type")
             val buildingIdx = it.getColumnIndex("building_or_link")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     ClassScheduleItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")) ?: "",
                         room = it.getString(it.getColumnIndexOrThrow("room")) ?: "",
                         teacher = it.getString(it.getColumnIndexOrThrow("teacher")) ?: "",
@@ -1778,17 +1888,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
-    fun getAllClasses(): List<ClassScheduleItem> {
+    fun getAllClasses(profileId: Long = getActiveProfileId()): List<ClassScheduleItem> {
         val list = mutableListOf<ClassScheduleItem>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM classes ORDER BY day_of_week ASC, start_time ASC", null)
+        val cursor = db.rawQuery("SELECT * FROM classes WHERE profile_id = ? ORDER BY day_of_week ASC, start_time ASC", arrayOf(profileId.toString()))
         cursor.use {
             val classTypeIdx = it.getColumnIndex("class_type")
             val buildingIdx = it.getColumnIndex("building_or_link")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     ClassScheduleItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")) ?: "",
                         room = it.getString(it.getColumnIndexOrThrow("room")) ?: "",
                         teacher = it.getString(it.getColumnIndexOrThrow("teacher")) ?: "",
@@ -1807,7 +1920,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertClassSchedule(item: ClassScheduleItem): Long {
         val db = writableDatabase
+        val pId = if (item.profileId > 0) item.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("subject_name", item.subjectName)
             put("room", item.room)
             put("teacher", item.teacher)
@@ -1914,7 +2029,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun recordAttendance(record: database.entities.AttendanceRecord) {
         val db = writableDatabase
+        val pId = if (record.profileId > 0) record.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("subjectName", record.subjectName)
             put("date", record.date)
             put("dayOfWeek", record.dayOfWeek)
@@ -1924,21 +2041,24 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         attendanceRecordFlowTrigger.tryEmit(Unit)
     }
 
-    fun deleteAttendanceRecord(subjectName: String, date: String) {
+    fun deleteAttendanceRecord(subjectName: String, date: String, profileId: Long = getActiveProfileId()) {
         val db = writableDatabase
-        db.delete("attendance_records", "subjectName = ? AND date = ?", arrayOf(subjectName, date))
+        db.delete("attendance_records", "subjectName = ? AND date = ? AND profile_id = ?", arrayOf(subjectName, date, profileId.toString()))
         attendanceRecordFlowTrigger.tryEmit(Unit)
     }
 
-    fun getAttendanceRecordsByDate(date: String): List<database.entities.AttendanceRecord> {
+    fun getAttendanceRecordsByDate(date: String, profileId: Long = getActiveProfileId()): List<database.entities.AttendanceRecord> {
         val list = mutableListOf<database.entities.AttendanceRecord>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM attendance_records WHERE date = ?", arrayOf(date))
+        val cursor = db.rawQuery("SELECT * FROM attendance_records WHERE date = ? AND profile_id = ?", arrayOf(date, profileId.toString()))
         cursor.use {
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     database.entities.AttendanceRecord(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         subjectName = it.getString(it.getColumnIndexOrThrow("subjectName")),
                         date = it.getString(it.getColumnIndexOrThrow("date")),
                         dayOfWeek = it.getString(it.getColumnIndexOrThrow("dayOfWeek")),
@@ -1950,33 +2070,45 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
-    fun getAttendanceRecordsFlow(date: String): kotlinx.coroutines.flow.Flow<List<database.entities.AttendanceRecord>> = kotlinx.coroutines.flow.flow {
-        emit(getAttendanceRecordsByDate(date))
+    fun getAttendanceRecordsFlow(date: String, profileId: Long = getActiveProfileId()): kotlinx.coroutines.flow.Flow<List<database.entities.AttendanceRecord>> = kotlinx.coroutines.flow.flow {
+        emit(getAttendanceRecordsByDate(date, profileId))
         attendanceRecordFlowTrigger.collect {
-            emit(getAttendanceRecordsByDate(date))
+            emit(getAttendanceRecordsByDate(date, profileId))
         }
     }
 
     val attendanceDao: database.dao.AttendanceDao by lazy {
         object : database.dao.AttendanceDao {
+            override fun getRecordsByDate(date: String, currentProfileId: Long): kotlinx.coroutines.flow.Flow<List<database.entities.AttendanceRecord>> {
+                return getAttendanceRecordsFlow(date, currentProfileId)
+            }
+
             override fun getRecordsByDate(date: String): kotlinx.coroutines.flow.Flow<List<database.entities.AttendanceRecord>> {
-                return getAttendanceRecordsFlow(date)
+                return getAttendanceRecordsFlow(date, getActiveProfileId())
             }
 
             override suspend fun recordAttendance(record: database.entities.AttendanceRecord) {
                 this@DatabaseHelper.recordAttendance(record)
             }
 
+            override suspend fun deleteRecord(subjectName: String, date: String, currentProfileId: Long) {
+                this@DatabaseHelper.deleteAttendanceRecord(subjectName, date, currentProfileId)
+            }
+
             override suspend fun deleteRecord(subjectName: String, date: String) {
-                this@DatabaseHelper.deleteAttendanceRecord(subjectName, date)
+                this@DatabaseHelper.deleteAttendanceRecord(subjectName, date, getActiveProfileId())
             }
         }
     }
 
     val timetableDao: database.dao.TimetableDao by lazy {
         object : database.dao.TimetableDao {
+            override fun getClassesForDay(dayOfWeek: Int, currentProfileId: Long): List<ClassScheduleItem> {
+                return this@DatabaseHelper.getScheduleForDay(dayOfWeek, currentProfileId)
+            }
+
             override fun getClassesForDay(dayOfWeek: Int): List<ClassScheduleItem> {
-                return this@DatabaseHelper.getScheduleForDay(dayOfWeek)
+                return this@DatabaseHelper.getScheduleForDay(dayOfWeek, getActiveProfileId())
             }
 
             override fun getClassesForDay(dayOfWeekName: String): List<ClassScheduleItem> {
@@ -1984,7 +2116,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
 
             override fun getScheduleForDay(dayOfWeek: Int): List<ClassScheduleItem> {
-                return this@DatabaseHelper.getScheduleForDay(dayOfWeek)
+                return this@DatabaseHelper.getScheduleForDay(dayOfWeek, getActiveProfileId())
             }
 
             override fun getScheduleForDay(dayOfWeekName: String): List<ClassScheduleItem> {
@@ -1998,50 +2130,55 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     "sunday", "sun" -> 7
                     else -> 1
                 }
-                return this@DatabaseHelper.getScheduleForDay(dbDay)
+                return this@DatabaseHelper.getScheduleForDay(dbDay, getActiveProfileId())
             }
         }
     }
 
     private val holidayFlowTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
 
-    fun isHoliday(date: String): Boolean {
+    fun isHoliday(date: String, profileId: Long = getActiveProfileId()): Boolean {
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT 1 FROM holiday_records WHERE date = ? LIMIT 1", arrayOf(date))
+        val cursor = db.rawQuery("SELECT 1 FROM holiday_records WHERE date = ? AND profile_id = ? LIMIT 1", arrayOf(date, profileId.toString()))
         return cursor.use { it.moveToFirst() }
     }
 
-    fun setHoliday(date: String, title: String = "Holiday") {
+    fun setHoliday(date: String, title: String = "Holiday", profileId: Long = getActiveProfileId()) {
         val db = writableDatabase
         val cv = ContentValues().apply {
             put("date", date)
             put("title", title)
+            put("profile_id", profileId)
         }
         db.insertWithOnConflict("holiday_records", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
         holidayFlowTrigger.tryEmit(Unit)
     }
 
-    fun removeHoliday(date: String) {
+    fun removeHoliday(date: String, profileId: Long = getActiveProfileId()) {
         val db = writableDatabase
-        db.delete("holiday_records", "date = ?", arrayOf(date))
+        db.delete("holiday_records", "date = ? AND profile_id = ?", arrayOf(date, profileId.toString()))
         holidayFlowTrigger.tryEmit(Unit)
     }
 
-    fun isHolidayFlow(date: String): kotlinx.coroutines.flow.Flow<Boolean> = kotlinx.coroutines.flow.flow {
-        emit(isHoliday(date))
+    fun isHolidayFlow(date: String, profileId: Long = getActiveProfileId()): kotlinx.coroutines.flow.Flow<Boolean> = kotlinx.coroutines.flow.flow {
+        emit(isHoliday(date, profileId))
         holidayFlowTrigger.collect {
-            emit(isHoliday(date))
+            emit(isHoliday(date, profileId))
         }
     }
 
     val holidayDao: database.dao.HolidayDao by lazy {
         object : database.dao.HolidayDao {
+            override fun isHoliday(date: String, currentProfileId: Long): kotlinx.coroutines.flow.Flow<Boolean> {
+                return isHolidayFlow(date, currentProfileId)
+            }
+
             override fun isHoliday(date: String): kotlinx.coroutines.flow.Flow<Boolean> {
-                return isHolidayFlow(date)
+                return isHolidayFlow(date, getActiveProfileId())
             }
 
             override suspend fun insertHoliday(record: database.entities.HolidayRecord) {
-                this@DatabaseHelper.setHoliday(record.date, record.title)
+                this@DatabaseHelper.setHoliday(record.date, record.title, record.profileId)
             }
 
             override suspend fun setHoliday(date: String) {
@@ -2049,11 +2186,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
 
             override suspend fun setHoliday(record: database.entities.HolidayRecord) {
-                this@DatabaseHelper.setHoliday(record.date, record.title)
+                this@DatabaseHelper.setHoliday(record.date, record.title, record.profileId)
+            }
+
+            override suspend fun removeHoliday(date: String, currentProfileId: Long) {
+                this@DatabaseHelper.removeHoliday(date, currentProfileId)
             }
 
             override suspend fun removeHoliday(date: String) {
-                this@DatabaseHelper.removeHoliday(date)
+                this@DatabaseHelper.removeHoliday(date, getActiveProfileId())
             }
         }
     }
@@ -2082,13 +2223,211 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
     }
 
+    fun getActiveProfileId(): Long {
+        return com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(appContext)
+    }
+
+    fun ensureDefaultProfileIfEmpty() {
+        if (getProfileCount() == 0) {
+            val userName = com.duorhythm.app.data.local.pref.UserProfileManager.getUserName(appContext, "Scholar")
+            val institution = com.duorhythm.app.data.local.pref.UserProfileManager.getInstitutionName(appContext)
+            val faculty = com.duorhythm.app.data.local.pref.UserProfileManager.getAcademicFaculty(appContext)
+            val avatar = com.duorhythm.app.data.local.pref.UserProfileManager.getAvatarUri(appContext)
+            val profile = database.entities.ProfileEntity(
+                slotNumber = 1,
+                name = userName.ifBlank { "Scholar" },
+                email = "student@duorhythm.app",
+                passwordHash = com.duorhythm.app.data.local.pref.ProfileManager.hashPassword("1234"),
+                institution = institution,
+                department = faculty,
+                semester = "1st",
+                avatarUri = avatar.ifBlank { null },
+                rememberEmail = true
+            )
+            val id = insertProfile(profile)
+            if (id > 0) {
+                com.duorhythm.app.data.local.pref.ProfileManager.setActiveProfileId(appContext, id)
+            }
+        }
+    }
+
+    fun getAllProfiles(): List<database.entities.ProfileEntity> {
+        val list = mutableListOf<database.entities.ProfileEntity>()
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM profiles ORDER BY slotNumber ASC", null)
+        cursor.use {
+            val idIdx = it.getColumnIndex("id")
+            val slotIdx = it.getColumnIndex("slotNumber")
+            val nameIdx = it.getColumnIndex("name")
+            val emailIdx = it.getColumnIndex("email")
+            val passIdx = it.getColumnIndex("passwordHash")
+            val instIdx = it.getColumnIndex("institution")
+            val deptIdx = it.getColumnIndex("department")
+            val semIdx = it.getColumnIndex("semester")
+            val avIdx = it.getColumnIndex("avatarUri")
+            val remIdx = it.getColumnIndex("rememberEmail")
+            while (it.moveToNext()) {
+                list.add(
+                    database.entities.ProfileEntity(
+                        id = if (idIdx >= 0) it.getLong(idIdx) else 0L,
+                        slotNumber = if (slotIdx >= 0) it.getInt(slotIdx) else 1,
+                        name = if (nameIdx >= 0) it.getString(nameIdx) ?: "" else "",
+                        email = if (emailIdx >= 0) it.getString(emailIdx) ?: "" else "",
+                        passwordHash = if (passIdx >= 0) it.getString(passIdx) ?: "" else "",
+                        institution = if (instIdx >= 0) it.getString(instIdx) ?: "" else "",
+                        department = if (deptIdx >= 0) it.getString(deptIdx) ?: "" else "",
+                        semester = if (semIdx >= 0) it.getString(semIdx) ?: "" else "",
+                        avatarUri = if (avIdx >= 0) it.getString(avIdx) else null,
+                        rememberEmail = if (remIdx >= 0) it.getInt(remIdx) == 1 else false
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun getProfileById(id: Long): database.entities.ProfileEntity? {
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM profiles WHERE id = ? LIMIT 1", arrayOf(id.toString()))
+        cursor.use {
+            if (it.moveToNext()) {
+                val idIdx = it.getColumnIndex("id")
+                val slotIdx = it.getColumnIndex("slotNumber")
+                val nameIdx = it.getColumnIndex("name")
+                val emailIdx = it.getColumnIndex("email")
+                val passIdx = it.getColumnIndex("passwordHash")
+                val instIdx = it.getColumnIndex("institution")
+                val deptIdx = it.getColumnIndex("department")
+                val semIdx = it.getColumnIndex("semester")
+                val avIdx = it.getColumnIndex("avatarUri")
+                val remIdx = it.getColumnIndex("rememberEmail")
+                return database.entities.ProfileEntity(
+                    id = if (idIdx >= 0) it.getLong(idIdx) else id,
+                    slotNumber = if (slotIdx >= 0) it.getInt(slotIdx) else 1,
+                    name = if (nameIdx >= 0) it.getString(nameIdx) ?: "" else "",
+                    email = if (emailIdx >= 0) it.getString(emailIdx) ?: "" else "",
+                    passwordHash = if (passIdx >= 0) it.getString(passIdx) ?: "" else "",
+                    institution = if (instIdx >= 0) it.getString(instIdx) ?: "" else "",
+                    department = if (deptIdx >= 0) it.getString(deptIdx) ?: "" else "",
+                    semester = if (semIdx >= 0) it.getString(semIdx) ?: "" else "",
+                    avatarUri = if (avIdx >= 0) it.getString(avIdx) else null,
+                    rememberEmail = if (remIdx >= 0) it.getInt(remIdx) == 1 else false
+                )
+            }
+        }
+        return null
+    }
+
+    fun getProfileBySlot(slotNumber: Int): database.entities.ProfileEntity? {
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM profiles WHERE slotNumber = ? LIMIT 1", arrayOf(slotNumber.toString()))
+        cursor.use {
+            if (it.moveToNext()) {
+                val idIdx = it.getColumnIndex("id")
+                val slotIdx = it.getColumnIndex("slotNumber")
+                val nameIdx = it.getColumnIndex("name")
+                val emailIdx = it.getColumnIndex("email")
+                val passIdx = it.getColumnIndex("passwordHash")
+                val instIdx = it.getColumnIndex("institution")
+                val deptIdx = it.getColumnIndex("department")
+                val semIdx = it.getColumnIndex("semester")
+                val avIdx = it.getColumnIndex("avatarUri")
+                val remIdx = it.getColumnIndex("rememberEmail")
+                return database.entities.ProfileEntity(
+                    id = if (idIdx >= 0) it.getLong(idIdx) else 0L,
+                    slotNumber = if (slotIdx >= 0) it.getInt(slotIdx) else slotNumber,
+                    name = if (nameIdx >= 0) it.getString(nameIdx) ?: "" else "",
+                    email = if (emailIdx >= 0) it.getString(emailIdx) ?: "" else "",
+                    passwordHash = if (passIdx >= 0) it.getString(passIdx) ?: "" else "",
+                    institution = if (instIdx >= 0) it.getString(instIdx) ?: "" else "",
+                    department = if (deptIdx >= 0) it.getString(deptIdx) ?: "" else "",
+                    semester = if (semIdx >= 0) it.getString(semIdx) ?: "" else "",
+                    avatarUri = if (avIdx >= 0) it.getString(avIdx) else null,
+                    rememberEmail = if (remIdx >= 0) it.getInt(remIdx) == 1 else false
+                )
+            }
+        }
+        return null
+    }
+
+    fun getProfileCount(): Int {
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT COUNT(*) FROM profiles", null)
+        cursor.use {
+            if (it.moveToNext()) {
+                return it.getInt(0)
+            }
+        }
+        return 0
+    }
+
+    fun insertProfile(profile: database.entities.ProfileEntity): Long {
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("slotNumber", profile.slotNumber)
+            put("name", profile.name)
+            put("email", profile.email)
+            put("passwordHash", profile.passwordHash)
+            put("institution", profile.institution)
+            put("department", profile.department)
+            put("semester", profile.semester)
+            put("avatarUri", profile.avatarUri)
+            put("rememberEmail", if (profile.rememberEmail) 1 else 0)
+        }
+        return db.insertWithOnConflict("profiles", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun updateProfile(profile: database.entities.ProfileEntity) {
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("slotNumber", profile.slotNumber)
+            put("name", profile.name)
+            put("email", profile.email)
+            put("passwordHash", profile.passwordHash)
+            put("institution", profile.institution)
+            put("department", profile.department)
+            put("semester", profile.semester)
+            put("avatarUri", profile.avatarUri)
+            put("rememberEmail", if (profile.rememberEmail) 1 else 0)
+        }
+        db.update("profiles", cv, "id = ?", arrayOf(profile.id.toString()))
+    }
+
+    val profileDao: database.dao.ProfileDao by lazy {
+        object : database.dao.ProfileDao {
+            override fun getAllProfiles(): List<database.entities.ProfileEntity> {
+                return this@DatabaseHelper.getAllProfiles()
+            }
+
+            override fun getProfileById(id: Long): database.entities.ProfileEntity? {
+                return this@DatabaseHelper.getProfileById(id)
+            }
+
+            override fun getProfileBySlot(slotNumber: Int): database.entities.ProfileEntity? {
+                return this@DatabaseHelper.getProfileBySlot(slotNumber)
+            }
+
+            override fun getProfileCount(): Int {
+                return this@DatabaseHelper.getProfileCount()
+            }
+
+            override fun insertProfile(profile: database.entities.ProfileEntity): Long {
+                return this@DatabaseHelper.insertProfile(profile)
+            }
+
+            override fun updateProfile(profile: database.entities.ProfileEntity) {
+                this@DatabaseHelper.updateProfile(profile)
+            }
+        }
+    }
+
     // ==========================================
     // STUDENT PORTAL (Sections, Homework, Exams)
     // ==========================================
-    fun getAllStudentSubjects(): List<StudentSubject> {
+    fun getAllStudentSubjects(profileId: Long = getActiveProfileId()): List<StudentSubject> {
         val list = mutableListOf<StudentSubject>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM student_subjects ORDER BY name ASC", null)
+        val cursor = db.rawQuery("SELECT * FROM student_subjects WHERE profile_id = ? ORDER BY name ASC", arrayOf(profileId.toString()))
         cursor.use {
             val creditsIdx = it.getColumnIndex("credits")
             val instructorNameIdx = it.getColumnIndex("instructor_name")
@@ -2096,10 +2435,13 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val instructorPhoneIdx = it.getColumnIndex("instructor_phone")
             val syllabusTextIdx = it.getColumnIndex("syllabus_text")
             val syllabusPathIdx = it.getColumnIndex("syllabus_path")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     StudentSubject(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
                         code = it.getString(it.getColumnIndexOrThrow("code")) ?: "",
                         colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#2563EB",
@@ -2130,8 +2472,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 val instructorPhoneIdx = it.getColumnIndex("instructor_phone")
                 val syllabusTextIdx = it.getColumnIndex("syllabus_text")
                 val syllabusPathIdx = it.getColumnIndex("syllabus_path")
+                val pIdCol = it.getColumnIndex("profile_id")
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 return StudentSubject(
                     id = it.getLong(it.getColumnIndexOrThrow("id")),
+                    profileId = pId,
                     name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
                     code = it.getString(it.getColumnIndexOrThrow("code")) ?: "",
                     colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#2563EB",
@@ -2150,7 +2495,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertStudentSubject(subject: StudentSubject, autoTrackAttendance: Boolean = false): Long {
         val db = writableDatabase
+        val pId = if (subject.profileId > 0) subject.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("name", subject.name)
             put("code", subject.code)
             put("color_hex", subject.colorHex)
@@ -2271,26 +2618,29 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
-    fun getItemsForSubject(subjectId: Long, itemTypeFilter: String? = null): List<SubjectWorkItem> {
+    fun getItemsForSubject(subjectId: Long, itemTypeFilter: String? = null, profileId: Long = getActiveProfileId()): List<SubjectWorkItem> {
         val list = mutableListOf<SubjectWorkItem>()
         val db = readableDatabase
         val query = if (itemTypeFilter != null && itemTypeFilter != "ALL") {
-            "SELECT * FROM subject_work_items WHERE subject_id = ? AND item_type = ? ORDER BY id DESC"
+            "SELECT * FROM subject_work_items WHERE subject_id = ? AND item_type = ? AND profile_id = ? ORDER BY id DESC"
         } else {
-            "SELECT * FROM subject_work_items WHERE subject_id = ? ORDER BY id DESC"
+            "SELECT * FROM subject_work_items WHERE subject_id = ? AND profile_id = ? ORDER BY id DESC"
         }
         val args = if (itemTypeFilter != null && itemTypeFilter != "ALL") {
-            arrayOf(subjectId.toString(), itemTypeFilter)
+            arrayOf(subjectId.toString(), itemTypeFilter, profileId.toString())
         } else {
-            arrayOf(subjectId.toString())
+            arrayOf(subjectId.toString(), profileId.toString())
         }
         val cursor = db.rawQuery(query, args)
         cursor.use {
             val examTypeIdx = it.getColumnIndex("exam_type")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     SubjectWorkItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
                         subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id")),
                         itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "HOMEWORK",
                         title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
@@ -2308,24 +2658,27 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
-    fun getAllExams(examTypeFilter: String? = null): List<Pair<SubjectWorkItem, StudentSubject>> {
+    fun getAllExams(examTypeFilter: String? = null, profileId: Long = getActiveProfileId()): List<Pair<SubjectWorkItem, StudentSubject>> {
         val list = mutableListOf<Pair<SubjectWorkItem, StudentSubject>>()
-        val subjects = getAllStudentSubjects().associateBy { it.id }
+        val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
         val db = readableDatabase
         val query = if (!examTypeFilter.isNullOrBlank()) {
-            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND exam_type = ? ORDER BY end_date ASC, start_date ASC"
+            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND exam_type = ? AND profile_id = ? ORDER BY end_date ASC, start_date ASC"
         } else {
-            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' ORDER BY end_date ASC, start_date ASC"
+            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND profile_id = ? ORDER BY end_date ASC, start_date ASC"
         }
-        val args = if (!examTypeFilter.isNullOrBlank()) arrayOf(examTypeFilter) else null
+        val args = if (!examTypeFilter.isNullOrBlank()) arrayOf(examTypeFilter, profileId.toString()) else arrayOf(profileId.toString())
         val cursor = db.rawQuery(query, args)
         cursor.use {
             val examTypeIdx = it.getColumnIndex("exam_type")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
                 val subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id"))
-                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, name = "Subject")
+                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 val item = SubjectWorkItem(
                     id = it.getLong(it.getColumnIndexOrThrow("id")),
+                    profileId = pId,
                     subjectId = subjectId,
                     itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "EXAM",
                     title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
@@ -2343,23 +2696,26 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
-    fun getTodayHomeworkDue(todayDate: String): List<Pair<SubjectWorkItem, StudentSubject>> {
+    fun getTodayHomeworkDue(todayDate: String, profileId: Long = getActiveProfileId()): List<Pair<SubjectWorkItem, StudentSubject>> {
         val list = mutableListOf<Pair<SubjectWorkItem, StudentSubject>>()
-        val subjects = getAllStudentSubjects().associateBy { it.id }
+        val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
         val db = readableDatabase
         val cursor = db.rawQuery(
-            "SELECT * FROM subject_work_items WHERE status != 'DONE' AND (item_type = 'HOMEWORK' OR item_type = 'ASSIGNMENT') AND (end_date = ? OR (end_date = '' AND start_date = ?))",
-            arrayOf(todayDate, todayDate)
+            "SELECT * FROM subject_work_items WHERE status != 'DONE' AND (item_type = 'HOMEWORK' OR item_type = 'ASSIGNMENT') AND profile_id = ? AND (end_date = ? OR (end_date = '' AND start_date = ?))",
+            arrayOf(profileId.toString(), todayDate, todayDate)
         )
         cursor.use {
             val examTypeIdx = it.getColumnIndex("exam_type")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
                 val subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id"))
-                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, name = "Subject")
+                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     Pair(
                         SubjectWorkItem(
                             id = it.getLong(it.getColumnIndexOrThrow("id")),
+                            profileId = pId,
                             subjectId = subjectId,
                             itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "HOMEWORK",
                             title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
@@ -2379,23 +2735,26 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
-    fun getTodayClassTests(todayDate: String): List<Pair<SubjectWorkItem, StudentSubject>> {
+    fun getTodayClassTests(todayDate: String, profileId: Long = getActiveProfileId()): List<Pair<SubjectWorkItem, StudentSubject>> {
         val list = mutableListOf<Pair<SubjectWorkItem, StudentSubject>>()
-        val subjects = getAllStudentSubjects().associateBy { it.id }
+        val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
         val db = readableDatabase
         val cursor = db.rawQuery(
-            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND (exam_type = 'CLASS_TEST_QUIZ' OR exam_type = '') AND (end_date = ? OR start_date = ?)",
-            arrayOf(todayDate, todayDate)
+            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND (exam_type = 'CLASS_TEST_QUIZ' OR exam_type = '') AND profile_id = ? AND (end_date = ? OR start_date = ?)",
+            arrayOf(profileId.toString(), todayDate, todayDate)
         )
         cursor.use {
             val examTypeIdx = it.getColumnIndex("exam_type")
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
                 val subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id"))
-                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, name = "Subject")
+                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     Pair(
                         SubjectWorkItem(
                             id = it.getLong(it.getColumnIndexOrThrow("id")),
+                            profileId = pId,
                             subjectId = subjectId,
                             itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "EXAM",
                             title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
@@ -2417,7 +2776,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertSubjectWorkItem(item: SubjectWorkItem): Long {
         val db = writableDatabase
+        val pId = if (item.profileId > 0) item.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("subject_id", item.subjectId)
             put("item_type", item.itemType)
             put("title", item.title)
@@ -2523,12 +2884,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // NOTES & CONTACTS
     // ==========================================
-    fun getAllNotes(): List<NoteItem> {
+    fun getAllNotes(profileId: Long = getActiveProfileId()): List<NoteItem> {
         val list = mutableListOf<NoteItem>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM notes ORDER BY id DESC", null)
+        val cursor = db.rawQuery("SELECT * FROM notes WHERE profile_id = ? ORDER BY id DESC", arrayOf(profileId.toString()))
         cursor.use {
+            val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                 list.add(
                     NoteItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
@@ -2536,7 +2899,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         content = it.getString(it.getColumnIndexOrThrow("content")) ?: "",
                         category = it.getString(it.getColumnIndexOrThrow("category")) ?: "",
                         colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "",
-                        updatedAt = it.getString(it.getColumnIndexOrThrow("updated_at")) ?: ""
+                        updatedAt = it.getString(it.getColumnIndexOrThrow("updated_at")) ?: "",
+                        profileId = pId
                     )
                 )
             }
@@ -2546,12 +2910,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun insertNote(note: NoteItem): Long {
         val db = writableDatabase
+        val pId = if (note.profileId > 0) note.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
             put("title", note.title)
             put("content", note.content)
             put("category", note.category)
             put("color_hex", note.colorHex)
             put("updated_at", note.updatedAt)
+            put("profile_id", pId)
         }
         return db.insertWithOnConflict("notes", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
@@ -2831,15 +3197,18 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     type TEXT NOT NULL,
                     status TEXT DEFAULT 'UNPAID',
                     notes TEXT DEFAULT '',
-                    created_at TEXT DEFAULT ''
+                    created_at TEXT DEFAULT '',
+                    profile_id INTEGER DEFAULT 1
                 )"""
             )
+            ensureColumnExists(db, "dues_debts", "profile_id", "INTEGER DEFAULT 1")
         } catch (_: Exception) {}
     }
 
     fun insertDueDebt(item: DueDebtItem): Long {
         val db = writableDatabase
         ensureDuesDebtsTable(db)
+        val pId = if (item.profileId > 0) item.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
             put("person_name", item.personName.trim())
             put("phone_or_contact", item.phoneOrContact.trim())
@@ -2849,6 +3218,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("status", item.status)
             put("notes", item.notes.trim())
             put("created_at", if (item.createdAt.isNotBlank()) item.createdAt else SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()))
+            put("profile_id", pId)
         }
         return db.insertWithOnConflict("dues_debts", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
@@ -2874,14 +3244,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return db.delete("dues_debts", "id = ?", arrayOf(id.toString())) > 0
     }
 
-    fun getAllDuesDebts(): List<DueDebtItem> {
+    fun getAllDuesDebts(profileId: Long = getActiveProfileId()): List<DueDebtItem> {
         val list = mutableListOf<DueDebtItem>()
         val db = readableDatabase
         ensureDuesDebtsTable(db)
         try {
-            val cursor = db.rawQuery("SELECT * FROM dues_debts ORDER BY status ASC, id DESC", null)
+            val cursor = db.rawQuery("SELECT * FROM dues_debts WHERE profile_id = ? ORDER BY status ASC, id DESC", arrayOf(profileId.toString()))
             cursor.use {
+                val pIdCol = it.getColumnIndex("profile_id")
                 while (it.moveToNext()) {
+                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                     list.add(
                         DueDebtItem(
                             id = it.getLong(it.getColumnIndexOrThrow("id")),
@@ -2892,7 +3264,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                             type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
                             status = it.getString(it.getColumnIndexOrThrow("status")) ?: "",
                             notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                            createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: ""
+                            createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: "",
+                            profileId = pId
                         )
                     )
                 }
@@ -2908,6 +3281,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val cursor = db.rawQuery("SELECT * FROM dues_debts WHERE id = ?", arrayOf(id.toString()))
             cursor.use {
                 if (it.moveToFirst()) {
+                    val pIdCol = it.getColumnIndex("profile_id")
+                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                     return DueDebtItem(
                         id = it.getLong(it.getColumnIndexOrThrow("id")),
                         personName = it.getString(it.getColumnIndexOrThrow("person_name")) ?: "",
@@ -2917,7 +3292,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
                         status = it.getString(it.getColumnIndexOrThrow("status")) ?: "",
                         notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: ""
+                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: "",
+                        profileId = pId
                     )
                 }
             }
@@ -2983,17 +3359,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
     }
 
-    fun getDuesDebtsSummary(): Pair<Double, Double> {
+    fun getDuesDebtsSummary(profileId: Long = getActiveProfileId()): Pair<Double, Double> {
         val db = readableDatabase
         ensureDuesDebtsTable(db)
         var totalLentUnpaid = 0.0
         var totalBorrowedUnpaid = 0.0
         try {
-            val cursorLent = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'LENT' AND status = 'UNPAID'", null)
+            val cursorLent = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'LENT' AND status = 'UNPAID' AND profile_id = ?", arrayOf(profileId.toString()))
             cursorLent.use {
                 if (it.moveToFirst() && !it.isNull(0)) totalLentUnpaid = it.getDouble(0)
             }
-            val cursorBorrowed = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'BORROWED' AND status = 'UNPAID'", null)
+            val cursorBorrowed = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'BORROWED' AND status = 'UNPAID' AND profile_id = ?", arrayOf(profileId.toString()))
             cursorBorrowed.use {
                 if (it.moveToFirst() && !it.isNull(0)) totalBorrowedUnpaid = it.getDouble(0)
             }

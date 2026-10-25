@@ -6,6 +6,9 @@ import com.duorhythm.app.data.model.ClassScheduleItem
 
 @Dao
 interface TimetableDao {
+    @Query("SELECT * FROM classes WHERE day_of_week = :dayOfWeek AND profile_id = :currentProfileId ORDER BY start_time ASC")
+    fun getClassesForDay(dayOfWeek: Int, currentProfileId: Long): List<ClassScheduleItem>
+
     @Query("SELECT * FROM classes WHERE day_of_week = :dayOfWeek ORDER BY start_time ASC")
     fun getClassesForDay(dayOfWeek: Int): List<ClassScheduleItem>
 

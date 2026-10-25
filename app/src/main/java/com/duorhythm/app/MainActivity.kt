@@ -57,6 +57,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!com.duorhythm.app.data.local.pref.ProfileManager.isOnboardingCompleted(this)) {
+            val intent = Intent(this, com.duorhythm.app.ui.onboarding.OnboardingActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
+        }
+        com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this).ensureDefaultProfileIfEmpty()
+
         try {
             window.setBackgroundDrawableResource(R.drawable.bg_ambient_canvas)
             binding = ActivityMainBinding.inflate(layoutInflater)
@@ -284,6 +292,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        binding.btnQuickProfile.setOnClickListener {
+            com.duorhythm.app.ui.profile.ProfileSwitcherDialog(this).show()
+        }
+
         binding.btnQuickPomodoro.setOnClickListener {
             PomodoroDialog(this).show()
         }
@@ -310,6 +322,7 @@ class MainActivity : AppCompatActivity() {
 
         com.duorhythm.app.util.AnimationUtils.attachTactileFeedback(
             binding.btnQuickTools,
+            binding.btnQuickProfile,
             binding.btnQuickSettings,
             binding.btnQuickPomodoro,
             binding.btnQuickMusic,

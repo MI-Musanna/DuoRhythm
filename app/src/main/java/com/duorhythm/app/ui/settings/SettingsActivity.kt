@@ -138,7 +138,26 @@ class SettingsActivity : AppCompatActivity() {
             com.duorhythm.app.data.local.pref.UserProfileManager.setInstitutionName(this, inst)
             com.duorhythm.app.data.local.pref.UserProfileManager.setAcademicFaculty(this, faculty)
 
+            // Also update active profile record in DB
+            val activeId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(this)
+            val activeProfile = dbHelper.profileDao.getProfileById(activeId)
+            if (activeProfile != null) {
+                dbHelper.profileDao.updateProfile(
+                    activeProfile.copy(
+                        name = name.ifBlank { activeProfile.name },
+                        institution = inst,
+                        department = faculty
+                    )
+                )
+            }
+
             Toast.makeText(this, "Profile & institution updated", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnSwitchProfile.setOnClickListener {
+            com.duorhythm.app.ui.profile.ProfileSwitcherDialog(this) {
+                refreshProfileUI()
+            }.show()
         }
     }
 
@@ -454,12 +473,19 @@ class SettingsActivity : AppCompatActivity() {
             openExternalUrl("https://mitecharsenal.blogspot.com")
         }
 
+        binding.tvAppVersion.text = "DuoRhythm v${com.duorhythm.app.util.AppUpdateChecker.getAppVersion(this)}"
+        binding.btnCheckUpdates.setOnClickListener {
+            com.duorhythm.app.util.AppUpdateChecker.checkForUpdates(this, manual = true)
+        }
+
         AnimationUtils.attachTactileFeedback(
             binding.btnExportBackup,
             binding.btnImportBackup,
             binding.btnResetAppData,
             binding.btnLoadDemoData,
             binding.btnOpenAboutModal,
+            binding.btnCheckUpdates,
+            binding.btnSwitchProfile,
             binding.cardAboutHub,
             binding.cardAboutGithub,
             binding.cardAboutTelegram,
