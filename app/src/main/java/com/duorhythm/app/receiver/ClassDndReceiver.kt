@@ -74,34 +74,7 @@ class ClassDndReceiver : BroadcastReceiver() {
             }
 
             ACTION_CLASS_END -> {
-                // Restore saved ringer mode
-                val savedMode = prefs.getInt(KEY_SAVED_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL)
-                try {
-                    audioManager.ringerMode = savedMode
-                } catch (_: Exception) {}
-                prefs.edit().putBoolean(KEY_IN_CLASS_DND, false).apply()
-
-                // Cancel the class DND notification and show brief restored notification
-                nm?.cancel(30101)
-                val restoredNotif = NotificationCompat.Builder(context, SmartAutomationManager.CHANNEL_DND)
-                    .setSmallIcon(R.drawable.ic_schedule)
-                    .setContentTitle("Class Ended: $subjectName")
-                    .setContentText("Normal sound profile restored.")
-                    .setPriority(NotificationCompat.PRIORITY_LOW)
-                    .setAutoCancel(true)
-                    .setTimeoutAfter(8000)
-                    .build()
-
-                nm?.notify(30102, restoredNotif)
-
-                // Reschedule for next week's occurrence
-                if (classId > 0) {
-                    val db = DatabaseHelper.getInstance(context)
-                    val classItem = db.getAllClasses().firstOrNull { it.id == classId }
-                    if (classItem != null) {
-                        SmartAutomationManager.scheduleClassDndForClass(context, classItem)
-                    }
-                }
+                ClassEndReceiver().onReceive(context, intent)
             }
         }
     }

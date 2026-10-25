@@ -45,6 +45,7 @@ An offline, zero-telemetry Android suite built for students and independent buil
 - **Direct Currency Parity:** Native 1:1 BDT (৳) recordkeeping without forced international conversion clutter.
 
 ### 🎓 Academic Command Center
+- **Smart Consecutive Schedule Engine:** Battery-optimized zero-delay exact alarm dispatcher with automatic back-to-back lecture detection, eliminating audio-state flapping between consecutive periods.
 - **Coursework Management:** Maintain subject codes, credit hours, classroom locations, and faculty profiles in one unified card system.
 - **Dynamic Weekly Timetable:** Intelligent 7-day class routine highlighting active lectures with 12-hour MaterialTimePicker schedule editing.
 - **Interactive Calendar Attendance:** Full-screen monthly calendar heatmap with drag-to-expand sheet, single-tap holiday and off-day exclusions, and real-time minimum margin warnings.
@@ -83,6 +84,9 @@ An offline, zero-telemetry Android suite built for students and independent buil
 ## 📜 Changelog
 
 ### [v1.0.1-beta] - 2026-10-25
+- Fixed delayed notifications caused by Android Doze mode using setExactAndAllowWhileIdle.
+- Implemented smart lookahead logic for back-to-back classes to seamlessly preserve DND without unmuting.
+- Added unique request codes for pre-class, start, and end alarms to stop intent collision.
 - Decoupled user profile from the settings screen into a dedicated ProfileActivity.
 - Bound Home welcome avatar directly to the profile workstation.
 - Added dedicated workspace switcher icon in top header for instant 3-profile switching.

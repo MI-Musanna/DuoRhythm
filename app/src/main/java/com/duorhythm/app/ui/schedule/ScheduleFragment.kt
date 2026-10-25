@@ -22,6 +22,7 @@ import com.duorhythm.app.data.local.pref.AppSettings
 import com.duorhythm.app.databinding.DialogAddClassBinding
 import com.duorhythm.app.databinding.FragmentScheduleBinding
 import com.duorhythm.app.service.ReminderManager
+import com.duorhythm.app.scheduler.ClassAlarmScheduler
 import com.duorhythm.app.util.AnimationUtils
 import com.duorhythm.app.util.TimetableUtils
 
@@ -120,8 +121,7 @@ class ScheduleFragment : Fragment() {
                     .setMessage("Remove '${item.subjectName}' from timetable?")
                     .setPositiveButton("Delete") { _, _ ->
                         dbHelper.deleteClassSchedule(item.id)
-                        ReminderManager.cancelClassReminder(requireContext(), item.id)
-                        com.duorhythm.app.automation.SmartAutomationManager.cancelClassDndForClass(requireContext(), item.id)
+                        ClassAlarmScheduler.cancelClassAlarms(requireContext(), item.id)
                         loadClasses()
                         Toast.makeText(requireContext(), "Class deleted", Toast.LENGTH_SHORT).show()
                     }
@@ -370,8 +370,7 @@ class ScheduleFragment : Fragment() {
             )
             val newId = dbHelper.insertClassSchedule(item)
             val scheduledItem = item.copy(id = newId)
-            ReminderManager.scheduleClassReminder(requireContext(), scheduledItem)
-            com.duorhythm.app.automation.SmartAutomationManager.scheduleClassDndForClass(requireContext(), scheduledItem)
+            ClassAlarmScheduler.scheduleClassAlarms(requireContext(), scheduledItem)
 
             dialog.dismiss()
             loadData()
@@ -502,11 +501,9 @@ class ScheduleFragment : Fragment() {
                 buildingOrLink = building
             )
 
-            ReminderManager.cancelClassReminder(requireContext(), classItem.id)
-            com.duorhythm.app.automation.SmartAutomationManager.cancelClassDndForClass(requireContext(), classItem.id)
+            ClassAlarmScheduler.cancelClassAlarms(requireContext(), classItem.id)
             dbHelper.updateClassSchedule(updated)
-            ReminderManager.scheduleClassReminder(requireContext(), updated)
-            com.duorhythm.app.automation.SmartAutomationManager.scheduleClassDndForClass(requireContext(), updated)
+            ClassAlarmScheduler.scheduleClassAlarms(requireContext(), updated)
 
             dialog.dismiss()
             loadData()

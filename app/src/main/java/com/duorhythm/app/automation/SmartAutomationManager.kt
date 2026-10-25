@@ -238,112 +238,23 @@ object SmartAutomationManager {
     // ==========================================
     fun scheduleClassDndForClass(context: Context, item: ClassScheduleItem) {
         if (!isAutoSilentClassesEnabled(context)) return
-
-        val startTimePair = parseTime(item.startTime) ?: return
-        val endTimePair = parseTime(item.endTime) ?: return
-
-        val startMs = calculateNextOccurrenceMs(item.dayOfWeek, startTimePair.first, startTimePair.second)
-        val endMs = calculateNextOccurrenceMs(item.dayOfWeek, endTimePair.first, endTimePair.second)
-
-        val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-
-        // 1. Class Start Alarm
-        if (startMs > System.currentTimeMillis()) {
-            val startIntent = Intent(context, ClassDndReceiver::class.java).apply {
-                action = ClassDndReceiver.ACTION_CLASS_START
-                putExtra(ClassDndReceiver.EXTRA_CLASS_ID, item.id)
-                putExtra(ClassDndReceiver.EXTRA_SUBJECT_NAME, item.subjectName)
-                putExtra(ClassDndReceiver.EXTRA_END_TIME, item.endTime)
-            }
-            val startPi = PendingIntent.getBroadcast(
-                context,
-                (400000 + item.id).toInt(),
-                startIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, startMs, startPi)
-                } else {
-                    am.setExact(AlarmManager.RTC_WAKEUP, startMs, startPi)
-                }
-            } catch (_: SecurityException) {
-                am.set(AlarmManager.RTC_WAKEUP, startMs, startPi)
-            }
-        }
-
-        // 2. Class End Alarm
-        if (endMs > System.currentTimeMillis()) {
-            val endIntent = Intent(context, ClassDndReceiver::class.java).apply {
-                action = ClassDndReceiver.ACTION_CLASS_END
-                putExtra(ClassDndReceiver.EXTRA_CLASS_ID, item.id)
-                putExtra(ClassDndReceiver.EXTRA_SUBJECT_NAME, item.subjectName)
-            }
-            val endPi = PendingIntent.getBroadcast(
-                context,
-                (500000 + item.id).toInt(),
-                endIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endMs, endPi)
-                } else {
-                    am.setExact(AlarmManager.RTC_WAKEUP, endMs, endPi)
-                }
-            } catch (_: SecurityException) {
-                am.set(AlarmManager.RTC_WAKEUP, endMs, endPi)
-            }
-        }
+        com.duorhythm.app.scheduler.ClassAlarmScheduler.scheduleClassAlarms(context, item)
     }
 
     fun cancelClassDndForClass(context: Context, classId: Long) {
-        val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-
-        val startIntent = Intent(context, ClassDndReceiver::class.java).apply {
-            action = ClassDndReceiver.ACTION_CLASS_START
-        }
-        val startPi = PendingIntent.getBroadcast(
-            context,
-            (400000 + classId).toInt(),
-            startIntent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (startPi != null) {
-            am.cancel(startPi)
-            startPi.cancel()
-        }
-
-        val endIntent = Intent(context, ClassDndReceiver::class.java).apply {
-            action = ClassDndReceiver.ACTION_CLASS_END
-        }
-        val endPi = PendingIntent.getBroadcast(
-            context,
-            (500000 + classId).toInt(),
-            endIntent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (endPi != null) {
-            am.cancel(endPi)
-            endPi.cancel()
-        }
+        com.duorhythm.app.scheduler.ClassAlarmScheduler.cancelClassAlarms(context, classId)
     }
 
     fun rescheduleAllClassDnd(context: Context) {
         if (!isAutoSilentClassesEnabled(context)) return
-
-        val db = DatabaseHelper.getInstance(context)
-        val classes = db.getAllClasses()
-        for (item in classes) {
-            scheduleClassDndForClass(context, item)
-        }
+        com.duorhythm.app.scheduler.ClassAlarmScheduler.rescheduleAll(context)
     }
 
     private fun cancelAllClassDnd(context: Context) {
         val db = DatabaseHelper.getInstance(context)
         val classes = db.getAllClasses()
         for (item in classes) {
-            cancelClassDndForClass(context, item.id)
+            com.duorhythm.app.scheduler.ClassAlarmScheduler.cancelClassAlarms(context, item.id)
         }
     }
 

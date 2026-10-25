@@ -66,64 +66,11 @@ object ReminderManager {
 
     fun scheduleClassReminder(context: Context, classItem: ClassScheduleItem) {
         if (!isRemindersEnabled(context)) return
-
-        val parsedTime = parseTimeString(classItem.startTime) ?: return
-        val triggerMs = calculateNextClassTriggerMs(classItem.dayOfWeek, parsedTime.first, parsedTime.second)
-        if (triggerMs <= System.currentTimeMillis()) return
-
-        val details = buildString {
-            append("Starts at ${classItem.startTime}")
-            if (classItem.room.isNotBlank()) append(" • Room ${classItem.room}")
-            if (classItem.teacher.isNotBlank()) append(" • ${classItem.teacher}")
-        }
-
-        val roomOrSlot = if (classItem.room.isNotBlank()) "Room ${classItem.room}" else classItem.startTime
-        val alertTitle = "Class in 5 mins: ${classItem.subjectName} at $roomOrSlot"
-
-        val intent = Intent(context, ReminderReceiver::class.java).apply {
-            action = ACTION_REMINDER
-            putExtra(EXTRA_TYPE, "CLASS")
-            putExtra(EXTRA_ID, classItem.id)
-            putExtra(EXTRA_TITLE, alertTitle)
-            putExtra(EXTRA_MESSAGE, details)
-        }
-
-        val requestCode = (100000 + classItem.id).toInt()
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            requestCode,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
-            } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
-            }
-        } catch (_: SecurityException) {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
-        }
+        com.duorhythm.app.scheduler.ClassAlarmScheduler.scheduleClassAlarms(context, classItem)
     }
 
     fun cancelClassReminder(context: Context, classId: Long) {
-        val intent = Intent(context, ReminderReceiver::class.java).apply {
-            action = ACTION_REMINDER
-        }
-        val requestCode = (100000 + classId).toInt()
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            requestCode,
-            intent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (pendingIntent != null) {
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
-            alarmManager?.cancel(pendingIntent)
-            pendingIntent.cancel()
-        }
+        com.duorhythm.app.scheduler.ClassAlarmScheduler.cancelClassAlarms(context, classId)
     }
 
     fun scheduleExamReminder(context: Context, examItem: SubjectWorkItem, subjectName: String) {

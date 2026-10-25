@@ -89,6 +89,7 @@ class MainActivity : AppCompatActivity() {
         try {
             ReminderManager.createNotificationChannel(this)
             ReminderManager.rescheduleAll(this)
+            com.duorhythm.app.scheduler.ClassAlarmScheduler.rescheduleAll(this)
         } catch (t: Throwable) {
             t.printStackTrace()
         }
