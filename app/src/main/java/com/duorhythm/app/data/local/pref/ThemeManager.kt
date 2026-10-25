@@ -91,9 +91,7 @@ object ThemeManager {
      */
     fun applySavedTheme(context: Context) {
         try {
-            val savedMode = getSavedThemeMode(context)
-            val nightMode = getNightMode(savedMode)
-            AppCompatDelegate.setDefaultNightMode(nightMode)
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         } catch (_: Throwable) {}
     }
 }

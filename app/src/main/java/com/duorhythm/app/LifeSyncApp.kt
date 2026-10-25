@@ -1,6 +1,7 @@
 package com.duorhythm.app
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import com.duorhythm.app.data.local.db.DatabaseHelper
 
 class LifeSyncApp : Application() {
@@ -9,6 +10,8 @@ class LifeSyncApp : Application() {
         super.onCreate()
         instance = this
         try {
+            // Force the application-wide night mode strictly to dark
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             // Apply persisted theme preference before windows inflate
             com.duorhythm.app.data.local.pref.ThemeManager.applySavedTheme(this)
             // Preload/verify database with fallback destructive migration safety

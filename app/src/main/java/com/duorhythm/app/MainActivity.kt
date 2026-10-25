@@ -56,6 +56,9 @@ class MainActivity : AppCompatActivity() {
     private var hasInitializedTabs = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+            androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+        )
         super.onCreate(savedInstanceState)
         if (!com.duorhythm.app.data.local.pref.ProfileManager.isOnboardingCompleted(this)) {
             val intent = Intent(this, com.duorhythm.app.ui.onboarding.OnboardingActivity::class.java)
@@ -208,7 +211,7 @@ class MainActivity : AppCompatActivity() {
         pagerAdapter = MainPagerAdapter(this)
         binding.mainViewPager.adapter = pagerAdapter
         binding.mainViewPager.offscreenPageLimit = 4
-        binding.mainViewPager.isUserInputEnabled = false
+        binding.mainViewPager.isUserInputEnabled = true
         binding.mainViewPager.setPageTransformer(null)
         binding.mainViewPager.setCurrentItem(MainPagerAdapter.INDEX_HOME, false)
 

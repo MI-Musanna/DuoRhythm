@@ -97,6 +97,8 @@ An offline, zero-telemetry Android suite built for students and independent buil
 ## 📜 Changelog
 
 ### [v1.0.1-beta] - 2026-10-25
+- Re-enabled touch gesture swiping across dashboard tabs with synchronized bottom navigation callbacks.
+- Enforced unified OLED Dark Mode ecosystem to optimize battery life and ensure visual consistency across all modules.
 - Corrected official developer GitHub link (MI-Musanna).
 - Removed intermediate tab scroll animation during bottom bar navigation.
 - Enabled persistent ViewPager2 tab caching (offscreenPageLimit = 4) for zero-latency switching.
