@@ -114,16 +114,34 @@ class ProfileActivity : AppCompatActivity() {
             }
 
             // Avatar
-            val bitmap = UserProfileManager.loadCircularAvatarBitmap(this, 192)
-            if (bitmap != null) {
-                binding.ivProfileAvatar.setPadding(0, 0, 0, 0)
-                binding.ivProfileAvatar.imageTintList = null
-                binding.ivProfileAvatar.setImageBitmap(bitmap)
+            binding.ivProfileAvatar.setImageDrawable(null)
+            binding.ivProfileAvatar.setImageBitmap(null)
+            val avatarUriString = profile.avatarUri
+            if (!avatarUriString.isNullOrBlank()) {
+                try {
+                    val bitmap = UserProfileManager.loadCircularAvatarBitmap(this, 192)
+                    if (bitmap != null) {
+                        binding.ivProfileAvatar.setPadding(0, 0, 0, 0)
+                        binding.ivProfileAvatar.imageTintList = null
+                        binding.ivProfileAvatar.setImageBitmap(bitmap)
+                    } else {
+                        binding.ivProfileAvatar.setPadding(0, 0, 0, 0)
+                        binding.ivProfileAvatar.imageTintList = null
+                        binding.ivProfileAvatar.setImageURI(Uri.parse(avatarUriString))
+                    }
+                } catch (e: Exception) {
+                    val density = resources.displayMetrics.density
+                    val pad16 = (16 * density).toInt()
+                    binding.ivProfileAvatar.setPadding(pad16, pad16, pad16, pad16)
+                    binding.ivProfileAvatar.setImageResource(R.drawable.ic_default_profile)
+                    binding.ivProfileAvatar.imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                }
             } else {
                 val density = resources.displayMetrics.density
                 val pad16 = (16 * density).toInt()
                 binding.ivProfileAvatar.setPadding(pad16, pad16, pad16, pad16)
-                binding.ivProfileAvatar.setImageResource(R.drawable.ic_person)
+                binding.ivProfileAvatar.setImageResource(R.drawable.ic_default_profile)
+                binding.ivProfileAvatar.imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
             }
         }
     }

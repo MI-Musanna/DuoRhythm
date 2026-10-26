@@ -26,4 +26,7 @@ interface ProfileDao {
 
     @Update
     fun updateProfile(profile: ProfileEntity)
+
+    @androidx.room.Delete
+    fun deleteProfile(profile: ProfileEntity)
 }

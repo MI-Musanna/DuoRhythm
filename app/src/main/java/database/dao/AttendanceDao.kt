@@ -23,4 +23,7 @@ interface AttendanceDao {
 
     @Query("DELETE FROM attendance_records WHERE subjectName = :subjectName AND date = :date")
     suspend fun deleteRecord(subjectName: String, date: String)
+
+    @Query("DELETE FROM attendance_records WHERE profileId = :profileId")
+    fun deleteByProfileId(profileId: Long)
 }

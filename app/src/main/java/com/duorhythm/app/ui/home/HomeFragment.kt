@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import com.duorhythm.app.MainActivity
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.databinding.FragmentHomeBinding
 import android.app.AlertDialog
 import android.widget.ArrayAdapter
@@ -131,16 +132,37 @@ class HomeFragment : Fragment() {
             binding.tvUserName.text = profileName
             binding.tvUserName.visibility = View.VISIBLE
 
-            val avatarBitmap = com.duorhythm.app.data.local.pref.UserProfileManager.loadCircularAvatarBitmap(context, 80)
-            if (avatarBitmap != null) {
-                binding.ivUserAvatar.setPadding(0, 0, 0, 0)
-                binding.ivUserAvatar.imageTintList = null
-                binding.ivUserAvatar.setImageBitmap(avatarBitmap)
+            val activeId = ProfileManager.getActiveProfileId(context)
+            val activeProfile = dbHelper.profileDao.getProfileById(activeId)
+
+            binding.ivUserAvatar.setImageDrawable(null)
+            binding.ivUserAvatar.setImageBitmap(null)
+
+            val avatarUriString = activeProfile?.avatarUri
+            if (!avatarUriString.isNullOrBlank()) {
+                try {
+                    val avatarBitmap = com.duorhythm.app.data.local.pref.UserProfileManager.loadCircularAvatarBitmap(context, 80)
+                    if (avatarBitmap != null) {
+                        binding.ivUserAvatar.setPadding(0, 0, 0, 0)
+                        binding.ivUserAvatar.imageTintList = null
+                        binding.ivUserAvatar.setImageBitmap(avatarBitmap)
+                    } else {
+                        binding.ivUserAvatar.setPadding(0, 0, 0, 0)
+                        binding.ivUserAvatar.imageTintList = null
+                        binding.ivUserAvatar.setImageURI(android.net.Uri.parse(avatarUriString))
+                    }
+                } catch (e: Exception) {
+                    val density = resources.displayMetrics.density
+                    val pad8 = (8 * density).toInt()
+                    binding.ivUserAvatar.setPadding(pad8, pad8, pad8, pad8)
+                    binding.ivUserAvatar.setImageResource(R.drawable.ic_default_profile)
+                    binding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                }
             } else {
                 val density = resources.displayMetrics.density
                 val pad8 = (8 * density).toInt()
                 binding.ivUserAvatar.setPadding(pad8, pad8, pad8, pad8)
-                binding.ivUserAvatar.setImageResource(R.drawable.ic_person)
+                binding.ivUserAvatar.setImageResource(R.drawable.ic_default_profile)
                 binding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
             }
 
@@ -312,11 +334,11 @@ class HomeFragment : Fragment() {
     }
 
     fun openProfileSwitcher() {
-        val act = activity ?: return
-        ProfileSwitcherDialog(act) {
+        val act = activity as? androidx.fragment.app.FragmentActivity ?: return
+        com.duorhythm.app.ui.profile.WorkspaceProfilesBottomSheet.newInstance {
             loadUserProfile()
             loadDashboardData()
-        }.show()
+        }.show(act.supportFragmentManager, com.duorhythm.app.ui.profile.WorkspaceProfilesBottomSheet.TAG)
     }
 
     fun loadDashboardData() {

@@ -17,4 +17,7 @@ interface TimetableDao {
     fun getScheduleForDay(dayOfWeek: Int): List<ClassScheduleItem>
 
     fun getScheduleForDay(dayOfWeekName: String): List<ClassScheduleItem>
+
+    @Query("DELETE FROM classes WHERE profile_id = :profileId")
+    fun deleteByProfileId(profileId: Long)
 }

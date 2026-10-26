@@ -29,12 +29,16 @@ class AppDatabase private constructor(context: Context) {
     fun holidayDao(): HolidayDao = dbHelper.holidayDao
     fun categoryDao(): CategoryDao = dbHelper.categoryDao
     fun profileDao(): ProfileDao = dbHelper.profileDao
+    fun walletDao(): DatabaseHelper.WalletDao = dbHelper.walletDao
+    fun taskDao(): DatabaseHelper.TaskDao = dbHelper.taskDao
 
     val attendanceDao: AttendanceDao get() = dbHelper.attendanceDao
     val timetableDao: TimetableDao get() = dbHelper.timetableDao
     val holidayDao: HolidayDao get() = dbHelper.holidayDao
     val categoryDao: CategoryDao get() = dbHelper.categoryDao
     val profileDao: ProfileDao get() = dbHelper.profileDao
+    val walletDao: DatabaseHelper.WalletDao get() = dbHelper.walletDao
+    val taskDao: DatabaseHelper.TaskDao get() = dbHelper.taskDao
 
     companion object {
         const val DATABASE_NAME = DatabaseHelper.DATABASE_NAME

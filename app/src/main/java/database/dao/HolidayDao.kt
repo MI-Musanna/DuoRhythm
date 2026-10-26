@@ -31,4 +31,7 @@ interface HolidayDao {
 
     @Query("DELETE FROM holiday_records WHERE date = :date")
     suspend fun removeHoliday(date: String)
+
+    @Query("DELETE FROM holiday_records WHERE profileId = :profileId")
+    fun deleteByProfileId(profileId: Long)
 }

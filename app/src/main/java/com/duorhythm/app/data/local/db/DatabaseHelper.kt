@@ -2098,6 +2098,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             override suspend fun deleteRecord(subjectName: String, date: String) {
                 this@DatabaseHelper.deleteAttendanceRecord(subjectName, date, getActiveProfileId())
             }
+
+            override fun deleteByProfileId(profileId: Long) {
+                writableDatabase.delete("attendance_records", "profile_id = ?", arrayOf(profileId.toString()))
+            }
         }
     }
 
@@ -2131,6 +2135,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     else -> 1
                 }
                 return this@DatabaseHelper.getScheduleForDay(dbDay, getActiveProfileId())
+            }
+
+            override fun deleteByProfileId(profileId: Long) {
+                writableDatabase.delete("classes", "profile_id = ?", arrayOf(profileId.toString()))
             }
         }
     }
@@ -2195,6 +2203,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
             override suspend fun removeHoliday(date: String) {
                 this@DatabaseHelper.removeHoliday(date, getActiveProfileId())
+            }
+
+            override fun deleteByProfileId(profileId: Long) {
+                writableDatabase.delete("holiday_records", "profile_id = ?", arrayOf(profileId.toString()))
             }
         }
     }
@@ -2393,6 +2405,61 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.update("profiles", cv, "id = ?", arrayOf(profile.id.toString()))
     }
 
+    fun deleteProfile(profile: database.entities.ProfileEntity) {
+        val db = writableDatabase
+        db.delete("profiles", "id = ?", arrayOf(profile.id.toString()))
+    }
+
+    interface WalletDao {
+        fun deleteByProfileId(profileId: Long)
+    }
+
+    interface TaskDao {
+        fun deleteByProfileId(profileId: Long)
+    }
+
+    val walletDao: WalletDao by lazy {
+        object : WalletDao {
+            override fun deleteByProfileId(profileId: Long) {
+                val db = writableDatabase
+                db.delete("wallet_buckets", "profile_id = ?", arrayOf(profileId.toString()))
+                db.delete("cards", "profile_id = ?", arrayOf(profileId.toString()))
+                db.delete("transactions", "profile_id = ?", arrayOf(profileId.toString()))
+                db.delete("subscriptions", "profile_id = ?", arrayOf(profileId.toString()))
+                db.delete("dues_debts", "profile_id = ?", arrayOf(profileId.toString()))
+            }
+        }
+    }
+
+    val taskDao: TaskDao by lazy {
+        object : TaskDao {
+            override fun deleteByProfileId(profileId: Long) {
+                writableDatabase.delete("tasks", "profile_id = ?", arrayOf(profileId.toString()))
+            }
+        }
+    }
+
+    fun deleteWorkspaceData(profileId: Long) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            timetableDao.deleteByProfileId(profileId)
+            walletDao.deleteByProfileId(profileId)
+            taskDao.deleteByProfileId(profileId)
+            attendanceDao.deleteByProfileId(profileId)
+            holidayDao.deleteByProfileId(profileId)
+            db.delete("subject_work_items", "profile_id = ?", arrayOf(profileId.toString()))
+            db.delete("student_subjects", "profile_id = ?", arrayOf(profileId.toString()))
+            db.delete("notes", "profile_id = ?", arrayOf(profileId.toString()))
+            db.delete("work_orders", "profile_id = ?", arrayOf(profileId.toString()))
+            db.delete("work_clients", "profile_id = ?", arrayOf(profileId.toString()))
+            db.delete("profiles", "id = ?", arrayOf(profileId.toString()))
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     val profileDao: database.dao.ProfileDao by lazy {
         object : database.dao.ProfileDao {
             override fun getAllProfiles(): List<database.entities.ProfileEntity> {
@@ -2417,6 +2484,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
             override fun updateProfile(profile: database.entities.ProfileEntity) {
                 this@DatabaseHelper.updateProfile(profile)
+            }
+
+            override fun deleteProfile(profile: database.entities.ProfileEntity) {
+                this@DatabaseHelper.deleteProfile(profile)
             }
         }
     }

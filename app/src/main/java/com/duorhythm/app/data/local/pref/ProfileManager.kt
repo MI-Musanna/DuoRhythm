@@ -51,8 +51,6 @@ object ProfileManager {
         if (profile.department.isNotBlank()) {
             UserProfileManager.setAcademicFaculty(context, profile.department)
         }
-        if (!profile.avatarUri.isNullOrBlank()) {
-            UserProfileManager.setAvatarUri(context, profile.avatarUri)
-        }
+        UserProfileManager.setAvatarUri(context, profile.avatarUri ?: "")
     }
 }

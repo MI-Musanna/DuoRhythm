@@ -27,7 +27,7 @@
                 android:id="@+id/btnSettingsBack"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
-                android:background="@drawable/bg_glass_squircle_action"
+                android:background="@drawable/bg_header_action_button"
                 android:contentDescription="Go Back"
                 android:padding="8dp"
                 android:src="@drawable/ic_arrow_back"
@@ -62,7 +62,7 @@
             <ImageView
                 android:layout_width="38dp"
                 android:layout_height="38dp"
-                android:background="@drawable/bg_glass_squircle_action"
+                android:background="@drawable/bg_header_action_button"
                 android:contentDescription="Settings"
                 android:padding="9dp"
                 android:src="@drawable/ic_settings"
