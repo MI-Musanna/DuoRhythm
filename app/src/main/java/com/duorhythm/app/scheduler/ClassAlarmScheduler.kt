@@ -152,61 +152,42 @@ object ClassAlarmScheduler {
         }
     }
 
-    fun cancelClassAlarms(context: Context, classId: Long) {
+    fun cancelAlarmsForClass(context: Context, classId: Long) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-
-        // 1. Cancel Pre-alert
-        val preIntent = Intent(context, ScheduleReceiver::class.java).apply {
-            action = ACTION_CLASS_PRE_ALERT
-        }
-        val prePi = PendingIntent.getBroadcast(
-            context,
+        val requestCodes = listOf(
             (classId * 10 + 1).toInt(),
-            preIntent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (prePi != null) {
-            alarmManager.cancel(prePi)
-            prePi.cancel()
-        }
-
-        // 2. Cancel Class Start
-        val startIntent = Intent(context, ScheduleReceiver::class.java).apply {
-            action = ACTION_CLASS_START
-        }
-        val startPi = PendingIntent.getBroadcast(
-            context,
             (classId * 10 + 2).toInt(),
-            startIntent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            (classId * 10 + 3).toInt()
         )
-        if (startPi != null) {
-            alarmManager.cancel(startPi)
-            startPi.cancel()
+        for (code in requestCodes) {
+            val receiverClass = if (code % 10 == 3) ClassEndReceiver::class.java else ScheduleReceiver::class.java
+            val intent = Intent(context, receiverClass)
+            val pi = PendingIntent.getBroadcast(
+                context,
+                code,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            alarmManager.cancel(pi)
+            pi.cancel()
         }
+    }
 
-        // 3. Cancel Class End
-        val endIntent = Intent(context, ClassEndReceiver::class.java).apply {
-            action = ACTION_CLASS_END
-        }
-        val endPi = PendingIntent.getBroadcast(
-            context,
-            (classId * 10 + 3).toInt(),
-            endIntent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (endPi != null) {
-            alarmManager.cancel(endPi)
-            endPi.cancel()
+    fun cancelClassAlarms(context: Context, classId: Long) {
+        cancelAlarmsForClass(context, classId)
+    }
+
+    fun rescheduleAllActiveAlarms(context: Context) {
+        val db = DatabaseHelper.getInstance(context)
+        val classes = db.getAllClasses()
+        for (item in classes) {
+            cancelAlarmsForClass(context, item.id)
+            scheduleClassAlarms(context, item)
         }
     }
 
     fun rescheduleAll(context: Context) {
-        val db = DatabaseHelper.getInstance(context)
-        val classes = db.getAllClasses()
-        for (item in classes) {
-            scheduleClassAlarms(context, item)
-        }
+        rescheduleAllActiveAlarms(context)
     }
 
     fun setExactAlarm(alarmManager: AlarmManager, triggerMillis: Long, pendingIntent: PendingIntent) {

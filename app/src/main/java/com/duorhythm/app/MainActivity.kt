@@ -130,8 +130,9 @@ class MainActivity : AppCompatActivity() {
     private fun ensureOfficialAppLogo() {
         try {
             val density = resources.displayMetrics.density
-            val pad7 = (7 * density).toInt()
-            binding.ivAppLogo.setPadding(pad7, pad7, pad7, pad7)
+            val pad2 = (2 * density).toInt()
+            binding.ivAppLogo.setPadding(pad2, pad2, pad2, pad2)
+            binding.ivAppLogo.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
             binding.ivAppLogo.setImageResource(R.drawable.ic_app_logo)
             binding.ivAppLogo.imageTintList = null
         } catch (e: Throwable) {
@@ -492,13 +493,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateHeaderSuiteVisuals(isToolsActive: Boolean) {
         try {
-            if (isToolsActive) {
-                binding.btnQuickTools.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-                binding.btnQuickTools.setBackgroundResource(R.drawable.bg_glass_squircle_action_active)
-            } else {
-                binding.btnQuickTools.imageTintList = ColorStateList.valueOf(Color.parseColor("#94A3B8"))
-                binding.btnQuickTools.setBackgroundResource(R.drawable.bg_glass_squircle_action)
-            }
+            binding.btnQuickTools.setBackgroundResource(R.drawable.bg_header_action_button)
+            binding.btnQuickTools.imageTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
         } catch (e: Exception) {
             e.printStackTrace()
         }

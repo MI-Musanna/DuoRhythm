@@ -93,6 +93,9 @@ class ScheduleFragment : Fragment() {
             try {
                 setupCalendarDateStrip()
                 loadData()
+                context?.let { ctx ->
+                    ClassAlarmScheduler.rescheduleAllActiveAlarms(ctx)
+                }
             } catch (e: Throwable) {
                 e.printStackTrace()
             }

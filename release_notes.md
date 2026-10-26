@@ -5,6 +5,12 @@ Detailed release history and changelog for DuoRhythm builds.
 ---
 
 ### [v1.0.1-beta] - 2026-10-25
+- **Profile Avatar Isolation & Cache Busting:** Avatars are now saved into slot-isolated files (`avatar_profile_${id}.jpg`) with timestamp query parameters to invalidate stale caches across workspace switches and prevent cross-profile avatar overwriting.
+- **Header Suite & App Logo Polish:** Enhanced top-left DuoRhythm emblem with 2dp padding and `scaleType="fitCenter"` for prominent presentation; unified header lightning quick-action button with elevated `bg_header_action_button` background and `#00E5FF` cyan tint.
+- **Direct Biometric & PIN Fallback Auth:** Upgraded biometric authentication across workspace switching, editing, and deletion with clear "Use Password/PIN" negative button and automatic fallback to credentials dialog. Updated settings subtitle to highlight fingerprint, face unlock, or PIN support.
+- **Active Workspace Delete Guard & Slot 1 Promotion:** Protected active workspaces against accidental deletion by hiding delete buttons on active profiles. Deleting Slot 1 from an active secondary slot cleanly re-links all 14 database tables, copies avatar files, promotes the active workspace to Slot 1, and prunes the old slot.
+- **Zombie Alarm Purging & Rescheduling:** Implemented `cancelAlarmsForClass` using `FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE` across all alarm intent tokens and pending intents to reliably wipe stale alarms on class edits and deletions, backed by `rescheduleAllActiveAlarms` during `onResume()` and boot completion.
+- **About Developer Dialog Version String:** Corrected legacy "v2.1" version labels to current "v1.0.1-beta" build tag across About dialogs and system info sheets.
 - **Biometric Workspace Authentication:** Integrated BiometricPrompt fingerprint verification for one-touch workspace switching and profile editing with secure password fallback.
 - **Inline Switcher Controls:** Added inline Edit and Delete controls directly inside Workspace Profiles Bottom Sheet with cascading Room database cleanup.
 - **Avatar Cache & Invalidation Polish:** Fixed avatar image caching bug when switching between configured and unconfigured workspaces with explicit memory clearing.

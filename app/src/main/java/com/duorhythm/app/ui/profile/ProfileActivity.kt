@@ -30,19 +30,29 @@ class ProfileActivity : AppCompatActivity() {
     private val pickAvatarLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
-                val savedPath = UserProfileManager.saveAvatarFromUri(this, it)
-                if (savedPath != null) {
-                    val activeId = ProfileManager.getActiveProfileId(this)
+                val activeId = ProfileManager.getActiveProfileId(this)
+                val targetFile = java.io.File(filesDir, "avatar_profile_${activeId}.jpg")
+                try {
+                    contentResolver.openInputStream(it)?.use { input ->
+                        val bitmap = android.graphics.BitmapFactory.decodeStream(input)
+                        if (bitmap != null) {
+                            java.io.FileOutputStream(targetFile).use { stream ->
+                                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream)
+                            }
+                        }
+                    }
+                    val uniqueUriString = Uri.fromFile(targetFile).toString() + "?t=" + System.currentTimeMillis()
                     val profile = dbHelper.profileDao.getProfileById(activeId)
                     if (profile != null) {
-                        val updated = profile.copy(avatarUri = savedPath)
+                        val updated = profile.copy(avatarUri = uniqueUriString)
                         dbHelper.profileDao.updateProfile(updated)
-                        UserProfileManager.setAvatarUri(this, savedPath)
+                        UserProfileManager.setAvatarUri(this, uniqueUriString)
                         currentProfile = updated
                         loadProfileData()
                         Toast.makeText(this, "Profile picture updated", Toast.LENGTH_SHORT).show()
                     }
-                } else {
+                } catch (e: Exception) {
+                    e.printStackTrace()
                     Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -273,6 +283,10 @@ class ProfileActivity : AppCompatActivity() {
             .setTitle("Clear Profile Data")
             .setMessage("Are you sure you want to reset your academic credentials and personalization for Slot ${profile.slotNumber}?")
             .setPositiveButton("Clear Data") { _, _ ->
+                val targetFile = java.io.File(filesDir, "avatar_profile_${profile.id}.jpg")
+                if (targetFile.exists()) {
+                    try { targetFile.delete() } catch (_: Exception) {}
+                }
                 val updated = profile.copy(
                     institution = "",
                     department = "",

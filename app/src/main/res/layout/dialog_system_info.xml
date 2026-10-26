@@ -149,7 +149,7 @@
                             android:id="@+id/tvDiagAppVersion"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="v2.1.0 (Build 2)"
+                            android:text="v1.0.1-beta (Build 3)"
                             android:textColor="@color/white"
                             android:textSize="13sp"
                             android:textStyle="bold" />

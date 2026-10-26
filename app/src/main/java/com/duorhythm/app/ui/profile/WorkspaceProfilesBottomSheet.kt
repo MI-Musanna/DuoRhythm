@@ -3,16 +3,12 @@ package com.duorhythm.app.ui.profile
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
-import android.app.KeyguardManager
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.hardware.biometrics.BiometricPrompt
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.CancellationSignal
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,6 +27,7 @@ import com.duorhythm.app.databinding.DialogProfileCreateBinding
 import com.duorhythm.app.databinding.DialogProfileEditBinding
 import com.duorhythm.app.databinding.DialogProfileLoginBinding
 import com.duorhythm.app.databinding.ItemWorkspaceProfileBinding
+import com.duorhythm.app.security.BiometricAuthHelper
 import com.duorhythm.app.util.AnimationUtils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -46,12 +43,31 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
     private var onProfileSwitched: (() -> Unit)? = null
 
     private var pendingAvatarCallback: ((String?) -> Unit)? = null
+    private var pendingAvatarProfileId: Long = 1L
     private val pickAvatarLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             if (uri != null) {
                 val ctx = context ?: return@registerForActivityResult
-                val savedPath = UserProfileManager.saveAvatarFromUri(ctx, uri)
-                pendingAvatarCallback?.invoke(savedPath)
+                val targetFile = java.io.File(ctx.filesDir, "avatar_profile_${pendingAvatarProfileId}.jpg")
+                try {
+                    ctx.contentResolver.openInputStream(uri)?.use { input ->
+                        val bitmap = android.graphics.BitmapFactory.decodeStream(input)
+                        if (bitmap != null) {
+                            java.io.FileOutputStream(targetFile).use { stream ->
+                                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream)
+                            }
+                        } else {
+                            java.io.FileOutputStream(targetFile).use { stream ->
+                                input.copyTo(stream)
+                            }
+                        }
+                    }
+                    val uniqueUriString = Uri.fromFile(targetFile).toString() + "?t=" + System.currentTimeMillis()
+                    pendingAvatarCallback?.invoke(uniqueUriString)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(ctx, "Failed to load image", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -115,89 +131,6 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         }
 
         binding.rvWorkspaceProfiles.adapter = ProfileSlotsAdapter(slotItems)
-    }
-
-    private fun isBiometricsReady(activity: Activity): Boolean {
-        val defaultPrefs = activity.getSharedPreferences(activity.packageName + "_preferences", Context.MODE_PRIVATE)
-        val lifesyncPrefs = activity.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
-        val duorhythmPrefs = activity.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
-        val isBiometricEnabled = defaultPrefs.getBoolean("pref_biometric_enabled", false) ||
-                lifesyncPrefs.getBoolean("key_biometric_lock_enabled", false) ||
-                lifesyncPrefs.getBoolean("pref_biometric_enabled", false) ||
-                duorhythmPrefs.getBoolean("pref_biometric_enabled", false)
-
-        if (!isBiometricEnabled) return false
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val bm = activity.getSystemService(android.hardware.biometrics.BiometricManager::class.java)
-            if (bm != null) {
-                val canAuth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    bm.canAuthenticate(
-                        android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                                android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK
-                    )
-                } else {
-                    @Suppress("DEPRECATION")
-                    bm.canAuthenticate()
-                }
-                if (canAuth == android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS) {
-                    return true
-                }
-            }
-        }
-        val km = activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-        return km?.isDeviceSecure == true
-    }
-
-    private fun authenticateWithBiometrics(
-        activity: Activity,
-        title: String,
-        subtitle: String,
-        onSuccess: () -> Unit,
-        onFallback: () -> Unit
-    ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            try {
-                val cancellationSignal = CancellationSignal()
-                val prompt = BiometricPrompt.Builder(activity)
-                    .setTitle(title)
-                    .setSubtitle(subtitle)
-                    .setNegativeButton("Use Password", activity.mainExecutor) { _, _ ->
-                        cancellationSignal.cancel()
-                        onFallback()
-                    }
-                    .build()
-
-                prompt.authenticate(
-                    cancellationSignal,
-                    activity.mainExecutor,
-                    object : BiometricPrompt.AuthenticationCallback() {
-                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
-                            super.onAuthenticationSucceeded(result)
-                            activity.runOnUiThread {
-                                onSuccess()
-                            }
-                        }
-
-                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
-                            super.onAuthenticationError(errorCode, errString)
-                            activity.runOnUiThread {
-                                onFallback()
-                            }
-                        }
-
-                        override fun onAuthenticationFailed() {
-                            super.onAuthenticationFailed()
-                            Toast.makeText(activity, "Biometric unrecognized. Try again.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                )
-            } catch (e: Exception) {
-                onFallback()
-            }
-        } else {
-            onFallback()
-        }
     }
 
     private fun showVerifyCredentialsDialog(
@@ -272,15 +205,16 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
     private fun handleSwitchWorkspace(profile: ProfileEntity) {
         val act = activity ?: return
-        if (isBiometricsReady(act)) {
-            authenticateWithBiometrics(
+        if (BiometricAuthHelper.isBiometricsAvailable(act)) {
+            BiometricAuthHelper.authenticate(
                 activity = act,
                 title = "Switch Workspace",
                 subtitle = "Confirm identity to access ${profile.name}'s workspace",
+                negativeButtonText = "Use Password/PIN",
                 onSuccess = {
                     executeProfileSwitch(profile)
                 },
-                onFallback = {
+                onFallbackToPassword = {
                     showVerifyCredentialsDialog(profile) {
                         executeProfileSwitch(profile)
                     }
@@ -308,15 +242,16 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
     private fun handleEditProfile(profile: ProfileEntity) {
         val act = activity ?: return
-        if (isBiometricsReady(act)) {
-            authenticateWithBiometrics(
+        if (BiometricAuthHelper.isBiometricsAvailable(act)) {
+            BiometricAuthHelper.authenticate(
                 activity = act,
                 title = "Edit Profile",
                 subtitle = "Confirm identity to edit ${profile.name}",
+                negativeButtonText = "Use Password/PIN",
                 onSuccess = {
                     showEditProfileDialog(profile)
                 },
-                onFallback = {
+                onFallbackToPassword = {
                     showVerifyCredentialsDialog(profile) {
                         showEditProfileDialog(profile)
                     }
@@ -365,6 +300,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
         updateAvatarPreview()
 
+        pendingAvatarProfileId = profile.id
         pendingAvatarCallback = { newPath ->
             selectedAvatarUri = newPath
             updateAvatarPreview()
@@ -377,6 +313,10 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         dialogBinding.containerEditAvatar.setOnClickListener { openPicker() }
         dialogBinding.btnChangeAvatar.setOnClickListener { openPicker() }
         dialogBinding.btnRemoveAvatar.setOnClickListener {
+            val targetFile = java.io.File(act.filesDir, "avatar_profile_${profile.id}.jpg")
+            if (targetFile.exists()) {
+                try { targetFile.delete() } catch (_: Exception) {}
+            }
             selectedAvatarUri = null
             updateAvatarPreview()
         }
@@ -420,16 +360,38 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
     private fun handleDeleteWorkspace(profile: ProfileEntity) {
         val act = activity ?: return
-        showVerifyCredentialsDialog(profile, isDestructive = true) {
-            showDeleteConfirmationDialog(profile)
+        if (BiometricAuthHelper.isBiometricsAvailable(act)) {
+            BiometricAuthHelper.authenticate(
+                activity = act,
+                title = "Delete Workspace Slot ${profile.slotNumber}",
+                subtitle = "Confirm identity to delete Workspace Slot ${profile.slotNumber}",
+                negativeButtonText = "Use Password/PIN",
+                onSuccess = {
+                    showDeleteConfirmationDialog(profile)
+                },
+                onFallbackToPassword = {
+                    showVerifyCredentialsDialog(profile, isDestructive = true) {
+                        showDeleteConfirmationDialog(profile)
+                    }
+                }
+            )
+        } else {
+            showVerifyCredentialsDialog(profile, isDestructive = true) {
+                showDeleteConfirmationDialog(profile)
+            }
         }
     }
 
     private fun showDeleteConfirmationDialog(profile: ProfileEntity) {
         val act = activity ?: return
+        val message = if (profile.slotNumber == 1) {
+            "Deleting Workspace Slot 1 will wipe its data and promote your currently active workspace to Slot 1. Do you want to proceed?"
+        } else {
+            "Permanently delete Workspace Slot ${profile.slotNumber} and all associated data?"
+        }
         AlertDialog.Builder(act)
             .setTitle("Delete Workspace Slot ${profile.slotNumber}")
-            .setMessage("Permanently delete Workspace Slot ${profile.slotNumber} and all associated data?")
+            .setMessage(message)
             .setPositiveButton("Delete Permanently") { _, _ ->
                 executeDeleteWorkspace(profile)
             }
@@ -443,25 +405,26 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
     private fun executeDeleteWorkspace(targetProfile: ProfileEntity) {
         val act = activity ?: return
         try {
-            dbHelper.timetableDao.deleteByProfileId(targetProfile.id)
-            dbHelper.walletDao.deleteByProfileId(targetProfile.id)
-            dbHelper.taskDao.deleteByProfileId(targetProfile.id)
-            dbHelper.attendanceDao.deleteByProfileId(targetProfile.id)
-            dbHelper.holidayDao.deleteByProfileId(targetProfile.id)
-            dbHelper.profileDao.deleteProfile(targetProfile)
-            dbHelper.deleteWorkspaceData(targetProfile.id)
-
             val activeProfileId = ProfileManager.getActiveProfileId(act)
-            if (activeProfileId == targetProfile.id) {
-                val fallback = dbHelper.profileDao.getProfileBySlot(1)
-                    ?: dbHelper.profileDao.getAllProfiles().firstOrNull()
-                if (fallback != null) {
-                    ProfileManager.setActiveProfileId(act, fallback.id)
-                    ProfileManager.syncUserProfile(act, fallback)
+            if (targetProfile.slotNumber == 1) {
+                // Promote active workspace to Slot 1
+                dbHelper.promoteProfileToSlot1(activeProfileId)
+                val newSlot1 = dbHelper.profileDao.getProfileBySlot(1)
+                val newActiveId = newSlot1?.id ?: 1L
+                ProfileManager.setActiveProfileId(act, newActiveId)
+                if (newSlot1 != null) {
+                    ProfileManager.syncUserProfile(act, newSlot1)
                 }
+                Toast.makeText(act, "Workspace Slot 1 deleted. Promoted active workspace to Slot 1.", Toast.LENGTH_SHORT).show()
+            } else {
+                val avatarFile = java.io.File(act.filesDir, "avatar_profile_${targetProfile.id}.jpg")
+                if (avatarFile.exists()) {
+                    try { avatarFile.delete() } catch (_: Exception) {}
+                }
+                dbHelper.deleteWorkspaceData(targetProfile.id)
+                Toast.makeText(act, "Workspace Slot ${targetProfile.slotNumber} deleted", Toast.LENGTH_SHORT).show()
             }
 
-            Toast.makeText(act, "Workspace Slot ${targetProfile.slotNumber} deleted", Toast.LENGTH_SHORT).show()
             refreshProfilesList()
             if (onProfileSwitched != null) {
                 onProfileSwitched?.invoke()
@@ -613,7 +576,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                         handleEditProfile(profile)
                     }
 
-                    if (item.slotNumber > 1) {
+                    if (!item.isActive) {
                         itemBinding.btnDeleteProfile.visibility = View.VISIBLE
                         itemBinding.btnDeleteProfile.setOnClickListener {
                             handleDeleteWorkspace(profile)

@@ -141,16 +141,9 @@ class HomeFragment : Fragment() {
             val avatarUriString = activeProfile?.avatarUri
             if (!avatarUriString.isNullOrBlank()) {
                 try {
-                    val avatarBitmap = com.duorhythm.app.data.local.pref.UserProfileManager.loadCircularAvatarBitmap(context, 80)
-                    if (avatarBitmap != null) {
-                        binding.ivUserAvatar.setPadding(0, 0, 0, 0)
-                        binding.ivUserAvatar.imageTintList = null
-                        binding.ivUserAvatar.setImageBitmap(avatarBitmap)
-                    } else {
-                        binding.ivUserAvatar.setPadding(0, 0, 0, 0)
-                        binding.ivUserAvatar.imageTintList = null
-                        binding.ivUserAvatar.setImageURI(android.net.Uri.parse(avatarUriString))
-                    }
+                    binding.ivUserAvatar.setPadding(0, 0, 0, 0)
+                    binding.ivUserAvatar.imageTintList = null
+                    binding.ivUserAvatar.setImageURI(android.net.Uri.parse(avatarUriString))
                 } catch (e: Exception) {
                     val density = resources.displayMetrics.density
                     val pad8 = (8 * density).toInt()

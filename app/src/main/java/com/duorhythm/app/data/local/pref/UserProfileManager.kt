@@ -98,7 +98,16 @@ object UserProfileManager {
         val path = getAvatarUri(context)
         if (path.isBlank()) return null
 
-        val file = File(path)
+        val file = try {
+            val uri = Uri.parse(path)
+            if (uri.scheme == "file") {
+                File(uri.path ?: path)
+            } else {
+                File(path)
+            }
+        } catch (_: Exception) {
+            File(path)
+        }
         if (!file.exists()) return null
 
         return try {

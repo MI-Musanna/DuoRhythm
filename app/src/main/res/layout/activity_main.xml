@@ -37,7 +37,8 @@
                     android:layout_width="38dp"
                     android:layout_height="38dp"
                     android:background="@drawable/bg_icon_badge_logo"
-                    android:padding="6dp"
+                    android:padding="2dp"
+                    android:scaleType="fitCenter"
                     android:src="@drawable/ic_app_logo"
                     android:contentDescription="@string/app_name" />
 
@@ -85,7 +86,8 @@
                     android:contentDescription="Focus Suite"
                     android:padding="8dp"
                     android:src="@drawable/ic_bolt"
-                    app:tint="@color/text_secondary" />
+                    android:tint="#00E5FF"
+                    app:tint="#00E5FF" />
 
                 <!-- Profile Switcher Action Icon -->
                 <ImageButton

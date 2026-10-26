@@ -22,7 +22,7 @@ class ScheduleReceiver : BroadcastReceiver() {
         val action = intent.action ?: return
 
         if (action == Intent.ACTION_BOOT_COMPLETED || action == Intent.ACTION_MY_PACKAGE_REPLACED) {
-            ClassAlarmScheduler.rescheduleAll(context)
+            ClassAlarmScheduler.rescheduleAllActiveAlarms(context)
             ReminderManager.rescheduleAll(context)
             SmartAutomationManager.init(context)
             return

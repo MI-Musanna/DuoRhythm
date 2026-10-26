@@ -2460,6 +2460,69 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
     }
 
+    fun promoteProfileToSlot1(fromProfileId: Long) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val slot1 = getProfileBySlot(1)
+            val fromProfile = getProfileById(fromProfileId)
+            val slot1Id = slot1?.id ?: 1L
+
+            if (fromProfile != null) {
+                // Delete existing Slot 1 data
+                deleteWorkspaceData(slot1Id)
+
+                // Re-link all records with profile_id = fromProfileId to slot1Id
+                val tables = listOf(
+                    "classes", "attendance_records", "holiday_records", "tasks",
+                    "transactions", "wallet_buckets", "cards", "subscriptions",
+                    "dues_debts", "subject_work_items", "student_subjects", "notes",
+                    "work_orders", "work_clients"
+                )
+                for (table in tables) {
+                    db.execSQL("UPDATE $table SET profile_id = ? WHERE profile_id = ?", arrayOf(slot1Id, fromProfileId))
+                }
+
+                // Copy avatar file if present
+                var newAvatarUri: String? = null
+                val oldFile = java.io.File(appContext.filesDir, "avatar_profile_${fromProfileId}.jpg")
+                val newFile = java.io.File(appContext.filesDir, "avatar_profile_${slot1Id}.jpg")
+                if (oldFile.exists()) {
+                    try {
+                        oldFile.copyTo(newFile, overwrite = true)
+                        newAvatarUri = android.net.Uri.fromFile(newFile).toString() + "?t=" + System.currentTimeMillis()
+                    } catch (_: Exception) {}
+                }
+
+                // Update Slot 1 entity with fromProfile's details
+                val updatedSlot1 = fromProfile.copy(
+                    id = slot1Id,
+                    slotNumber = 1,
+                    avatarUri = newAvatarUri ?: fromProfile.avatarUri
+                )
+                val cv = android.content.ContentValues().apply {
+                    put("id", slot1Id)
+                    put("slotNumber", 1)
+                    put("name", updatedSlot1.name)
+                    put("email", updatedSlot1.email)
+                    put("passwordHash", updatedSlot1.passwordHash)
+                    put("institution", updatedSlot1.institution)
+                    put("department", updatedSlot1.department)
+                    put("semester", updatedSlot1.semester)
+                    put("avatarUri", updatedSlot1.avatarUri)
+                    put("rememberEmail", if (updatedSlot1.rememberEmail) 1 else 0)
+                }
+                db.insertWithOnConflict("profiles", null, cv, android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE)
+
+                // Delete old profile from profiles table
+                db.delete("profiles", "id = ?", arrayOf(fromProfileId.toString()))
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     val profileDao: database.dao.ProfileDao by lazy {
         object : database.dao.ProfileDao {
             override fun getAllProfiles(): List<database.entities.ProfileEntity> {
