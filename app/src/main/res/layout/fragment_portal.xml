@@ -306,11 +306,18 @@
                             android:orientation="vertical"
                             android:padding="14dp">
 
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:src="@drawable/ic_school"
-                                app:tint="#38BDF8" />
+                            <FrameLayout
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/bg_icon_badge_neutral">
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_school"
+                                    app:tint="#38BDF8" />
+                            </FrameLayout>
 
                             <TextView
                                 android:id="@+id/tvStudentTotalSubjects"
@@ -341,11 +348,18 @@
                             android:orientation="vertical"
                             android:padding="14dp">
 
-                            <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:src="@drawable/ic_quiz"
-                                app:tint="#FBBF24" />
+                            <FrameLayout
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/bg_icon_badge_neutral">
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_quiz"
+                                    app:tint="#FBBF24" />
+                            </FrameLayout>
 
                             <TextView
                                 android:id="@+id/tvStudentTotalAssessments"
@@ -388,11 +402,18 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_calendar"
-                            app:tint="#818CF8" />
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_icon_badge_neutral">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_calendar"
+                                app:tint="#818CF8" />
+                        </FrameLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -422,11 +443,18 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_analytics"
-                            app:tint="#34D399" />
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_icon_badge_neutral">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_analytics"
+                                app:tint="#34D399" />
+                        </FrameLayout>
 
                         <TextView
                             android:id="@+id/tvStudentAttendanceTarget"
@@ -496,16 +524,16 @@
                     android:padding="28dp">
 
                     <FrameLayout
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="@drawable/bg_glass_squircle_action">
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_icon_badge_cyan">
 
                         <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
                             android:layout_gravity="center"
-                            android:src="@drawable/ic_portal"
-                            app:tint="@color/water_cyan_bright" />
+                            android:src="@drawable/ic_school"
+                            app:tint="#38BDF8" />
                     </FrameLayout>
 
                     <TextView
@@ -933,11 +961,18 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_tasks"
-                            app:tint="#34D399" />
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_icon_badge_neutral">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_tasks"
+                                app:tint="#34D399" />
+                        </FrameLayout>
 
                         <TextView
                             android:id="@+id/tvWorkTotalOrders"
@@ -968,11 +1003,18 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_timer"
-                            app:tint="#FBBF24" />
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_icon_badge_neutral">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_timer"
+                                app:tint="#FBBF24" />
+                        </FrameLayout>
 
                         <TextView
                             android:id="@+id/tvWorkPendingOrders"
@@ -1011,11 +1053,18 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_wallet"
-                            app:tint="#10B981" />
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_icon_badge_neutral">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_wallet"
+                                app:tint="#10B981" />
+                        </FrameLayout>
 
                         <TextView
                             android:id="@+id/tvWorkTotalRevenue"
@@ -1046,11 +1095,18 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_article"
-                            app:tint="#38BDF8" />
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_icon_badge_neutral">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_article"
+                                app:tint="#38BDF8" />
+                        </FrameLayout>
 
                         <TextView
                             android:layout_width="wrap_content"

@@ -17,8 +17,13 @@ class CircularProgressRingView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#162238")
+        style = Paint.Style.FILL
+    }
+
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#1AFFFFFF")
+        color = Color.parseColor("#2D3E66")
         strokeWidth = 7f
         style = Paint.Style.STROKE
     }
@@ -72,7 +77,8 @@ class CircularProgressRingView @JvmOverloads constructor(
         val top = (height - diameter) / 2f
         arcBounds.set(left, top, left + diameter, top + diameter)
 
-        // Draw background track
+        // Draw elevated background fill and track ring
+        canvas.drawOval(arcBounds, fillPaint)
         canvas.drawOval(arcBounds, trackPaint)
 
         // Draw progress arc with electric cyan glow

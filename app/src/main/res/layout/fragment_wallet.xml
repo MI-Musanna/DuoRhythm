@@ -606,9 +606,9 @@
                     android:padding="22dp">
 
                     <FrameLayout
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:background="@drawable/bg_glass_squircle_action">
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_icon_badge_cyan">
 
                         <ImageView
                             android:layout_width="24dp"
@@ -679,7 +679,7 @@
                     <FrameLayout
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:background="@drawable/bg_glass_squircle_action">
+                        android:background="@drawable/bg_icon_badge_neutral">
 
                         <ImageView
                             android:layout_width="16dp"
@@ -763,7 +763,7 @@
                     <FrameLayout
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:background="@drawable/bg_glass_squircle_action">
+                        android:background="@drawable/bg_icon_badge_neutral">
 
                         <ImageView
                             android:layout_width="16dp"

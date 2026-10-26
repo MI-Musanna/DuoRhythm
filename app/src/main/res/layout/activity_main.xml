@@ -36,8 +36,8 @@
                     android:id="@+id/ivAppLogo"
                     android:layout_width="38dp"
                     android:layout_height="38dp"
-                    android:background="@drawable/bg_glass_squircle_action"
-                    android:padding="7dp"
+                    android:background="@drawable/bg_icon_badge_logo"
+                    android:padding="6dp"
                     android:src="@drawable/ic_app_logo"
                     android:contentDescription="@string/app_name" />
 

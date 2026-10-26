@@ -5,6 +5,8 @@ Detailed release history and changelog for DuoRhythm builds.
 ---
 
 ### [v1.0.1-beta] - 2026-10-25
+- **Floating Surface Badges:** Redesigned icon containers across Home, Schedule, Portal, and Wallet from dark debossed cutouts into elevated high-contrast floating badges.
+- **Illuminated App Logo Frame:** Upgraded top header app logo frame with an illuminated cyan border accent.
 - **Elevated Metric Grids & Action Chips:** Overhauled summary statistic cards in Student and Work Portals with elevated surface styling (`#161F34`), removing debossed borders and nested dark square icon containers. Flattened interactive action pills with elevated cyan surface and refined padding.
 - **Elevated Flat-Surface Styling:** Overhauled UI styling to replace debossed/sunken buttons with modern elevated flat surfaces and clean 1dp accent strokes.
 - **Unified Ripple Controls:** Standardized ripple states across header icons, segmented switches, and quick action docks.

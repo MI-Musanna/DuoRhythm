@@ -42,7 +42,7 @@
                     android:id="@+id/layoutBucketIconBg"
                     android:layout_width="34dp"
                     android:layout_height="34dp"
-                    android:background="@drawable/bg_glass_squircle_action">
+                    android:background="@drawable/bg_bucket_icon_badge">
 
                     <ImageView
                         android:id="@+id/ivBucketIcon"

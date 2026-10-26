@@ -89,9 +89,27 @@ class WalletBucketsAdapter(
             // 1. Icon tint (100% accentColor)
             binding.ivBucketIcon.setColorFilter(parsedColor)
 
-            // 2. Icon container tint / glow background (15% opacity of accentColor)
-            val glowColor = androidx.core.graphics.ColorUtils.setAlphaComponent(parsedColor, (255 * 0.15).toInt())
-            binding.layoutBucketIconBg.backgroundTintList = android.content.res.ColorStateList.valueOf(glowColor)
+            // 2. Icon container: elevated floating badge with dynamic tint and illuminated stroke
+            val surfaceColor = androidx.core.graphics.ColorUtils.compositeColors(
+                androidx.core.graphics.ColorUtils.setAlphaComponent(parsedColor, (255 * 0.18).toInt()),
+                Color.parseColor("#161F34")
+            )
+            val strokeColor = androidx.core.graphics.ColorUtils.compositeColors(
+                androidx.core.graphics.ColorUtils.setAlphaComponent(parsedColor, (255 * 0.45).toInt()),
+                Color.parseColor("#2D3E66")
+            )
+            binding.layoutBucketIconBg.backgroundTintList = null
+            (binding.layoutBucketIconBg.background?.mutate() as? android.graphics.drawable.GradientDrawable)?.let { bg ->
+                bg.setColor(surfaceColor)
+                bg.setStroke(
+                    android.util.TypedValue.applyDimension(
+                        android.util.TypedValue.COMPLEX_UNIT_DIP,
+                        1f,
+                        binding.root.resources.displayMetrics
+                    ).toInt(),
+                    strokeColor
+                )
+            }
 
             // 3. Left/top indicator bar and subtle card border highlight (1dp accentColor stroke)
             binding.viewAccentIndicator.backgroundTintList = android.content.res.ColorStateList.valueOf(parsedColor)
