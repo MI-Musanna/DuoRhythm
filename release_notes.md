@@ -5,6 +5,8 @@ Detailed release history and changelog for DuoRhythm builds.
 ---
 
 ### [v1.0.1-beta] - 2026-10-25
+- **Elevated Flat-Surface Styling:** Overhauled UI styling to replace debossed/sunken buttons with modern elevated flat surfaces and clean 1dp accent strokes.
+- **Unified Ripple Controls:** Standardized ripple states across header icons, segmented switches, and quick action docks.
 - **Photoshop-Style 2D HSV Color Studio:** Integrated Photoshop-style 2D HSV color picker dialog replacing basic RGB sliders.
 - **Searchable Vector Icon Library (120+ Icons):** Added 120+ searchable vector icon library with dedicated bottom sheet grid picker.
 - **Expanded 16-Color Palette:** Expanded accent color palette to 16 curated non-duplicate shades.

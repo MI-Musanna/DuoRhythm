@@ -113,7 +113,7 @@
                     <FrameLayout
                         android:layout_width="wrap_content"
                         android:layout_height="40dp"
-                        android:background="@drawable/bg_mode_switch_pill"
+                        android:background="@drawable/bg_toggle_container"
                         android:clipToPadding="true"
                         android:clipChildren="true"
                         android:padding="4dp">
@@ -262,11 +262,11 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_pill_outline"
+                    android:background="@drawable/bg_action_pill_cyan"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="5dp"
                     android:text="Schedule →"
-                    android:textColor="#00F2FE"
+                    android:textColor="#38BDF8"
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -511,7 +511,7 @@
                         android:textColor="#38BDF8"
                         android:textSize="11sp"
                         android:textStyle="bold"
-                        android:background="@drawable/bg_glass_pill_outline" />
+                        android:background="@drawable/bg_action_pill_cyan" />
                 </LinearLayout>
 
                 <!-- RecyclerView for Notes (Horizontal scroll wrapped in NestedScrollableHost) -->
@@ -537,7 +537,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_glass_squircle_action"
+                    android:background="@drawable/bg_scratchpad_field"
                     android:padding="14dp"
                     android:text="Tap + Quick Note to jot down lecture formulas, ideas, or quick memos."
                     android:textColor="@color/text_secondary"
@@ -680,7 +680,7 @@
                     <FrameLayout
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:background="@drawable/bg_squircle_focus">
+                        android:background="@drawable/bg_quick_action_dock">
 
                         <ImageView
                             android:layout_width="20dp"
@@ -714,7 +714,7 @@
                     <FrameLayout
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:background="@drawable/bg_squircle_sounds">
+                        android:background="@drawable/bg_quick_action_dock">
 
                         <ImageView
                             android:layout_width="20dp"
@@ -748,7 +748,7 @@
                     <FrameLayout
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:background="@drawable/bg_squircle_calc">
+                        android:background="@drawable/bg_quick_action_dock">
 
                         <ImageView
                             android:layout_width="20dp"
@@ -782,7 +782,7 @@
                     <FrameLayout
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:background="@drawable/bg_squircle_tools">
+                        android:background="@drawable/bg_quick_action_dock">
 
                         <ImageView
                             android:layout_width="20dp"

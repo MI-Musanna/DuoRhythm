@@ -79,6 +79,7 @@ An offline, zero-telemetry Android suite built for students and independent buil
 ### 🛡️ Privacy & Performance Standards
 - **100% Offline-First:** Powered entirely by SQLite/Room DB. All data stays encrypted on your local hardware.
 - **Zero Telemetry:** No analytics SDKs, no network pings, zero third-party data collection.
+- **Polished Surface Design System:** Eliminated debossed/sunken artifacting across header actions, segmented toggles, quick-dock icons, and wallet controls with high-contrast elevated dark surfaces.
 - **Calibrated Dual Theme Engine:** Handcrafted Deep Obsidian Dark Mode (`#0A0E17` to `#131D2F`) alongside an adaptive, high-contrast Light Mode with crisp white surfaces and visible dialog typography.
 
 ### 👤 3-Profile Workspace Isolation

@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:background="@drawable/bg_mode_switch_pill"
+            android:background="@drawable/bg_toggle_container"
             android:clipToOutline="true"
             android:elevation="0dp"
             app:blurOverlayColor="@color/blur_overlay">
@@ -82,7 +82,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_mode_switch_pill"
+                android:background="@drawable/bg_toggle_container"
                 android:padding="3dp">
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
@@ -846,7 +846,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="38dp"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_mode_switch_pill"
+                    android:background="@drawable/bg_toggle_container"
                     android:padding="3dp">
 
                     <com.google.android.material.button.MaterialButtonToggleGroup
@@ -1337,7 +1337,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="38dp"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_mode_switch_pill"
+                    android:background="@drawable/bg_toggle_container"
                     android:padding="3dp">
 
                     <com.google.android.material.button.MaterialButtonToggleGroup

@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <corners android:radius="16dp" />
-    <solid android:color="#1A0284C7" />
-    <stroke
-        android:width="1dp"
-        android:color="#38BDF8" />
-</shape>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#3338BDF8">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp" />
+            <solid android:color="#13283E" />
+            <stroke
+                android:width="1dp"
+                android:color="#1E4968" />
+        </shape>
+    </item>
+</ripple>

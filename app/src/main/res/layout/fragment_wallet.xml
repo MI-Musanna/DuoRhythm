@@ -55,7 +55,7 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_glass_squircle_action"
+                android:background="@drawable/bg_header_action_button"
                 android:contentDescription="Live Currency Converter"
                 android:src="@drawable/ic_calculate"
                 app:tint="#38BDF8" />
@@ -70,11 +70,12 @@
                 android:insetBottom="0dp"
                 android:paddingHorizontal="12dp"
                 android:text="BDT (৳) ▾"
-                android:textColor="@color/text_primary"
+                android:textColor="#CBD5E1"
                 android:textSize="12sp"
                 android:textStyle="bold"
+                app:backgroundTint="#18233C"
                 app:cornerRadius="18dp"
-                app:strokeColor="@color/card_stroke"
+                app:strokeColor="#2A3B60"
                 app:strokeWidth="1dp" />
 
             <!-- Security Shield -->
@@ -83,7 +84,7 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginStart="8dp"
-                android:background="@drawable/bg_glass_squircle_action"
+                android:background="@drawable/bg_header_action_button"
                 android:contentDescription="Security Lock"
                 android:src="@drawable/ic_shield_check"
                 app:tint="@color/text_secondary" />
@@ -371,12 +372,13 @@
                             android:insetBottom="0dp"
                             android:paddingHorizontal="6dp"
                             android:text="⇄ Transfer"
-                            android:textColor="#38BDF8"
+                            android:textColor="#CBD5E1"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            app:strokeColor="@color/card_stroke"
-                            app:strokeWidth="1dp"
-                            app:cornerRadius="10dp" />
+                            app:backgroundTint="#141C30"
+                            app:strokeColor="#283A63"
+                            app:strokeWidth="1.5dp"
+                            app:cornerRadius="14dp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnHeroDuesDebts"
@@ -389,12 +391,13 @@
                             android:insetBottom="0dp"
                             android:paddingHorizontal="6dp"
                             android:text="⚖ Dues / Debts"
-                            android:textColor="#34D399"
+                            android:textColor="#CBD5E1"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            app:strokeColor="@color/card_stroke"
-                            app:strokeWidth="1dp"
-                            app:cornerRadius="10dp" />
+                            app:backgroundTint="#141C30"
+                            app:strokeColor="#283A63"
+                            app:strokeWidth="1.5dp"
+                            app:cornerRadius="14dp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
