@@ -297,96 +297,65 @@
                         android:orientation="horizontal">
 
                         <!-- Tile 1: Enrolled Courses -->
-                        <com.google.android.material.card.MaterialCardView
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginEnd="6dp"
-                            app:cardCornerRadius="18dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:cardBackgroundColor="@color/surface_card"
-                            app:strokeColor="@color/card_stroke">
+                            android:background="@drawable/bg_elevated_metric_card"
+                            android:orientation="vertical"
+                            android:padding="14dp">
 
-                            <LinearLayout
-                                android:layout_width="match_parent"
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:src="@drawable/ic_school"
+                                app:tint="#38BDF8" />
+
+                            <TextView
+                                android:id="@+id/tvStudentTotalSubjects"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:padding="14dp">
+                                android:layout_marginTop="8dp"
+                                android:text="0 Courses"
+                                android:textColor="#38BDF8"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
 
-                                <FrameLayout
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:background="@drawable/bg_glass_squircle_action">
-
-                                    <ImageView
-                                        android:layout_width="18dp"
-                                        android:layout_height="18dp"
-                                        android:layout_gravity="center"
-                                        android:src="@drawable/ic_school"
-                                        app:tint="#38BDF8" />
-                                </FrameLayout>
-
-                                <TextView
-                                    android:id="@+id/tvStudentTotalSubjects"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:text="0 Courses"
-                                    android:textColor="#38BDF8"
-                                    android:textSize="17sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="Enrolled Courses"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="11sp" />
-                            </LinearLayout>
-                        </com.google.android.material.card.MaterialCardView>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Enrolled Courses"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
 
                         <!-- Tile 2: Active Assessments -->
-                        <com.google.android.material.card.MaterialCardView
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="6dp"
-                            app:cardCornerRadius="18dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:cardBackgroundColor="@color/surface_card"
-                            app:strokeColor="@color/card_stroke">
+                            android:background="@drawable/bg_elevated_metric_card"
+                            android:orientation="vertical"
+                            android:padding="14dp">
 
-                            <LinearLayout
-                                android:layout_width="match_parent"
+                            <ImageView
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:src="@drawable/ic_quiz"
+                                app:tint="#FBBF24" />
+
+                            <TextView
+                                android:id="@+id/tvStudentTotalAssessments"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:padding="14dp">
-
-                                <FrameLayout
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:background="@drawable/bg_glass_squircle_action">
-
-                                    <ImageView
-                                        android:layout_width="18dp"
-                                        android:layout_height="18dp"
-                                        android:layout_gravity="center"
-                                        android:src="@drawable/ic_quiz"
-                                        app:tint="#FBBF24" />
-                                </FrameLayout>
-
-                                <TextView
-                                    android:id="@+id/tvStudentTotalAssessments"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:text="0 Items"
-                                    android:textColor="#FBBF24"
-                                    android:textSize="17sp"
-                                    android:textStyle="bold" />
+                                android:layout_marginTop="8dp"
+                                android:text="0 Items"
+                                android:textColor="#FBBF24"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -396,7 +365,6 @@
                                 android:textColor="@color/text_secondary"
                                 android:textSize="11sp" />
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
                 <!-- Row 2: Timetable Shortcut & Target Attendance -->
@@ -407,108 +375,77 @@
                     android:orientation="horizontal">
 
                     <!-- Tile 3: Timetable Shortcut -->
-                    <com.google.android.material.card.MaterialCardView
+                    <LinearLayout
                         android:id="@+id/btnStudentScheduleShortcut"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_elevated_metric_card"
                         android:clickable="true"
                         android:focusable="true"
-                        app:cardCornerRadius="18dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="1dp"
-                        app:cardBackgroundColor="@color/surface_card"
-                        app:strokeColor="@color/card_stroke">
+                        android:foreground="?attr/selectableItemBackground"
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_calendar"
+                            app:tint="#818CF8" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="14dp">
+                            android:layout_marginTop="8dp"
+                            android:text="Classes ➜"
+                            android:textColor="#818CF8"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <FrameLayout
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_glass_squircle_action">
-
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_calendar"
-                                    app:tint="#818CF8" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:text="Classes ➜"
-                                android:textColor="#818CF8"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Timetable View"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Timetable View"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
 
                     <!-- Tile 4: Attendance Target -->
-                    <com.google.android.material.card.MaterialCardView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
-                        app:cardCornerRadius="18dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="1dp"
-                        app:cardBackgroundColor="@color/surface_card"
-                        app:strokeColor="@color/card_stroke">
+                        android:background="@drawable/bg_elevated_metric_card"
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_analytics"
+                            app:tint="#34D399" />
+
+                        <TextView
+                            android:id="@+id/tvStudentAttendanceTarget"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="14dp">
+                            android:layout_marginTop="8dp"
+                            android:text="0% Target"
+                            android:textColor="#34D399"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <FrameLayout
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_glass_squircle_action">
-
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_analytics"
-                                    app:tint="#34D399" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:id="@+id/tvStudentAttendanceTarget"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:text="0% Target"
-                                android:textColor="#34D399"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Goal Tracking"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Goal Tracking"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 
@@ -987,106 +924,74 @@
                     android:orientation="horizontal">
 
                     <!-- Tile 1: Client Jobs -->
-                    <com.google.android.material.card.MaterialCardView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
-                        app:cardCornerRadius="18dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="1dp"
-                        app:cardBackgroundColor="@color/surface_card"
-                        app:strokeColor="@color/card_stroke">
+                        android:background="@drawable/bg_elevated_metric_card"
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_tasks"
+                            app:tint="#34D399" />
+
+                        <TextView
+                            android:id="@+id/tvWorkTotalOrders"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="14dp">
+                            android:layout_marginTop="8dp"
+                            android:text="0 Orders"
+                            android:textColor="#34D399"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <FrameLayout
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_glass_squircle_action">
-
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_tasks"
-                                    app:tint="#34D399" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:id="@+id/tvWorkTotalOrders"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:text="0 Orders"
-                                android:textColor="#34D399"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Client Jobs"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Client Jobs"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
 
                     <!-- Tile 2: In Progress -->
-                    <com.google.android.material.card.MaterialCardView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
-                        app:cardCornerRadius="18dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="1dp"
-                        app:cardBackgroundColor="@color/surface_card"
-                        app:strokeColor="@color/card_stroke">
+                        android:background="@drawable/bg_elevated_metric_card"
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_timer"
+                            app:tint="#FBBF24" />
+
+                        <TextView
+                            android:id="@+id/tvWorkPendingOrders"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="14dp">
+                            android:layout_marginTop="8dp"
+                            android:text="0 Active"
+                            android:textColor="#FBBF24"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <FrameLayout
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_glass_squircle_action">
-
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_timer"
-                                    app:tint="#FBBF24" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:id="@+id/tvWorkPendingOrders"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:text="0 Active"
-                                android:textColor="#FBBF24"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="In Progress"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="In Progress"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Row 2: Expected Revenue & Billing Terms -->
@@ -1097,105 +1002,73 @@
                     android:orientation="horizontal">
 
                     <!-- Tile 3: Total Revenue -->
-                    <com.google.android.material.card.MaterialCardView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
-                        app:cardCornerRadius="18dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="1dp"
-                        app:cardBackgroundColor="@color/surface_card"
-                        app:strokeColor="@color/card_stroke">
+                        android:background="@drawable/bg_elevated_metric_card"
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_wallet"
+                            app:tint="#10B981" />
+
+                        <TextView
+                            android:id="@+id/tvWorkTotalRevenue"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="14dp">
+                            android:layout_marginTop="8dp"
+                            android:text="$0.00"
+                            android:textColor="#10B981"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <FrameLayout
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_glass_squircle_action">
-
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_wallet"
-                                    app:tint="#10B981" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:id="@+id/tvWorkTotalRevenue"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:text="$0.00"
-                                android:textColor="#10B981"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Total Billed"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Total Billed"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
 
                     <!-- Tile 4: Billing Terms -->
-                    <com.google.android.material.card.MaterialCardView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
-                        app:cardCornerRadius="18dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="1dp"
-                        app:cardBackgroundColor="@color/surface_card"
-                        app:strokeColor="@color/card_stroke">
+                        android:background="@drawable/bg_elevated_metric_card"
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_article"
+                            app:tint="#38BDF8" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="14dp">
+                            android:layout_marginTop="8dp"
+                            android:text="Net 15/30"
+                            android:textColor="#38BDF8"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
-                            <FrameLayout
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_glass_squircle_action">
-
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_article"
-                                    app:tint="#38BDF8" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:text="Net 15/30"
-                                android:textColor="#38BDF8"
-                                android:textSize="17sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Payment Terms"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Payment Terms"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 

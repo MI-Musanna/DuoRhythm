@@ -5,6 +5,7 @@ Detailed release history and changelog for DuoRhythm builds.
 ---
 
 ### [v1.0.1-beta] - 2026-10-25
+- **Elevated Metric Grids & Action Chips:** Overhauled summary statistic cards in Student and Work Portals with elevated surface styling (`#161F34`), removing debossed borders and nested dark square icon containers. Flattened interactive action pills with elevated cyan surface and refined padding.
 - **Elevated Flat-Surface Styling:** Overhauled UI styling to replace debossed/sunken buttons with modern elevated flat surfaces and clean 1dp accent strokes.
 - **Unified Ripple Controls:** Standardized ripple states across header icons, segmented switches, and quick action docks.
 - **Photoshop-Style 2D HSV Color Studio:** Integrated Photoshop-style 2D HSV color picker dialog replacing basic RGB sliders.
@@ -26,6 +27,7 @@ Detailed release history and changelog for DuoRhythm builds.
 - **Fast Workspace Switcher:** Quick switcher icon in top header for instant 3-profile switching.
 - **Cleaned Settings Profiles:** Removed redundant profile management accordions from Settings.
 - **Unified Onboarding:** Consolidated onboarding showcase and added explicit storage permission check.
+- **In-App GitHub Update Detection:** Built-in update detector querying official GitHub releases with full release notes display and direct APK download link.
 - **Circular Progress Ring:** Integrated dynamic Circular Progress Ring in Tasks module.
 - **Monthly Cash-Flow Chart:** Added dynamic Inflow/Outflow Comparative Bar Chart to Wallet Ledger.
 - **Version Bump:** Bumped `versionCode` to `3` and `versionName` to `1.0.1-beta`.

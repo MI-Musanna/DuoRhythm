@@ -44,54 +44,13 @@ An offline, zero-telemetry Android suite built for students and independent buil
 
 ---
 
-## ⚙️ Core Architecture & Capabilities
+## ⚡ Key Architectural Modules
 
-### 💼 Smart Financial Ledger
-- **Multi-Account Buckets:** Isolate liquid cash into up to 5 dedicated wallets (Physical Cash, Bank, Mobile Financial Services) with independent running balances.
-- **120+ Searchable Vector Icon Library:** Comprehensive categorized icon registry with keyword search and bottom sheet grid picker for personalized account buckets and categories.
-- **Photoshop-Grade 2D HSV Spectrum Studio:** Interactive 2D pinpoint canvas combined with a full 360-degree rainbow hue slider and bidirectional hex code synchronization.
-- **Expanded Palette & Custom Color Picker:** 16 curated non-duplicate Material accent colors plus custom 2D HSV spectrum studio and Hex code picker dialog with live preview.
-- **Monthly Financial Cash-Flow Bar Chart:** Visual dual comparative bars for monthly Inflow vs Spending with dynamic net flow calculations and cycle tracking.
-- **Atomic Balance Transfers:** Inter-account fund shifting with double-entry integrity—eliminating discrepancies between sending and receiving ledgers.
-- **Adaptive Visual Analytics:** Live Donut breakdown for category expenditures alongside dual-column bar charts comparing total inflows against outflows.
-- **Bilateral Dues & Debt Tracker:** Clean ledger separating receivables ("They Owe") and liabilities ("You Owe") with one-tap partial or full settlement stamping.
-- **Direct Currency Parity:** Native 1:1 BDT (৳) recordkeeping without forced international conversion clutter.
-
-### 🎓 Academic Command Center
-- **Smart Consecutive Schedule Engine:** Battery-optimized zero-delay exact alarm dispatcher with automatic back-to-back lecture detection, eliminating audio-state flapping between consecutive periods.
-- **Coursework Management:** Maintain subject codes, credit hours, classroom locations, and faculty profiles in one unified card system.
-- **Dynamic Weekly Timetable:** Intelligent 7-day class routine highlighting active lectures with 12-hour MaterialTimePicker schedule editing.
-- **Interactive Calendar Attendance:** Full-screen monthly calendar heatmap with drag-to-expand sheet, single-tap holiday and off-day exclusions, and real-time minimum margin warnings.
-- **Attendance Threshold Engine:** Real-time attendance percentage calculator with early-warning alerts for institutional minimums (e.g. 75% target).
-- **Assessment Pipeline:** Track Semester Finals, Midterms, Class Tests, and Quizzes with deadline countdowns and status toggles.
-- **Multi-Format Document Vault:** Batch file importer for lecture PDFs, whiteboard captures, and notes with dynamic badges (`PDF`, `IMG`, `DOC`) and category filter chips.
-
-### 🎯 Intentional Tasks & Milestone Goals
-- **Task & Goal Circular Progress Analytics Header:** Dynamic circular progress ring and secondary linear bar calculating overall completion rate for active tasks and milestone targets.
-- **Decoupled Task Engine:** Hard separation between fleeting daily checklists and long-term milestones to prevent priority overload.
-- **0–100% Milestone Tracking:** Granular progress control for multi-week projects with visual stage indicators.
-- **Material 3 Calendar Dialogs:** Native MaterialDatePicker integration supporting optional deadlines and dynamic Start/End date ranges.
-
-### 💼 Work Portal & Fast Directory
-- **Client Job Board:** Track freelance jobs, technical specifications, and invoicing status without leaving your student dashboard.
-- **1-Tap Communications:** Speed directory supporting instant cellular calls, direct WhatsApp messaging, and verified community channel routing.
-
-### 🛡️ Privacy & Performance Standards
-- **100% Offline-First:** Powered entirely by SQLite/Room DB. All data stays encrypted on your local hardware.
-- **Zero Telemetry:** No analytics SDKs, no network pings, zero third-party data collection.
-- **Polished Surface Design System:** Eliminated debossed/sunken artifacting across header actions, segmented toggles, quick-dock icons, and wallet controls with high-contrast elevated dark surfaces.
-- **Calibrated Dual Theme Engine:** Handcrafted Deep Obsidian Dark Mode (`#0A0E17` to `#131D2F`) alongside an adaptive, high-contrast Light Mode with crisp white surfaces and visible dialog typography.
-
-### 👤 3-Profile Workspace Isolation
-- **Dedicated Profile Workstation:** Direct full-screen profile hub accessible via the home avatar, supporting real-time academic info edits, photo personalization, and password management.
-- **Fast Workspace Switcher:** Top-bar account switcher icon providing instantaneous switching between the 3 isolated user workspaces.
-- **Multi-Identity Architecture:** Maintain up to 3 completely isolated workspace profiles (Slot 1, Slot 2, Slot 3) on the same device.
-- **Independent Databases:** Separate timetables, tasks, milestone goals, attendance records, wallets, and subscriptions for each profile.
-- **Secure Switching:** Local SHA-256 password hash protection with "Remember this email on this profile" support and instant toolbar switching.
-
-### 🚀 First-Run Setup & In-App Updates
-- **5-Step Streamlined First-Run Onboarding:** First-launch interactive wizard featuring a pure hero welcome, consolidated feature showcase, dedicated notification and storage permission controls, Profile 1 configuration, and verified developer contact links.
-- **In-App GitHub Update Detection:** Built-in update detector querying official GitHub releases with full release notes display and direct APK download link.
+- **💼 Multi-Bucket Financial Ledger:** Fully isolated cash, bank, and mobile financial accounts with automatic rollover, categorized transaction ledgers, and dynamic cash-flow analytics.
+- **⏱️ Intelligent Timetable & Lecture DND Guard:** Exact-alarm lecture dispatcher with zero-delay Doze mode bypass and smart lookahead logic to prevent audio flapping between consecutive back-to-back classes.
+- **📅 Interactive Calendar Attendance Engine:** Draggable monthly attendance ledger with dynamic minimum margin calculations and custom holiday exclusions.
+- **🎓 Dual-Persona Academic & Client Workstation:** Seamless toggle between student semester coursework (exams, credits, routines) and freelance client operations (job specs, invoicing, billing terms).
+- **🛡️ 3-Slot Workspace Isolation & Biometric Shield:** Multi-tenant local SQLite database isolation protected by unified Android BiometricPrompt fingerprint authentication and encrypted credentials.
 
 ---
 
