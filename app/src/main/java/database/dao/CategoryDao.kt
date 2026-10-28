@@ -23,4 +23,7 @@ interface CategoryDao {
 
     @Query("DELETE FROM transaction_categories WHERE id = :id")
     suspend fun deleteCategory(id: Long)
+
+    fun getTransactionCountByCategory(categoryName: String): Int
+    suspend fun deleteCategoryAndReassign(id: Long, categoryName: String): Boolean
 }

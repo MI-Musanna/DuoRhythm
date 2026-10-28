@@ -26,4 +26,10 @@ interface AttendanceDao {
 
     @Query("DELETE FROM attendance_records WHERE profileId = :profileId")
     fun deleteByProfileId(profileId: Long)
+
+    fun syncCourseDetailsToAttendance(
+        profileId: Long,
+        oldCourseName: String,
+        newCourseName: String
+    ): Int
 }

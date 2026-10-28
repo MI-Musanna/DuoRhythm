@@ -22,4 +22,41 @@ class CourseRepository(private val context: Context) {
         AssessmentAlarmScheduler.cancelAlarmsForCourse(context, courseId)
         return dbHelper.deleteCourseCascade(courseId, courseCode, profileId)
     }
+
+    fun updateCourseAndSyncDependencies(
+        oldCourse: com.duorhythm.app.data.model.StudentSubject,
+        updatedCourse: com.duorhythm.app.data.model.StudentSubject
+    ): Boolean {
+        val db = dbHelper.writableDatabase
+        db.beginTransaction()
+        return try {
+            dbHelper.updateStudentSubject(updatedCourse)
+            dbHelper.timetableDao.syncCourseDetailsToClasses(
+                profileId = updatedCourse.profileId,
+                courseCode = oldCourse.code,
+                courseName = updatedCourse.name,
+                teacherName = updatedCourse.instructorName,
+                room = updatedCourse.room
+            )
+            dbHelper.attendanceDao.syncCourseDetailsToAttendance(
+                profileId = updatedCourse.profileId,
+                oldCourseName = oldCourse.name,
+                newCourseName = updatedCourse.name
+            )
+            db.setTransactionSuccessful()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    suspend fun updateCourseAndSyncDependenciesAsync(
+        oldCourse: com.duorhythm.app.data.model.StudentSubject,
+        updatedCourse: com.duorhythm.app.data.model.StudentSubject
+    ): Boolean = withContext(Dispatchers.IO) {
+        updateCourseAndSyncDependencies(oldCourse, updatedCourse)
+    }
 }

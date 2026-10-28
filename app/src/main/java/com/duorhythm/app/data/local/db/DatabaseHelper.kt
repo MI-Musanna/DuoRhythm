@@ -1325,6 +1325,45 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return db.delete("transaction_categories", "id = ?", arrayOf(id.toString()))
     }
 
+    fun getTransactionCountByCategory(categoryName: String): Int {
+        val db = readableDatabase
+        return try {
+            val cursor = db.rawQuery(
+                "SELECT COUNT(*) FROM transactions WHERE LOWER(category) = LOWER(?)",
+                arrayOf(categoryName.trim())
+            )
+            cursor.use {
+                if (it.moveToFirst()) it.getInt(0) else 0
+            }
+        } catch (_: Exception) {
+            0
+        }
+    }
+
+    fun deleteCategoryAndReassignTransactions(
+        id: Long,
+        categoryName: String,
+        fallbackCategory: String = "Uncategorized"
+    ): Boolean {
+        val db = writableDatabase
+        ensureTransactionCategoriesTable(db)
+        db.beginTransaction()
+        return try {
+            val cv = ContentValues().apply {
+                put("category", fallbackCategory)
+            }
+            db.update("transactions", cv, "LOWER(category) = LOWER(?)", arrayOf(categoryName.trim()))
+            db.delete("transaction_categories", "id = ?", arrayOf(id.toString()))
+            db.setTransactionSuccessful()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     fun getTransactionCategoryByName(name: String): TransactionCategoryItem? {
         val db = readableDatabase
         ensureTransactionCategoriesTable(db)
@@ -2114,6 +2153,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             override fun deleteByProfileId(profileId: Long) {
                 writableDatabase.delete("attendance_records", "profile_id = ?", arrayOf(profileId.toString()))
             }
+
+            override fun syncCourseDetailsToAttendance(
+                profileId: Long,
+                oldCourseName: String,
+                newCourseName: String
+            ): Int {
+                return this@DatabaseHelper.syncCourseDetailsToAttendance(profileId, oldCourseName, newCourseName)
+            }
         }
     }
 
@@ -2152,7 +2199,63 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             override fun deleteByProfileId(profileId: Long) {
                 writableDatabase.delete("classes", "profile_id = ?", arrayOf(profileId.toString()))
             }
+
+            override fun syncCourseDetailsToClasses(
+                profileId: Long,
+                courseCode: String,
+                courseName: String,
+                teacherName: String,
+                room: String
+            ): Int {
+                return this@DatabaseHelper.syncCourseDetailsToClasses(profileId, courseCode, courseName, teacherName, room)
+            }
         }
+    }
+
+    fun syncCourseDetailsToClasses(
+        profileId: Long,
+        courseCode: String,
+        courseName: String,
+        teacherName: String,
+        room: String
+    ): Int {
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            if (teacherName.isNotBlank()) put("teacher", teacherName)
+            if (room.isNotBlank()) put("room", room)
+            if (courseName.isNotBlank()) put("subject_name", courseName)
+        }
+        val pId = if (profileId > 0) profileId else getActiveProfileId()
+        val hasCode = courseCode.isNotBlank()
+        val where = if (hasCode) {
+            "profile_id = ? AND (LOWER(subject_name) = LOWER(?) OR LOWER(subject_name) = LOWER(?))"
+        } else {
+            "profile_id = ? AND LOWER(subject_name) = LOWER(?)"
+        }
+        val args = if (hasCode) arrayOf(pId.toString(), courseName, courseCode) else arrayOf(pId.toString(), courseName)
+        return try {
+            db.update("classes", cv, where, args)
+        } catch (_: Exception) {
+            0
+        }
+    }
+
+    fun syncCourseDetailsToAttendance(
+        profileId: Long,
+        oldCourseName: String,
+        newCourseName: String
+    ): Int {
+        if (oldCourseName.isBlank() || oldCourseName.equals(newCourseName, ignoreCase = true)) return 0
+        val db = writableDatabase
+        val pId = if (profileId > 0) profileId else getActiveProfileId()
+        var updated = 0
+        try {
+            val cv = ContentValues().apply { put("subjectName", newCourseName) }
+            updated += db.update("attendance_records", cv, "profile_id = ? AND LOWER(subjectName) = LOWER(?)", arrayOf(pId.toString(), oldCourseName))
+            val cvSummary = ContentValues().apply { put("subject_name", newCourseName) }
+            db.update("attendance", cvSummary, "LOWER(subject_name) = LOWER(?)", arrayOf(oldCourseName))
+        } catch (_: Exception) {}
+        return updated
     }
 
     private val holidayFlowTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
@@ -2243,6 +2346,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
             override suspend fun deleteCategory(id: Long) {
                 deleteTransactionCategory(id)
+            }
+
+            override fun getTransactionCountByCategory(categoryName: String): Int {
+                return this@DatabaseHelper.getTransactionCountByCategory(categoryName)
+            }
+
+            override suspend fun deleteCategoryAndReassign(id: Long, categoryName: String): Boolean {
+                return this@DatabaseHelper.deleteCategoryAndReassignTransactions(id, categoryName)
             }
         }
     }
@@ -3466,14 +3577,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
         val tables = listOf(
             "app_settings", "cards", "transactions", "transaction_categories", "wallet_buckets", "subscriptions",
-            "currency_rates", "tasks", "classes", "attendance", "student_subjects",
-            "subject_materials", "subject_work_items", "work_orders", "notes", "contacts_groups"
+            "currency_rates", "tasks", "classes", "attendance", "attendance_records", "student_subjects",
+            "subject_materials", "subject_work_items", "work_orders", "notes", "contacts_groups", "dues_debts",
+            "profiles", "class_types", "assessment_categories"
         )
 
         for (table in tables) {
             val arr = JSONArray()
-            val cursor = db.rawQuery("SELECT * FROM $table", null)
-            cursor.use {
+            val cursor = try { db.rawQuery("SELECT * FROM $table", null) } catch (_: Exception) { null }
+            cursor?.use {
                 val colCount = it.columnCount
                 while (it.moveToNext()) {
                     val obj = JSONObject()
@@ -3492,6 +3604,22 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
             root.put(table, arr)
         }
+
+        // Export Base64 profile avatars
+        val avatarsObj = JSONObject()
+        try {
+            val profiles = getAllProfiles()
+            for (p in profiles) {
+                val avatarFile = java.io.File(appContext.filesDir, "avatar_profile_${p.id}.jpg")
+                val b64 = com.duorhythm.app.util.ImageUtils.encodeFileToBase64(avatarFile)
+                if (!b64.isNullOrBlank()) {
+                    avatarsObj.put(p.id.toString(), b64)
+                    avatarsObj.put("slot_${p.slotNumber}", b64)
+                }
+            }
+        } catch (_: Exception) {}
+        root.put("profile_avatars", avatarsObj)
+
         root.put("exported_at", SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date()))
         return root.toString(2)
     }
@@ -3504,12 +3632,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             try {
                 val tables = listOf(
                     "app_settings", "cards", "transactions", "transaction_categories", "wallet_buckets", "subscriptions",
-                    "currency_rates", "tasks", "classes", "attendance", "student_subjects",
-                    "subject_materials", "subject_work_items", "work_orders", "notes", "contacts_groups"
+                    "currency_rates", "tasks", "classes", "attendance", "attendance_records", "student_subjects",
+                    "subject_materials", "subject_work_items", "work_orders", "notes", "contacts_groups", "dues_debts",
+                    "profiles", "class_types", "assessment_categories"
                 )
                 for (table in tables) {
                     if (root.has(table)) {
-                        db.delete(table, null, null)
+                        try {
+                            db.delete(table, null, null)
+                        } catch (_: Exception) {}
                         val arr = root.getJSONArray(table)
                         for (i in 0 until arr.length()) {
                             val obj = arr.getJSONObject(i)
@@ -3526,10 +3657,38 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                                     cv.put(key, value)
                                 }
                             }
-                            db.insertWithOnConflict(table, null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+                            try {
+                                db.insertWithOnConflict(table, null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+                            } catch (_: Exception) {}
                         }
                     }
                 }
+
+                // Restore profile avatars from Base64
+                if (root.has("profile_avatars")) {
+                    try {
+                        val avatarsObj = root.getJSONObject("profile_avatars")
+                        val profiles = getAllProfiles()
+                        for (p in profiles) {
+                            var b64: String? = null
+                            if (avatarsObj.has(p.id.toString())) {
+                                b64 = avatarsObj.optString(p.id.toString())
+                            } else if (avatarsObj.has("slot_${p.slotNumber}")) {
+                                b64 = avatarsObj.optString("slot_${p.slotNumber}")
+                            }
+
+                            if (!b64.isNullOrBlank()) {
+                                val destFile = java.io.File(appContext.filesDir, "avatar_profile_${p.id}.jpg")
+                                if (com.duorhythm.app.util.ImageUtils.decodeBase64ToFile(b64, destFile)) {
+                                    val updatedUri = android.net.Uri.fromFile(destFile).toString() + "?t=" + System.currentTimeMillis()
+                                    val pCv = ContentValues().apply { put("avatarUri", updatedUri) }
+                                    db.update("profiles", pCv, "id = ?", arrayOf(p.id.toString()))
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {}
+                }
+
                 db.setTransactionSuccessful()
                 true
             } finally {

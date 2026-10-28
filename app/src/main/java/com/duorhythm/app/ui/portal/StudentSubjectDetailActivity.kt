@@ -468,10 +468,11 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 instructorPhone = phone,
                 syllabusText = syllabus
             )
-            dbHelper.updateStudentSubject(updated)
+            val repo = com.duorhythm.app.data.repository.CourseRepository(this)
+            repo.updateCourseAndSyncDependencies(subject, updated)
             dialog.dismiss()
             loadSubject()
-            Toast.makeText(this, "Course info updated!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Course info & timetable synced!", Toast.LENGTH_SHORT).show()
         }
 
         dialogBinding.btnDeleteSubject.setOnClickListener {

@@ -18,6 +18,7 @@ class ReminderReceiver : BroadcastReceiver() {
 
         if (action == Intent.ACTION_BOOT_COMPLETED || action == Intent.ACTION_MY_PACKAGE_REPLACED) {
             ReminderManager.rescheduleAll(context)
+            com.duorhythm.app.scheduler.OrderAlarmScheduler.rescheduleAllActiveOrders(context)
             com.duorhythm.app.automation.SmartAutomationManager.init(context)
             return
         }

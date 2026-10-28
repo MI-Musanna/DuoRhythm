@@ -175,6 +175,11 @@ class PortalFragment : Fragment() {
                     else -> "PENDING"
                 }
                 dbHelper.updateWorkOrderStatus(order.id, nextStatus)
+                if (nextStatus == "COMPLETED") {
+                    com.duorhythm.app.scheduler.OrderAlarmScheduler.cancelOrderReminders(requireContext(), order.id)
+                } else {
+                    com.duorhythm.app.scheduler.OrderAlarmScheduler.scheduleOrderReminders(requireContext(), order.copy(status = nextStatus))
+                }
                 loadWorkData()
             },
             onDeleteClick = { order ->
@@ -182,6 +187,7 @@ class PortalFragment : Fragment() {
                     .setTitle("Delete Work Order")
                     .setMessage("Remove '${order.title}'?")
                     .setPositiveButton("Delete") { _, _ ->
+                        com.duorhythm.app.scheduler.OrderAlarmScheduler.cancelOrderReminders(requireContext(), order.id)
                         dbHelper.deleteWorkOrder(order.id)
                         loadWorkData()
                     }
@@ -1134,7 +1140,9 @@ class PortalFragment : Fragment() {
                 notes = notes,
                 attachmentPath = pendingOrderAttachmentPath
             )
-            dbHelper.insertWorkOrder(order)
+            val newId = dbHelper.insertWorkOrder(order)
+            val savedOrder = if (newId > 0) order.copy(id = newId) else order
+            com.duorhythm.app.scheduler.OrderAlarmScheduler.scheduleOrderReminders(requireContext(), savedOrder)
             dialog.dismiss()
             loadWorkData()
             Toast.makeText(requireContext(), "Work order created!", Toast.LENGTH_SHORT).show()

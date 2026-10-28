@@ -14,6 +14,7 @@
         android:id="@+id/homeContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
         android:orientation="vertical"
         android:padding="16dp">
 
@@ -172,6 +173,7 @@
             android:id="@+id/layoutStudentScheduleContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="150dp"
             android:orientation="vertical">
 
             <!-- Section Title: Next Up with Carousel Navigation Arrows -->
@@ -241,6 +243,7 @@
             android:id="@+id/layoutWorkMilestonesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="150dp"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -261,19 +264,41 @@
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
+                <ImageView
+                    android:id="@+id/btnPrevWorkOrder"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/bg_header_action_button"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_chevron_left"
+                    app:tint="@color/text_primary" />
+
+                <ImageView
+                    android:id="@+id/btnNextWorkOrder"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_header_action_button"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/text_primary" />
+
                 <TextView
+                    android:id="@+id/tvDeliverablesBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_pill_work_active"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
                     android:text="WORK MODE"
-                    android:textColor="#10B981"
+                    android:textColor="#052E16"
                     android:textSize="10sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
             <eightbitlab.com.blurview.BlurView
+                android:id="@+id/cardWorkMilestones"
                 android:layout_width="match_parent"
                 android:layout_height="124dp"
                 android:background="@drawable/bg_glass_specular_edge"
@@ -281,9 +306,13 @@
                 android:clipToPadding="true"
                 android:clipChildren="true"
                 android:outlineProvider="background"
+                android:clickable="true"
+                android:focusable="true"
                 app:blurOverlayColor="@color/blur_overlay">
 
+                <!-- Active Order View -->
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutActiveWorkOrder"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:padding="16dp">
@@ -310,12 +339,29 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
+                        android:layout_marginEnd="8dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:text="Active Client Deliverables"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/tvWorkMilestoneCountdown"
                         app:layout_constraintStart_toEndOf="@id/ivWorkMilestoneIcon"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvWorkMilestoneCountdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_work_active"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="Due Today"
+                        android:textColor="#052E16"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <TextView
@@ -324,13 +370,73 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
                         android:layout_marginTop="4dp"
+                        android:layout_marginEnd="8dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:text="All projects and client tasks tracked on schedule"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
-                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/tvWorkMilestoneStatus"
                         app:layout_constraintStart_toEndOf="@id/ivWorkMilestoneIcon"
                         app:layout_constraintTop_toBottomOf="@id/tvWorkMilestoneTitle" />
+
+                    <TextView
+                        android:id="@+id/tvWorkMilestoneStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="IN PROGRESS"
+                        android:textColor="#10B981"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvWorkMilestoneCountdown" />
+
+                    <TextView
+                        android:id="@+id/tvWorkOrderCounter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 of 3"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Empty State View -->
+                <LinearLayout
+                    android:id="@+id/layoutEmptyWorkOrders"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_work"
+                        app:tint="#10B981" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="No Active Deliverables"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Tap to manage projects &amp; client orders in Work Portal"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
             </eightbitlab.com.blurview.BlurView>
         </LinearLayout>
 
@@ -552,15 +658,35 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"
-                android:text="Work Analytics"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Work Analytics"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvAnalyticsBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill_work_active"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="ANALYTICS"
+                    android:textColor="#052E16"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <eightbitlab.com.blurview.BlurView
                 android:layout_width="match_parent"

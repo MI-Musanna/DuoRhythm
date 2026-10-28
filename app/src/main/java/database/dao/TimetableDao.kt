@@ -20,4 +20,12 @@ interface TimetableDao {
 
     @Query("DELETE FROM classes WHERE profile_id = :profileId")
     fun deleteByProfileId(profileId: Long)
+
+    fun syncCourseDetailsToClasses(
+        profileId: Long,
+        courseCode: String,
+        courseName: String,
+        teacherName: String,
+        room: String
+    ): Int
 }

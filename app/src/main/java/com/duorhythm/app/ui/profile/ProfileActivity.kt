@@ -19,6 +19,7 @@ import com.duorhythm.app.databinding.ActivityProfileBinding
 import com.duorhythm.app.databinding.DialogChangePasswordBinding
 import com.duorhythm.app.databinding.DialogEditAcademicInfoBinding
 import com.duorhythm.app.util.AnimationUtils
+import com.duorhythm.app.util.ImageUtils
 import database.entities.ProfileEntity
 
 class ProfileActivity : AppCompatActivity() {
@@ -33,23 +34,30 @@ class ProfileActivity : AppCompatActivity() {
                 val activeId = ProfileManager.getActiveProfileId(this)
                 val targetFile = java.io.File(filesDir, "avatar_profile_${activeId}.jpg")
                 try {
-                    contentResolver.openInputStream(it)?.use { input ->
-                        val bitmap = android.graphics.BitmapFactory.decodeStream(input)
-                        if (bitmap != null) {
-                            java.io.FileOutputStream(targetFile).use { stream ->
-                                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream)
-                            }
-                        }
+                    val sampled = ImageUtils.decodeSampledBitmapFromUri(this, it, 1080, 1080)
+                    if (sampled == null) {
+                        Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show()
+                        return@registerForActivityResult
                     }
-                    val uniqueUriString = Uri.fromFile(targetFile).toString() + "?t=" + System.currentTimeMillis()
-                    val profile = dbHelper.profileDao.getProfileById(activeId)
-                    if (profile != null) {
-                        val updated = profile.copy(avatarUri = uniqueUriString)
-                        dbHelper.profileDao.updateProfile(updated)
-                        UserProfileManager.setAvatarUri(this, uniqueUriString)
-                        currentProfile = updated
-                        loadProfileData()
-                        Toast.makeText(this, "Profile picture updated", Toast.LENGTH_SHORT).show()
+                    CropAvatarDialog.show(this, sampled) { cropped512 ->
+                        try {
+                            ImageUtils.saveBitmapToFile(cropped512, targetFile, quality = 85)
+                            cropped512.recycle()
+
+                            val uniqueUriString = Uri.fromFile(targetFile).toString() + "?t=" + System.currentTimeMillis()
+                            val profile = dbHelper.profileDao.getProfileById(activeId)
+                            if (profile != null) {
+                                val updated = profile.copy(avatarUri = uniqueUriString)
+                                dbHelper.profileDao.updateProfile(updated)
+                                UserProfileManager.setAvatarUri(this, uniqueUriString)
+                                currentProfile = updated
+                                loadProfileData()
+                                Toast.makeText(this, "Profile picture updated (512x512)", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            Toast.makeText(this, "Failed to save avatar", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

@@ -50,20 +50,22 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                 val ctx = context ?: return@registerForActivityResult
                 val targetFile = java.io.File(ctx.filesDir, "avatar_profile_${pendingAvatarProfileId}.jpg")
                 try {
-                    ctx.contentResolver.openInputStream(uri)?.use { input ->
-                        val bitmap = android.graphics.BitmapFactory.decodeStream(input)
-                        if (bitmap != null) {
-                            java.io.FileOutputStream(targetFile).use { stream ->
-                                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream)
-                            }
-                        } else {
-                            java.io.FileOutputStream(targetFile).use { stream ->
-                                input.copyTo(stream)
-                            }
+                    val sampled = com.duorhythm.app.util.ImageUtils.decodeSampledBitmapFromUri(ctx, uri, 1080, 1080)
+                    if (sampled == null) {
+                        Toast.makeText(ctx, "Failed to load image", Toast.LENGTH_SHORT).show()
+                        return@registerForActivityResult
+                    }
+                    CropAvatarDialog.show(ctx, sampled) { cropped512 ->
+                        try {
+                            com.duorhythm.app.util.ImageUtils.saveBitmapToFile(cropped512, targetFile, quality = 85)
+                            cropped512.recycle()
+                            val uniqueUriString = Uri.fromFile(targetFile).toString() + "?t=" + System.currentTimeMillis()
+                            pendingAvatarCallback?.invoke(uniqueUriString)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            Toast.makeText(ctx, "Failed to save cropped avatar", Toast.LENGTH_SHORT).show()
                         }
                     }
-                    val uniqueUriString = Uri.fromFile(targetFile).toString() + "?t=" + System.currentTimeMillis()
-                    pendingAvatarCallback?.invoke(uniqueUriString)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     Toast.makeText(ctx, "Failed to load image", Toast.LENGTH_SHORT).show()

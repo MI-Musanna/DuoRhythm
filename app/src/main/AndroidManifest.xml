@@ -166,6 +166,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- Dynamic Freelance Work Order Alarm Receiver -->
+        <receiver
+            android:name=".receiver.OrderAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_ORDER_ALERT" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

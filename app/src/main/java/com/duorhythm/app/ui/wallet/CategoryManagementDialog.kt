@@ -72,16 +72,30 @@ object CategoryManagementDialog {
                 }
             },
             onDelete = { item ->
-                AlertDialog.Builder(context)
-                    .setTitle("Delete Category")
-                    .setMessage("Are you sure you want to delete '${item.name}'? Existing transaction records will retain this category tag.")
-                    .setPositiveButton("Delete") { _, _ ->
-                        dbHelper.deleteTransactionCategory(item.id)
-                        Toast.makeText(context, "Deleted '${item.name}'", Toast.LENGTH_SHORT).show()
-                        refreshList()
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .show()
+                val linkedCount = dbHelper.getTransactionCountByCategory(item.name)
+                if (linkedCount > 0) {
+                    AlertDialog.Builder(context)
+                        .setTitle("Warning: Linked Transactions")
+                        .setMessage("There are $linkedCount recorded transactions linked to '${item.name}'. Deleting it will reassign these records to 'Uncategorized'. Delete anyway?")
+                        .setPositiveButton("Reassign & Delete") { _, _ ->
+                            dbHelper.deleteCategoryAndReassignTransactions(item.id, item.name, "Uncategorized")
+                            Toast.makeText(context, "Deleted '${item.name}' and reassigned $linkedCount transactions to 'Uncategorized'", Toast.LENGTH_SHORT).show()
+                            refreshList()
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                } else {
+                    AlertDialog.Builder(context)
+                        .setTitle("Delete Category")
+                        .setMessage("Are you sure you want to delete '${item.name}'?")
+                        .setPositiveButton("Delete") { _, _ ->
+                            dbHelper.deleteTransactionCategory(item.id)
+                            Toast.makeText(context, "Deleted '${item.name}'", Toast.LENGTH_SHORT).show()
+                            refreshList()
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
             }
         )
 

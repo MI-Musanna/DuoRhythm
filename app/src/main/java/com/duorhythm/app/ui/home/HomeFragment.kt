@@ -48,6 +48,8 @@ class HomeFragment : Fragment() {
     private lateinit var quickNotesAdapter: QuickNotesAdapter
     private lateinit var carouselAdapter: DailyScheduleCarouselAdapter
     private lateinit var homeViewModel: HomeViewModel
+    private var currentWorkOrderIndex = 0
+    private var activeWorkOrders = listOf<com.duorhythm.app.data.model.WorkOrder>()
 
     private val walletSyncListener: () -> Unit = {
         activity?.runOnUiThread {
@@ -241,6 +243,10 @@ class HomeFragment : Fragment() {
 
     private fun updateToggleStyle(isStudent: Boolean) {
         try {
+            android.transition.TransitionManager.beginDelayedTransition(
+                binding.homeContainer,
+                android.transition.AutoTransition().apply { duration = 180 }
+            )
             val persona = if (isStudent) PersonaMode.STUDENT else PersonaMode.WORK
             binding.layoutStudentScheduleContainer.crossfade(isStudent)
             binding.layoutWorkMilestonesContainer.crossfade(!isStudent)
@@ -324,6 +330,24 @@ class HomeFragment : Fragment() {
                 mainActivity?.selectNavTab(R.id.menu_portal)
             }
 
+            binding.cardWorkMilestones.setOnClickListener {
+                mainActivity?.selectNavTab(R.id.menu_portal)
+            }
+
+            binding.btnPrevWorkOrder.setOnClickListener {
+                if (activeWorkOrders.isNotEmpty()) {
+                    currentWorkOrderIndex = (currentWorkOrderIndex - 1 + activeWorkOrders.size) % activeWorkOrders.size
+                    bindWorkOrderCard()
+                }
+            }
+
+            binding.btnNextWorkOrder.setOnClickListener {
+                if (activeWorkOrders.isNotEmpty()) {
+                    currentWorkOrderIndex = (currentWorkOrderIndex + 1) % activeWorkOrders.size
+                    bindWorkOrderCard()
+                }
+            }
+
             binding.toolHomePomodoro.setOnClickListener {
                 PomodoroDialog(requireContext()).show()
             }
@@ -357,6 +381,9 @@ class HomeFragment : Fragment() {
                 binding.cardHomeWallet,
                 binding.cardHomeTasks,
                 binding.cardHomePortal,
+                binding.cardWorkMilestones,
+                binding.btnPrevWorkOrder,
+                binding.btnNextWorkOrder,
                 binding.btnHomeOpenTools,
                 binding.btnHomeAddNote,
                 binding.toolHomePomodoro,
@@ -517,9 +544,11 @@ class HomeFragment : Fragment() {
             } else {
                 binding.tvHomePortalTitle.text = "Work Portal"
                 val workOrders = dbHelper.getAllWorkOrders()
-                val pendingOrders = workOrders.count { !it.status.equals("COMPLETED", ignoreCase = true) }
-                binding.tvHomePortalSummary.text = "$pendingOrders Active Orders"
+                val pendingOrders = workOrders.filter { !it.status.equals("COMPLETED", ignoreCase = true) }
+                binding.tvHomePortalSummary.text = "${pendingOrders.size} Active Orders"
                 binding.tvHomePortalSubtext.text = "Client projects and deliverables"
+                activeWorkOrders = if (pendingOrders.isNotEmpty()) pendingOrders else workOrders
+                bindWorkOrderCard()
             }
 
             // 4. Quick Notes & Scratchpad
@@ -641,6 +670,93 @@ class HomeFragment : Fragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun bindWorkOrderCard() {
+        if (_binding == null) return
+        val orders = activeWorkOrders
+        if (orders.isEmpty()) {
+            binding.layoutActiveWorkOrder.visibility = View.GONE
+            binding.layoutEmptyWorkOrders.visibility = View.VISIBLE
+            binding.btnPrevWorkOrder.visibility = View.GONE
+            binding.btnNextWorkOrder.visibility = View.GONE
+            binding.tvDeliverablesBadge.text = "WORK MODE"
+            return
+        }
+
+        binding.layoutActiveWorkOrder.visibility = View.VISIBLE
+        binding.layoutEmptyWorkOrders.visibility = View.GONE
+
+        if (orders.size > 1) {
+            binding.btnPrevWorkOrder.visibility = View.VISIBLE
+            binding.btnNextWorkOrder.visibility = View.VISIBLE
+        } else {
+            binding.btnPrevWorkOrder.visibility = View.GONE
+            binding.btnNextWorkOrder.visibility = View.GONE
+        }
+
+        if (currentWorkOrderIndex >= orders.size) {
+            currentWorkOrderIndex = 0
+        }
+
+        val order = orders[currentWorkOrderIndex]
+        binding.tvWorkMilestoneTitle.text = order.title
+        val client = if (order.clientName.isNotBlank()) order.clientName else "Direct Client"
+        val priceStr = if (order.totalPrice > 0.0) {
+            val formatted = java.text.DecimalFormat("#,##0").format(order.totalPrice)
+            "$client • ৳$formatted"
+        } else {
+            client
+        }
+        binding.tvWorkMilestoneSubtext.text = priceStr
+
+        // Status
+        val statusText = order.status.uppercase()
+        binding.tvWorkMilestoneStatus.text = statusText
+        binding.tvWorkMilestoneStatus.setTextColor(
+            when (statusText) {
+                "COMPLETED" -> Color.parseColor("#10B981")
+                "IN_PROGRESS", "IN PROGRESS" -> Color.parseColor("#38BDF8")
+                else -> Color.parseColor("#F59E0B")
+            }
+        )
+
+        // Countdown calculation
+        val countdownInfo = calculateCountdown(order.endDate)
+        binding.tvWorkMilestoneCountdown.text = countdownInfo.first
+        binding.tvWorkMilestoneCountdown.setTextColor(countdownInfo.second)
+
+        binding.tvWorkOrderCounter.text = "${currentWorkOrderIndex + 1} of ${orders.size}"
+        binding.tvDeliverablesBadge.text = "${orders.size} ACTIVE"
+    }
+
+    private fun calculateCountdown(endDateStr: String): Pair<String, Int> {
+        if (endDateStr.isBlank()) return Pair("No Deadline", Color.parseColor("#052E16"))
+        val formats = listOf("yyyy-MM-dd HH:mm", "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy")
+        var date: Date? = null
+        for (fmt in formats) {
+            try {
+                date = SimpleDateFormat(fmt, Locale.US).parse(endDateStr)
+                if (date != null) break
+            } catch (_: Exception) {}
+        }
+        if (date == null) return Pair("Due: $endDateStr", Color.parseColor("#052E16"))
+
+        val diffMillis = date.time - System.currentTimeMillis()
+        return if (diffMillis < 0) {
+            val daysAgo = kotlin.math.abs(diffMillis) / (1000 * 60 * 60 * 24)
+            if (daysAgo == 0L) Pair("Overdue Today", Color.parseColor("#DC2626"))
+            else Pair("Overdue $daysAgo d", Color.parseColor("#DC2626"))
+        } else {
+            val hours = diffMillis / (1000 * 60 * 60)
+            val days = diffMillis / (1000 * 60 * 60 * 24)
+            when {
+                days > 1 -> Pair("Due in $days d", Color.parseColor("#052E16"))
+                days == 1L -> Pair("Due Tomorrow", Color.parseColor("#052E16"))
+                hours > 0 -> Pair("Due in ${hours}h", Color.parseColor("#052E16"))
+                else -> Pair("Due Soon", Color.parseColor("#052E16"))
+            }
+        }
     }
 
     override fun onDestroyView() {
