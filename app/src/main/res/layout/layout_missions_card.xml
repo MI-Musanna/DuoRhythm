@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutMissionsCardRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_glass_specular_edge"
+    android:padding="16dp">
+
+    <!-- Mission Icon Capsule on Start -->
+    <FrameLayout
+        android:id="@+id/ivMissionIconContainer"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@drawable/bg_badge_overview_rect"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivMissionIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_gravity="center"
+            android:contentDescription="Missions"
+            android:src="@drawable/ic_tasks"
+            app:tint="#D946EF" />
+    </FrameLayout>
+
+    <!-- Mission Title -->
+    <TextView
+        android:id="@+id/tvMissionCardTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="8dp"
+        android:breakStrategy="simple"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Missions &amp; Tasks"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/progressRingMissions"
+        app:layout_constraintStart_toEndOf="@id/ivMissionIconContainer"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Active Mission Description (0dp bounded by icon and ring) -->
+    <TextView
+        android:id="@+id/tvMissionDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:breakStrategy="simple"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@id/progressRingMissions"
+        app:layout_constraintStart_toEndOf="@id/ivMissionIconContainer"
+        app:layout_constraintTop_toBottomOf="@id/tvMissionCardTitle"
+        tools:text="Complete English essay review • Proofread chapter 3 notes" />
+
+    <!-- Progress Ring on End Container -->
+    <com.duorhythm.app.ui.home.CircularProgressRingView
+        android:id="@+id/progressRingMissions"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

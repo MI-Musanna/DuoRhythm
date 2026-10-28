@@ -148,6 +148,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- Dynamic Assessment & Exam Alarm Receiver -->
+        <receiver
+            android:name=".receiver.AssessmentAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_ASSESSMENT_ALERT" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

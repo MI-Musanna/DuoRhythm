@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.R
 import com.duorhythm.app.data.model.ClassScheduleItem
 import com.duorhythm.app.data.model.StudentSubject
-import com.duorhythm.app.data.model.instructor
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.AppSettings
 import com.duorhythm.app.databinding.DialogAddClassBinding
@@ -296,91 +295,31 @@ class ScheduleFragment : Fragment() {
     }
 
     private fun showAddClassDialog() {
-        val dialogBinding = DialogAddClassBinding.inflate(layoutInflater)
-        val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-        val daysAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, days)
-        dialogBinding.spClassDay.adapter = daysAdapter
-        dialogBinding.spClassDay.setSelection(selectedDay - 1)
-
-        val types = listOf("Lecture", "Lab", "Tutorial", "Seminar")
-        val typesAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
-        dialogBinding.spClassType.adapter = typesAdapter
-
-        val enrolledSubjects = subjectDao.getAllSubjectsSync()
-        if (enrolledSubjects.isNotEmpty()) {
-            val subjectNames = enrolledSubjects.map { it.name }.distinct()
-            val subjectAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, subjectNames)
-            dialogBinding.actvSubjectName.setAdapter(subjectAdapter)
-            dialogBinding.actvSubjectName.setOnItemClickListener { _, _, position, _ ->
-                val selectedName = subjectAdapter.getItem(position) ?: return@setOnItemClickListener
-                val matchedSubject = enrolledSubjects.find { it.name.equals(selectedName, ignoreCase = true) }
-                if (matchedSubject != null && matchedSubject.instructor.isNotBlank()) {
-                    dialogBinding.etClassTeacher.setText(matchedSubject.instructor)
-                }
-            }
-            dialogBinding.actvSubjectName.setOnClickListener {
-                dialogBinding.actvSubjectName.showDropDown()
-            }
-        }
-
-        dialogBinding.etClassStartTime.setOnClickListener { showTimePicker(dialogBinding.etClassStartTime) }
-        dialogBinding.etClassEndTime.setOnClickListener { showTimePicker(dialogBinding.etClassEndTime) }
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-
-        dialogBinding.btnSaveClass.setOnClickListener {
-            val subject = dialogBinding.actvSubjectName.text?.toString()?.trim().orEmpty()
-            val room = dialogBinding.etClassRoom.text?.toString()?.trim().orEmpty()
-            val teacher = dialogBinding.etClassTeacher.text?.toString()?.trim().orEmpty()
-            val building = dialogBinding.etClassBuilding.text?.toString()?.trim().orEmpty()
-            val startTime = dialogBinding.etClassStartTime.text?.toString()?.trim().orEmpty()
-            val endTime = dialogBinding.etClassEndTime.text?.toString()?.trim().orEmpty()
-            val dayOfWeek = dialogBinding.spClassDay.selectedItemPosition + 1
-            val classType = types[dialogBinding.spClassType.selectedItemPosition].uppercase()
-
-            if (subject.isEmpty() || startTime.isEmpty() || endTime.isEmpty()) {
-                Toast.makeText(requireContext(), "Subject name and times are required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Auto-enroll subject if not existing so user never needs to pre-enroll
+        EditClassDialog(
+            context = requireContext(),
+            fragmentManager = parentFragmentManager,
+            classItem = null,
+            defaultDayOfWeek = selectedDay
+        ) { scheduledItem ->
             val allSubjects = dbHelper.getAllStudentSubjects()
-            if (allSubjects.none { it.name.equals(subject, ignoreCase = true) }) {
+            if (allSubjects.none { it.name.equals(scheduledItem.subjectName, ignoreCase = true) }) {
                 val newSub = StudentSubject(
-                    name = subject,
+                    name = scheduledItem.subjectName,
                     code = "",
                     colorHex = "#2563EB",
                     notes = "",
                     credits = 3,
-                    instructorName = teacher
+                    instructorName = scheduledItem.teacher
                 )
                 dbHelper.insertStudentSubject(newSub, autoTrackAttendance = false)
             }
 
-            val item = ClassScheduleItem(
-                subjectName = subject,
-                room = room,
-                teacher = teacher,
-                dayOfWeek = dayOfWeek,
-                startTime = startTime,
-                endTime = endTime,
-                colorHex = "#2563EB",
-                classType = classType,
-                buildingOrLink = building
-            )
-            val newId = dbHelper.insertClassSchedule(item)
-            val scheduledItem = item.copy(id = newId)
-            ClassAlarmScheduler.scheduleClassAlarms(requireContext(), scheduledItem)
-
-            dialog.dismiss()
+            val newId = dbHelper.insertClassSchedule(scheduledItem)
+            val updatedWithId = scheduledItem.copy(id = newId)
+            ClassAlarmScheduler.scheduleClassAlarms(requireContext(), updatedWithId)
             loadData()
-            Toast.makeText(requireContext(), "$classType scheduled with 15m alarm reminder", Toast.LENGTH_SHORT).show()
-        }
-
-        dialog.show()
+            Toast.makeText(requireContext(), "${scheduledItem.classType} scheduled with alarm reminder", Toast.LENGTH_SHORT).show()
+        }.show()
     }
 
     private fun showAddSubjectDialog() {
@@ -428,92 +367,18 @@ class ScheduleFragment : Fragment() {
     }
 
     private fun showEditClassDialog(classItem: ClassScheduleItem) {
-        val dialogBinding = DialogAddClassBinding.inflate(layoutInflater)
-        dialogBinding.tvAddClassTitle.text = "Edit Class Schedule"
-        dialogBinding.btnSaveClass.text = "Update Class"
-
-        val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-        val daysAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, days)
-        dialogBinding.spClassDay.adapter = daysAdapter
-        val safeDayIdx = (classItem.dayOfWeek - 1).coerceIn(0, days.size - 1)
-        dialogBinding.spClassDay.setSelection(safeDayIdx)
-
-        val types = listOf("Lecture", "Lab", "Tutorial", "Seminar")
-        val typesAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
-        dialogBinding.spClassType.adapter = typesAdapter
-        val typeIdx = types.indexOfFirst { it.equals(classItem.classType, ignoreCase = true) }
-        if (typeIdx >= 0) {
-            dialogBinding.spClassType.setSelection(typeIdx)
-        }
-
-        dialogBinding.actvSubjectName.setText(classItem.subjectName)
-        val enrolledSubjects = subjectDao.getAllSubjectsSync()
-        if (enrolledSubjects.isNotEmpty()) {
-            val subjectNames = enrolledSubjects.map { it.name }.distinct()
-            val subjectAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, subjectNames)
-            dialogBinding.actvSubjectName.setAdapter(subjectAdapter)
-            dialogBinding.actvSubjectName.setOnItemClickListener { _, _, position, _ ->
-                val selectedName = subjectAdapter.getItem(position) ?: return@setOnItemClickListener
-                val matchedSubject = enrolledSubjects.find { it.name.equals(selectedName, ignoreCase = true) }
-                if (matchedSubject != null && matchedSubject.instructor.isNotBlank()) {
-                    dialogBinding.etClassTeacher.setText(matchedSubject.instructor)
-                }
-            }
-            dialogBinding.actvSubjectName.setOnClickListener {
-                dialogBinding.actvSubjectName.showDropDown()
-            }
-        }
-
-        dialogBinding.etClassRoom.setText(classItem.room)
-        dialogBinding.etClassTeacher.setText(classItem.teacher)
-        dialogBinding.etClassBuilding.setText(classItem.buildingOrLink)
-        dialogBinding.etClassStartTime.setText(classItem.startTime)
-        dialogBinding.etClassEndTime.setText(classItem.endTime)
-
-        dialogBinding.etClassStartTime.setOnClickListener { showTimePicker(dialogBinding.etClassStartTime) }
-        dialogBinding.etClassEndTime.setOnClickListener { showTimePicker(dialogBinding.etClassEndTime) }
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-
-        dialogBinding.btnSaveClass.setOnClickListener {
-            val subject = dialogBinding.actvSubjectName.text?.toString()?.trim().orEmpty()
-            val room = dialogBinding.etClassRoom.text?.toString()?.trim().orEmpty()
-            val teacher = dialogBinding.etClassTeacher.text?.toString()?.trim().orEmpty()
-            val building = dialogBinding.etClassBuilding.text?.toString()?.trim().orEmpty()
-            val startTime = dialogBinding.etClassStartTime.text?.toString()?.trim().orEmpty()
-            val endTime = dialogBinding.etClassEndTime.text?.toString()?.trim().orEmpty()
-            val dayOfWeek = dialogBinding.spClassDay.selectedItemPosition + 1
-            val classType = types[dialogBinding.spClassType.selectedItemPosition].uppercase()
-
-            if (subject.isEmpty() || startTime.isEmpty() || endTime.isEmpty()) {
-                Toast.makeText(requireContext(), "Subject name and times are required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val updated = classItem.copy(
-                subjectName = subject,
-                room = room,
-                teacher = teacher,
-                dayOfWeek = dayOfWeek,
-                startTime = startTime,
-                endTime = endTime,
-                classType = classType,
-                buildingOrLink = building
-            )
-
-            ClassAlarmScheduler.cancelClassAlarms(requireContext(), classItem.id)
+        EditClassDialog(
+            context = requireContext(),
+            fragmentManager = parentFragmentManager,
+            classItem = classItem,
+            defaultDayOfWeek = selectedDay
+        ) { updated ->
+            ClassAlarmScheduler.cancelAlarmsForClass(requireContext(), classItem.id)
             dbHelper.updateClassSchedule(updated)
             ClassAlarmScheduler.scheduleClassAlarms(requireContext(), updated)
-
-            dialog.dismiss()
             loadData()
             Toast.makeText(requireContext(), "Class schedule updated", Toast.LENGTH_SHORT).show()
-        }
-
-        dialog.show()
+        }.show()
     }
 
     override fun onDestroyView() {

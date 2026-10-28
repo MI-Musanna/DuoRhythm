@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/tvAssessmentDialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Schedule Assessment"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvAssessmentDialogSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Unified exam &amp; quiz scheduler with auto-fill."
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <!-- Field 1: Assessment Type -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Assessment Category"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spAssessmentType"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="3dp"
+            android:background="@drawable/bg_chip_unselected" />
+
+        <!-- Field 2: Enrolled Course / Subject Dropdown (Auto-Fill) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilAssessmentSubject"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
+            android:hint="Select Enrolled Course">
+
+            <AutoCompleteTextView
+                android:id="@+id/actvAssessmentSubject"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="?attr/colorOnSurface" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Field 3: Title -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilAssessmentTitle"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
+            android:hint="Title (e.g. CT-1, Midterm Exam, Quiz 3)">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etAssessmentTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?android:attr/textColorSecondary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Field 4: Date & Time Picker Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                app:boxBackgroundColor="@color/surface_variant"
+                app:boxStrokeColor="@color/card_stroke_bright"
+                android:hint="Date">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAssessmentDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?android:attr/textColorSecondary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                app:boxBackgroundColor="@color/surface_variant"
+                app:boxStrokeColor="@color/card_stroke_bright"
+                android:hint="Time">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAssessmentTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?android:attr/textColorSecondary" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- Field 5: Room / Hall & Teacher Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                app:boxBackgroundColor="@color/surface_variant"
+                app:boxStrokeColor="@color/card_stroke_bright"
+                android:hint="Room / Hall">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAssessmentRoom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?android:attr/textColorSecondary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                app:boxBackgroundColor="@color/surface_variant"
+                app:boxStrokeColor="@color/card_stroke_bright"
+                android:hint="Instructor">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAssessmentTeacher"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?android:attr/textColorSecondary" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- Syllabus Topics -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:boxBackgroundColor="@color/surface_variant"
+            app:boxStrokeColor="@color/card_stroke_bright"
+            android:hint="Syllabus / Topics to Study (Optional)">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etAssessmentSyllabus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?android:attr/textColorSecondary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Save Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveAssessment"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:text="Schedule Assessment"
+            app:cornerRadius="12dp" />
+
+    </LinearLayout>
+</ScrollView>

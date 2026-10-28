@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardHomeScheduleRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_glass_specular_edge"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="16dp">
+
+    <!-- Squircle Icon Capsule -->
+    <FrameLayout
+        android:id="@+id/ivScheduleIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_icon_badge_cyan"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivScheduleIconInner"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:contentDescription="Class Schedule"
+            android:src="@drawable/ic_schedule"
+            app:tint="#38BDF8" />
+    </FrameLayout>
+
+    <!-- Status Badge (e.g. IN SESSION NOW / UPCOMING NEXT / TIMETABLE) -->
+    <TextView
+        android:id="@+id/tvScheduleStatusBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/bg_badge_timetable"
+        android:paddingHorizontal="7dp"
+        android:paddingVertical="3dp"
+        android:text="TIMETABLE"
+        android:textColor="@color/primary"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/ivScheduleIcon"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Class Type Badge (e.g. LECTURE, LAB) -->
+    <TextView
+        android:id="@+id/tvScheduleTypeBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_chip_unselected"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:text="LECTURE"
+        android:textColor="@color/text_secondary"
+        android:textSize="9sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/tvScheduleStatusBadge"
+        app:layout_constraintStart_toEndOf="@id/tvScheduleStatusBadge"
+        app:layout_constraintTop_toTopOf="@id/tvScheduleStatusBadge" />
+
+    <!-- Strict Constraint Subject Name / Title -->
+    <TextView
+        android:id="@+id/tvSubjectName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="8dp"
+        android:breakStrategy="simple"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/text_primary"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/layoutPagingOrActions"
+        app:layout_constraintStart_toEndOf="@id/ivScheduleIcon"
+        app:layout_constraintTop_toBottomOf="@id/tvScheduleStatusBadge"
+        tools:text="Application Development Using Python" />
+
+    <!-- Time & Room Details Subtext -->
+    <TextView
+        android:id="@+id/tvHomeScheduleSubtext"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@id/layoutPagingOrActions"
+        app:layout_constraintStart_toEndOf="@id/ivScheduleIcon"
+        app:layout_constraintTop_toBottomOf="@id/tvSubjectName"
+        tools:text="⏰ 09:00 AM - 10:30 AM • Room 402" />
+
+    <!-- End Container: Schedule Action Pill & Carousel Position -->
+    <LinearLayout
+        android:id="@+id/layoutPagingOrActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="end|center_vertical"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/btnScheduleAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_action_pill_cyan"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="Schedule →"
+            android:textColor="#38BDF8"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCarouselPosition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/text_muted"
+            android:textSize="10sp"
+            tools:text="1 of 3" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

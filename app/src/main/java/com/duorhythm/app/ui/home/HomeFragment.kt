@@ -7,10 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager2.widget.ViewPager2
+import android.widget.LinearLayout
 import com.duorhythm.app.MainActivity
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
+import com.duorhythm.app.data.model.ClassStatus
+import com.duorhythm.app.data.model.CarouselClassItem
 import com.duorhythm.app.databinding.FragmentHomeBinding
 import android.app.AlertDialog
 import android.widget.ArrayAdapter
@@ -39,6 +44,8 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var quickNotesAdapter: QuickNotesAdapter
+    private lateinit var carouselAdapter: DailyScheduleCarouselAdapter
+    private lateinit var homeViewModel: HomeViewModel
 
     private val walletSyncListener: () -> Unit = {
         activity?.runOnUiThread {
@@ -62,6 +69,25 @@ class HomeFragment : Fragment() {
         try {
             WalletDataSyncManager.register(walletSyncListener)
             dbHelper = DatabaseHelper.getInstance(requireContext())
+            homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+
+            carouselAdapter = DailyScheduleCarouselAdapter(
+                emptyList(),
+                onItemClick = {
+                    (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
+                },
+                onScheduleActionClick = {
+                    (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
+                }
+            )
+            binding.vpDailyScheduleCarousel.adapter = carouselAdapter
+            binding.vpDailyScheduleCarousel.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    updateCarouselIndicator(position, carouselAdapter.itemCount)
+                }
+            })
+
             quickNotesAdapter = QuickNotesAdapter(
                 emptyList(),
                 onNoteClick = { showEditNoteDialog(it) },
@@ -108,7 +134,6 @@ class HomeFragment : Fragment() {
                 ?: (binding.root as? ViewGroup)
             if (rootView != null) {
                 BlurUtil.setupBlur(binding.blurHeader, rootView)
-                BlurUtil.setupBlur(binding.cardHomeSchedule, rootView)
                 BlurUtil.setupBlur(binding.cardHomeWallet, rootView)
                 BlurUtil.setupBlur(binding.cardHomeTasks, rootView)
                 BlurUtil.setupBlur(binding.cardHomeQuickNotes, rootView)
@@ -262,10 +287,6 @@ class HomeFragment : Fragment() {
                 mainActivity?.selectNavTab(R.id.menu_tasks)
             }
 
-            binding.cardHomeSchedule.setOnClickListener {
-                mainActivity?.selectNavTab(R.id.menu_schedule)
-            }
-
             binding.cardHomePortal.setOnClickListener {
                 mainActivity?.selectNavTab(R.id.menu_portal)
             }
@@ -302,7 +323,6 @@ class HomeFragment : Fragment() {
             AnimationUtils.attachTactileFeedback(
                 binding.cardHomeWallet,
                 binding.cardHomeTasks,
-                binding.cardHomeSchedule,
                 binding.cardHomePortal,
                 binding.btnHomeOpenTools,
                 binding.btnHomeAddNote,
@@ -314,6 +334,33 @@ class HomeFragment : Fragment() {
             )
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun updateCarouselIndicator(activePosition: Int, totalCount: Int) {
+        if (_binding == null) return
+        val container = binding.layoutCarouselIndicator
+        container.removeAllViews()
+        if (totalCount <= 1) {
+            container.visibility = View.GONE
+            return
+        }
+        container.visibility = View.VISIBLE
+        val density = resources.displayMetrics.density
+        for (i in 0 until totalCount) {
+            val pill = View(requireContext()).apply {
+                val isSelected = (i == activePosition)
+                val width = if (isSelected) (18 * density).toInt() else (6 * density).toInt()
+                val height = (5 * density).toInt()
+                val lp = LinearLayout.LayoutParams(width, height).apply {
+                    marginStart = (3 * density).toInt()
+                    marginEnd = (3 * density).toInt()
+                }
+                layoutParams = lp
+                val bgRes = if (isSelected) R.drawable.bg_rounded_accent_pill else R.drawable.bg_chip_unselected
+                setBackgroundResource(bgRes)
+            }
+            container.addView(pill)
         }
     }
 
@@ -396,21 +443,16 @@ class HomeFragment : Fragment() {
                 binding.tvHomeTasksPriorityBrief.text = "Standard priority queue"
             }
 
-            // 3. Next Up Class / Schedule
-            val allClasses = dbHelper.getAllClasses()
-            val calendar = Calendar.getInstance()
-            var dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1 // 1=Mon ... 7=Sun
-            if (dayOfWeek <= 0) dayOfWeek = 7
-            val todayClasses = allClasses.filter { it.dayOfWeek == dayOfWeek }
-            if (todayClasses.isNotEmpty()) {
-                val nextClass = todayClasses.first()
-                binding.tvHomeScheduleSummary.text = nextClass.subjectName
-                val roomText = if (nextClass.room.isNotBlank()) "Room ${nextClass.room} • " else ""
-                binding.tvHomeScheduleSubtext.text = "$roomText${nextClass.startTime} (${todayClasses.size} classes today)"
-            } else {
-                binding.tvHomeScheduleSummary.text = "No Classes Today"
-                binding.tvHomeScheduleSubtext.text = "All clear • Timetable on track"
-            }
+            // 3. Dynamic Daily Class Carousel with Auto-Focus on Ongoing/Next Lecture
+            val todayClasses = homeViewModel.getDailyScheduleCarouselItems()
+            carouselAdapter.updateItems(todayClasses)
+            val activeIndex = todayClasses.indexOfFirst { it.status == ClassStatus.IN_SESSION_NOW }
+                .takeIf { it != -1 }
+                ?: todayClasses.indexOfFirst { it.status == ClassStatus.UPCOMING_NEXT }
+                .takeIf { it != -1 }
+                ?: 0
+            binding.vpDailyScheduleCarousel.setCurrentItem(activeIndex, false)
+            updateCarouselIndicator(activeIndex, todayClasses.size)
 
             // 4. Portal Overview
             val workPortalEnabled = dbHelper.isWorkPortalEnabled()

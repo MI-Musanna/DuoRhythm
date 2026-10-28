@@ -161,4 +161,14 @@
         android:textSize="14sp"
         android:textStyle="bold" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDeleteSubject"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="4dp"
+        android:text="Delete Course"
+        android:textColor="@color/expense_red"
+        android:textSize="13sp" />
+
 </LinearLayout>

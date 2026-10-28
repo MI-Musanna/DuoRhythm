@@ -65,9 +65,12 @@
 
         <TextView
             android:id="@+id/tvWorkItemTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:breakStrategy="simple"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:text="Essay: Themes in Hamlet"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
@@ -75,9 +78,12 @@
 
         <TextView
             android:id="@+id/tvWorkItemDescription"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:breakStrategy="simple"
+            android:ellipsize="end"
+            android:maxLines="3"
             android:text="Write 1200 words evaluating tragedy structure"
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />

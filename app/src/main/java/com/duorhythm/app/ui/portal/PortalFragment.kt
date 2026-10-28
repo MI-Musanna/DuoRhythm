@@ -46,8 +46,8 @@ class PortalFragment : Fragment() {
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var studentSubjectsAdapter: StudentSubjectsAdapter
     private lateinit var workOrdersAdapter: WorkOrdersAdapter
-    private lateinit var semesterFinalsAdapter: SubjectItemsAdapter
-    private lateinit var classTestsAdapter: SubjectItemsAdapter
+    private lateinit var unifiedAssessmentsAdapter: SubjectItemsAdapter
+    private var selectedAssessmentFilter = "ALL"
     private lateinit var studentContactsAdapter: com.duorhythm.app.ui.tools.ContactsAdapter
     private lateinit var workContactsAdapter: com.duorhythm.app.ui.tools.ContactsAdapter
 
@@ -152,9 +152,10 @@ class PortalFragment : Fragment() {
             onDeleteClick = { subject ->
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Subject")
-                    .setMessage("Remove '${subject.name}' and all its homework/exams?")
+                    .setMessage("Remove '${subject.name}' and all associated routine classes, exams, attendance records, and syllabus materials?")
                     .setPositiveButton("Delete") { _, _ ->
-                        dbHelper.deleteStudentSubject(subject.id)
+                        val repo = com.duorhythm.app.data.repository.CourseRepository(requireContext())
+                        repo.deleteCourseCascadeSync(subject.id, subject.code, subject.profileId)
                         loadStudentData()
                     }
                     .setNegativeButton("Cancel", null)
@@ -188,8 +189,8 @@ class PortalFragment : Fragment() {
                     .show()
             }
         )
-        // Semester Finals
-        semesterFinalsAdapter = SubjectItemsAdapter(
+        // Unified Assessments
+        unifiedAssessmentsAdapter = SubjectItemsAdapter(
             emptyList(),
             onToggleStatus = { item, nextStatus ->
                 dbHelper.updateSubjectWorkItemStatus(item.id, nextStatus)
@@ -197,10 +198,11 @@ class PortalFragment : Fragment() {
             },
             onDeleteClick = { item ->
                 MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Delete Exam")
+                    .setTitle("Delete Assessment")
                     .setMessage("Remove '${item.title}'?")
                     .setPositiveButton("Delete") { _, _ ->
                         dbHelper.deleteSubjectWorkItem(item.id)
+                        com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(requireContext(), item.id)
                         loadStudentData()
                     }
                     .setNegativeButton("Cancel", null)
@@ -210,33 +212,8 @@ class PortalFragment : Fragment() {
                 showEditExamDialog(item)
             }
         )
-        binding.rvSemesterFinals.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvSemesterFinals.adapter = semesterFinalsAdapter
-
-        // Class Tests & Quizzes
-        classTestsAdapter = SubjectItemsAdapter(
-            emptyList(),
-            onToggleStatus = { item, nextStatus ->
-                dbHelper.updateSubjectWorkItemStatus(item.id, nextStatus)
-                loadStudentData()
-            },
-            onDeleteClick = { item ->
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Delete Class Test")
-                    .setMessage("Remove '${item.title}'?")
-                    .setPositiveButton("Delete") { _, _ ->
-                        dbHelper.deleteSubjectWorkItem(item.id)
-                        loadStudentData()
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .show()
-            },
-            onItemClick = { item ->
-                showEditExamDialog(item)
-            }
-        )
-        binding.rvClassTests.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvClassTests.adapter = classTestsAdapter
+        binding.rvUnifiedAssessments.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvUnifiedAssessments.adapter = unifiedAssessmentsAdapter
 
         // Student Contacts
         studentContactsAdapter = com.duorhythm.app.ui.tools.ContactsAdapter(
@@ -333,8 +310,29 @@ class PortalFragment : Fragment() {
             showEditInstitutionDialog()
         }
 
-        binding.btnAddFinal.setOnClickListener { showAddExamDialog("SEMESTER_FINAL") }
-        binding.btnAddCtQuiz.setOnClickListener { showAddQuizDialog() }
+        binding.btnAddAssessment.setOnClickListener {
+            val defType = when (selectedAssessmentFilter) {
+                "FINALS" -> "SEMESTER_FINAL"
+                "MIDTERMS" -> "MIDTERM"
+                "QUIZZES" -> "CLASS_TEST_QUIZ"
+                "LAB" -> "Lab Exam / Practical"
+                "VIVA" -> "Presentation / Viva"
+                else -> "Semester Final Exam"
+            }
+            showAddExamDialog(defType)
+        }
+
+        binding.cgAssessmentFilters.setOnCheckedChangeListener { _, checkedId ->
+            selectedAssessmentFilter = when (checkedId) {
+                R.id.chipFilterFinals -> "FINALS"
+                R.id.chipFilterMidterms -> "MIDTERMS"
+                R.id.chipFilterQuizzes -> "QUIZZES"
+                R.id.chipFilterLab -> "LAB"
+                R.id.chipFilterViva -> "VIVA"
+                else -> "ALL"
+            }
+            loadStudentData()
+        }
 
         binding.toggleStudentDirectoryTab.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
@@ -557,29 +555,34 @@ class PortalFragment : Fragment() {
             binding.tvStudentAttendanceTarget.text = "0% Target"
         }
 
-        // Load Semester Finals (SEMESTER_FINAL or MIDTERM)
-        val allExams = dbHelper.getAllExams().distinctBy { it.first.id }
-        val finalsItems = allExams.filter { it.first.examType == "SEMESTER_FINAL" || it.first.examType == "MIDTERM" }.map { it.first }
-        semesterFinalsAdapter.updateList(finalsItems)
-        binding.tvFinalExamsCountBadge.text = "${finalsItems.size} Scheduled"
-        if (finalsItems.isEmpty()) {
-            binding.rvSemesterFinals.visibility = View.GONE
-            binding.tvEmptySemesterFinals.visibility = View.VISIBLE
-        } else {
-            binding.rvSemesterFinals.visibility = View.VISIBLE
-            binding.tvEmptySemesterFinals.visibility = View.GONE
+        // Load Unified Exams & Assessments
+        val allExams = dbHelper.getAllExams().distinctBy { it.first.id }.map { it.first }
+        val filteredList = when (selectedAssessmentFilter) {
+            "FINALS" -> allExams.filter { it.examType.contains("Final", ignoreCase = true) || it.examType == "SEMESTER_FINAL" }
+            "MIDTERMS" -> allExams.filter { it.examType.contains("Midterm", ignoreCase = true) || it.examType == "MIDTERM" }
+            "QUIZZES" -> allExams.filter {
+                it.examType.contains("Quiz", ignoreCase = true) ||
+                it.examType.contains("CT", ignoreCase = true) ||
+                it.examType.contains("Class Test", ignoreCase = true) ||
+                it.examType == "CLASS_TEST_QUIZ"
+            }
+            "LAB" -> allExams.filter { it.examType.contains("Lab", ignoreCase = true) || it.examType.contains("Practical", ignoreCase = true) }
+            "VIVA" -> allExams.filter { it.examType.contains("Viva", ignoreCase = true) || it.examType.contains("Presentation", ignoreCase = true) }
+            else -> allExams
         }
-
-        // Load Class Tests & Quizzes (CLASS_TEST_QUIZ or untagged exams)
-        val testItems = allExams.filter { it.first.examType == "CLASS_TEST_QUIZ" || (it.first.examType != "SEMESTER_FINAL" && it.first.examType != "MIDTERM") }.map { it.first }
-        classTestsAdapter.updateList(testItems)
-        binding.tvClassTestsCountBadge.text = "${testItems.size} Active"
-        if (testItems.isEmpty()) {
-            binding.rvClassTests.visibility = View.GONE
-            binding.tvEmptyClassTests.visibility = View.VISIBLE
+        unifiedAssessmentsAdapter.updateList(filteredList)
+        binding.tvAssessmentsCountBadge.text = "${allExams.size} Scheduled"
+        if (filteredList.isEmpty()) {
+            binding.rvUnifiedAssessments.visibility = View.GONE
+            binding.tvEmptyAssessments.visibility = View.VISIBLE
+            binding.tvEmptyAssessments.text = if (allExams.isEmpty()) {
+                "No upcoming exams or assessments scheduled. Tap + SCHEDULE ASSESSMENT to add one!"
+            } else {
+                "No assessments found matching filter."
+            }
         } else {
-            binding.rvClassTests.visibility = View.VISIBLE
-            binding.tvEmptyClassTests.visibility = View.GONE
+            binding.rvUnifiedAssessments.visibility = View.VISIBLE
+            binding.tvEmptyAssessments.visibility = View.GONE
         }
 
         loadStudentContacts()
@@ -659,396 +662,30 @@ class PortalFragment : Fragment() {
     }
 
     private fun showAddExamDialog(preselectedExamType: String) {
-        if (preselectedExamType == "CLASS_TEST_QUIZ") {
-            showAddQuizDialog()
-            return
-        }
-
-        val dialogBinding = DialogAddExamBinding.inflate(layoutInflater)
-        val isFinal = preselectedExamType == "SEMESTER_FINAL"
-
-        if (isFinal) {
-            dialogBinding.tvExamDialogTitle.text = "Schedule Semester Final"
-            dialogBinding.tvExamDialogSubtitle.text = "Assign course, date, room, and syllabus for this final exam."
-            dialogBinding.tvExamTypeBadge.text = "SEMESTER FINAL"
-            dialogBinding.tvExamTypeBadge.setTextColor(Color.parseColor("#38BDF8"))
-            dialogBinding.tvExamTypeBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#220284C7"))
-            dialogBinding.tilExamTitle.hint = "Exam Title (e.g. Final Examination)"
-            dialogBinding.etExamTitle.hint = "Exam Title (e.g. Final Examination)"
-            dialogBinding.etExamTitle.setText("Final Examination")
-        } else {
-            dialogBinding.tvExamDialogTitle.text = "Schedule Class Test / Quiz"
-            dialogBinding.tvExamDialogSubtitle.text = "Assign course, date, room, and syllabus for this class test/quiz."
-            dialogBinding.tvExamTypeBadge.text = "CLASS TEST / QUIZ"
-            dialogBinding.tvExamTypeBadge.setTextColor(Color.parseColor("#FBBF24"))
-            dialogBinding.tvExamTypeBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22F59E0B"))
-            dialogBinding.tilExamTitle.hint = "e.g. Class Test 1, Quiz 2"
-            dialogBinding.etExamTitle.hint = "e.g. Class Test 1, Quiz 2"
-            dialogBinding.etExamTitle.setText("")
-        }
-
-        val cal = java.util.Calendar.getInstance()
-        val defaultDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
-        dialogBinding.etExamDate.setText(defaultDate)
-
-        val openDatePicker = View.OnClickListener {
-            val now = java.util.Calendar.getInstance()
-            DatePickerDialog(
-                requireContext(),
-                { _, year, month, dayOfMonth ->
-                    val selected = java.util.Calendar.getInstance()
-                    selected.set(year, month, dayOfMonth)
-                    dialogBinding.etExamDate.setText(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selected.time))
-                },
-                now.get(java.util.Calendar.YEAR),
-                now.get(java.util.Calendar.MONTH),
-                now.get(java.util.Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-        dialogBinding.etExamDate.setOnClickListener(openDatePicker)
-
-        val openTimePicker = View.OnClickListener {
-            val now = java.util.Calendar.getInstance()
-            TimePickerDialog(
-                requireContext(),
-                { _, hourOfDay, minute ->
-                    val isPm = hourOfDay >= 12
-                    val displayHour = when {
-                        hourOfDay == 0 -> 12
-                        hourOfDay > 12 -> hourOfDay - 12
-                        else -> hourOfDay
-                    }
-                    val amPm = if (isPm) "PM" else "AM"
-                    dialogBinding.etExamTime.setText(String.format(Locale.US, "%02d:%02d %s", displayHour, minute, amPm))
-                },
-                now.get(java.util.Calendar.HOUR_OF_DAY),
-                now.get(java.util.Calendar.MINUTE),
-                false
-            ).show()
-        }
-        dialogBinding.etExamTime.setOnClickListener(openTimePicker)
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
-
-        dialogBinding.btnSaveExam.setOnClickListener {
-            val subjectName = dialogBinding.etExamSubject.text?.toString()?.trim().orEmpty()
-            val rawTitle = dialogBinding.etExamTitle.text?.toString()?.trim().orEmpty()
-            val date = dialogBinding.etExamDate.text?.toString()?.trim().orEmpty()
-            val time = dialogBinding.etExamTime.text?.toString()?.trim().orEmpty()
-            val room = dialogBinding.etExamRoom.text?.toString()?.trim().orEmpty()
-            val topics = dialogBinding.etExamTopics.text?.toString()?.trim().orEmpty()
-
-            if (subjectName.isEmpty()) {
-                Toast.makeText(requireContext(), "Subject name is required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (date.isEmpty()) {
-                Toast.makeText(requireContext(), "Exam date is required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            dialogBinding.btnSaveExam.isEnabled = false
-
-            // Auto-enroll course if not present
-            val subjects = dbHelper.getAllStudentSubjects()
-            val existingSubject = subjects.find { it.name.equals(subjectName, ignoreCase = true) }
-            val targetSubjectId = if (existingSubject != null) {
-                existingSubject.id
-            } else {
-                val newSub = StudentSubject(
-                    name = subjectName,
-                    code = "",
-                    colorHex = "#2563EB",
-                    notes = "",
-                    credits = 3,
-                    instructorName = ""
-                )
-                dbHelper.insertStudentSubject(newSub, autoTrackAttendance = false)
-            }
-
-            val title = if (rawTitle.isNotEmpty()) rawTitle else "$subjectName Final Exam"
-            val descParts = mutableListOf<String>()
-            if (subjectName.isNotEmpty()) descParts.add("Course: $subjectName")
-            if (time.isNotEmpty()) descParts.add("Time: $time")
-            if (room.isNotEmpty()) descParts.add("Room: $room")
-            if (topics.isNotEmpty()) descParts.add("Syllabus: $topics")
-            val description = descParts.joinToString(" • ")
-
-            val examItem = SubjectWorkItem(
-                subjectId = targetSubjectId,
-                itemType = "EXAM",
-                examType = preselectedExamType,
-                title = title,
-                description = description,
-                startDate = date,
-                endDate = date,
-                status = "PENDING"
-            )
-
-            dbHelper.insertSubjectWorkItem(examItem)
-            dialog.dismiss()
-            loadStudentData()
-            Toast.makeText(requireContext(), "Exam scheduled successfully!", Toast.LENGTH_SHORT).show()
-        }
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        dialog.show()
+        ScheduleAssessmentDialog(
+            context = requireContext(),
+            fragmentManager = parentFragmentManager,
+            defaultType = preselectedExamType,
+            onSaved = { loadStudentData() }
+        ).show()
     }
 
     private fun showAddQuizDialog() {
-        val dialogBinding = DialogAddQuizBinding.inflate(layoutInflater)
-
-        val cal = java.util.Calendar.getInstance()
-        val defaultDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
-        dialogBinding.etQuizDate.setText(defaultDate)
-
-        val openDatePicker = View.OnClickListener {
-            val now = java.util.Calendar.getInstance()
-            DatePickerDialog(
-                requireContext(),
-                { _, year, month, dayOfMonth ->
-                    val selected = java.util.Calendar.getInstance()
-                    selected.set(year, month, dayOfMonth)
-                    dialogBinding.etQuizDate.setText(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selected.time))
-                },
-                now.get(java.util.Calendar.YEAR),
-                now.get(java.util.Calendar.MONTH),
-                now.get(java.util.Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-        dialogBinding.etQuizDate.setOnClickListener(openDatePicker)
-
-        val openTimePicker = View.OnClickListener {
-            val now = java.util.Calendar.getInstance()
-            TimePickerDialog(
-                requireContext(),
-                { _, hourOfDay, minute ->
-                    val isPm = hourOfDay >= 12
-                    val displayHour = when {
-                        hourOfDay == 0 -> 12
-                        hourOfDay > 12 -> hourOfDay - 12
-                        else -> hourOfDay
-                    }
-                    val amPm = if (isPm) "PM" else "AM"
-                    dialogBinding.etQuizTime.setText(String.format(Locale.US, "%02d:%02d %s", displayHour, minute, amPm))
-                },
-                now.get(java.util.Calendar.HOUR_OF_DAY),
-                now.get(java.util.Calendar.MINUTE),
-                false
-            ).show()
-        }
-        dialogBinding.etQuizTime.setOnClickListener(openTimePicker)
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
-
-        dialogBinding.btnSaveQuiz.setOnClickListener {
-            val subjectName = dialogBinding.etQuizSubject.text?.toString()?.trim().orEmpty()
-            val rawTitle = dialogBinding.etQuizTitle.text?.toString()?.trim().orEmpty()
-            val date = dialogBinding.etQuizDate.text?.toString()?.trim().orEmpty()
-            val time = dialogBinding.etQuizTime.text?.toString()?.trim().orEmpty()
-            val marks = dialogBinding.etQuizMarks.text?.toString()?.trim().orEmpty()
-            val room = dialogBinding.etQuizRoom.text?.toString()?.trim().orEmpty()
-            val syllabus = dialogBinding.etQuizSyllabus.text?.toString()?.trim().orEmpty()
-
-            if (subjectName.isEmpty()) {
-                Toast.makeText(requireContext(), "Subject name is required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (date.isEmpty()) {
-                Toast.makeText(requireContext(), "Quiz date is required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Immediately disable save button to prevent double-tap insertion
-            dialogBinding.btnSaveQuiz.isEnabled = false
-
-            // Auto-enroll course if not present
-            val subjects = dbHelper.getAllStudentSubjects()
-            val existingSubject = subjects.find { it.name.equals(subjectName, ignoreCase = true) }
-            val targetSubjectId = if (existingSubject != null) {
-                existingSubject.id
-            } else {
-                val newSub = StudentSubject(
-                    name = subjectName,
-                    code = "",
-                    colorHex = "#2563EB",
-                    notes = "",
-                    credits = 3,
-                    instructorName = ""
-                )
-                dbHelper.insertStudentSubject(newSub, autoTrackAttendance = false)
-            }
-
-            val title = if (rawTitle.isNotEmpty()) rawTitle else "$subjectName Class Test"
-            val descParts = mutableListOf<String>()
-            if (subjectName.isNotEmpty()) descParts.add("Course: $subjectName")
-            if (time.isNotEmpty()) descParts.add("Time: $time")
-            if (room.isNotEmpty()) descParts.add("Room: $room")
-            if (syllabus.isNotEmpty()) descParts.add("Syllabus: $syllabus")
-            val description = descParts.joinToString(" • ")
-
-            val quizItem = SubjectWorkItem(
-                subjectId = targetSubjectId,
-                itemType = "EXAM",
-                examType = "CLASS_TEST_QUIZ",
-                title = title,
-                description = description,
-                startDate = date,
-                endDate = date,
-                scoreOrMarks = marks,
-                status = "PENDING"
-            )
-
-            dbHelper.insertSubjectWorkItem(quizItem)
-            dialog.dismiss()
-            loadStudentData()
-            Toast.makeText(requireContext(), "Class Test / Quiz scheduled successfully!", Toast.LENGTH_SHORT).show()
-        }
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        dialog.show()
+        ScheduleAssessmentDialog(
+            context = requireContext(),
+            fragmentManager = parentFragmentManager,
+            defaultType = "CLASS_TEST_QUIZ",
+            onSaved = { loadStudentData() }
+        ).show()
     }
 
     private fun showEditExamDialog(item: SubjectWorkItem) {
-        val subjects = dbHelper.getAllStudentSubjects()
-        val dialogBinding = DialogAddExamBinding.inflate(layoutInflater)
-        val isFinal = item.examType == "SEMESTER_FINAL" || item.examType == "MIDTERM"
-
-        if (isFinal) {
-            dialogBinding.tvExamDialogTitle.text = "Edit Final Exam"
-            dialogBinding.tvExamDialogSubtitle.text = "Modify title, dates, and details for this exam."
-            dialogBinding.tvExamTypeBadge.text = if (item.examType == "MIDTERM") "MIDTERM EXAM" else "SEMESTER FINAL"
-            dialogBinding.tvExamTypeBadge.setTextColor(Color.parseColor("#38BDF8"))
-            dialogBinding.tvExamTypeBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#220284C7"))
-            dialogBinding.tilExamTitle.hint = "Exam Title"
-            dialogBinding.btnSaveExam.text = "Save Changes"
-        } else {
-            dialogBinding.tvExamDialogTitle.text = "Edit CT / Quiz"
-            dialogBinding.tvExamDialogSubtitle.text = "Update date, title, and syllabus notes."
-            dialogBinding.tvExamTypeBadge.text = "CLASS TEST / QUIZ"
-            dialogBinding.tvExamTypeBadge.setTextColor(Color.parseColor("#FBBF24"))
-            dialogBinding.tvExamTypeBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22F59E0B"))
-            dialogBinding.tilExamTitle.hint = "e.g. Class Test 1, Quiz 2"
-            dialogBinding.btnSaveExam.text = "Save Changes"
-        }
-
-        dialogBinding.etExamTitle.setText(item.title)
-        dialogBinding.etExamDate.setText(item.startDate)
-
-        var timeVal = ""
-        var roomVal = ""
-        var notesVal = ""
-        if (item.description.contains(" • ")) {
-            val parts = item.description.split(" • ")
-            for (p in parts) {
-                when {
-                    p.startsWith("Time: ") -> timeVal = p.removePrefix("Time: ").trim()
-                    p.startsWith("Room: ") -> roomVal = p.removePrefix("Room: ").trim()
-                    p.startsWith("Syllabus: ") -> notesVal = p.removePrefix("Syllabus: ").trim()
-                    else -> if (notesVal.isEmpty()) notesVal = p.trim() else notesVal += " $p"
-                }
-            }
-        } else if (item.description.isNotEmpty()) {
-            notesVal = item.description
-        }
-        dialogBinding.etExamTime.setText(timeVal)
-        dialogBinding.etExamRoom.setText(roomVal)
-        dialogBinding.etExamTopics.setText(notesVal)
-
-        val currentSub = subjects.find { it.id == item.subjectId }
-        dialogBinding.etExamSubject.setText(currentSub?.name.orEmpty())
-
-        val openDatePicker = View.OnClickListener {
-            val now = java.util.Calendar.getInstance()
-            DatePickerDialog(
-                requireContext(),
-                { _, year, month, dayOfMonth ->
-                    val selected = java.util.Calendar.getInstance()
-                    selected.set(year, month, dayOfMonth)
-                    dialogBinding.etExamDate.setText(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selected.time))
-                },
-                now.get(java.util.Calendar.YEAR),
-                now.get(java.util.Calendar.MONTH),
-                now.get(java.util.Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-        dialogBinding.etExamDate.setOnClickListener(openDatePicker)
-
-        val openTimePicker = View.OnClickListener {
-            val now = java.util.Calendar.getInstance()
-            TimePickerDialog(
-                requireContext(),
-                { _, hourOfDay, minute ->
-                    val isPm = hourOfDay >= 12
-                    val displayHour = when {
-                        hourOfDay == 0 -> 12
-                        hourOfDay > 12 -> hourOfDay - 12
-                        else -> hourOfDay
-                    }
-                    val amPm = if (isPm) "PM" else "AM"
-                    dialogBinding.etExamTime.setText(String.format(Locale.US, "%02d:%02d %s", displayHour, minute, amPm))
-                },
-                now.get(java.util.Calendar.HOUR_OF_DAY),
-                now.get(java.util.Calendar.MINUTE),
-                false
-            ).show()
-        }
-        dialogBinding.etExamTime.setOnClickListener(openTimePicker)
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogBinding.root)
-            .create()
-
-        dialogBinding.btnSaveExam.setOnClickListener {
-            val title = dialogBinding.etExamTitle.text?.toString()?.trim().orEmpty()
-            val date = dialogBinding.etExamDate.text?.toString()?.trim().orEmpty()
-            val time = dialogBinding.etExamTime.text?.toString()?.trim().orEmpty()
-            val room = dialogBinding.etExamRoom.text?.toString()?.trim().orEmpty()
-            val notes = dialogBinding.etExamTopics.text?.toString()?.trim().orEmpty()
-
-            if (title.isEmpty()) {
-                Toast.makeText(requireContext(), "Exam title is required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (date.isEmpty()) {
-                Toast.makeText(requireContext(), "Exam date is required", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            dialogBinding.btnSaveExam.isEnabled = false
-
-            val subjectName = dialogBinding.etExamSubject.text?.toString()?.trim().orEmpty()
-            val selectedSubject = if (subjectName.isNotEmpty()) {
-                subjects.find { it.name.equals(subjectName, ignoreCase = true) }
-                    ?: dbHelper.getAllStudentSubjects().find { it.name.equals(subjectName, ignoreCase = true) }
-            } else null
-
-            val descParts = mutableListOf<String>()
-            if (time.isNotEmpty()) descParts.add("Time: $time")
-            if (room.isNotEmpty()) descParts.add("Room: $room")
-            if (notes.isNotEmpty()) descParts.add("Syllabus: $notes")
-            val description = descParts.joinToString(" • ")
-
-            val updated = item.copy(
-                subjectId = selectedSubject?.id ?: item.subjectId,
-                title = title,
-                description = description,
-                startDate = date,
-                endDate = date
-            )
-            dbHelper.updateSubjectWorkItem(updated)
-            dialog.dismiss()
-            loadStudentData()
-            val label = if (isFinal) "Final exam updated!" else "CT/Quiz updated!"
-            Toast.makeText(requireContext(), label, Toast.LENGTH_SHORT).show()
-        }
-
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        dialog.show()
+        ScheduleAssessmentDialog(
+            context = requireContext(),
+            fragmentManager = parentFragmentManager,
+            existingItem = item,
+            onSaved = { loadStudentData() }
+        ).show()
     }
 
     private fun showAddContactDialog(isStudentContext: Boolean = isStudentProfile) {

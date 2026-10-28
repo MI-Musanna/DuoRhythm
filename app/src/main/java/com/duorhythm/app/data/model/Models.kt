@@ -145,10 +145,13 @@ data class StudentSubject(
     val instructorEmail: String = "",
     val instructorPhone: String = "",
     val syllabusText: String = "",
-    val syllabusPath: String = ""
-)
+    val syllabusPath: String = "",
+    val room: String = ""
+) {
+    val teacher: String get() = instructorName
+    val instructor: String get() = instructorName
+}
 
-val StudentSubject.instructor: String get() = instructorName
 typealias SubjectEntity = StudentSubject
 typealias Course = StudentSubject
 typealias CourseDocument = SubjectMaterial
@@ -245,4 +248,18 @@ data class CurrencyRate(
 typealias ExamEntity = SubjectWorkItem
 typealias QuizEntity = SubjectWorkItem
 typealias Contact = ContactGroupItem
+
+enum class ClassStatus {
+    IN_SESSION_NOW,
+    UPCOMING_NEXT,
+    COMPLETED
+}
+
+data class CarouselClassItem(
+    val classItem: ClassScheduleItem?,
+    val status: ClassStatus,
+    val totalCount: Int = 1,
+    val positionIndex: Int = 0,
+    val isPlaceholder: Boolean = false
+)
 

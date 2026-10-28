@@ -2,13 +2,18 @@ package com.duorhythm.app.data.local.db
 
 import android.content.Context
 import androidx.room.Database
+import database.dao.AssessmentDao
 import database.dao.AttendanceDao
 import database.dao.CategoryDao
+import database.dao.ClassTypeDao
+import database.dao.CourseDao
 import database.dao.HolidayDao
 import database.dao.ProfileDao
 import database.dao.TimetableDao
+import database.entities.AssessmentEntity
 import database.entities.AttendanceRecord
 import database.entities.CategoryEntity
+import database.entities.ClassTypeEntity
 import database.entities.HolidayRecord
 import database.entities.ProfileEntity
 
@@ -17,7 +22,7 @@ import database.entities.ProfileEntity
  * and safe fallback destructive migration capabilities for older local installs.
  */
 @Database(
-    entities = [AttendanceRecord::class, HolidayRecord::class, CategoryEntity::class, ProfileEntity::class],
+    entities = [AttendanceRecord::class, HolidayRecord::class, CategoryEntity::class, ProfileEntity::class, ClassTypeEntity::class],
     version = DatabaseHelper.DATABASE_VERSION,
     exportSchema = false
 )
@@ -29,6 +34,9 @@ class AppDatabase private constructor(context: Context) {
     fun holidayDao(): HolidayDao = dbHelper.holidayDao
     fun categoryDao(): CategoryDao = dbHelper.categoryDao
     fun profileDao(): ProfileDao = dbHelper.profileDao
+    fun classTypeDao(): ClassTypeDao = dbHelper.classTypeDao
+    fun courseDao(): CourseDao = dbHelper.courseDao
+    fun assessmentDao(): AssessmentDao = dbHelper.assessmentDao
     fun walletDao(): DatabaseHelper.WalletDao = dbHelper.walletDao
     fun taskDao(): DatabaseHelper.TaskDao = dbHelper.taskDao
 
@@ -37,6 +45,9 @@ class AppDatabase private constructor(context: Context) {
     val holidayDao: HolidayDao get() = dbHelper.holidayDao
     val categoryDao: CategoryDao get() = dbHelper.categoryDao
     val profileDao: ProfileDao get() = dbHelper.profileDao
+    val classTypeDao: ClassTypeDao get() = dbHelper.classTypeDao
+    val courseDao: CourseDao get() = dbHelper.courseDao
+    val assessmentDao: AssessmentDao get() = dbHelper.assessmentDao
     val walletDao: DatabaseHelper.WalletDao get() = dbHelper.walletDao
     val taskDao: DatabaseHelper.TaskDao get() = dbHelper.taskDao
 
@@ -57,6 +68,7 @@ class AppDatabase private constructor(context: Context) {
         fun getHolidayDao(context: Context): HolidayDao = getInstance(context).holidayDao()
         fun getCategoryDao(context: Context): CategoryDao = getInstance(context).categoryDao()
         fun getProfileDao(context: Context): ProfileDao = getInstance(context).profileDao()
+        fun getClassTypeDao(context: Context): ClassTypeDao = getInstance(context).classTypeDao()
 
         /**
          * Verifies and configures fallback to destructive migration for database instances

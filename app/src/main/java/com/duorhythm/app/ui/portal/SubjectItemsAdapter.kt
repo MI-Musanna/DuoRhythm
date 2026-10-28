@@ -45,10 +45,14 @@ class SubjectItemsAdapter(
             val typePrefix = when (item.itemType) {
                 "HOMEWORK" -> "HOMEWORK"
                 "PRACTICAL" -> "PRACTICAL"
-                "EXAM" -> when (item.examType) {
-                    "SEMESTER_FINAL" -> "SEMESTER FINAL"
-                    "MIDTERM" -> "MIDTERM EXAM"
-                    "CLASS_TEST_QUIZ" -> "CLASS TEST / QUIZ"
+                "EXAM" -> when {
+                    item.examType.contains("Final", ignoreCase = true) -> "SEMESTER FINAL"
+                    item.examType.contains("Midterm", ignoreCase = true) -> "MIDTERM EXAM"
+                    item.examType.contains("CT", ignoreCase = true) || item.examType.contains("Class Test", ignoreCase = true) -> "CLASS TEST (CT)"
+                    item.examType.contains("Quiz", ignoreCase = true) -> "QUIZ"
+                    item.examType.contains("Lab", ignoreCase = true) -> "LAB EXAM"
+                    item.examType.contains("Viva", ignoreCase = true) || item.examType.contains("Presentation", ignoreCase = true) -> "PRESENTATION / VIVA"
+                    item.examType.isNotBlank() -> item.examType.uppercase()
                     else -> "EXAM"
                 }
                 else -> "ASSIGNMENT"

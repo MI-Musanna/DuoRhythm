@@ -4,7 +4,14 @@ Detailed release history and changelog for DuoRhythm builds.
 
 ---
 
-### [v1.0.1-beta] - 2026-10-25
+### [v1.0.1-beta] - 2026-10-28
+- **Dynamic Daily Class Carousel with Auto-Focus:** Upgraded Home schedule card to an interactive ViewPager2 carousel supporting daily routines with pill indicator dots and intelligent auto-focusing on the ongoing class (`IN_SESSION_NOW`), next upcoming lecture (`UPCOMING_NEXT`), or earliest class.
+- **Dynamic Class Type Manager:** Fully dynamic, profile-isolated class routine types ("Lecture", "Lab", "Tutorial", "Seminar", and custom user types) backed by `ClassTypeEntity` and `ClassTypeDao`, complete with "+ Add / Manage Types" dialog support in class routine scheduler.
+- **Unified Exams & Assessments Hub:** Consolidated semester finals, midterms, quizzes, class tests, practical exams, and presentations into a unified assessment hub with horizontal filter chips ("All", "Finals", "Midterms", "Quizzes / CT", "Lab Exams", "Viva") and single RecyclerView.
+- **Auto-Fill Assessment Scheduler:** Integrated `ScheduleAssessmentDialog` with automatic course code, title, room, and instructor auto-fill from enrolled courses, Material time & date pickers, and custom assessment category addition.
+- **Dynamic Assessment Notification Engine & Alarm Dispatcher:** Scheduled exact alarm reminders via `AssessmentAlarmScheduler` (24h & 1h prior for semester finals and midterms; 2h & 15m prior for quizzes and class tests) with high-priority heads-up notifications and comprehensive broadcast receiver lifecycle handling.
+- **Cascading Database Cleanup on Course Deletion:** Implemented `CourseRepository.deleteCourseCascade()` executing in a single atomic database transaction to prune all associated timetable routine classes, exams, assignments, attendance logs, and syllabus files while cancelling all active class and assessment alarms.
+- **Global Layout Overflow Protection & Non-Breaking Constraints:** Enforced `layout_width="0dp"` with `maxLines="2"`, `ellipsize="end"`, and `breakStrategy="simple"` across Home Next Up cards, Enrolled Courses, Attendance records, Task items, Mission cards, and Monthly Schedule bottom sheet cards to eliminate text clipping and horizontal line-wrapping glitches on compact displays.
 - **Profile Avatar Isolation & Cache Busting:** Avatars are now saved into slot-isolated files (`avatar_profile_${id}.jpg`) with timestamp query parameters to invalidate stale caches across workspace switches and prevent cross-profile avatar overwriting.
 - **Header Suite & App Logo Polish:** Enhanced top-left DuoRhythm emblem with 2dp padding and `scaleType="fitCenter"` for prominent presentation; unified header lightning quick-action button with elevated `bg_header_action_button` background and `#00E5FF` cyan tint.
 - **Direct Biometric & PIN Fallback Auth:** Upgraded biometric authentication across workspace switching, editing, and deletion with clear "Use Password/PIN" negative button and automatic fallback to credentials dialog. Updated settings subtitle to highlight fingerprint, face unlock, or PIN support.

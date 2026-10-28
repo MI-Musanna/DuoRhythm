@@ -474,6 +474,21 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             Toast.makeText(this, "Course info updated!", Toast.LENGTH_SHORT).show()
         }
 
+        dialogBinding.btnDeleteSubject.setOnClickListener {
+            dialog.dismiss()
+            AlertDialog.Builder(this)
+                .setTitle("Delete Course")
+                .setMessage("Are you sure you want to delete '${subject.name}'? All classes, exams, attendance records, and syllabus materials will be removed.")
+                .setPositiveButton("Delete") { _, _ ->
+                    val repo = com.duorhythm.app.data.repository.CourseRepository(this)
+                    repo.deleteCourseCascadeSync(subject.id, subject.code, subject.profileId)
+                    Toast.makeText(this, "Course and all related records deleted.", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
         dialog.window?.apply {
             setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
             setDimAmount(0.65f)
@@ -598,3 +613,4 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
 }
 
 typealias CourseDetailActivity = StudentSubjectDetailActivity
+typealias CourseDetailsActivity = StudentSubjectDetailActivity

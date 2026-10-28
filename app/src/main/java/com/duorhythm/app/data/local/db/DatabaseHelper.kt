@@ -1,6 +1,9 @@
 package com.duorhythm.app.data.local.db
 
 import com.duorhythm.app.data.model.*
+import database.dao.AssessmentDao
+import database.dao.CourseDao
+import database.entities.AssessmentEntity
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -298,6 +301,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 semester TEXT DEFAULT '',
                 avatarUri TEXT,
                 rememberEmail INTEGER DEFAULT 0
+            )"""
+        )
+
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS class_types (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
+                name TEXT NOT NULL,
+                is_default INTEGER DEFAULT 0
             )"""
         )
 
@@ -2235,6 +2247,134 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
     }
 
+    val classTypeDao: database.dao.ClassTypeDao by lazy {
+        object : database.dao.ClassTypeDao {
+            override fun getTypesByProfile(profileId: Long): List<database.entities.ClassTypeEntity> {
+                ensureClassTypesTable()
+                ensureDefaultTypes(profileId)
+                val list = mutableListOf<database.entities.ClassTypeEntity>()
+                val db = readableDatabase
+                val cursor = db.rawQuery(
+                    "SELECT * FROM class_types WHERE profile_id = ? ORDER BY is_default DESC, name ASC",
+                    arrayOf(profileId.toString())
+                )
+                cursor.use {
+                    while (it.moveToNext()) {
+                        list.add(
+                            database.entities.ClassTypeEntity(
+                                id = it.getLong(it.getColumnIndexOrThrow("id")),
+                                profileId = it.getLong(it.getColumnIndexOrThrow("profile_id")),
+                                name = it.getString(it.getColumnIndexOrThrow("name")),
+                                isDefault = it.getInt(it.getColumnIndexOrThrow("is_default")) == 1
+                            )
+                        )
+                    }
+                }
+                return list
+            }
+
+            override fun insertType(type: database.entities.ClassTypeEntity): Long {
+                ensureClassTypesTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("profile_id", type.profileId)
+                    put("name", type.name)
+                    put("is_default", if (type.isDefault) 1 else 0)
+                }
+                return db.insert("class_types", null, cv)
+            }
+
+            override fun deleteType(id: Long) {
+                ensureClassTypesTable()
+                val db = writableDatabase
+                db.delete("class_types", "id = ? AND is_default = 0", arrayOf(id.toString()))
+            }
+
+            override fun ensureDefaultTypes(profileId: Long) {
+                ensureClassTypesTable()
+                val db = writableDatabase
+                val cursor = db.rawQuery(
+                    "SELECT COUNT(*) FROM class_types WHERE profile_id = ?",
+                    arrayOf(profileId.toString())
+                )
+                var count = 0
+                cursor.use {
+                    if (it.moveToFirst()) count = it.getInt(0)
+                }
+                if (count == 0) {
+                    val defaults = listOf("Lecture", "Lab", "Tutorial", "Seminar")
+                    for (d in defaults) {
+                        val cv = ContentValues().apply {
+                            put("profile_id", profileId)
+                            put("name", d)
+                            put("is_default", 1)
+                        }
+                        db.insert("class_types", null, cv)
+                    }
+                }
+            }
+        }
+    }
+
+    val courseDao: CourseDao by lazy {
+        object : CourseDao {
+            override fun getCoursesByProfile(profileId: Long): List<StudentSubject> = getAllStudentSubjects(profileId)
+            override fun getCourseById(id: Long): StudentSubject? = getStudentSubjectById(id)
+            override fun deleteCourseById(id: Long) {
+                val course = getStudentSubjectById(id)
+                deleteCourseCascade(id, course?.code ?: "", course?.profileId ?: getActiveProfileId())
+            }
+        }
+    }
+
+    val assessmentDao: AssessmentDao by lazy {
+        object : AssessmentDao {
+            override fun getAssessmentsByProfile(profileId: Long): List<AssessmentEntity> {
+                return getAllExams(profileId = profileId).map { (item, subject) ->
+                    AssessmentEntity.fromSubjectWorkItem(item, subject.name, subject.code, subject.teacher)
+                }
+            }
+
+            override fun getAssessmentsByCourse(profileId: Long, courseId: Long): List<AssessmentEntity> {
+                val subject = getStudentSubjectById(courseId)
+                val name = subject?.name ?: ""
+                val code = subject?.code ?: ""
+                val teacher = subject?.teacher ?: ""
+                return getItemsForSubject(courseId).filter { it.itemType == "EXAM" }.map {
+                    AssessmentEntity.fromSubjectWorkItem(it, name, code, teacher)
+                }
+            }
+
+            override fun insertAssessment(assessment: AssessmentEntity): Long {
+                return insertSubjectWorkItem(assessment.toSubjectWorkItem())
+            }
+
+            override fun updateAssessment(assessment: AssessmentEntity) {
+                updateSubjectWorkItem(assessment.toSubjectWorkItem())
+            }
+
+            override fun deleteAssessment(id: Long) {
+                deleteSubjectWorkItem(id)
+            }
+
+            override fun deleteAssessmentsByCourse(profileId: Long, courseId: Long) {
+                writableDatabase.delete("subject_work_items", "subject_id = ? AND item_type = 'EXAM'", arrayOf(courseId.toString()))
+            }
+        }
+    }
+
+    fun ensureClassTypesTable() {
+        val db = writableDatabase
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS class_types (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
+                name TEXT NOT NULL,
+                is_default INTEGER DEFAULT 0
+            )"""
+        )
+    }
+
     fun getActiveProfileId(): Long {
         return com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(appContext)
     }
@@ -2666,11 +2806,51 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return db.update("student_subjects", cv, "id = ?", arrayOf(subject.id.toString()))
     }
 
-    fun deleteStudentSubject(id: Long): Int {
+    fun deleteCourseCascade(courseId: Long, courseCode: String = "", profileId: Long = getActiveProfileId()): Boolean {
         val db = writableDatabase
-        db.delete("subject_work_items", "subject_id = ?", arrayOf(id.toString()))
-        db.delete("subject_materials", "subject_id = ?", arrayOf(id.toString()))
-        return db.delete("student_subjects", "id = ?", arrayOf(id.toString()))
+        db.beginTransaction()
+        try {
+            val course = getStudentSubjectById(courseId)
+            val courseName = course?.name ?: ""
+            val code = if (courseCode.isNotBlank()) courseCode else (course?.code ?: "")
+
+            // 1. Delete Timetable Classes matching course name or course code
+            if (courseName.isNotBlank() && code.isNotBlank()) {
+                db.delete("classes", "profile_id = ? AND (subject_name = ? OR subject_name LIKE ?)", arrayOf(profileId.toString(), courseName, "%$code%"))
+            } else if (courseName.isNotBlank()) {
+                db.delete("classes", "profile_id = ? AND subject_name = ?", arrayOf(profileId.toString(), courseName))
+            } else if (code.isNotBlank()) {
+                db.delete("classes", "profile_id = ? AND subject_name LIKE ?", arrayOf(profileId.toString(), "%$code%"))
+            }
+
+            // 2. Delete subject_work_items (exams, assignments, homework)
+            db.delete("subject_work_items", "subject_id = ?", arrayOf(courseId.toString()))
+
+            // 3. Delete subject_materials
+            db.delete("subject_materials", "subject_id = ?", arrayOf(courseId.toString()))
+
+            // 4. Delete attendance_records matching course name
+            if (courseName.isNotBlank()) {
+                db.delete("attendance_records", "subjectName = ? AND profileId = ?", arrayOf(courseName, profileId.toString()))
+            }
+
+            // 5. Delete student_subjects entry
+            db.delete("student_subjects", "id = ?", arrayOf(courseId.toString()))
+
+            db.setTransactionSuccessful()
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun deleteStudentSubject(id: Long): Int {
+        val course = getStudentSubjectById(id)
+        val success = deleteCourseCascade(id, course?.code ?: "", course?.profileId ?: getActiveProfileId())
+        return if (success) 1 else 0
     }
 
     // ==========================================
