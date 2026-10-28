@@ -5,6 +5,7 @@ Detailed release history and changelog for DuoRhythm builds.
 ---
 
 ### [v1.0.1-beta] - 2026-10-28
+- **Startup Crash Resolution & ViewPager2 Carousel Compliance:** Resolved application startup crash by strictly enforcing `match_parent` height on `item_home_schedule_card.xml` to satisfy ViewPager2's internal page layout assertion, set explicit `124dp` carousel container height in `fragment_home.xml` for predictable NestedScrollView measurement, added safe default initialization for `HomeViewModel`, and posted carousel page focus to the view queue with bounds checking.
 - **Dynamic Daily Class Carousel with Auto-Focus:** Upgraded Home schedule card to an interactive ViewPager2 carousel supporting daily routines with pill indicator dots and intelligent auto-focusing on the ongoing class (`IN_SESSION_NOW`), next upcoming lecture (`UPCOMING_NEXT`), or earliest class.
 - **Dynamic Class Type Manager:** Fully dynamic, profile-isolated class routine types ("Lecture", "Lab", "Tutorial", "Seminar", and custom user types) backed by `ClassTypeEntity` and `ClassTypeDao`, complete with "+ Add / Manage Types" dialog support in class routine scheduler.
 - **Unified Exams & Assessments Hub:** Consolidated semester finals, midterms, quizzes, class tests, practical exams, and presentations into a unified assessment hub with horizontal filter chips ("All", "Finals", "Midterms", "Quizzes / CT", "Lab Exams", "Viva") and single RecyclerView.

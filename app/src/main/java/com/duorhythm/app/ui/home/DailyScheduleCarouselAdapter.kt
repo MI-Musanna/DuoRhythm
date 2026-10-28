@@ -27,6 +27,11 @@ class DailyScheduleCarouselAdapter(
             parent,
             false
         )
+        // Enforce MATCH_PARENT layout parameters to guarantee ViewPager2 compliance
+        binding.root.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
         return CarouselViewHolder(binding)
     }
 

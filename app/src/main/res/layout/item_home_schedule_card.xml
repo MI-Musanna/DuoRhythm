@@ -4,11 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cardHomeScheduleRoot"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:background="@drawable/bg_glass_specular_edge"
     android:clickable="true"
     android:focusable="true"
-    android:padding="16dp">
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp">
 
     <!-- Squircle Icon Capsule -->
     <FrameLayout

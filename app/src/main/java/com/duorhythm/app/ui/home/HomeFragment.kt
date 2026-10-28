@@ -69,7 +69,11 @@ class HomeFragment : Fragment() {
         try {
             WalletDataSyncManager.register(walletSyncListener)
             dbHelper = DatabaseHelper.getInstance(requireContext())
-            homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+            try {
+                homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+            } catch (e: Throwable) {
+                homeViewModel = HomeViewModel(requireActivity().application)
+            }
 
             carouselAdapter = DailyScheduleCarouselAdapter(
                 emptyList(),
@@ -339,6 +343,7 @@ class HomeFragment : Fragment() {
 
     private fun updateCarouselIndicator(activePosition: Int, totalCount: Int) {
         if (_binding == null) return
+        val ctx = context ?: return
         val container = binding.layoutCarouselIndicator
         container.removeAllViews()
         if (totalCount <= 1) {
@@ -346,9 +351,9 @@ class HomeFragment : Fragment() {
             return
         }
         container.visibility = View.VISIBLE
-        val density = resources.displayMetrics.density
+        val density = ctx.resources.displayMetrics.density
         for (i in 0 until totalCount) {
-            val pill = View(requireContext()).apply {
+            val pill = View(ctx).apply {
                 val isSelected = (i == activePosition)
                 val width = if (isSelected) (18 * density).toInt() else (6 * density).toInt()
                 val height = (5 * density).toInt()
@@ -444,15 +449,24 @@ class HomeFragment : Fragment() {
             }
 
             // 3. Dynamic Daily Class Carousel with Auto-Focus on Ongoing/Next Lecture
-            val todayClasses = homeViewModel.getDailyScheduleCarouselItems()
-            carouselAdapter.updateItems(todayClasses)
-            val activeIndex = todayClasses.indexOfFirst { it.status == ClassStatus.IN_SESSION_NOW }
-                .takeIf { it != -1 }
-                ?: todayClasses.indexOfFirst { it.status == ClassStatus.UPCOMING_NEXT }
-                .takeIf { it != -1 }
-                ?: 0
-            binding.vpDailyScheduleCarousel.setCurrentItem(activeIndex, false)
-            updateCarouselIndicator(activeIndex, todayClasses.size)
+            try {
+                val todayClasses = homeViewModel.getDailyScheduleCarouselItems()
+                carouselAdapter.updateItems(todayClasses)
+                val activeIndex = todayClasses.indexOfFirst { it.status == ClassStatus.IN_SESSION_NOW }
+                    .takeIf { it != -1 }
+                    ?: todayClasses.indexOfFirst { it.status == ClassStatus.UPCOMING_NEXT }
+                    .takeIf { it != -1 }
+                    ?: 0
+                updateCarouselIndicator(activeIndex, todayClasses.size)
+
+                binding.vpDailyScheduleCarousel.post {
+                    if (_binding != null && activeIndex in 0 until carouselAdapter.itemCount) {
+                        binding.vpDailyScheduleCarousel.setCurrentItem(activeIndex, false)
+                    }
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
 
             // 4. Portal Overview
             val workPortalEnabled = dbHelper.isWorkPortalEnabled()

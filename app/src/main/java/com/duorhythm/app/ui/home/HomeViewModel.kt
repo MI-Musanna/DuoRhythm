@@ -15,7 +15,7 @@ import java.util.Locale
  * HomeViewModel providing direct 1:1 binding of raw local currency database values
  * and real-time daily class schedule carousel state mapping.
  */
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
+class HomeViewModel(application: Application = com.duorhythm.app.LifeSyncApp.instance) : AndroidViewModel(application) {
 
     private val dbHelper = DatabaseHelper.getInstance(application)
 
