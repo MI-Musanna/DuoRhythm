@@ -12,8 +12,10 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.duorhythm.app.R
+import com.duorhythm.app.ui.common.ManageTagsBottomSheet
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.data.model.StudentSubject
@@ -64,6 +66,7 @@ class ScheduleAssessmentDialog(
             ))
         }
         types.add("+ Custom Type")
+        types.add("⚙️ Manage Categories...")
 
         val targetType = when {
             existingItem != null -> existingItem.examType
@@ -89,7 +92,31 @@ class ScheduleAssessmentDialog(
 
         binding.spAssessmentType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (types[position] == "+ Custom Type") {
+                if (types[position] == "⚙️ Manage Categories...") {
+                    binding.spAssessmentType.setSelection(0)
+                    val fm = fragmentManager ?: (context as? FragmentActivity)?.supportFragmentManager
+                    if (fm != null) {
+                        ManageTagsBottomSheet.newInstance(profileId, isClassTypeMode = false) {
+                            val refreshed = dbHelper.assessmentCategoryDao.getCategoriesByProfile(profileId).map { it.name }
+                            types.clear()
+                            if (refreshed.isNotEmpty()) {
+                                types.addAll(refreshed)
+                            } else {
+                                types.addAll(listOf(
+                                    "Class Test (CT)",
+                                    "Quiz",
+                                    "Midterm Examination",
+                                    "Semester Final Exam",
+                                    "Lab Exam / Practical",
+                                    "Presentation / Viva"
+                                ))
+                            }
+                            types.add("+ Custom Type")
+                            types.add("⚙️ Manage Categories...")
+                            typeAdapter.notifyDataSetChanged()
+                        }.show(fm, ManageTagsBottomSheet.TAG)
+                    }
+                } else if (types[position] == "+ Custom Type") {
                     val input = EditText(context).apply {
                         hint = "e.g. Assessment Defense"
                         setPadding(48, 32, 48, 32)

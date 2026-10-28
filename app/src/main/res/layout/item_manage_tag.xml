@@ -9,6 +9,14 @@
     android:paddingHorizontal="4dp"
     android:paddingVertical="10dp">
 
+    <!-- Tag Color Dot -->
+    <View
+        android:id="@+id/viewTagColorDot"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_color_circle_fill" />
+
     <!-- Tag Name TextView (tvTagName) with weight="1" -->
     <TextView
         android:id="@+id/tvTagName"

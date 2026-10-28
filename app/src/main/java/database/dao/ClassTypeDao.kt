@@ -20,5 +20,11 @@ interface ClassTypeDao {
     @Query("UPDATE class_types SET name = :newName WHERE id = :id")
     fun updateClassTypeName(id: Long, newName: String)
 
+    @Query("UPDATE class_types SET name = :newName, color_hex = :newColorHex WHERE id = :id")
+    fun updateClassType(id: Long, newName: String, newColorHex: String)
+
+    @Query("UPDATE class_types SET color_hex = :newColorHex WHERE id = :id")
+    fun updateClassTypeColor(id: Long, newColorHex: String)
+
     fun ensureDefaultTypes(profileId: Long)
 }

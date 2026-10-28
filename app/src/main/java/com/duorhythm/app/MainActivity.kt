@@ -212,7 +212,7 @@ class MainActivity : AppCompatActivity() {
         pagerAdapter = MainPagerAdapter(this)
         binding.mainViewPager.adapter = pagerAdapter
         binding.mainViewPager.offscreenPageLimit = 4
-        binding.mainViewPager.isUserInputEnabled = true
+        binding.mainViewPager.isUserInputEnabled = false
         binding.mainViewPager.setPageTransformer(null)
         binding.mainViewPager.setCurrentItem(MainPagerAdapter.INDEX_HOME, false)
 

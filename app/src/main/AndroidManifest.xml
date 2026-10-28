@@ -191,6 +191,34 @@
             </intent-filter>
         </receiver>
 
+        <!-- Boot & App Update Receiver (Class Alarms & Subscription Scheduler Resync) -->
+        <receiver
+            android:name=".receiver.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Subscription Due Alarms Dual-time Receiver -->
+        <receiver
+            android:name=".receiver.SubscriptionAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_CHECK_SUBSCRIPTIONS" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Subscription Action Receiver (Mark as Paid) -->
+        <receiver
+            android:name=".receiver.SubscriptionActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_MARK_SUB_PAID" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

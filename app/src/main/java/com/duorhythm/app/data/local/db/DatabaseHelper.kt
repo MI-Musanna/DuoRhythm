@@ -2327,6 +2327,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 return isHolidayFlow(date, currentProfileId)
             }
 
+            override fun isHoliday(profileId: Long, date: String): Boolean {
+                return this@DatabaseHelper.isHoliday(date, profileId)
+            }
+
             override fun isHoliday(date: String): kotlinx.coroutines.flow.Flow<Boolean> {
                 return isHolidayFlow(date, getActiveProfileId())
             }
@@ -2401,13 +2405,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     arrayOf(profileId.toString())
                 )
                 cursor.use {
+                    val colorIdx = it.getColumnIndex("color_hex")
                     while (it.moveToNext()) {
+                        val colorHex = if (colorIdx >= 0 && !it.isNull(colorIdx)) it.getString(colorIdx) else "#0284C7"
                         list.add(
                             database.entities.ClassTypeEntity(
                                 id = it.getLong(it.getColumnIndexOrThrow("id")),
                                 profileId = it.getLong(it.getColumnIndexOrThrow("profile_id")),
                                 name = it.getString(it.getColumnIndexOrThrow("name")),
-                                isDefault = it.getInt(it.getColumnIndexOrThrow("is_default")) == 1
+                                isDefault = it.getInt(it.getColumnIndexOrThrow("is_default")) == 1,
+                                colorHex = if (!colorHex.isNullOrBlank()) colorHex else "#0284C7"
                             )
                         )
                     }
@@ -2421,6 +2428,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 val cv = ContentValues().apply {
                     put("profile_id", type.profileId)
                     put("name", type.name)
+                    put("color_hex", type.colorHex)
                     put("is_default", if (type.isDefault) 1 else 0)
                 }
                 return db.insert("class_types", null, cv)
@@ -2441,6 +2449,25 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 db.update("class_types", cv, "id = ?", arrayOf(id.toString()))
             }
 
+            override fun updateClassType(id: Long, newName: String, newColorHex: String) {
+                ensureClassTypesTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("name", newName)
+                    put("color_hex", newColorHex)
+                }
+                db.update("class_types", cv, "id = ?", arrayOf(id.toString()))
+            }
+
+            override fun updateClassTypeColor(id: Long, newColorHex: String) {
+                ensureClassTypesTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("color_hex", newColorHex)
+                }
+                db.update("class_types", cv, "id = ?", arrayOf(id.toString()))
+            }
+
             override fun ensureDefaultTypes(profileId: Long) {
                 ensureClassTypesTable()
                 val db = writableDatabase
@@ -2453,11 +2480,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     if (it.moveToFirst()) count = it.getInt(0)
                 }
                 if (count == 0) {
-                    val defaults = listOf("Lecture", "Lab", "Tutorial", "Seminar")
-                    for (d in defaults) {
+                    val defaults = listOf(
+                        Pair("Lecture", "#0284C7"),
+                        Pair("Lab", "#10B981"),
+                        Pair("Tutorial", "#F59E0B"),
+                        Pair("Seminar", "#8B5CF6")
+                    )
+                    for ((d, color) in defaults) {
                         val cv = ContentValues().apply {
                             put("profile_id", profileId)
                             put("name", d)
+                            put("color_hex", color)
                             put("is_default", 1)
                         }
                         db.insert("class_types", null, cv)
@@ -2526,13 +2559,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     arrayOf(profileId.toString())
                 )
                 cursor.use {
+                    val colorIdx = it.getColumnIndex("color_hex")
                     while (it.moveToNext()) {
+                        val colorHex = if (colorIdx >= 0 && !it.isNull(colorIdx)) it.getString(colorIdx) else "#8B5CF6"
                         list.add(
                             database.entities.AssessmentCategoryEntity(
                                 id = it.getLong(it.getColumnIndexOrThrow("id")),
                                 profileId = it.getLong(it.getColumnIndexOrThrow("profile_id")),
                                 name = it.getString(it.getColumnIndexOrThrow("name")),
-                                isDefault = it.getInt(it.getColumnIndexOrThrow("is_default")) == 1
+                                isDefault = it.getInt(it.getColumnIndexOrThrow("is_default")) == 1,
+                                colorHex = if (!colorHex.isNullOrBlank()) colorHex else "#8B5CF6"
                             )
                         )
                     }
@@ -2546,6 +2582,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 val cv = ContentValues().apply {
                     put("profile_id", category.profileId)
                     put("name", category.name)
+                    put("color_hex", category.colorHex)
                     put("is_default", if (category.isDefault) 1 else 0)
                 }
                 return db.insert("assessment_categories", null, cv)
@@ -2566,6 +2603,25 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 db.update("assessment_categories", cv, "id = ?", arrayOf(id.toString()))
             }
 
+            override fun updateCategory(id: Long, newName: String, newColorHex: String) {
+                ensureAssessmentCategoriesTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("name", newName)
+                    put("color_hex", newColorHex)
+                }
+                db.update("assessment_categories", cv, "id = ?", arrayOf(id.toString()))
+            }
+
+            override fun updateCategoryColor(id: Long, newColorHex: String) {
+                ensureAssessmentCategoriesTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("color_hex", newColorHex)
+                }
+                db.update("assessment_categories", cv, "id = ?", arrayOf(id.toString()))
+            }
+
             override fun ensureDefaultCategories(profileId: Long) {
                 ensureAssessmentCategoriesTable()
                 val db = writableDatabase
@@ -2578,11 +2634,19 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     if (it.moveToFirst()) count = it.getInt(0)
                 }
                 if (count == 0) {
-                    val defaults = listOf("Quiz", "Class Test", "Midterm", "Final", "Lab Exam", "Viva")
-                    for (d in defaults) {
+                    val defaults = listOf(
+                        Pair("Quiz", "#8B5CF6"),
+                        Pair("Class Test", "#06B6D4"),
+                        Pair("Midterm", "#F59E0B"),
+                        Pair("Final", "#EF4444"),
+                        Pair("Lab Exam", "#10B981"),
+                        Pair("Viva", "#EC4899")
+                    )
+                    for ((d, color) in defaults) {
                         val cv = ContentValues().apply {
                             put("profile_id", profileId)
                             put("name", d)
+                            put("color_hex", color)
                             put("is_default", 1)
                         }
                         db.insert("assessment_categories", null, cv)
@@ -2599,9 +2663,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 profile_id INTEGER DEFAULT 1,
                 name TEXT NOT NULL,
-                is_default INTEGER DEFAULT 0
+                is_default INTEGER DEFAULT 0,
+                color_hex TEXT DEFAULT '#0284C7'
             )"""
         )
+        ensureColumnExists(db, "class_types", "color_hex", "TEXT DEFAULT '#0284C7'")
     }
 
     fun ensureAssessmentCategoriesTable() {
@@ -2611,9 +2677,293 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 profile_id INTEGER DEFAULT 1,
                 name TEXT NOT NULL,
-                is_default INTEGER DEFAULT 0
+                is_default INTEGER DEFAULT 0,
+                color_hex TEXT DEFAULT '#8B5CF6'
             )"""
         )
+        ensureColumnExists(db, "assessment_categories", "color_hex", "TEXT DEFAULT '#8B5CF6'")
+    }
+
+    fun ensureSubscriptionsTable() {
+        val db = writableDatabase
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
+                profileId INTEGER DEFAULT 1,
+                name TEXT NOT NULL DEFAULT '',
+                amount REAL NOT NULL DEFAULT 0.0,
+                service_name TEXT,
+                cost REAL,
+                currency TEXT DEFAULT 'BDT',
+                billing_cycle TEXT DEFAULT 'MONTHLY',
+                renewal_date TEXT,
+                bucket_id INTEGER DEFAULT 0,
+                bucket_name TEXT DEFAULT '',
+                category TEXT DEFAULT 'Entertainment',
+                icon TEXT DEFAULT 'subscription',
+                is_active INTEGER DEFAULT 1,
+                auto_log INTEGER DEFAULT 1,
+                isRange INTEGER DEFAULT 0,
+                is_range INTEGER DEFAULT 0,
+                startDay INTEGER DEFAULT 1,
+                start_day INTEGER DEFAULT 1,
+                endDay INTEGER DEFAULT 8,
+                end_day INTEGER DEFAULT 8,
+                dueDay INTEGER DEFAULT 5,
+                due_day INTEGER DEFAULT 5,
+                linkedAccountId INTEGER,
+                linked_account_id INTEGER,
+                lastPaidMonthYear TEXT,
+                last_paid_month_year TEXT
+            )"""
+        )
+        ensureColumnExists(db, "subscriptions", "profileId", "INTEGER DEFAULT 1")
+        ensureColumnExists(db, "subscriptions", "profile_id", "INTEGER DEFAULT 1")
+        ensureColumnExists(db, "subscriptions", "name", "TEXT DEFAULT ''")
+        ensureColumnExists(db, "subscriptions", "amount", "REAL DEFAULT 0.0")
+        ensureColumnExists(db, "subscriptions", "service_name", "TEXT DEFAULT ''")
+        ensureColumnExists(db, "subscriptions", "cost", "REAL DEFAULT 0.0")
+        ensureColumnExists(db, "subscriptions", "isRange", "INTEGER DEFAULT 0")
+        ensureColumnExists(db, "subscriptions", "is_range", "INTEGER DEFAULT 0")
+        ensureColumnExists(db, "subscriptions", "startDay", "INTEGER DEFAULT 1")
+        ensureColumnExists(db, "subscriptions", "start_day", "INTEGER DEFAULT 1")
+        ensureColumnExists(db, "subscriptions", "endDay", "INTEGER DEFAULT 8")
+        ensureColumnExists(db, "subscriptions", "end_day", "INTEGER DEFAULT 8")
+        ensureColumnExists(db, "subscriptions", "dueDay", "INTEGER DEFAULT 5")
+        ensureColumnExists(db, "subscriptions", "due_day", "INTEGER DEFAULT 5")
+        ensureColumnExists(db, "subscriptions", "linkedAccountId", "INTEGER")
+        ensureColumnExists(db, "subscriptions", "linked_account_id", "INTEGER")
+        ensureColumnExists(db, "subscriptions", "lastPaidMonthYear", "TEXT")
+        ensureColumnExists(db, "subscriptions", "last_paid_month_year", "TEXT")
+    }
+
+    private fun mapCursorToSubscriptionEntity(it: android.database.Cursor): database.entities.SubscriptionEntity {
+        val id = it.getLong(it.getColumnIndexOrThrow("id"))
+        val pIdCol = it.getColumnIndex("profileId").takeIf { it >= 0 } ?: it.getColumnIndex("profile_id")
+        val profileId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
+
+        val nameCol = it.getColumnIndex("name").takeIf { it >= 0 } ?: it.getColumnIndex("service_name")
+        val name = if (nameCol >= 0) it.getString(nameCol) ?: "" else ""
+
+        val amtCol = it.getColumnIndex("amount").takeIf { it >= 0 } ?: it.getColumnIndex("cost")
+        val amount = if (amtCol >= 0) it.getDouble(amtCol) else 0.0
+
+        val isRangeCol = it.getColumnIndex("isRange").takeIf { it >= 0 } ?: it.getColumnIndex("is_range")
+        val isRange = if (isRangeCol >= 0) it.getInt(isRangeCol) == 1 else false
+
+        val startDayCol = it.getColumnIndex("startDay").takeIf { it >= 0 } ?: it.getColumnIndex("start_day")
+        val startDay = if (startDayCol >= 0) it.getInt(startDayCol).takeIf { it in 1..31 } ?: 1 else 1
+
+        val endDayCol = it.getColumnIndex("endDay").takeIf { it >= 0 } ?: it.getColumnIndex("end_day")
+        val endDay = if (endDayCol >= 0) it.getInt(endDayCol).takeIf { it in 1..31 } ?: 8 else 8
+
+        val dueDayCol = it.getColumnIndex("dueDay").takeIf { it >= 0 } ?: it.getColumnIndex("due_day")
+        val dueDay = if (dueDayCol >= 0) it.getInt(dueDayCol).takeIf { it in 1..31 } ?: 5 else 5
+
+        val linkedCol = it.getColumnIndex("linkedAccountId").takeIf { it >= 0 }
+            ?: it.getColumnIndex("linked_account_id").takeIf { it >= 0 }
+            ?: it.getColumnIndex("bucket_id")
+        val linkedAccountId = if (linkedCol >= 0 && !it.isNull(linkedCol)) {
+            val v = it.getLong(linkedCol)
+            if (v > 0) v else null
+        } else null
+
+        val paidCol = it.getColumnIndex("lastPaidMonthYear").takeIf { it >= 0 } ?: it.getColumnIndex("last_paid_month_year")
+        val lastPaidMonthYear = if (paidCol >= 0 && !it.isNull(paidCol)) it.getString(paidCol) else null
+
+        val entity = database.entities.SubscriptionEntity(
+            id = id,
+            profileId = profileId,
+            name = name,
+            amount = amount,
+            isRange = isRange,
+            startDay = startDay,
+            endDay = endDay,
+            dueDay = dueDay,
+            linkedAccountId = linkedAccountId,
+            lastPaidMonthYear = lastPaidMonthYear
+        )
+
+        if (linkedAccountId != null) {
+            val bucket = getWalletBucketById(linkedAccountId)
+            entity.accountName = bucket?.name ?: "Account #$linkedAccountId"
+        } else {
+            entity.accountName = "None / External"
+        }
+
+        return entity
+    }
+
+    val subscriptionDao: database.dao.SubscriptionDao by lazy {
+        object : database.dao.SubscriptionDao {
+            override fun getSubscriptions(profileId: Long): List<database.entities.SubscriptionEntity> {
+                ensureSubscriptionsTable()
+                val list = mutableListOf<database.entities.SubscriptionEntity>()
+                val db = readableDatabase
+                val cursor = db.rawQuery(
+                    "SELECT * FROM subscriptions WHERE (profileId = ? OR profile_id = ?) ORDER BY id DESC",
+                    arrayOf(profileId.toString(), profileId.toString())
+                )
+                cursor.use {
+                    while (it.moveToNext()) {
+                        list.add(mapCursorToSubscriptionEntity(it))
+                    }
+                }
+                return list
+            }
+
+            override fun getSubscriptionsFlow(profileId: Long): kotlinx.coroutines.flow.Flow<List<database.entities.SubscriptionEntity>> = kotlinx.coroutines.flow.flow {
+                emit(getSubscriptions(profileId))
+            }
+
+            override fun getActiveSubscriptions(profileId: Long): List<database.entities.SubscriptionEntity> {
+                ensureSubscriptionsTable()
+                val list = mutableListOf<database.entities.SubscriptionEntity>()
+                val db = readableDatabase
+                val cursor = db.rawQuery(
+                    "SELECT * FROM subscriptions WHERE (profileId = ? OR profile_id = ?) AND (is_active = 1 OR is_active IS NULL) ORDER BY id DESC",
+                    arrayOf(profileId.toString(), profileId.toString())
+                )
+                cursor.use {
+                    while (it.moveToNext()) {
+                        list.add(mapCursorToSubscriptionEntity(it))
+                    }
+                }
+                return list
+            }
+
+            override fun getSubscriptionById(id: Long): database.entities.SubscriptionEntity? {
+                ensureSubscriptionsTable()
+                val db = readableDatabase
+                val cursor = db.rawQuery("SELECT * FROM subscriptions WHERE id = ? LIMIT 1", arrayOf(id.toString()))
+                return cursor.use {
+                    if (it.moveToNext()) mapCursorToSubscriptionEntity(it) else null
+                }
+            }
+
+            override fun insertSubscription(subscription: database.entities.SubscriptionEntity): Long {
+                ensureSubscriptionsTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("profileId", subscription.profileId)
+                    put("profile_id", subscription.profileId)
+                    put("name", subscription.name)
+                    put("service_name", subscription.name)
+                    put("amount", subscription.amount)
+                    put("cost", subscription.amount)
+                    put("isRange", if (subscription.isRange) 1 else 0)
+                    put("is_range", if (subscription.isRange) 1 else 0)
+                    put("startDay", subscription.startDay)
+                    put("start_day", subscription.startDay)
+                    put("endDay", subscription.endDay)
+                    put("end_day", subscription.endDay)
+                    put("dueDay", subscription.dueDay)
+                    put("due_day", subscription.dueDay)
+                    if (subscription.linkedAccountId != null) {
+                        put("linkedAccountId", subscription.linkedAccountId)
+                        put("linked_account_id", subscription.linkedAccountId)
+                        put("bucket_id", subscription.linkedAccountId)
+                        val bucket = getWalletBucketById(subscription.linkedAccountId)
+                        put("bucket_name", bucket?.name ?: "")
+                    } else {
+                        putNull("linkedAccountId")
+                        putNull("linked_account_id")
+                        put("bucket_id", 0)
+                        put("bucket_name", "")
+                    }
+                    if (subscription.lastPaidMonthYear != null) {
+                        put("lastPaidMonthYear", subscription.lastPaidMonthYear)
+                        put("last_paid_month_year", subscription.lastPaidMonthYear)
+                    } else {
+                        putNull("lastPaidMonthYear")
+                        putNull("last_paid_month_year")
+                    }
+                    put("is_active", 1)
+                }
+                return db.insert("subscriptions", null, cv)
+            }
+
+            override fun updateSubscription(subscription: database.entities.SubscriptionEntity): Int {
+                ensureSubscriptionsTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("profileId", subscription.profileId)
+                    put("profile_id", subscription.profileId)
+                    put("name", subscription.name)
+                    put("service_name", subscription.name)
+                    put("amount", subscription.amount)
+                    put("cost", subscription.amount)
+                    put("isRange", if (subscription.isRange) 1 else 0)
+                    put("is_range", if (subscription.isRange) 1 else 0)
+                    put("startDay", subscription.startDay)
+                    put("start_day", subscription.startDay)
+                    put("endDay", subscription.endDay)
+                    put("end_day", subscription.endDay)
+                    put("dueDay", subscription.dueDay)
+                    put("due_day", subscription.dueDay)
+                    if (subscription.linkedAccountId != null) {
+                        put("linkedAccountId", subscription.linkedAccountId)
+                        put("linked_account_id", subscription.linkedAccountId)
+                        put("bucket_id", subscription.linkedAccountId)
+                        val bucket = getWalletBucketById(subscription.linkedAccountId)
+                        put("bucket_name", bucket?.name ?: "")
+                    } else {
+                        putNull("linkedAccountId")
+                        putNull("linked_account_id")
+                        put("bucket_id", 0)
+                        put("bucket_name", "")
+                    }
+                    if (subscription.lastPaidMonthYear != null) {
+                        put("lastPaidMonthYear", subscription.lastPaidMonthYear)
+                        put("last_paid_month_year", subscription.lastPaidMonthYear)
+                    } else {
+                        putNull("lastPaidMonthYear")
+                        putNull("last_paid_month_year")
+                    }
+                }
+                return db.update("subscriptions", cv, "id = ?", arrayOf(subscription.id.toString()))
+            }
+
+            override fun updatePaidMonth(id: Long, monthYear: String?): Int {
+                ensureSubscriptionsTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    if (monthYear != null) {
+                        put("lastPaidMonthYear", monthYear)
+                        put("last_paid_month_year", monthYear)
+                    } else {
+                        putNull("lastPaidMonthYear")
+                        putNull("last_paid_month_year")
+                    }
+                }
+                return db.update("subscriptions", cv, "id = ?", arrayOf(id.toString()))
+            }
+
+            override fun deleteSubscription(id: Long): Int {
+                ensureSubscriptionsTable()
+                val db = writableDatabase
+                return db.delete("subscriptions", "id = ?", arrayOf(id.toString()))
+            }
+
+            override fun deleteByProfileId(profileId: Long): Int {
+                ensureSubscriptionsTable()
+                val db = writableDatabase
+                return db.delete("subscriptions", "(profileId = ? OR profile_id = ?)", arrayOf(profileId.toString(), profileId.toString()))
+            }
+        }
+    }
+
+    val accountDao: database.dao.AccountDao by lazy {
+        object : database.dao.AccountDao {
+            override fun getAccounts(profileId: Long): List<WalletBucketItem> {
+                return getAllWalletBuckets(profileId)
+            }
+
+            override fun getAccountById(id: Long): WalletBucketItem? {
+                return getWalletBucketById(id)
+            }
+        }
     }
 
     fun getActiveProfileId(): Long {

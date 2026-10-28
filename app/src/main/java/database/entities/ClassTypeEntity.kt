@@ -8,5 +8,6 @@ data class ClassTypeEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val profileId: Long = 1,
     val name: String,
-    val isDefault: Boolean = false
+    val isDefault: Boolean = false,
+    val colorHex: String = "#0284C7"
 )

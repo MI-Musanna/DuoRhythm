@@ -128,6 +128,15 @@ object AlarmSyncManager {
         if (endMs <= System.currentTimeMillis()) {
             startMs += 7 * 24 * 60 * 60 * 1000L
             endMs += 7 * 24 * 60 * 60 * 1000L
+            targetCal.add(Calendar.DAY_OF_YEAR, 7)
+        }
+
+        // Calendar Holiday Lookahead: Check if target class date is a marked holiday
+        val db = DatabaseHelper.getInstance(context)
+        val targetDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(targetCal.time)
+        if (db.holidayDao.isHoliday(item.profileId, targetDateStr)) {
+            // Suppress alarms on holidays
+            return
         }
 
         val leadMinutes = AppPreferences.getClassLeadMinutes(context)

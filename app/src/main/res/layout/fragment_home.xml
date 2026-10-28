@@ -728,14 +728,16 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/tvWorkPortalStatusBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_pill_work_active"
+                        android:gravity="center"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="ACTIVE"
-                        android:textColor="#10B981"
-                        android:textSize="10sp"
+                        android:text="SYNCED"
+                        android:textColor="#052E16"
+                        android:textSize="11sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>

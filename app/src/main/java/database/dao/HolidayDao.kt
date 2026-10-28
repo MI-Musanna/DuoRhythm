@@ -12,6 +12,9 @@ interface HolidayDao {
     @Query("SELECT COUNT(*) > 0 FROM holiday_records WHERE date = :date AND profileId = :currentProfileId")
     fun isHoliday(date: String, currentProfileId: Long): Flow<Boolean>
 
+    @Query("SELECT COUNT(*) > 0 FROM holiday_records WHERE date = :date AND profileId = :profileId")
+    fun isHoliday(profileId: Long, date: String): Boolean
+
     @Query("SELECT COUNT(*) > 0 FROM holiday_records WHERE date = :date")
     fun isHoliday(date: String): Flow<Boolean>
 

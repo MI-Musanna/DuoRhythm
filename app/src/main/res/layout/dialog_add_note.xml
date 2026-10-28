@@ -7,13 +7,35 @@
     android:orientation="vertical"
     android:padding="20dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="New Note"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvNoteDialogTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="New Note"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnNotePalette"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_color_circle_fill"
+            android:backgroundTint="#1E293B"
+            android:clickable="true"
+            android:contentDescription="Pick Note Color"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/ic_palette"
+            app:tint="@color/white" />
+    </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"

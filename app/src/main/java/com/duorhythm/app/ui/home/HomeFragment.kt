@@ -22,6 +22,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.duorhythm.app.data.model.NoteItem
 import com.duorhythm.app.databinding.DialogAddNoteBinding
+import com.duorhythm.app.ui.common.ColorSliderView
 import com.duorhythm.app.ui.tools.AmbientSoundDialog
 import com.duorhythm.app.ui.tools.PercentageCalcDialog
 import com.duorhythm.app.ui.tools.PomodoroDialog
@@ -575,6 +576,12 @@ class HomeFragment : Fragment() {
                     if (note.title.isNotBlank()) "${note.title}\n${note.content}" else note.content
                 }
                 binding.tvScratchpadPreview.text = previewText
+                val topColor = notes.firstOrNull()?.colorHex
+                if (!topColor.isNullOrBlank()) {
+                    try {
+                        binding.tvScratchpadPreview.setTextColor(Color.parseColor(topColor))
+                    } catch (_: Exception) {}
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -586,6 +593,20 @@ class HomeFragment : Fragment() {
         val categories = listOf("General", "Study", "Work", "Lecture", "Ideas", "Formula")
         dialogBinding.spNoteCategory.adapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories)
+
+        var selectedColor = "#1E293B"
+        try {
+            dialogBinding.btnNotePalette.backgroundTintList = ColorStateList.valueOf(Color.parseColor(selectedColor))
+        } catch (_: Exception) {}
+
+        dialogBinding.btnNotePalette.setOnClickListener {
+            ColorSliderView.showDialog(requireContext(), selectedColor) { chosenHex ->
+                selectedColor = chosenHex
+                try {
+                    dialogBinding.btnNotePalette.backgroundTintList = ColorStateList.valueOf(Color.parseColor(chosenHex))
+                } catch (_: Exception) {}
+            }
+        }
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogBinding.root)
@@ -605,6 +626,7 @@ class HomeFragment : Fragment() {
                 title = if (title.isNotEmpty()) title else "Quick Note",
                 content = content,
                 category = category,
+                colorHex = selectedColor,
                 updatedAt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
             )
             dbHelper.insertNote(note)
@@ -619,9 +641,24 @@ class HomeFragment : Fragment() {
 
     private fun showEditNoteDialog(note: NoteItem) {
         val dialogBinding = DialogAddNoteBinding.inflate(layoutInflater)
+        dialogBinding.tvNoteDialogTitle.text = "Edit Note"
         dialogBinding.etNoteTitle.setText(note.title)
         dialogBinding.etNoteContent.setText(note.content)
         dialogBinding.btnSaveNote.text = "Save Changes"
+
+        var selectedColor = if (note.colorHex.isNotBlank()) note.colorHex else "#1E293B"
+        try {
+            dialogBinding.btnNotePalette.backgroundTintList = ColorStateList.valueOf(Color.parseColor(selectedColor))
+        } catch (_: Exception) {}
+
+        dialogBinding.btnNotePalette.setOnClickListener {
+            ColorSliderView.showDialog(requireContext(), selectedColor) { chosenHex ->
+                selectedColor = chosenHex
+                try {
+                    dialogBinding.btnNotePalette.backgroundTintList = ColorStateList.valueOf(Color.parseColor(chosenHex))
+                } catch (_: Exception) {}
+            }
+        }
 
         val categories = listOf("General", "Study", "Work", "Lecture", "Ideas", "Formula")
         dialogBinding.spNoteCategory.adapter =
@@ -647,6 +684,7 @@ class HomeFragment : Fragment() {
                 title = if (title.isNotEmpty()) title else "Quick Note",
                 content = content,
                 category = category,
+                colorHex = selectedColor,
                 updatedAt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
             )
             dbHelper.updateNote(updated)

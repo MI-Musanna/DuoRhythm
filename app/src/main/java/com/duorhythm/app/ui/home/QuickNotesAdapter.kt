@@ -36,6 +36,13 @@ class QuickNotesAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(note: NoteItem) {
+            val parsedColor = try {
+                android.graphics.Color.parseColor(if (note.colorHex.isNotBlank()) note.colorHex else "#1E293B")
+            } catch (_: Exception) {
+                android.graphics.Color.parseColor("#1E293B")
+            }
+            (binding.root as? com.google.android.material.card.MaterialCardView)?.setCardBackgroundColor(parsedColor)
+
             binding.tvQuickNoteTitle.text = note.title
             binding.tvQuickNoteContent.text = note.content
             binding.tvQuickNoteCategory.text = note.category.ifBlank { "General" }

@@ -10,11 +10,13 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
-import com.duorhythm.app.data.model.SubscriptionItem
+import com.duorhythm.app.data.local.pref.ProfileManager
+import com.duorhythm.app.data.model.TransactionItem
 import com.duorhythm.app.databinding.DialogAddSubscriptionBinding
 import com.duorhythm.app.databinding.DialogSubscriptionManagerBinding
+import com.duorhythm.app.scheduler.SubscriptionAlarmScheduler
+import database.entities.SubscriptionEntity
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -43,6 +45,9 @@ class SubscriptionManagerDialog(
             },
             onDeleteClick = { sub ->
                 confirmDeleteSubscription(sub, binding)
+            },
+            onMarkPaidClick = { sub ->
+                handleMarkPaidClick(sub, binding)
             }
         )
 
@@ -68,34 +73,94 @@ class SubscriptionManagerDialog(
         dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
     }
 
-    private fun confirmDeleteSubscription(sub: SubscriptionItem, binding: DialogSubscriptionManagerBinding) {
-        AlertDialog.Builder(context)
-            .setTitle("Delete Subscription")
-            .setMessage("Delete '${sub.serviceName}'? This will remove it from tracked recurring expenses.")
-            .setPositiveButton("Delete") { _, _ ->
-                dbHelper.deleteSubscription(sub.id)
+    private fun handleMarkPaidClick(sub: SubscriptionEntity, binding: DialogSubscriptionManagerBinding) {
+        val currentMonthYear = SimpleDateFormat("yyyy-MM", Locale.US).format(Date())
+        val isSettledThisMonth = (sub.lastPaidMonthYear == currentMonthYear)
+
+        if (isSettledThisMonth) {
+            // Uncheck / unmark paid
+            dbHelper.subscriptionDao.updatePaidMonth(sub.id, null)
+            loadSubscriptions(binding)
+            onDataChanged()
+            Toast.makeText(context, "Unmarked '${sub.name}' as paid", Toast.LENGTH_SHORT).show()
+        } else {
+            // Currently unpaid
+            if (sub.linkedAccountId != null && sub.linkedAccountId > 0L) {
+                // Prompt confirmation dialog: DEDUCT & MARK PAID or JUST MARK PAID
+                AlertDialog.Builder(context)
+                    .setTitle("Record Wallet Expense?")
+                    .setMessage("Do you want to deduct ${currentSymbol}${sub.amount.toInt()} from '${sub.accountName}' and log a transaction, or just mark this subscription as paid?")
+                    .setPositiveButton("DEDUCT & MARK PAID") { _, _ ->
+                        val tx = TransactionItem(
+                            profileId = sub.profileId,
+                            title = "Subscription: ${sub.name}",
+                            amount = sub.amount,
+                            type = "EXPENSE",
+                            category = "Subscription",
+                            date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
+                            currency = "BDT",
+                            bucketId = sub.linkedAccountId,
+                            notes = "Auto-logged subscription deduction"
+                        )
+                        dbHelper.insertTransaction(tx)
+                        dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
+                        WalletDataSyncManager.notifyChanged()
+                        loadSubscriptions(binding)
+                        onDataChanged()
+                        Toast.makeText(context, "Deducted and marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNeutralButton("JUST MARK PAID") { _, _ ->
+                        dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
+                        loadSubscriptions(binding)
+                        onDataChanged()
+                        Toast.makeText(context, "Marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            } else {
+                // External payer / No linked account -> mark paid immediately without deduction
+                dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                 loadSubscriptions(binding)
                 onDataChanged()
-                Toast.makeText(context, "Deleted '${sub.serviceName}'", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Marked '${sub.name}' as paid (External payer)", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun confirmDeleteSubscription(sub: SubscriptionEntity, binding: DialogSubscriptionManagerBinding) {
+        AlertDialog.Builder(context)
+            .setTitle("Delete Subscription")
+            .setMessage("Delete '${sub.name}'? This will remove it from tracked recurring expenses.")
+            .setPositiveButton("Delete") { _, _ ->
+                dbHelper.subscriptionDao.deleteSubscription(sub.id)
+                loadSubscriptions(binding)
+                onDataChanged()
+                Toast.makeText(context, "Deleted '${sub.name}'", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
     private fun loadSubscriptions(binding: DialogSubscriptionManagerBinding) {
-        val list = dbHelper.getAllSubscriptions()
-        adapter.updateData(list, currentSymbol, currentRate)
+        val profileId = ProfileManager.getActiveProfileId(context)
+        val list = dbHelper.subscriptionDao.getSubscriptions(profileId)
 
-        val totalMonthlyBDT = list.filter { it.isActive }.sumOf { sub ->
-            sub.getMonthlyEquivalentCost()
+        val accounts = dbHelper.accountDao.getAccounts(profileId).associateBy { it.id }
+        for (sub in list) {
+            if (sub.linkedAccountId != null && sub.linkedAccountId > 0) {
+                sub.accountName = accounts[sub.linkedAccountId]?.name ?: "Account"
+            }
         }
 
+        adapter.updateData(list, currentSymbol, currentRate)
+
+        val totalProjected = list.sumOf { it.amount }
         binding.tvSubManagerSummary.text = String.format(
             Locale.US,
-            "Total Projected: %s%.0f / mo • %d Active",
+            "Total Projected: %s%.0f / mo • %d Tracked",
             currentSymbol,
-            totalMonthlyBDT,
-            list.count { it.isActive }
+            totalProjected,
+            list.size
         )
 
         if (list.isEmpty()) {
@@ -107,13 +172,14 @@ class SubscriptionManagerDialog(
         }
     }
 
-    fun showAddOrEditSubscriptionDialog(subToEdit: SubscriptionItem? = null, onSaved: () -> Unit) {
+    fun showAddOrEditSubscriptionDialog(subToEdit: SubscriptionEntity? = null, onSaved: () -> Unit) {
         val addBinding = DialogAddSubscriptionBinding.inflate(LayoutInflater.from(context))
+        val profileId = ProfileManager.getActiveProfileId(context)
 
         val isEdit = subToEdit != null
         if (isEdit) {
             addBinding.tvSubscriptionDialogTitle.text = "Edit Subscription"
-            addBinding.tvSubscriptionDialogSubtitle.text = "Update cost, renewal date, or linked deducting bucket."
+            addBinding.tvSubscriptionDialogSubtitle.text = "Update amount, due date range, or payment source."
             addBinding.btnSaveSubscription.text = "Save Changes"
         }
 
@@ -121,65 +187,59 @@ class SubscriptionManagerDialog(
         val currencyAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, currencies)
         addBinding.spSubCurrency.adapter = currencyAdapter
 
-        // Dynamically fetch all created wallet buckets
-        val buckets = dbHelper.getAllWalletBuckets()
-        if (buckets.isEmpty()) {
-            AlertDialog.Builder(context)
-                .setTitle("Account Required")
-                .setMessage("Please set up at least one account (e.g., Bank, bKash, Card) before adding a recurring subscription.")
-                .setPositiveButton("OK", null)
-                .show()
-            return
+        // Fetch accounts for payment source
+        val accounts = dbHelper.accountDao.getAccounts(profileId)
+        val sourceOptions = mutableListOf("None / External (Father / Third-Party)")
+        sourceOptions.addAll(accounts.map { it.name })
+
+        val sourceAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, sourceOptions)
+        addBinding.spnPaymentSource.adapter = sourceAdapter
+
+        // Due Mode Toggle
+        var isRangeMode = subToEdit?.isRange ?: false
+        if (isRangeMode) {
+            addBinding.toggleDueMode.check(R.id.btnDueRange)
+            addBinding.layoutFixedDue.visibility = View.GONE
+            addBinding.layoutRangeDue.visibility = View.VISIBLE
+        } else {
+            addBinding.toggleDueMode.check(R.id.btnDueFixed)
+            addBinding.layoutFixedDue.visibility = View.VISIBLE
+            addBinding.layoutRangeDue.visibility = View.GONE
         }
 
-        val bucketOptions = buckets.map { it.name }
-        val bucketAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, bucketOptions)
-        addBinding.spLinkedBucket.adapter = bucketAdapter
-
-        // Default renewal date (30 days from now)
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_YEAR, 30)
-        val defaultDate = sdf.format(cal.time)
-
-        var billingCycle = subToEdit?.billingCycle ?: "MONTHLY"
+        addBinding.toggleDueMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                isRangeMode = (checkedId == R.id.btnDueRange)
+                if (isRangeMode) {
+                    addBinding.layoutFixedDue.visibility = View.GONE
+                    addBinding.layoutRangeDue.visibility = View.VISIBLE
+                } else {
+                    addBinding.layoutFixedDue.visibility = View.VISIBLE
+                    addBinding.layoutRangeDue.visibility = View.GONE
+                }
+            }
+        }
 
         if (subToEdit != null) {
-            addBinding.etServiceName.setText(subToEdit.serviceName)
-            val costStr = if (subToEdit.cost % 1.0 == 0.0) {
-                subToEdit.cost.toLong().toString()
+            addBinding.etServiceName.setText(subToEdit.name)
+            val costStr = if (subToEdit.amount % 1.0 == 0.0) {
+                subToEdit.amount.toLong().toString()
             } else {
-                String.format(Locale.US, "%.2f", subToEdit.cost)
+                String.format(Locale.US, "%.2f", subToEdit.amount)
             }
             addBinding.etSubCost.setText(costStr)
-            val currIdx = currencies.indexOf(subToEdit.currency).coerceAtLeast(0)
-            addBinding.spSubCurrency.setSelection(currIdx)
-            addBinding.etRenewalDate.setText(subToEdit.renewalDate)
+            addBinding.etDueDay.setText(subToEdit.dueDay.toString())
+            addBinding.etStartDay.setText(subToEdit.startDay.toString())
+            addBinding.etEndDay.setText(subToEdit.endDay.toString())
 
-            // Select linked bucket in spinner
-            val bucketIdx = if (subToEdit.bucketName.isNotBlank()) {
-                bucketOptions.indexOf(subToEdit.bucketName).takeIf { it >= 0 }
-                    ?: (buckets.indexOfFirst { it.id == subToEdit.bucketId }.takeIf { it >= 0 } ?: 0)
+            // Select payment source
+            val selectedIdx = if (subToEdit.linkedAccountId != null && subToEdit.linkedAccountId > 0L) {
+                val accIdx = accounts.indexOfFirst { it.id == subToEdit.linkedAccountId }
+                if (accIdx >= 0) accIdx + 1 else 0
             } else {
                 0
             }
-            addBinding.spLinkedBucket.setSelection(bucketIdx)
-
-            if (subToEdit.billingCycle.equals("YEARLY", ignoreCase = true)) {
-                addBinding.toggleBillingCycle.check(R.id.btnCycleYearly)
-                billingCycle = "YEARLY"
-            } else {
-                addBinding.toggleBillingCycle.check(R.id.btnCycleMonthly)
-                billingCycle = "MONTHLY"
-            }
-        } else {
-            addBinding.etRenewalDate.setText(defaultDate)
-        }
-
-        addBinding.toggleBillingCycle.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isChecked) {
-                billingCycle = if (checkedId == R.id.btnCycleYearly) "YEARLY" else "MONTHLY"
-            }
+            addBinding.spnPaymentSource.setSelection(selectedIdx)
         }
 
         val addDialog = AlertDialog.Builder(context)
@@ -189,61 +249,52 @@ class SubscriptionManagerDialog(
         addBinding.btnSaveSubscription.setOnClickListener {
             val name = addBinding.etServiceName.text?.toString()?.trim().orEmpty()
             val costStr = addBinding.etSubCost.text?.toString()?.trim().orEmpty()
-            val date = addBinding.etRenewalDate.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty() || costStr.isEmpty()) {
                 Toast.makeText(context, "Service name and cost are required", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val cost = costStr.toDoubleOrNull() ?: 0.0
-            val currency = currencies[addBinding.spSubCurrency.selectedItemPosition]
-            val matchedBucket = buckets.getOrNull(addBinding.spLinkedBucket.selectedItemPosition)
-            if (matchedBucket == null) {
-                Toast.makeText(context, "Please select an account for subscription deductions", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val bucketId = matchedBucket.id
-            val finalBucketName = matchedBucket.name
+            val amount = costStr.toDoubleOrNull() ?: 0.0
+            val dueDay = addBinding.etDueDay.text?.toString()?.toIntOrNull()?.coerceIn(1, 31) ?: 5
+            val startDay = addBinding.etStartDay.text?.toString()?.toIntOrNull()?.coerceIn(1, 31) ?: 1
+            val endDay = addBinding.etEndDay.text?.toString()?.toIntOrNull()?.coerceIn(1, 31) ?: 8
 
-            val category = when (name.lowercase(Locale.US)) {
-                "chatgpt", "chatgpt plus", "claude", "claude ai" -> "AI / Tech"
-                "youtube", "youtube premium", "netflix" -> "Entertainment"
-                "spotify" -> "Music"
-                "google one", "icloud" -> "Cloud Storage"
-                else -> "Subscription"
+            val selectedSourcePos = addBinding.spnPaymentSource.selectedItemPosition
+            val linkedAccountId: Long? = if (selectedSourcePos > 0 && selectedSourcePos - 1 < accounts.size) {
+                accounts[selectedSourcePos - 1].id
+            } else {
+                null
             }
 
             if (subToEdit != null) {
                 val updated = subToEdit.copy(
-                    serviceName = name,
-                    cost = cost,
-                    currency = currency,
-                    billingCycle = billingCycle,
-                    renewalDate = if (date.isNotBlank()) date else defaultDate,
-                    bucketId = bucketId,
-                    bucketName = finalBucketName,
-                    category = category
+                    name = name,
+                    amount = amount,
+                    isRange = isRangeMode,
+                    startDay = startDay,
+                    endDay = endDay,
+                    dueDay = dueDay,
+                    linkedAccountId = linkedAccountId
                 )
-                dbHelper.updateSubscription(updated)
+                dbHelper.subscriptionDao.updateSubscription(updated)
                 Toast.makeText(context, "Updated '$name'", Toast.LENGTH_SHORT).show()
             } else {
-                val sub = SubscriptionItem(
-                    serviceName = name,
-                    cost = cost,
-                    currency = currency,
-                    billingCycle = billingCycle,
-                    renewalDate = if (date.isNotBlank()) date else defaultDate,
-                    bucketId = bucketId,
-                    bucketName = finalBucketName,
-                    category = category,
-                    icon = "subscription",
-                    isActive = true
+                val newSub = SubscriptionEntity(
+                    profileId = profileId,
+                    name = name,
+                    amount = amount,
+                    isRange = isRangeMode,
+                    startDay = startDay,
+                    endDay = endDay,
+                    dueDay = dueDay,
+                    linkedAccountId = linkedAccountId
                 )
-                dbHelper.insertSubscription(sub)
+                dbHelper.subscriptionDao.insertSubscription(newSub)
                 Toast.makeText(context, "Added '$name' subscription", Toast.LENGTH_SHORT).show()
             }
 
+            SubscriptionAlarmScheduler.scheduleDailyAlarms(context)
             addDialog.dismiss()
             onSaved()
         }

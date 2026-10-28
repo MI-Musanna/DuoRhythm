@@ -1,17 +1,22 @@
 package com.duorhythm.app.ui.common
 
 import android.app.AlertDialog
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.databinding.DialogManageTagsBinding
 import com.duorhythm.app.databinding.ItemManageTagBinding
@@ -28,6 +33,7 @@ import kotlinx.coroutines.withContext
 data class TagItem(
     val id: Long,
     val name: String,
+    val colorHex: String = "#0284C7",
     val isDefault: Boolean = false
 )
 
@@ -45,6 +51,8 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
     private lateinit var assessmentCategoryDao: AssessmentCategoryDao
     private lateinit var adapter: TagsAdapter
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    private var selectedNewColorHex: String = "#0284C7"
 
     companion object {
         const val TAG = "ManageTagsBottomSheet"
@@ -70,6 +78,7 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
         super.onCreate(savedInstanceState)
         profileId = arguments?.getLong(ARG_PROFILE_ID, 1L) ?: 1L
         isClassTypeMode = arguments?.getBoolean(ARG_IS_CLASS_TYPE_MODE, true) ?: true
+        selectedNewColorHex = if (isClassTypeMode) "#0284C7" else "#8B5CF6"
     }
 
     override fun onCreateView(
@@ -89,13 +98,21 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
 
         binding.tvManageTagsTitle.text = if (isClassTypeMode) "Manage Class Types" else "Manage Assessment Tags"
         binding.tvManageTagsSubtitle.text = if (isClassTypeMode) {
-            "Add, edit, or delete class schedule routine types."
+            "Add, edit color, or delete class schedule routine types."
         } else {
-            "Add, edit, or delete exam & assessment categories."
+            "Add, edit color, or delete exam & assessment categories."
         }
 
         binding.btnCloseManageTags.setOnClickListener {
             dismiss()
+        }
+
+        updateColorPickerButton(selectedNewColorHex)
+        binding.btnTagColorPicker.setOnClickListener {
+            ColorSliderView.showDialog(requireContext(), selectedNewColorHex) { chosenHex ->
+                selectedNewColorHex = chosenHex
+                updateColorPickerButton(chosenHex)
+            }
         }
 
         adapter = TagsAdapter(
@@ -118,6 +135,7 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
                             ClassTypeEntity(
                                 profileId = profileId,
                                 name = name,
+                                colorHex = selectedNewColorHex,
                                 isDefault = false
                             )
                         )
@@ -126,6 +144,7 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
                             AssessmentCategoryEntity(
                                 profileId = profileId,
                                 name = name,
+                                colorHex = selectedNewColorHex,
                                 isDefault = false
                             )
                         )
@@ -140,16 +159,23 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
         loadTags()
     }
 
+    private fun updateColorPickerButton(hex: String) {
+        try {
+            val parsed = Color.parseColor(hex)
+            binding.btnTagColorPicker.backgroundTintList = ColorStateList.valueOf(parsed)
+        } catch (_: Exception) {}
+    }
+
     private fun loadTags() {
         scope.launch {
             val tags = withContext(Dispatchers.IO) {
                 if (isClassTypeMode) {
                     classTypeDao.getTypesByProfile(profileId).map {
-                        TagItem(id = it.id, name = it.name, isDefault = it.isDefault)
+                        TagItem(id = it.id, name = it.name, colorHex = it.colorHex, isDefault = it.isDefault)
                     }
                 } else {
                     assessmentCategoryDao.getCategoriesByProfile(profileId).map {
-                        TagItem(id = it.id, name = it.name, isDefault = it.isDefault)
+                        TagItem(id = it.id, name = it.name, colorHex = it.colorHex, isDefault = it.isDefault)
                     }
                 }
             }
@@ -159,27 +185,66 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
 
     private fun showEditTagDialog(tagItem: TagItem) {
         val context = requireContext()
+        val dp = { value: Int -> (value * context.resources.displayMetrics.density).toInt() }
+
+        var currentEditColor = tagItem.colorHex
+
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(20), dp(16), dp(20), dp(16))
+        }
+
+        val colorDot = ImageView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(38), dp(38)).apply {
+                marginEnd = dp(12)
+            }
+            setBackgroundResource(R.drawable.bg_color_circle_fill)
+            try {
+                backgroundTintList = ColorStateList.valueOf(Color.parseColor(currentEditColor))
+            } catch (_: Exception) {}
+            setImageResource(R.drawable.ic_palette)
+            setPadding(dp(9), dp(9), dp(9), dp(9))
+            imageTintList = ColorStateList.valueOf(Color.WHITE)
+            isClickable = true
+            isFocusable = true
+        }
+
         val etTagName = EditText(context).apply {
+            layoutParams = LinearLayout.LayoutParams(0, dp(44), 1f)
             setText(tagItem.name)
             setSelection(text.length)
-            setPadding(48, 32, 48, 32)
+            setPadding(dp(12), dp(8), dp(12), dp(8))
             setTextColor(Color.WHITE)
             hint = "Tag / Category Name"
             setHintTextColor(Color.parseColor("#94A3B8"))
+            setBackgroundColor(Color.parseColor("#1E293B"))
         }
 
+        colorDot.setOnClickListener {
+            ColorSliderView.showDialog(context, currentEditColor) { chosenHex ->
+                currentEditColor = chosenHex
+                try {
+                    colorDot.backgroundTintList = ColorStateList.valueOf(Color.parseColor(chosenHex))
+                } catch (_: Exception) {}
+            }
+        }
+
+        container.addView(colorDot)
+        container.addView(etTagName)
+
         AlertDialog.Builder(context)
-            .setTitle("Edit Tag / Category Name")
-            .setView(etTagName)
+            .setTitle("Edit Tag / Category")
+            .setView(container)
             .setPositiveButton("UPDATE") { _, _ ->
                 val updatedName = etTagName.text.toString().trim()
                 if (updatedName.isNotEmpty()) {
                     scope.launch {
                         withContext(Dispatchers.IO) {
                             if (isClassTypeMode) {
-                                classTypeDao.updateClassTypeName(tagItem.id, updatedName)
+                                classTypeDao.updateClassType(tagItem.id, updatedName, currentEditColor)
                             } else {
-                                assessmentCategoryDao.updateCategoryName(tagItem.id, updatedName)
+                                assessmentCategoryDao.updateCategory(tagItem.id, updatedName, currentEditColor)
                             }
                         }
                         loadTags()
@@ -243,6 +308,11 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
 
             fun bind(item: TagItem) {
                 binding.tvTagName.text = item.name
+                try {
+                    val parsedColor = Color.parseColor(item.colorHex)
+                    binding.viewTagColorDot.backgroundTintList = ColorStateList.valueOf(parsedColor)
+                } catch (_: Exception) {}
+
                 binding.btnEditTag.setOnClickListener {
                     onEdit(item)
                 }

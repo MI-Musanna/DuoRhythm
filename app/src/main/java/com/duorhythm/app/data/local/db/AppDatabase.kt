@@ -2,6 +2,7 @@ package com.duorhythm.app.data.local.db
 
 import android.content.Context
 import androidx.room.Database
+import database.dao.AccountDao
 import database.dao.AssessmentCategoryDao
 import database.dao.AssessmentDao
 import database.dao.AttendanceDao
@@ -10,6 +11,7 @@ import database.dao.ClassTypeDao
 import database.dao.CourseDao
 import database.dao.HolidayDao
 import database.dao.ProfileDao
+import database.dao.SubscriptionDao
 import database.dao.TimetableDao
 import database.entities.AssessmentCategoryEntity
 import database.entities.AssessmentEntity
@@ -18,13 +20,24 @@ import database.entities.CategoryEntity
 import database.entities.ClassTypeEntity
 import database.entities.HolidayRecord
 import database.entities.ProfileEntity
+import database.entities.QuickNoteEntity
+import database.entities.SubscriptionEntity
 
 /**
  * AppDatabase entrypoint providing Room-compatible architecture interface
  * and safe fallback destructive migration capabilities for older local installs.
  */
 @Database(
-    entities = [AttendanceRecord::class, HolidayRecord::class, CategoryEntity::class, ProfileEntity::class, ClassTypeEntity::class, AssessmentCategoryEntity::class],
+    entities = [
+        AttendanceRecord::class,
+        HolidayRecord::class,
+        CategoryEntity::class,
+        ProfileEntity::class,
+        ClassTypeEntity::class,
+        AssessmentCategoryEntity::class,
+        SubscriptionEntity::class,
+        QuickNoteEntity::class
+    ],
     version = DatabaseHelper.DATABASE_VERSION,
     exportSchema = false
 )
@@ -42,6 +55,8 @@ class AppDatabase private constructor(context: Context) {
     fun assessmentDao(): AssessmentDao = dbHelper.assessmentDao
     fun walletDao(): DatabaseHelper.WalletDao = dbHelper.walletDao
     fun taskDao(): DatabaseHelper.TaskDao = dbHelper.taskDao
+    fun subscriptionDao(): SubscriptionDao = dbHelper.subscriptionDao
+    fun accountDao(): AccountDao = dbHelper.accountDao
 
     val attendanceDao: AttendanceDao get() = dbHelper.attendanceDao
     val timetableDao: TimetableDao get() = dbHelper.timetableDao
@@ -54,6 +69,8 @@ class AppDatabase private constructor(context: Context) {
     val assessmentDao: AssessmentDao get() = dbHelper.assessmentDao
     val walletDao: DatabaseHelper.WalletDao get() = dbHelper.walletDao
     val taskDao: DatabaseHelper.TaskDao get() = dbHelper.taskDao
+    val subscriptionDao: SubscriptionDao get() = dbHelper.subscriptionDao
+    val accountDao: AccountDao get() = dbHelper.accountDao
 
     companion object {
         const val DATABASE_NAME = DatabaseHelper.DATABASE_NAME
