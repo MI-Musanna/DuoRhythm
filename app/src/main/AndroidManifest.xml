@@ -127,6 +127,22 @@
             </intent-filter>
         </receiver>
 
+        <!-- Bulletproof Class Alarm Receiver (Lead alerts, DND start, Consecutive lookahead restore) -->
+        <receiver
+            android:name=".receiver.ClassAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="com.duorhythm.app.ACTION_CLASS_LEAD_ALERT" />
+                <action android:name="com.duorhythm.app.ACTION_CLASS_START_DND" />
+                <action android:name="com.duorhythm.app.ACTION_CLASS_END_RESTORE" />
+                <action android:name="com.duorhythm.app.ACTION_CLASS_PRE_ALERT" />
+                <action android:name="com.duorhythm.app.ACTION_CLASS_START" />
+                <action android:name="com.duorhythm.app.ACTION_CLASS_END" />
+            </intent-filter>
+        </receiver>
+
         <!-- Dedicated Schedule Receiver (Pre-alerts & Class Start DND) -->
         <receiver
             android:name=".receiver.ScheduleReceiver"

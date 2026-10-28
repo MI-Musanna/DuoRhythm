@@ -2209,7 +2209,38 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             ): Int {
                 return this@DatabaseHelper.syncCourseDetailsToClasses(profileId, courseCode, courseName, teacherName, room)
             }
+
+            override fun getNextImmediateClass(
+                profileId: Long,
+                dayOfWeek: Int,
+                currentClassEndTime: String
+            ): ClassScheduleItem? {
+                return this@DatabaseHelper.getNextImmediateClass(profileId, dayOfWeek, currentClassEndTime)
+            }
         }
+    }
+
+    fun getNextImmediateClass(
+        profileId: Long,
+        dayOfWeek: Int,
+        currentClassEndTime: String
+    ): ClassScheduleItem? {
+        val targetDay = if (dayOfWeek in 1..7) dayOfWeek else 1
+        val pId = if (profileId > 0) profileId else getActiveProfileId()
+        val classes = getScheduleForDay(targetDay, pId)
+        val endMinutes = com.duorhythm.app.scheduler.ClassAlarmScheduler.parseMinutes(currentClassEndTime)
+        if (endMinutes <= 0) return null
+
+        return classes
+            .filter { candidate ->
+                val startMinutes = com.duorhythm.app.scheduler.ClassAlarmScheduler.parseMinutes(candidate.startTime)
+                val diff = startMinutes - endMinutes
+                diff in -5..5
+            }
+            .minByOrNull { candidate ->
+                val startMinutes = com.duorhythm.app.scheduler.ClassAlarmScheduler.parseMinutes(candidate.startTime)
+                kotlin.math.abs(startMinutes - endMinutes)
+            }
     }
 
     fun syncCourseDetailsToClasses(

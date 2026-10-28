@@ -18,9 +18,11 @@ import com.duorhythm.app.data.model.ClassScheduleItem
 import com.duorhythm.app.data.model.StudentSubject
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.AppSettings
+import com.duorhythm.app.data.repository.TimetableRepository
 import com.duorhythm.app.databinding.DialogAddClassBinding
 import com.duorhythm.app.databinding.FragmentScheduleBinding
 import com.duorhythm.app.service.ReminderManager
+import com.duorhythm.app.scheduler.AlarmSyncManager
 import com.duorhythm.app.scheduler.ClassAlarmScheduler
 import com.duorhythm.app.util.AnimationUtils
 import com.duorhythm.app.util.TimetableUtils
@@ -36,6 +38,7 @@ class ScheduleFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var dbHelper: DatabaseHelper
+    private lateinit var timetableRepository: TimetableRepository
     private lateinit var classesAdapter: ClassesAdapter
     private var selectedDay = TimetableUtils.calendarDayToDbDay(java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK))
 
@@ -52,6 +55,7 @@ class ScheduleFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         try {
             dbHelper = DatabaseHelper.getInstance(requireContext())
+            timetableRepository = TimetableRepository(requireContext())
             setupRecyclerViews()
             setupListeners()
             setupCalendarDateStrip()
@@ -93,7 +97,7 @@ class ScheduleFragment : Fragment() {
                 setupCalendarDateStrip()
                 loadData()
                 context?.let { ctx ->
-                    ClassAlarmScheduler.rescheduleAllActiveAlarms(ctx)
+                    AlarmSyncManager.resyncAll(ctx)
                 }
             } catch (e: Throwable) {
                 e.printStackTrace()
@@ -122,8 +126,7 @@ class ScheduleFragment : Fragment() {
                     .setTitle("Delete Class")
                     .setMessage("Remove '${item.subjectName}' from timetable?")
                     .setPositiveButton("Delete") { _, _ ->
-                        dbHelper.deleteClassSchedule(item.id)
-                        ClassAlarmScheduler.cancelClassAlarms(requireContext(), item.id)
+                        timetableRepository.deleteClass(item.id)
                         loadClasses()
                         Toast.makeText(requireContext(), "Class deleted", Toast.LENGTH_SHORT).show()
                     }
@@ -314,9 +317,7 @@ class ScheduleFragment : Fragment() {
                 dbHelper.insertStudentSubject(newSub, autoTrackAttendance = false)
             }
 
-            val newId = dbHelper.insertClassSchedule(scheduledItem)
-            val updatedWithId = scheduledItem.copy(id = newId)
-            ClassAlarmScheduler.scheduleClassAlarms(requireContext(), updatedWithId)
+            timetableRepository.insertClass(scheduledItem)
             loadData()
             Toast.makeText(requireContext(), "${scheduledItem.classType} scheduled with alarm reminder", Toast.LENGTH_SHORT).show()
         }.show()
@@ -373,9 +374,7 @@ class ScheduleFragment : Fragment() {
             classItem = classItem,
             defaultDayOfWeek = selectedDay
         ) { updated ->
-            ClassAlarmScheduler.cancelAlarmsForClass(requireContext(), classItem.id)
-            dbHelper.updateClassSchedule(updated)
-            ClassAlarmScheduler.scheduleClassAlarms(requireContext(), updated)
+            timetableRepository.updateClass(updated)
             loadData()
             Toast.makeText(requireContext(), "Class schedule updated", Toast.LENGTH_SHORT).show()
         }.show()

@@ -28,4 +28,6 @@ interface TimetableDao {
         teacherName: String,
         room: String
     ): Int
+
+    fun getNextImmediateClass(profileId: Long, dayOfWeek: Int, currentClassEndTime: String): ClassScheduleItem?
 }

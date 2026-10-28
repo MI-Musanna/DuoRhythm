@@ -26,8 +26,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.data.local.pref.AppPreferences
 import com.duorhythm.app.data.local.pref.AppSettings
 import com.duorhythm.app.databinding.ActivitySettingsBinding
+import com.duorhythm.app.scheduler.AlarmSyncManager
 import com.duorhythm.app.ui.wallet.CategoryManagementDialog
 import com.duorhythm.app.security.LifeSyncSecurityManager
 import com.duorhythm.app.worker.LocalBackupWorker
@@ -102,6 +104,7 @@ class SettingsActivity : AppCompatActivity() {
             setupAutoBackup()
             setupListeners()
             syncSwitchStates()
+            refreshLeadTimesUI()
             updateBackupUI()
             isHydratingUI = false
         } catch (e: Exception) {
@@ -117,6 +120,7 @@ class SettingsActivity : AppCompatActivity() {
         refreshCategoriesCountUI()
         refreshAutoTrackAttendanceUI()
         refreshShowRunningBalanceUI()
+        refreshLeadTimesUI()
         syncSwitchStates()
         syncAutoBackupState()
         updateBackupUI()
@@ -245,6 +249,57 @@ class SettingsActivity : AppCompatActivity() {
                     AppSettings.setStartOfWeek(this, newStart)
                     refreshStartOfWeekUI()
                     Toast.makeText(this, "Start of week set to ${AppSettings.START_OF_WEEK_LABELS[which]}", Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun refreshLeadTimesUI() {
+        val classMinutes = AppPreferences.getClassLeadMinutes(this)
+        binding.tvClassLeadTimeValue.text = AppPreferences.getClassLeadMinutesDisplayLabel(classMinutes)
+        val orderMode = AppPreferences.getOrderLeadMode(this)
+        binding.tvOrderLeadTimeValue.text = AppPreferences.getOrderLeadModeDisplayLabel(orderMode)
+    }
+
+    private fun showClassLeadTimeDialog() {
+        val currentMinutes = AppPreferences.getClassLeadMinutes(this)
+        val selectedIndex = AppPreferences.CLASS_LEAD_MINUTES_OPTIONS.indexOf(currentMinutes).let {
+            if (it >= 0) it else 2 // default to 15 min
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Class Reminder Lead Time")
+            .setSingleChoiceItems(AppPreferences.CLASS_LEAD_MINUTES_LABELS, selectedIndex) { dialog, which ->
+                if (which in AppPreferences.CLASS_LEAD_MINUTES_OPTIONS.indices) {
+                    val newMinutes = AppPreferences.CLASS_LEAD_MINUTES_OPTIONS[which]
+                    AppPreferences.setClassLeadMinutes(this, newMinutes)
+                    binding.tvClassLeadTimeValue.text = AppPreferences.getClassLeadMinutesDisplayLabel(newMinutes)
+                    AlarmSyncManager.resyncAll(this)
+                    Toast.makeText(this, "Class reminder lead time set to ${AppPreferences.CLASS_LEAD_MINUTES_LABELS[which]}", Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showOrderLeadTimeDialog() {
+        val currentMode = AppPreferences.getOrderLeadMode(this)
+        val selectedIndex = AppPreferences.ORDER_LEAD_MODE_OPTIONS.indexOf(currentMode).let {
+            if (it >= 0) it else 0 // default to 24_2
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Client Deadline Alerts")
+            .setSingleChoiceItems(AppPreferences.ORDER_LEAD_MODE_LABELS, selectedIndex) { dialog, which ->
+                if (which in AppPreferences.ORDER_LEAD_MODE_OPTIONS.indices) {
+                    val newMode = AppPreferences.ORDER_LEAD_MODE_OPTIONS[which]
+                    AppPreferences.setOrderLeadMode(this, newMode)
+                    binding.tvOrderLeadTimeValue.text = AppPreferences.getOrderLeadModeDisplayLabel(newMode)
+                    AlarmSyncManager.resyncAll(this)
+                    Toast.makeText(this, "Deadline alerts set to ${AppPreferences.ORDER_LEAD_MODE_LABELS[which]}", Toast.LENGTH_SHORT).show()
                 }
                 dialog.dismiss()
             }
@@ -418,6 +473,13 @@ class SettingsActivity : AppCompatActivity() {
             com.duorhythm.app.util.AppUpdateChecker.checkForUpdates(this, manual = true)
         }
 
+        binding.rowClassLeadTime.setOnClickListener {
+            showClassLeadTimeDialog()
+        }
+        binding.rowOrderLeadTime.setOnClickListener {
+            showOrderLeadTimeDialog()
+        }
+
         AnimationUtils.attachTactileFeedback(
             binding.btnExportBackup,
             binding.btnImportBackup,
@@ -428,7 +490,9 @@ class SettingsActivity : AppCompatActivity() {
             binding.cardAboutHub,
             binding.cardAboutGithub,
             binding.cardAboutTelegram,
-            binding.cardAboutBlog
+            binding.cardAboutBlog,
+            binding.rowClassLeadTime,
+            binding.rowOrderLeadTime
         )
     }
 
@@ -484,7 +548,8 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchClassReminders.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
             ReminderManager.setRemindersEnabled(this, isChecked)
-            val msg = if (isChecked) "15-minute class alarms enabled" else "Class alarms disabled"
+            AlarmSyncManager.resyncAll(this)
+            val msg = if (isChecked) "Class alarms enabled" else "Class alarms disabled"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
 
@@ -497,6 +562,7 @@ class SettingsActivity : AppCompatActivity() {
                 PermissionRationaleDialogs.showDndRationale(this)
             }
             SmartAutomationManager.setAutoSilentClassesEnabled(this, isChecked)
+            AlarmSyncManager.resyncAll(this)
             val msg = if (isChecked) "Auto-silent during classes activated" else "Auto-silent disabled"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }

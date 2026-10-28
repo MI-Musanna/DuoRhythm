@@ -36,6 +36,14 @@ object CategoryManagementDialog {
         dbHelper: DatabaseHelper,
         onChanged: (() -> Unit)? = null
     ) {
+        create(context, dbHelper, onChanged).show()
+    }
+
+    fun create(
+        context: Context,
+        dbHelper: DatabaseHelper,
+        onChanged: (() -> Unit)? = null
+    ): AlertDialog {
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_manage_categories, null)
         val rv = view.findViewById<RecyclerView>(R.id.rvManageCategories)
         val layoutEmpty = view.findViewById<View>(R.id.layoutEmptyCategories)
@@ -114,7 +122,7 @@ object CategoryManagementDialog {
         }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        dialog.show()
+        return dialog
     }
 
     fun showAddOrEditCategoryDialog(

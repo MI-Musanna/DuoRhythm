@@ -336,7 +336,15 @@ class WalletFragment : Fragment() {
         binding.btnHeroTransfer.setOnClickListener { showAddTransactionDialog("TRANSFER") }
         binding.btnAddTransaction.setOnClickListener { showAddTransactionDialog() }
 
+        // Category Management Shortcut
+        binding.btnWalletCategories.setOnClickListener {
+            ManageCategoriesDialog.newInstance {
+                loadData()
+            }.show(childFragmentManager, ManageCategoriesDialog.TAG)
+        }
+
         AnimationUtils.attachTactileFeedback(
+            binding.btnWalletCategories,
             binding.btnWalletCardMenu,
             binding.layoutAccountsSummaryPill,
             binding.cardMonthlyOverview,

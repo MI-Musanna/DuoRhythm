@@ -63,30 +63,11 @@ class ClassEndReceiver : BroadcastReceiver() {
 
         val todayClasses = db.timetableDao.getClassesForDay(targetDay)
         val currentClass = todayClasses.firstOrNull { it.id == classId }
+        val currentEndTime = currentClass?.endTime ?: endTimeStr
 
-        val currentEndMinutes = if (currentClass != null) {
-            ClassAlarmScheduler.parseMinutes(currentClass.endTime)
-        } else {
-            ClassAlarmScheduler.parseMinutes(endTimeStr)
-        }
-
-        // Smart Back-to-Back Lookahead:
-        // Find if there is an upcoming class whose start time is within 10 minutes of the ending class
-        val consecutiveClass = todayClasses
-            .filter { it.id != classId }
-            .mapNotNull { candidate ->
-                val startMin = ClassAlarmScheduler.parseMinutes(candidate.startTime)
-                val endMin = ClassAlarmScheduler.parseMinutes(candidate.endTime)
-                val diff = startMin - currentEndMinutes
-                // Start within 10 minutes (i.e. nextClass.startTime - currentClass.endTime <= 10 min)
-                if (diff in -5..10 && endMin > currentEndMinutes) {
-                    Pair(candidate, diff)
-                } else {
-                    null
-                }
-            }
-            .minByOrNull { it.second }
-            ?.first
+        // Smart Consecutive Class Lookahead: Check if another lecture starts within <= 5 minutes
+        val consecutiveClass = db.timetableDao.getNextImmediateClass(db.getActiveProfileId(), targetDay, currentEndTime)
+            ?.takeIf { it.id != classId }
 
         SmartAutomationManager.createNotificationChannels(context)
 
@@ -101,7 +82,7 @@ class ClassEndReceiver : BroadcastReceiver() {
 
             // 4. Post smooth transition notification
             val roomText = if (consecutiveClass.room.isNotBlank()) " in Room ${consecutiveClass.room}" else ""
-            val transitionContent = "Silent mode maintained. Class starts at ${consecutiveClass.startTime}$roomText."
+            val transitionContent = "Consecutive Lecture: ${consecutiveClass.subjectName} • Silent mode maintained."
 
             val transitionNotif = NotificationCompat.Builder(context, SmartAutomationManager.CHANNEL_DND)
                 .setSmallIcon(R.drawable.ic_schedule)

@@ -38,45 +38,7 @@ object OrderAlarmScheduler {
     }
 
     fun scheduleOrderReminders(context: Context, order: WorkOrder) {
-        if (order.status.equals("COMPLETED", ignoreCase = true)) {
-            cancelOrderReminders(context, order.id)
-            return
-        }
-
-        val deadlineStr = order.endDate.trim()
-        if (deadlineStr.isEmpty()) return
-
-        val deadlineMillis = parseDeadlineMillis(deadlineStr) ?: return
-        val now = System.currentTimeMillis()
-
-        ensureChannel(context)
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-
-        // 1. Alarm 24 Hours prior to deadline
-        val trigger24h = deadlineMillis - (24 * 60 * 60 * 1000L)
-        if (trigger24h > now) {
-            scheduleSingleAlarm(
-                context = context,
-                alarmManager = alarmManager,
-                order = order,
-                triggerTime = trigger24h,
-                hoursRemaining = 24,
-                requestCode = (600000 + (order.id % 50000) * 2).toInt()
-            )
-        }
-
-        // 2. Alarm 2 Hours prior to deadline
-        val trigger2h = deadlineMillis - (2 * 60 * 60 * 1000L)
-        if (trigger2h > now) {
-            scheduleSingleAlarm(
-                context = context,
-                alarmManager = alarmManager,
-                order = order,
-                triggerTime = trigger2h,
-                hoursRemaining = 2,
-                requestCode = (600000 + (order.id % 50000) * 2 + 1).toInt()
-            )
-        }
+        AlarmSyncManager.scheduleOrderAlarms(context, order)
     }
 
     private fun scheduleSingleAlarm(
@@ -142,13 +104,7 @@ object OrderAlarmScheduler {
     }
 
     fun rescheduleAllActiveOrders(context: Context) {
-        try {
-            val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(context)
-            val activeOrders = db.getAllWorkOrders().filter { !it.status.equals("COMPLETED", ignoreCase = true) }
-            for (order in activeOrders) {
-                scheduleOrderReminders(context, order)
-            }
-        } catch (_: Exception) {}
+        AlarmSyncManager.resyncAll(context)
     }
 
     private fun parseDeadlineMillis(deadlineStr: String): Long? {

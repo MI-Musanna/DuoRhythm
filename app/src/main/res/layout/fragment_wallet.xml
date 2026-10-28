@@ -49,6 +49,18 @@
                     android:textSize="12sp" />
             </LinearLayout>
 
+            <!-- Transaction Category Management Shortcut -->
+            <ImageButton
+                android:id="@+id/btnWalletCategories"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_header_action_button"
+                android:contentDescription="Manage Transaction Categories"
+                android:tooltipText="Manage Transaction Categories"
+                android:src="@drawable/ic_category"
+                app:tint="#00E5FF" />
+
             <!-- Quick Converter Tool -->
             <ImageButton
                 android:id="@+id/btnLiveCurrencyConverter"
