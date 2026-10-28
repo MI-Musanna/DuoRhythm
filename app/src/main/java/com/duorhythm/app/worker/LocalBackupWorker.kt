@@ -33,37 +33,7 @@ class LocalBackupWorker(
         const val KEY_AUTO_BACKUP_INTERVAL = "key_local_auto_backup_interval" // "DAILY", "WEEKLY", "MONTHLY"
 
         fun performAutoBackup(context: Context): Boolean {
-            return try {
-                val db = DatabaseHelper.getInstance(context)
-                val json = db.exportDatabaseToJson()
-
-                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
-                val fileName = "DuoRhythm_AutoBackup_$timeStamp.json"
-
-                val backupDir = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    "DuoRhythm_Backups"
-                )
-                if (!backupDir.exists()) {
-                    backupDir.mkdirs()
-                }
-
-                val backupFile = File(backupDir, fileName)
-                FileOutputStream(backupFile).use { out ->
-                    out.write(json.toByteArray(Charsets.UTF_8))
-                    out.flush()
-                }
-
-                // Automatically prune older backups, keeping only the 3 most recent snapshots
-                pruneOldBackups(backupDir, maxKeep = 3)
-
-                val displayTime = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
-                BackupService.setLastBackupTimestamp(context, displayTime)
-                true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                false
-            }
+            return AutoBackupWorker.performAutoBackup(context)
         }
 
         private fun pruneOldBackups(dir: File, maxKeep: Int = 3) {

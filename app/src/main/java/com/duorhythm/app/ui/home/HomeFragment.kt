@@ -25,6 +25,8 @@ import com.duorhythm.app.databinding.DialogAddNoteBinding
 import com.duorhythm.app.ui.tools.AmbientSoundDialog
 import com.duorhythm.app.ui.tools.PercentageCalcDialog
 import com.duorhythm.app.ui.tools.PomodoroDialog
+import com.duorhythm.app.data.model.PersonaMode
+import com.duorhythm.app.util.crossfade
 import com.duorhythm.app.ui.wallet.WalletDataSyncManager
 import com.duorhythm.app.util.BlurUtil
 import com.duorhythm.app.util.AnimationUtils
@@ -85,6 +87,16 @@ class HomeFragment : Fragment() {
                 }
             )
             binding.vpDailyScheduleCarousel.adapter = carouselAdapter
+            binding.vpDailyScheduleCarousel.isUserInputEnabled = false
+            binding.btnPrevClass.setOnClickListener {
+                val current = binding.vpDailyScheduleCarousel.currentItem
+                if (current > 0) binding.vpDailyScheduleCarousel.setCurrentItem(current - 1, true)
+            }
+            binding.btnNextClass.setOnClickListener {
+                val current = binding.vpDailyScheduleCarousel.currentItem
+                val total = binding.vpDailyScheduleCarousel.adapter?.itemCount ?: 0
+                if (current < total - 1) binding.vpDailyScheduleCarousel.setCurrentItem(current + 1, true)
+            }
             binding.vpDailyScheduleCarousel.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
                 override fun onPageSelected(position: Int) {
                     super.onPageSelected(position)
@@ -142,6 +154,7 @@ class HomeFragment : Fragment() {
                 BlurUtil.setupBlur(binding.cardHomeTasks, rootView)
                 BlurUtil.setupBlur(binding.cardHomeQuickNotes, rootView)
                 BlurUtil.setupBlur(binding.cardHomePortal, rootView)
+                BlurUtil.setupBlur(binding.cardHomePortalWork, rootView)
                 BlurUtil.setupBlur(binding.btnHomeOpenTools, rootView)
             }
         } catch (e: Throwable) {
@@ -228,6 +241,14 @@ class HomeFragment : Fragment() {
 
     private fun updateToggleStyle(isStudent: Boolean) {
         try {
+            val persona = if (isStudent) PersonaMode.STUDENT else PersonaMode.WORK
+            binding.layoutStudentScheduleContainer.crossfade(isStudent)
+            binding.layoutWorkMilestonesContainer.crossfade(!isStudent)
+            binding.layoutStudentOverview.crossfade(isStudent)
+            binding.layoutWorkOverview.crossfade(!isStudent)
+            binding.cardStudyPortal.crossfade(isStudent)
+            binding.cardWorkPortal.crossfade(!isStudent)
+
             val cyanColor = ColorStateList.valueOf(Color.parseColor("#0284C7"))
             val emeraldColor = ColorStateList.valueOf(Color.parseColor("#10B981"))
             val transparentColor = ColorStateList.valueOf(Color.TRANSPARENT)
@@ -292,6 +313,14 @@ class HomeFragment : Fragment() {
             }
 
             binding.cardHomePortal.setOnClickListener {
+                mainActivity?.selectNavTab(R.id.menu_portal)
+            }
+
+            binding.cardHomePortalWork.setOnClickListener {
+                mainActivity?.selectNavTab(R.id.menu_portal)
+            }
+
+            binding.btnHomePortalWorkAction.setOnClickListener {
                 mainActivity?.selectNavTab(R.id.menu_portal)
             }
 
@@ -448,15 +477,11 @@ class HomeFragment : Fragment() {
                 binding.tvHomeTasksPriorityBrief.text = "Standard priority queue"
             }
 
-            // 3. Dynamic Daily Class Carousel with Auto-Focus on Ongoing/Next Lecture
+            // 3. Dynamic Daily Class Carousel with Smart Landing Selection
             try {
                 val todayClasses = homeViewModel.getDailyScheduleCarouselItems()
                 carouselAdapter.updateItems(todayClasses)
-                val activeIndex = todayClasses.indexOfFirst { it.status == ClassStatus.IN_SESSION_NOW }
-                    .takeIf { it != -1 }
-                    ?: todayClasses.indexOfFirst { it.status == ClassStatus.UPCOMING_NEXT }
-                    .takeIf { it != -1 }
-                    ?: 0
+                val activeIndex = homeViewModel.resolveActiveScheduleIndex(todayClasses)
                 updateCarouselIndicator(activeIndex, todayClasses.size)
 
                 binding.vpDailyScheduleCarousel.post {
@@ -512,9 +537,15 @@ class HomeFragment : Fragment() {
             if (notes.isEmpty()) {
                 binding.rvHomeQuickNotes.visibility = View.GONE
                 binding.tvEmptyHomeQuickNotes.visibility = View.VISIBLE
+                binding.scrollScratchpadPreview.visibility = View.GONE
             } else {
                 binding.rvHomeQuickNotes.visibility = View.VISIBLE
                 binding.tvEmptyHomeQuickNotes.visibility = View.GONE
+                binding.scrollScratchpadPreview.visibility = View.VISIBLE
+                val previewText = notes.joinToString("\n\n") { note ->
+                    if (note.title.isNotBlank()) "${note.title}\n${note.content}" else note.content
+                }
+                binding.tvScratchpadPreview.text = previewText
             }
         } catch (e: Exception) {
             e.printStackTrace()

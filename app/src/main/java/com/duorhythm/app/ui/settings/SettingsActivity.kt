@@ -20,6 +20,11 @@ import com.google.android.material.snackbar.Snackbar
 import com.duorhythm.app.R
 import com.duorhythm.app.automation.SmartAutomationManager
 import com.duorhythm.app.data.repository.BackupService
+import com.duorhythm.app.data.repository.DataBackupHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.AppSettings
 import com.duorhythm.app.databinding.ActivitySettingsBinding
@@ -42,18 +47,32 @@ class SettingsActivity : AppCompatActivity() {
     private var devClickCount = 0
     private var devFirstClickTime = 0L
 
-    private val exportBackupLauncher =
-        registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri: Uri? ->
-            uri?.let {
-                val success = BackupService.exportDatabaseToUri(this, it)
-                if (success) {
-                    updateBackupUI()
-                    Toast.makeText(this, "Backup successfully saved to storage / cloud folder!", Toast.LENGTH_LONG).show()
-                } else {
-                    Toast.makeText(this, "Failed to write backup file.", Toast.LENGTH_SHORT).show()
+    private var selectedSlots: List<Int> = listOf(1, 2, 3)
+
+    private val exportBackupLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { destinationUri ->
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val backupJson = DataBackupHelper.generateSelectedProfilesBackupJson(selectedSlots, this@SettingsActivity)
+                    contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
+                        outputStream.write(backupJson.toByteArray())
+                    }
+                    val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
+                    BackupService.setLastBackupTimestamp(this@SettingsActivity, now)
+                    withContext(Dispatchers.Main) {
+                        updateBackupUI()
+                        Toast.makeText(this@SettingsActivity, "Backup saved to chosen folder!", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@SettingsActivity, "Failed to write backup file.", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
+    }
 
     private val importBackupLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->

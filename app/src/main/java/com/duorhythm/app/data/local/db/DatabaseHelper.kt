@@ -2287,7 +2287,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             override fun deleteType(id: Long) {
                 ensureClassTypesTable()
                 val db = writableDatabase
-                db.delete("class_types", "id = ? AND is_default = 0", arrayOf(id.toString()))
+                db.delete("class_types", "id = ?", arrayOf(id.toString()))
+            }
+
+            override fun updateClassTypeName(id: Long, newName: String) {
+                ensureClassTypesTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("name", newName)
+                }
+                db.update("class_types", cv, "id = ?", arrayOf(id.toString()))
             }
 
             override fun ensureDefaultTypes(profileId: Long) {
@@ -2363,10 +2372,100 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
     }
 
+    val assessmentCategoryDao: database.dao.AssessmentCategoryDao by lazy {
+        object : database.dao.AssessmentCategoryDao {
+            override fun getCategoriesByProfile(profileId: Long): List<database.entities.AssessmentCategoryEntity> {
+                ensureAssessmentCategoriesTable()
+                ensureDefaultCategories(profileId)
+                val list = mutableListOf<database.entities.AssessmentCategoryEntity>()
+                val db = readableDatabase
+                val cursor = db.rawQuery(
+                    "SELECT * FROM assessment_categories WHERE profile_id = ? ORDER BY is_default DESC, name ASC",
+                    arrayOf(profileId.toString())
+                )
+                cursor.use {
+                    while (it.moveToNext()) {
+                        list.add(
+                            database.entities.AssessmentCategoryEntity(
+                                id = it.getLong(it.getColumnIndexOrThrow("id")),
+                                profileId = it.getLong(it.getColumnIndexOrThrow("profile_id")),
+                                name = it.getString(it.getColumnIndexOrThrow("name")),
+                                isDefault = it.getInt(it.getColumnIndexOrThrow("is_default")) == 1
+                            )
+                        )
+                    }
+                }
+                return list
+            }
+
+            override fun insertCategory(category: database.entities.AssessmentCategoryEntity): Long {
+                ensureAssessmentCategoriesTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("profile_id", category.profileId)
+                    put("name", category.name)
+                    put("is_default", if (category.isDefault) 1 else 0)
+                }
+                return db.insert("assessment_categories", null, cv)
+            }
+
+            override fun deleteCategory(id: Long) {
+                ensureAssessmentCategoriesTable()
+                val db = writableDatabase
+                db.delete("assessment_categories", "id = ?", arrayOf(id.toString()))
+            }
+
+            override fun updateCategoryName(id: Long, newName: String) {
+                ensureAssessmentCategoriesTable()
+                val db = writableDatabase
+                val cv = ContentValues().apply {
+                    put("name", newName)
+                }
+                db.update("assessment_categories", cv, "id = ?", arrayOf(id.toString()))
+            }
+
+            override fun ensureDefaultCategories(profileId: Long) {
+                ensureAssessmentCategoriesTable()
+                val db = writableDatabase
+                val cursor = db.rawQuery(
+                    "SELECT COUNT(*) FROM assessment_categories WHERE profile_id = ?",
+                    arrayOf(profileId.toString())
+                )
+                var count = 0
+                cursor.use {
+                    if (it.moveToFirst()) count = it.getInt(0)
+                }
+                if (count == 0) {
+                    val defaults = listOf("Quiz", "Class Test", "Midterm", "Final", "Lab Exam", "Viva")
+                    for (d in defaults) {
+                        val cv = ContentValues().apply {
+                            put("profile_id", profileId)
+                            put("name", d)
+                            put("is_default", 1)
+                        }
+                        db.insert("assessment_categories", null, cv)
+                    }
+                }
+            }
+        }
+    }
+
     fun ensureClassTypesTable() {
         val db = writableDatabase
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS class_types (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
+                name TEXT NOT NULL,
+                is_default INTEGER DEFAULT 0
+            )"""
+        )
+    }
+
+    fun ensureAssessmentCategoriesTable() {
+        val db = writableDatabase
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS assessment_categories (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 profile_id INTEGER DEFAULT 1,
                 name TEXT NOT NULL,

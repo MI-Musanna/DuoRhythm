@@ -167,54 +167,198 @@
             </LinearLayout>
         </eightbitlab.com.blurview.BlurView>
 
-        <!-- Section Title: Next Up -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="Next Up"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <!-- 2. Next Up Hub: Dynamic Daily Class Carousel -->
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/vpDailyScheduleCarousel"
-            android:layout_width="match_parent"
-            android:layout_height="124dp"
-            android:clipToPadding="false"
-            android:clipChildren="false"
-            android:overScrollMode="never" />
-
-        <!-- Dynamic Pill Indicator for Carousel Position -->
+        <!-- Student Next Up Schedule Container with Arrows -->
         <LinearLayout
-            android:id="@+id/layoutCarouselIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:orientation="horizontal" />
-
-        <!-- Section Title: Overview -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="Overview"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <!-- 3. 2-Column Asymmetric Metric Deck: Finance + Missions -->
-        <LinearLayout
+            android:id="@+id/layoutStudentScheduleContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clipToPadding="true"
-            android:clipChildren="true"
-            android:orientation="horizontal">
+            android:orientation="vertical">
+
+            <!-- Section Title: Next Up with Carousel Navigation Arrows -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Next Up"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnPrevClass"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_header_action_button"
+                    android:contentDescription="Previous Class"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_chevron_left"
+                    app:tint="#00E5FF" />
+
+                <ImageButton
+                    android:id="@+id/btnNextClass"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_header_action_button"
+                    android:contentDescription="Next Class"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="#00E5FF" />
+            </LinearLayout>
+
+            <!-- 2. Next Up Hub: Dynamic Daily Class Carousel -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/vpDailyScheduleCarousel"
+                android:layout_width="match_parent"
+                android:layout_height="124dp"
+                android:clipToPadding="false"
+                android:clipChildren="false"
+                android:overScrollMode="never" />
+
+            <!-- Dynamic Pill Indicator for Carousel Position -->
+            <LinearLayout
+                android:id="@+id/layoutCarouselIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal" />
+        </LinearLayout>
+
+        <!-- Work Milestones & Deliverables Container -->
+        <LinearLayout
+            android:id="@+id/layoutWorkMilestonesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Work Deliverables &amp; Milestones"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill_work_active"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:text="WORK MODE"
+                    android:textColor="#10B981"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <eightbitlab.com.blurview.BlurView
+                android:layout_width="match_parent"
+                android:layout_height="124dp"
+                android:background="@drawable/bg_glass_specular_edge"
+                android:clipToOutline="true"
+                android:clipToPadding="true"
+                android:clipChildren="true"
+                android:outlineProvider="background"
+                app:blurOverlayColor="@color/blur_overlay">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="16dp">
+
+                    <FrameLayout
+                        android:id="@+id/ivWorkMilestoneIcon"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_squircle_portal_work"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_work"
+                            app:tint="#10B981" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/tvWorkMilestoneTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:text="Active Client Deliverables"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/ivWorkMilestoneIcon"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvWorkMilestoneSubtext"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_marginTop="4dp"
+                        android:text="All projects and client tasks tracked on schedule"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/ivWorkMilestoneIcon"
+                        app:layout_constraintTop_toBottomOf="@id/tvWorkMilestoneTitle" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </eightbitlab.com.blurview.BlurView>
+        </LinearLayout>
+
+        <!-- Student Overview Section -->
+        <LinearLayout
+            android:id="@+id/layoutStudentOverview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Section Title: Overview -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="Overview"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <!-- 3. 2-Column Asymmetric Metric Deck: Finance + Missions -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="true"
+                android:clipChildren="true"
+                android:orientation="horizontal">
 
             <!-- Finance Card (Left Column) -->
             <eightbitlab.com.blurview.BlurView
@@ -398,6 +542,78 @@
             </eightbitlab.com.blurview.BlurView>
 
         </LinearLayout>
+        </LinearLayout>
+
+        <!-- Work Overview Container -->
+        <LinearLayout
+            android:id="@+id/layoutWorkOverview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="Work Analytics"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <eightbitlab.com.blurview.BlurView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_glass_specular_edge"
+                android:clipToOutline="true"
+                android:clipToPadding="true"
+                android:clipChildren="true"
+                android:outlineProvider="background"
+                app:blurOverlayColor="@color/blur_overlay">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Work Portal Active"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Professional mode synchronized"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_work_active"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="ACTIVE"
+                        android:textColor="#10B981"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+        </LinearLayout>
 
         <!-- 4. Scratchpad / Quick Notes Bento Card -->
         <eightbitlab.com.blurview.BlurView
@@ -488,95 +704,209 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:visibility="gone" />
+
+                <!-- Bounded Scratchpad Preview -->
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollScratchpadPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:maxHeight="120dp"
+                    android:scrollbars="vertical"
+                    android:overScrollMode="ifContentScrolls">
+
+                    <TextView
+                        android:id="@+id/tvScratchpadPreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="6"
+                        android:ellipsize="end"
+                        android:textColor="#CBD5E1"
+                        android:textSize="13sp" />
+                </androidx.core.widget.NestedScrollView>
             </LinearLayout>
         </eightbitlab.com.blurview.BlurView>
 
-        <!-- 5. Portal Card (Study / Work Portal Hub) -->
-        <eightbitlab.com.blurview.BlurView
-            android:id="@+id/cardHomePortal"
+        <!-- 5. Portal Cards (Study / Work Portal Hub) -->
+        <FrameLayout
+            android:id="@+id/cardStudyPortal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:background="@drawable/bg_glass_specular_edge"
-            android:clipToOutline="true"
-            android:clipToPadding="true"
-            android:clipChildren="true"
-            android:outlineProvider="background"
-            android:clickable="true"
-            android:focusable="true"
-            android:elevation="0dp"
-            app:blurOverlayColor="@color/blur_overlay">
+            android:layout_height="wrap_content">
 
-            <LinearLayout
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/cardHomePortal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <FrameLayout
-                    android:id="@+id/badgeHomePortal"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/bg_squircle_portal_student">
-
-                    <ImageView
-                        android:id="@+id/ivHomePortalIcon"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_portal"
-                        app:tint="#38BDF8" />
-                </FrameLayout>
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_glass_specular_edge"
+                android:clipToOutline="true"
+                android:clipToPadding="true"
+                android:clipChildren="true"
+                android:outlineProvider="background"
+                android:clickable="true"
+                android:focusable="true"
+                android:elevation="0dp"
+                app:blurOverlayColor="@color/blur_overlay">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <FrameLayout
+                        android:id="@+id/badgeHomePortal"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_squircle_portal_student">
+
+                        <ImageView
+                            android:id="@+id/ivHomePortalIcon"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_portal"
+                            app:tint="#38BDF8" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvHomePortalTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Study Portal"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvHomePortalSummary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="0 Enrolled Subjects"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvHomePortalSubtext"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="Assignments, exams, and notes"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+                    </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tvHomePortalTitle"
+                        android:id="@+id/btnHomePortalAction"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Study Portal"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:background="@drawable/bg_action_pill_cyan"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="6dp"
+                        android:text="Portal →"
+                        android:textColor="#38BDF8"
+                        android:textSize="11sp"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvHomePortalSummary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="0 Enrolled Subjects"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/tvHomePortalSubtext"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:text="Assignments, exams, and notes"
-                        android:textColor="@color/text_muted"
-                        android:textSize="11sp" />
                 </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+        </FrameLayout>
 
-                <TextView
-                    android:id="@+id/btnHomePortalAction"
-                    android:layout_width="wrap_content"
+        <FrameLayout
+            android:id="@+id/cardWorkPortal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/cardHomePortalWork"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_glass_specular_edge"
+                android:clipToOutline="true"
+                android:clipToPadding="true"
+                android:clipChildren="true"
+                android:outlineProvider="background"
+                android:clickable="true"
+                android:focusable="true"
+                android:elevation="0dp"
+                app:blurOverlayColor="@color/blur_overlay">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_action_pill_cyan"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
-                    android:text="Portal →"
-                    android:textColor="#38BDF8"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </eightbitlab.com.blurview.BlurView>
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <FrameLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_squircle_portal_work">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_work"
+                            app:tint="#10B981" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Client &amp; Work Portal"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Projects, invoices, and milestones"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="Active contracts and deliverables"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/btnHomePortalWorkAction"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_portal_pill_work"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="6dp"
+                        android:text="Portal →"
+                        android:textColor="#10B981"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+        </FrameLayout>
 
         <!-- Section Title: Quick Actions -->
         <TextView

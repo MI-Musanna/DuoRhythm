@@ -93,6 +93,11 @@ data class DueDebtItem(
     val createdAt: String = ""
 )
 
+enum class PersonaMode {
+    STUDENT,
+    WORK
+}
+
 data class TaskItem(
     val id: Long = 0,
     val profileId: Long = 1,
@@ -104,7 +109,8 @@ data class TaskItem(
     val isCompleted: Boolean = false,
     val isGoal: Boolean = false,
     val progress: Int = 0, // 0 to 100 for goals
-    val startDate: String? = null
+    val startDate: String? = null,
+    val persona: String = if (category.equals("Work", ignoreCase = true)) "WORK" else "STUDENT"
 )
 
 typealias TasksEntity = TaskItem

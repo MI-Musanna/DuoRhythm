@@ -157,6 +157,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- Dynamic Task & Milestone Alarm Receiver -->
+        <receiver
+            android:name=".receiver.TaskAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_TASK_ALERT" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

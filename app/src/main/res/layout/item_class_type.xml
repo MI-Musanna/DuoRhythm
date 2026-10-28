@@ -18,27 +18,27 @@
         android:textStyle="bold"
         tools:text="Lecture" />
 
-    <TextView
-        android:id="@+id/tvDefaultBadge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/bg_chip_unselected"
-        android:paddingHorizontal="6dp"
-        android:paddingVertical="2dp"
-        android:text="DEFAULT"
-        android:textColor="@color/text_muted"
-        android:textSize="9sp"
-        android:textStyle="bold"
-        android:visibility="visible" />
+    <ImageButton
+        android:id="@+id/btnEditClassType"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="6dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Edit Type"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_edit"
+        app:tint="#00E5FF" />
 
     <ImageButton
         android:id="@+id/btnDeleteClassType"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Delete Type"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_delete"
-        app:tint="@color/text_muted" />
+        app:tint="#EF4444" />
 
 </LinearLayout>

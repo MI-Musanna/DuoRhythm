@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.TaskItem
+import com.duorhythm.app.scheduler.TaskAlarmScheduler
+import com.duorhythm.app.util.crossfade
 import com.duorhythm.app.databinding.DialogAddTaskBinding
 import com.duorhythm.app.databinding.DialogEditGoalBinding
 import com.duorhythm.app.databinding.DialogEditTaskBinding
@@ -116,6 +118,11 @@ class TasksFragment : Fragment() {
             emptyList(),
             onToggleCompleted = { task, isCompleted ->
                 dbHelper.updateTaskCompletion(task.id, isCompleted)
+                if (isCompleted) {
+                    TaskAlarmScheduler.cancelTaskReminder(requireContext(), task.id)
+                } else {
+                    TaskAlarmScheduler.scheduleTaskReminder(requireContext(), task.copy(isCompleted = false))
+                }
                 loadTasks()
             },
             onTaskClick = { task ->
@@ -131,6 +138,7 @@ class TasksFragment : Fragment() {
                     .setTitle(title)
                     .setMessage("Remove '${task.title}'?")
                     .setPositiveButton("Delete") { _, _ ->
+                        TaskAlarmScheduler.cancelTaskReminder(requireContext(), task.id)
                         dbHelper.deleteTask(task.id)
                         loadTasks()
                     }
@@ -248,6 +256,11 @@ class TasksFragment : Fragment() {
                 isCompleted = progress >= 100
             )
             dbHelper.updateTask(updated)
+            if (updated.isCompleted) {
+                TaskAlarmScheduler.cancelTaskReminder(requireContext(), updated.id)
+            } else {
+                TaskAlarmScheduler.scheduleTaskReminder(requireContext(), updated)
+            }
             dialog.dismiss()
             loadTasks()
             val msg = if (progress == 100) "Goal achieved (100%)!" else "Goal updated ($progress%)"
@@ -331,6 +344,11 @@ class TasksFragment : Fragment() {
                 isGoal = isGoal
             )
             dbHelper.updateTask(updated)
+            if (updated.isCompleted) {
+                TaskAlarmScheduler.cancelTaskReminder(requireContext(), updated.id)
+            } else {
+                TaskAlarmScheduler.scheduleTaskReminder(requireContext(), updated)
+            }
             dialog.dismiss()
             loadTasks()
             Toast.makeText(requireContext(), if (isGoal) "Goal updated!" else "Task updated!", Toast.LENGTH_SHORT).show()
@@ -349,6 +367,7 @@ class TasksFragment : Fragment() {
                     R.id.chipFilterAll -> "ALL"
                     else -> "ALL"
                 }
+                binding.rvTasks.crossfade(true, 150)
                 loadTasks()
             } else if (binding.chipGroupCustomCategories.checkedChipId == View.NO_ID) {
                 // Keep "All" checked by default if nothing selected
@@ -361,6 +380,7 @@ class TasksFragment : Fragment() {
                 binding.chipGroupTaskFilters.clearCheck()
                 val chip = group.findViewById<com.google.android.material.chip.Chip>(checkedId)
                 currentFilter = chip?.text?.toString() ?: "ALL"
+                binding.rvTasks.crossfade(true, 150)
                 loadTasks()
             }
         }
@@ -637,7 +657,8 @@ class TasksFragment : Fragment() {
                 isGoal = markedGoal,
                 progress = 0
             )
-            dbHelper.insertTask(task)
+            val newId = dbHelper.insertTask(task)
+            TaskAlarmScheduler.scheduleTaskReminder(requireContext(), task.copy(id = newId))
             dialog.dismiss()
             loadTasks()
             Toast.makeText(requireContext(), if (markedGoal) "Goal created!" else "Task created!", Toast.LENGTH_SHORT).show()

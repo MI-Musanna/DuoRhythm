@@ -30,14 +30,45 @@ class ManageClassTypesDialog(
 
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-        fun reloadList() {
+        lateinit var reloadList: () -> Unit
+        lateinit var showEditDialog: (ClassTypeEntity) -> Unit
+
+        showEditDialog = { item ->
+            val input = android.widget.EditText(context).apply {
+                setText(item.name)
+                setSelection(text.length)
+                setPadding(48, 32, 48, 32)
+                setTextColor(Color.WHITE)
+            }
+            AlertDialog.Builder(context)
+                .setTitle("Edit Tag / Category Name")
+                .setView(input)
+                .setPositiveButton("UPDATE") { _, _ ->
+                    val updatedName = input.text.toString().trim()
+                    if (updatedName.isNotEmpty()) {
+                        dbHelper.classTypeDao.updateClassTypeName(item.id, updatedName)
+                        reloadList()
+                        onTypesChanged()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+        reloadList = {
             val types = dbHelper.classTypeDao.getTypesByProfile(profileId)
             binding.rvClassTypes.layoutManager = LinearLayoutManager(context)
-            binding.rvClassTypes.adapter = ClassTypesAdapter(types) { typeToDelete ->
-                dbHelper.classTypeDao.deleteType(typeToDelete.id)
-                reloadList()
-                onTypesChanged()
-            }
+            binding.rvClassTypes.adapter = ClassTypesAdapter(
+                items = types,
+                onEdit = { typeToEdit ->
+                    showEditDialog(typeToEdit)
+                },
+                onDelete = { typeToDelete ->
+                    dbHelper.classTypeDao.deleteType(typeToDelete.id)
+                    reloadList()
+                    onTypesChanged()
+                }
+            )
         }
 
         binding.btnAddClassType.setOnClickListener {
@@ -68,6 +99,7 @@ class ManageClassTypesDialog(
 
     private class ClassTypesAdapter(
         private val items: List<ClassTypeEntity>,
+        private val onEdit: (ClassTypeEntity) -> Unit,
         private val onDelete: (ClassTypeEntity) -> Unit
     ) : RecyclerView.Adapter<ClassTypesAdapter.ViewHolder>() {
 
@@ -85,15 +117,11 @@ class ManageClassTypesDialog(
         inner class ViewHolder(private val binding: ItemClassTypeBinding) : RecyclerView.ViewHolder(binding.root) {
             fun bind(item: ClassTypeEntity) {
                 binding.tvClassTypeName.text = item.name
-                if (item.isDefault) {
-                    binding.tvDefaultBadge.visibility = View.VISIBLE
-                    binding.btnDeleteClassType.visibility = View.GONE
-                } else {
-                    binding.tvDefaultBadge.visibility = View.GONE
-                    binding.btnDeleteClassType.visibility = View.VISIBLE
-                    binding.btnDeleteClassType.setOnClickListener {
-                        onDelete(item)
-                    }
+                binding.btnEditClassType.setOnClickListener {
+                    onEdit(item)
+                }
+                binding.btnDeleteClassType.setOnClickListener {
+                    onDelete(item)
                 }
             }
         }

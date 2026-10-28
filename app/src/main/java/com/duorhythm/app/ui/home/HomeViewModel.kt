@@ -100,6 +100,21 @@ class HomeViewModel(application: Application = com.duorhythm.app.LifeSyncApp.ins
         return items
     }
 
+    /**
+     * Smart Landing Selection Logic for Daily Schedule Carousel:
+     * Focuses on IN_SESSION_NOW if any, then UPCOMING_NEXT if any, otherwise last class (or 0).
+     */
+    fun resolveActiveScheduleIndex(classes: List<CarouselClassItem>): Int {
+        if (classes.isEmpty()) return 0
+        val inSessionIndex = classes.indexOfFirst { it.status == ClassStatus.IN_SESSION_NOW }
+        if (inSessionIndex != -1) return inSessionIndex
+
+        val nextUpcomingIndex = classes.indexOfFirst { it.status == ClassStatus.UPCOMING_NEXT }
+        if (nextUpcomingIndex != -1) return nextUpcomingIndex
+
+        return classes.size - 1
+    }
+
     private fun parseMinutes(timeStr: String): Int {
         val clean = timeStr.trim()
         val formats = listOf("hh:mm a", "h:mm a", "hh:mma", "h:mma", "HH:mm", "H:mm")

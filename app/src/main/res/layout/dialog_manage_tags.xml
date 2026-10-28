@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Header Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvManageTagsTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Manage Tags &amp; Categories"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnCloseManageTags"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:src="@drawable/ic_close"
+            app:tint="@color/text_muted" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvManageTagsSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Add, rename, or remove routine tags &amp; assessment categories."
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
+    <!-- Add Tag Input Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:boxBackgroundColor="#0B132B"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxStrokeColor="#0284C7"
+            app:hintTextColor="#0284C7">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNewTag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="New tag / category name"
+                android:inputType="textCapWords"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_muted"
+                android:textSize="13sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddTag"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:paddingHorizontal="14dp"
+            android:text="+ Add"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:backgroundTint="#0284C7"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
+    <!-- Tag List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvTags"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:maxHeight="300dp"
+        android:nestedScrollingEnabled="false"
+        tools:itemCount="4"
+        tools:listitem="@layout/item_manage_tag" />
+
+</LinearLayout>

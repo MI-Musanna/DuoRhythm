@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="4dp"
+    android:paddingVertical="10dp">
+
+    <!-- Tag Name TextView (tvTagName) with weight="1" -->
+    <TextView
+        android:id="@+id/tvTagName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@color/text_primary"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="Lecture" />
+
+    <!-- Edit Button (btnEditTag, pencil icon, tinted cyan #00E5FF, size 28dp) -->
+    <ImageButton
+        android:id="@+id/btnEditTag"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Edit Tag"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_edit"
+        app:tint="#00E5FF" />
+
+    <!-- Delete Button (btnDeleteTag, trash icon, tinted red #EF4444, size 28dp) -->
+    <ImageButton
+        android:id="@+id/btnDeleteTag"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Delete Tag"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_delete"
+        app:tint="#EF4444" />
+
+</LinearLayout>

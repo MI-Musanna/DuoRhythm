@@ -49,15 +49,21 @@ class ScheduleAssessmentDialog(
         }
 
         // 1. Assessment Types
-        val types = mutableListOf(
-            "Class Test (CT)",
-            "Quiz",
-            "Midterm Examination",
-            "Semester Final Exam",
-            "Lab Exam / Practical",
-            "Presentation / Viva",
-            "+ Custom Type"
-        )
+        val dbCategories = dbHelper.assessmentCategoryDao.getCategoriesByProfile(profileId).map { it.name }
+        val types = mutableListOf<String>()
+        if (dbCategories.isNotEmpty()) {
+            types.addAll(dbCategories)
+        } else {
+            types.addAll(listOf(
+                "Class Test (CT)",
+                "Quiz",
+                "Midterm Examination",
+                "Semester Final Exam",
+                "Lab Exam / Practical",
+                "Presentation / Viva"
+            ))
+        }
+        types.add("+ Custom Type")
 
         val targetType = when {
             existingItem != null -> existingItem.examType
@@ -94,6 +100,13 @@ class ScheduleAssessmentDialog(
                         .setPositiveButton("Add") { _, _ ->
                             val customName = input.text.toString().trim()
                             if (customName.isNotEmpty()) {
+                                dbHelper.assessmentCategoryDao.insertCategory(
+                                    database.entities.AssessmentCategoryEntity(
+                                        profileId = profileId,
+                                        name = customName,
+                                        isDefault = false
+                                    )
+                                )
                                 types.add(types.size - 1, customName)
                                 typeAdapter.notifyDataSetChanged()
                                 binding.spAssessmentType.setSelection(types.indexOf(customName))
