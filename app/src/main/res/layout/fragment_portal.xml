@@ -10,6 +10,7 @@
     android:background="@drawable/bg_ambient_canvas">
 
     <LinearLayout
+        android:id="@+id/rootLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -477,26 +478,45 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Active Enrolled Courses RecyclerView -->
+            <!-- Active Enrolled Courses Header & RecyclerView -->
             <LinearLayout
+                android:id="@+id/btnToggleEnrolledCourses"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:paddingVertical="8dp"
+                android:background="?attr/selectableItemBackground">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Enrolled Courses"
-                    android:textColor="@color/text_primary"
-                    android:textSize="17sp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvCourseCountBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="7 Courses"
+                    android:textColor="#94A3B8"
+                    android:textSize="13sp"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageView
+                    android:id="@+id/ivChevronCourses"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_down"
+                    app:tint="#00E5FF" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvStudentSubjects"
+                android:id="@+id/rvEnrolledCourses"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"

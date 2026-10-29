@@ -1,13 +1,11 @@
 package com.duorhythm.app.ui.wallet
 
-import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.duorhythm.app.R
-import com.duorhythm.app.databinding.ItemSubscriptionBinding
+import com.duorhythm.app.databinding.ItemSubscriptionCardBinding
 import com.duorhythm.app.util.AnimationUtils
 import database.entities.SubscriptionEntity
 import java.text.SimpleDateFormat
@@ -31,7 +29,7 @@ class SubscriptionsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemSubscriptionBinding.inflate(
+        val binding = ItemSubscriptionCardBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -46,11 +44,11 @@ class SubscriptionsAdapter(
 
     override fun getItemCount(): Int = subscriptions.size
 
-    inner class ViewHolder(private val binding: ItemSubscriptionBinding) :
+    inner class ViewHolder(private val binding: ItemSubscriptionCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(sub: SubscriptionEntity) {
-            binding.tvSubName.text = sub.name
+            binding.tvSubscriptionName.text = sub.name
 
             // Day suffix helper (e.g. 1st, 2nd, 3rd, 4th)
             val getDaySuffix = { day: Int ->
@@ -63,47 +61,47 @@ class SubscriptionsAdapter(
             }
 
             val windowText = if (sub.isRange) {
-                "Due ${sub.startDay}${getDaySuffix(sub.startDay)} - ${sub.endDay}${getDaySuffix(sub.endDay)}"
+                "Window: ${sub.startDay}${getDaySuffix(sub.startDay)} - ${sub.endDay}${getDaySuffix(sub.endDay)}"
             } else {
-                "Due day ${sub.dueDay}${getDaySuffix(sub.dueDay)}"
+                "Due: ${sub.dueDay}${getDaySuffix(sub.dueDay)}"
             }
 
             val sourceText = if (sub.linkedAccountId == null || sub.linkedAccountId <= 0L) {
-                "Payer: External"
+                "Source: External"
             } else {
                 "Source: ${sub.accountName.ifBlank { "Account" }}"
             }
 
-            binding.tvSubBucketTag.text = sourceText
-            binding.tvSubCategory.text = if (sub.isRange) "• Window Range" else "• Fixed Day"
-            binding.tvSubRenewalDate.text = "$windowText • $sourceText"
+            binding.tvSubscriptionMeta.text = "$windowText • $sourceText"
 
-            val convertedCost = sub.amount
-            binding.tvSubPriceCycle.text = String.format(Locale.US, "%s%.0f / mo", currencySymbol, convertedCost)
+            val symbol = if (currencySymbol.isNotBlank()) currencySymbol else "৳"
+            val costVal = sub.amount
+            val amountStr = if (costVal % 1.0 == 0.0) {
+                String.format(Locale.US, "%.0f", costVal)
+            } else {
+                String.format(Locale.US, "%.2f", costVal)
+            }
+            binding.tvSubscriptionAmount.text = "$symbol$amountStr/mo"
 
             val currentMonthYear = SimpleDateFormat("yyyy-MM", Locale.US).format(Date())
             val isSettledThisMonth = (sub.lastPaidMonthYear == currentMonthYear)
+            val currentMonthShort = SimpleDateFormat("MMM", Locale.US).format(Date())
 
             if (isSettledThisMonth) {
-                binding.tvSubStatusBadge.text = "PAID"
-                binding.tvSubStatusBadge.setTextColor(Color.parseColor("#34D399"))
-                binding.tvSubStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2210B981"))
+                binding.tvStatusBadge.text = "PAID for $currentMonthShort"
+                binding.tvStatusBadge.setTextColor(Color.parseColor("#34D399")) // Emerald
+                binding.tvStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2210B981"))
                 binding.btnMarkPaid.text = "Paid"
+                binding.btnMarkPaid.setTextColor(Color.WHITE)
                 binding.btnMarkPaid.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
             } else {
-                binding.tvSubStatusBadge.text = "DUE"
-                binding.tvSubStatusBadge.setTextColor(Color.parseColor("#FBBF24"))
-                binding.tvSubStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22F59E0B"))
-                binding.btnMarkPaid.text = "Mark Paid"
-                binding.btnMarkPaid.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#0284C7"))
+                binding.tvStatusBadge.text = "UNPAID"
+                binding.tvStatusBadge.setTextColor(Color.parseColor("#EF4444")) // Red/Amber
+                binding.tvStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22EF4444"))
+                binding.btnMarkPaid.text = "MARK PAID"
+                binding.btnMarkPaid.setTextColor(Color.parseColor("#0F172A"))
+                binding.btnMarkPaid.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
             }
-
-            val iconRes = when (sub.name.lowercase(Locale.US)) {
-                "spotify" -> R.drawable.ic_music
-                "youtube", "youtube premium" -> R.drawable.ic_portal
-                else -> R.drawable.ic_sync
-            }
-            binding.ivSubIcon.setImageResource(iconRes)
 
             binding.root.setOnClickListener {
                 onEditClick(sub)
@@ -119,21 +117,6 @@ class SubscriptionsAdapter(
 
             binding.btnDeleteSub.setOnClickListener {
                 onDeleteClick(sub)
-            }
-
-            binding.btnSubOptions.setOnClickListener {
-                val context = binding.root.context
-                val options = arrayOf("Edit Subscription", "Toggle Paid / Due", "Delete Subscription")
-                AlertDialog.Builder(context)
-                    .setTitle(sub.name)
-                    .setItems(options) { _, which ->
-                        when (which) {
-                            0 -> onEditClick(sub)
-                            1 -> onMarkPaidClick(sub)
-                            2 -> onDeleteClick(sub)
-                        }
-                    }
-                    .show()
             }
         }
     }

@@ -280,25 +280,6 @@
                 app:cornerRadius="14dp" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
-        <!-- Next Renewal Date (Optional / Informational) -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilRenewalDate"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:hint="Next Renewal Date (YYYY-MM-DD)"
-            app:boxStrokeColor="@color/water_cyan_bright"
-            app:hintTextColor="@color/water_cyan_bright">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRenewalDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:textSize="14sp" />
-        </com.google.android.material.textfield.TextInputLayout>
-
         <!-- Save Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveSubscription"

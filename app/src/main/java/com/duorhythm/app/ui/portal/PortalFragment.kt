@@ -60,8 +60,15 @@ class PortalFragment : Fragment() {
     private var workContactRoleFilter = "ALL"
 
     private val pickOrderAttachmentLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let { saveOrderAttachmentFromUri(it) }
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            uri?.let {
+                try {
+                    requireContext().contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                } catch (e: SecurityException) {
+                    // Fallback
+                }
+                saveOrderAttachmentFromUri(it)
+            }
         }
 
     override fun onCreateView(
@@ -89,6 +96,19 @@ class PortalFragment : Fragment() {
             setupListeners()
         } catch (e: Throwable) {
             android.util.Log.e("PortalFragment", "Error in setupListeners", e)
+        }
+        try {
+            val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)
+            var isCoursesCollapsed = prefs.getBoolean("pref_courses_collapsed", false)
+            updateCoursesCollapseState(isCoursesCollapsed, animate = false)
+
+            binding.btnToggleEnrolledCourses.setOnClickListener {
+                isCoursesCollapsed = !isCoursesCollapsed
+                prefs.edit().putBoolean("pref_courses_collapsed", isCoursesCollapsed).apply()
+                updateCoursesCollapseState(isCoursesCollapsed, animate = true)
+            }
+        } catch (e: Throwable) {
+            android.util.Log.e("PortalFragment", "Error in setupEnrolledCoursesCollapse", e)
         }
         try {
             val rootView = activity?.window?.decorView?.findViewById<ViewGroup>(android.R.id.content)
@@ -162,8 +182,8 @@ class PortalFragment : Fragment() {
                     .show()
             }
         )
-        binding.rvStudentSubjects.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvStudentSubjects.adapter = studentSubjectsAdapter
+        binding.rvEnrolledCourses.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvEnrolledCourses.adapter = studentSubjectsAdapter
 
         // Work orders
         workOrdersAdapter = WorkOrdersAdapter(
@@ -540,11 +560,13 @@ class PortalFragment : Fragment() {
             subject.id to progressPercentage
         }
         studentSubjectsAdapter.updateList(subjects, attendanceMap, progressMap)
+        binding.tvCourseCountBadge.text = "${subjects.size} Courses"
         if (subjects.isEmpty()) {
-            binding.rvStudentSubjects.visibility = View.GONE
+            binding.rvEnrolledCourses.visibility = View.GONE
             binding.layoutEmptyStudentSubjects.visibility = View.VISIBLE
         } else {
-            binding.rvStudentSubjects.visibility = View.VISIBLE
+            val isCollapsed = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE).getBoolean("pref_courses_collapsed", false)
+            binding.rvEnrolledCourses.visibility = if (isCollapsed) View.GONE else View.VISIBLE
             binding.layoutEmptyStudentSubjects.visibility = View.GONE
         }
 
@@ -1101,7 +1123,7 @@ class PortalFragment : Fragment() {
         dialogBinding.etOrderEndDate.setOnClickListener(pickDateListener)
 
         dialogBinding.btnOrderPickAttachment.setOnClickListener {
-            pickOrderAttachmentLauncher.launch("*/*")
+            pickOrderAttachmentLauncher.launch(arrayOf("*/*"))
         }
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -1230,6 +1252,18 @@ class PortalFragment : Fragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    fun updateCoursesCollapseState(isCollapsed: Boolean, animate: Boolean) {
+        if (_binding == null) return
+        if (animate) {
+            android.transition.TransitionManager.beginDelayedTransition(
+                binding.rootLayout,
+                android.transition.AutoTransition().apply { duration = 200 }
+            )
+        }
+        binding.rvEnrolledCourses.visibility = if (isCollapsed) View.GONE else View.VISIBLE
+        binding.ivChevronCourses.animate().rotation(if (isCollapsed) -90f else 0f).setDuration(200).start()
     }
 
     override fun onDestroyView() {

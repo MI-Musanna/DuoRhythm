@@ -88,6 +88,25 @@
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
 
+        <!-- Room Hall Number View -->
+        <TextView
+            android:id="@+id/tvAssessmentRoom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_chip_unselected"
+            android:drawableStart="@drawable/ic_schedule"
+            android:drawablePadding="6dp"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="Room: 805"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:drawableTint="@color/primary" />
+
         <!-- Dates row -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -117,6 +136,38 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Attachment Details Preview -->
+        <LinearLayout
+            android:id="@+id/layoutAttachmentPreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_chip_surface"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="6dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_file"
+                app:tint="@color/primary" />
+
+            <TextView
+                android:id="@+id/tvAttachmentFileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="📎 syllabus.pdf"
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- Attachment indicator row (if present) -->

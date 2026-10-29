@@ -142,7 +142,8 @@ class SubscriptionManagerDialog(
     }
 
     private fun loadSubscriptions(binding: DialogSubscriptionManagerBinding) {
-        val profileId = ProfileManager.getActiveProfileId(context)
+        val activeProfileId = ProfileManager.getActiveProfileId(context).let { if (it > 0) it else 1L }
+        val profileId = activeProfileId
         val list = dbHelper.subscriptionDao.getSubscriptions(profileId)
 
         val accounts = dbHelper.accountDao.getAccounts(profileId).associateBy { it.id }
@@ -174,7 +175,8 @@ class SubscriptionManagerDialog(
 
     fun showAddOrEditSubscriptionDialog(subToEdit: SubscriptionEntity? = null, onSaved: () -> Unit) {
         val addBinding = DialogAddSubscriptionBinding.inflate(LayoutInflater.from(context))
-        val profileId = ProfileManager.getActiveProfileId(context)
+        val activeProfileId = ProfileManager.getActiveProfileId(context).let { if (it > 0) it else 1L }
+        val profileId = activeProfileId
 
         val isEdit = subToEdit != null
         if (isEdit) {
@@ -189,7 +191,7 @@ class SubscriptionManagerDialog(
 
         // Fetch accounts for payment source
         val accounts = dbHelper.accountDao.getAccounts(profileId)
-        val sourceOptions = mutableListOf("None / External (Father / Third-Party)")
+        val sourceOptions = mutableListOf("None / External (Third-Party / Direct)")
         sourceOptions.addAll(accounts.map { it.name })
 
         val sourceAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, sourceOptions)
@@ -281,14 +283,15 @@ class SubscriptionManagerDialog(
                 Toast.makeText(context, "Updated '$name'", Toast.LENGTH_SHORT).show()
             } else {
                 val newSub = SubscriptionEntity(
-                    profileId = profileId,
+                    profileId = activeProfileId, // Ensure NOT 0 or null
                     name = name,
                     amount = amount,
                     isRange = isRangeMode,
                     startDay = startDay,
                     endDay = endDay,
                     dueDay = dueDay,
-                    linkedAccountId = linkedAccountId
+                    linkedAccountId = linkedAccountId,
+                    lastPaidMonthYear = null
                 )
                 dbHelper.subscriptionDao.insertSubscription(newSub)
                 Toast.makeText(context, "Added '$name' subscription", Toast.LENGTH_SHORT).show()

@@ -89,7 +89,43 @@ class SubjectItemsAdapter(
                 binding.btnToggleComplete.text = "Mark as Done"
             }
 
-            if (item.attachmentPath.isNotEmpty()) {
+            // Bind Room correctly
+            if (!item.room.isNullOrBlank()) {
+                binding.tvAssessmentRoom.visibility = View.VISIBLE
+                binding.tvAssessmentRoom.text = "Room: ${item.room}"
+            } else {
+                binding.tvAssessmentRoom.visibility = View.GONE
+            }
+
+            // Bind Attachment correctly
+            if (!item.attachmentName.isNullOrBlank()) {
+                binding.layoutAttachmentPreview.visibility = View.VISIBLE
+                binding.tvAttachmentFileName.text = item.attachmentName
+                binding.layoutAttachmentPreview.setOnClickListener {
+                    val uriString = item.attachmentUri
+                    if (!uriString.isNullOrBlank()) {
+                        try {
+                            val uri = Uri.parse(uriString)
+                            val fileExists = com.duorhythm.app.util.FileUtils.checkFileExists(context, uri)
+                            if (!fileExists) {
+                                com.google.android.material.snackbar.Snackbar.make(binding.root, "Original file not found on this device.", com.google.android.material.snackbar.Snackbar.LENGTH_LONG).show()
+                                return@setOnClickListener
+                            }
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(uri, context.contentResolver.getType(uri) ?: "*/*")
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            com.google.android.material.snackbar.Snackbar.make(binding.root, "Unable to open attachment.", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            } else {
+                binding.layoutAttachmentPreview.visibility = View.GONE
+            }
+
+            if (item.itemType != "EXAM" && item.attachmentPath.isNotEmpty() && File(item.attachmentPath).exists()) {
                 binding.layoutAttachment.visibility = View.VISIBLE
                 val file = File(item.attachmentPath)
                 binding.tvAttachmentName.text = "Attachment: ${file.name}"

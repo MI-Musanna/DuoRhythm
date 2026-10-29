@@ -196,6 +196,7 @@ data class SubjectWorkItem(
     val attachmentUri: String? = null,
     val attachmentName: String? = null
 ) {
+    val room: String get() = attachmentPath
     fun getDaysRemaining(): Long {
         return try {
             val dateStr = endDate.ifBlank { startDate }

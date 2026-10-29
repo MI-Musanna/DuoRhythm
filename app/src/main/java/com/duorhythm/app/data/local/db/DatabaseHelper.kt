@@ -1602,7 +1602,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun getAllSubscriptions(profileId: Long = getActiveProfileId()): List<SubscriptionItem> {
         val list = mutableListOf<SubscriptionItem>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM subscriptions WHERE profile_id = ? ORDER BY renewal_date ASC, id ASC", arrayOf(profileId.toString()))
+        val cursor = db.rawQuery("SELECT * FROM subscriptions WHERE (profile_id = ? OR profileId = ?) ORDER BY id ASC", arrayOf(profileId.toString(), profileId.toString()))
         cursor.use {
             val autoLogIdx = it.getColumnIndex("auto_log")
             val pIdCol = it.getColumnIndex("profile_id")
@@ -2817,8 +2817,13 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 return list
             }
 
+            private val subscriptionUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
             override fun getSubscriptionsFlow(profileId: Long): kotlinx.coroutines.flow.Flow<List<database.entities.SubscriptionEntity>> = kotlinx.coroutines.flow.flow {
                 emit(getSubscriptions(profileId))
+                subscriptionUpdateFlow.collect {
+                    emit(getSubscriptions(profileId))
+                }
             }
 
             override fun getActiveSubscriptions(profileId: Long): List<database.entities.SubscriptionEntity> {
@@ -2885,7 +2890,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     }
                     put("is_active", 1)
                 }
-                return db.insert("subscriptions", null, cv)
+                val newId = db.insert("subscriptions", null, cv)
+                subscriptionUpdateFlow.tryEmit(Unit)
+                return newId
             }
 
             override fun updateSubscription(subscription: database.entities.SubscriptionEntity): Int {
@@ -2926,7 +2933,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         putNull("last_paid_month_year")
                     }
                 }
-                return db.update("subscriptions", cv, "id = ?", arrayOf(subscription.id.toString()))
+                val updatedCount = db.update("subscriptions", cv, "id = ?", arrayOf(subscription.id.toString()))
+                subscriptionUpdateFlow.tryEmit(Unit)
+                return updatedCount
             }
 
             override fun updatePaidMonth(id: Long, monthYear: String?): Int {
@@ -2941,19 +2950,25 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         putNull("last_paid_month_year")
                     }
                 }
-                return db.update("subscriptions", cv, "id = ?", arrayOf(id.toString()))
+                val updatedCount = db.update("subscriptions", cv, "id = ?", arrayOf(id.toString()))
+                subscriptionUpdateFlow.tryEmit(Unit)
+                return updatedCount
             }
 
             override fun deleteSubscription(id: Long): Int {
                 ensureSubscriptionsTable()
                 val db = writableDatabase
-                return db.delete("subscriptions", "id = ?", arrayOf(id.toString()))
+                val deletedCount = db.delete("subscriptions", "id = ?", arrayOf(id.toString()))
+                subscriptionUpdateFlow.tryEmit(Unit)
+                return deletedCount
             }
 
             override fun deleteByProfileId(profileId: Long): Int {
                 ensureSubscriptionsTable()
                 val db = writableDatabase
-                return db.delete("subscriptions", "(profileId = ? OR profile_id = ?)", arrayOf(profileId.toString(), profileId.toString()))
+                val deletedCount = db.delete("subscriptions", "(profileId = ? OR profile_id = ?)", arrayOf(profileId.toString(), profileId.toString()))
+                subscriptionUpdateFlow.tryEmit(Unit)
+                return deletedCount
             }
         }
     }
@@ -3789,6 +3804,23 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("attachment_path", order.attachmentPath)
         }
         return db.insertWithOnConflict("work_orders", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun updateWorkOrder(order: WorkOrder): Int {
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("title", order.title)
+            put("client_name", order.clientName)
+            put("quantity", order.quantity)
+            put("unit_price", order.unitPrice)
+            put("total_price", order.totalPrice)
+            put("start_date", order.startDate)
+            put("end_date", order.endDate)
+            put("status", order.status)
+            put("notes", order.notes)
+            put("attachment_path", order.attachmentPath)
+        }
+        return db.update("work_orders", cv, "id = ?", arrayOf(order.id.toString()))
     }
 
     fun updateWorkOrderStatus(orderId: Long, status: String) {
