@@ -24,6 +24,19 @@ import java.util.Calendar
 class ClassAlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                handleAlarmDispatch(context, intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                pendingResult.finish()
+            }
+        }
+    }
+
+    private fun handleAlarmDispatch(context: Context, intent: Intent) {
         val action = intent.action ?: return
 
         if (action == Intent.ACTION_BOOT_COMPLETED || action == Intent.ACTION_MY_PACKAGE_REPLACED) {
@@ -33,28 +46,33 @@ class ClassAlarmReceiver : BroadcastReceiver() {
             return
         }
 
-        when (action) {
-            AlarmSyncManager.ACTION_CLASS_LEAD_ALERT,
-            ClassAlarmScheduler.ACTION_CLASS_PRE_ALERT -> {
-                handleLeadAlert(context, intent)
-            }
-            AlarmSyncManager.ACTION_CLASS_START_DND,
-            ClassAlarmScheduler.ACTION_CLASS_START -> {
-                handleClassStart(context, intent)
-            }
-            AlarmSyncManager.ACTION_CLASS_END_RESTORE,
-            ClassAlarmScheduler.ACTION_CLASS_END -> {
-                val pendingResult = goAsync()
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        handleClassEnd(context, intent)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    } finally {
-                        pendingResult.finish()
-                    }
+        try {
+            when (action) {
+                AlarmSyncManager.ACTION_CLASS_LEAD_ALERT,
+                ClassAlarmScheduler.ACTION_CLASS_PRE_ALERT -> {
+                    handleLeadAlert(context, intent)
+                }
+                AlarmSyncManager.ACTION_CLASS_START_DND,
+                ClassAlarmScheduler.ACTION_CLASS_START -> {
+                    handleClassStart(context, intent)
+                }
+                AlarmSyncManager.ACTION_CLASS_END_RESTORE,
+                ClassAlarmScheduler.ACTION_CLASS_END -> {
+                    handleClassEnd(context, intent)
                 }
             }
+        } finally {
+            cleanupNotificationBitmaps()
+        }
+    }
+
+    private fun cleanupNotificationBitmaps(vararg bitmaps: android.graphics.Bitmap?) {
+        for (b in bitmaps) {
+            try {
+                if (b != null && !b.isRecycled) {
+                    b.recycle()
+                }
+            } catch (_: Throwable) {}
         }
     }
 

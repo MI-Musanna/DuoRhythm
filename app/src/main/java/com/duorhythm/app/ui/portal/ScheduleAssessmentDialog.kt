@@ -3,14 +3,18 @@ package com.duorhythm.app.ui.portal
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
@@ -160,6 +164,28 @@ class ScheduleAssessmentDialog(
         binding.actvAssessmentSubject.setAdapter(coursesAdapter)
 
         var selectedCourse: StudentSubject? = null
+        var selectedAttachmentUri: String? = null
+        var selectedAttachmentName: String? = null
+
+        fun requireContext(): Context = context
+
+        fun getFileNameFromUri(ctx: Context, uri: Uri): String {
+            var name = "document_${System.currentTimeMillis()}"
+            var cursor: android.database.Cursor? = null
+            try {
+                cursor = ctx.contentResolver.query(uri, null, null, null, null)
+                if (cursor != null && cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex >= 0) {
+                        name = cursor.getString(nameIndex) ?: name
+                    }
+                }
+            } catch (_: Exception) {
+            } finally {
+                cursor?.close()
+            }
+            return name
+        }
 
         val targetCourseId = existingItem?.subjectId ?: preselectedCourseId
         if (targetCourseId != null && targetCourseId > 0) {
@@ -178,12 +204,10 @@ class ScheduleAssessmentDialog(
                 if (binding.etAssessmentTitle.text.isNullOrBlank()) {
                     binding.etAssessmentTitle.setText("${course.name} - $selectedTypeStr")
                 }
-                if (binding.etAssessmentRoom.text.isNullOrBlank() && course.room.isNotBlank()) {
-                    binding.etAssessmentRoom.setText(course.room)
+                if (!course.teacherName.isNullOrBlank()) {
+                    binding.etAssessmentTeacher.setText(course.teacherName)
                 }
-                if (binding.etAssessmentTeacher.text.isNullOrBlank() && course.teacher.isNotBlank()) {
-                    binding.etAssessmentTeacher.setText(course.teacher)
-                }
+                // Keep binding.etAssessmentRoom untouched so user manually enters room hall number.
             }
         }
 
@@ -194,10 +218,48 @@ class ScheduleAssessmentDialog(
             binding.etAssessmentTime.setText(existingItem.scoreOrMarks)
             binding.etAssessmentRoom.setText(existingItem.attachmentPath)
             binding.etAssessmentSyllabus.setText(existingItem.description)
+            if (!existingItem.attachmentUri.isNullOrBlank()) {
+                selectedAttachmentUri = existingItem.attachmentUri
+                selectedAttachmentName = existingItem.attachmentName ?: getFileNameFromUri(context, Uri.parse(existingItem.attachmentUri))
+                binding.layoutAttachmentPreview.visibility = View.VISIBLE
+                binding.tvAttachmentFileName.text = selectedAttachmentName
+            }
         } else {
             val cal = Calendar.getInstance()
             binding.etAssessmentDate.setText(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time))
             binding.etAssessmentTime.setText("10:00 AM")
+        }
+
+        // File Picker Launcher with Persistable URI Guard
+        val activity = context as? androidx.activity.ComponentActivity
+        val filePickerLauncher = activity?.activityResultRegistry?.register(
+            "assessment_file_picker_${System.currentTimeMillis()}",
+            ActivityResultContracts.OpenDocument()
+        ) { uri: Uri? ->
+            uri?.let { sourceUri ->
+                try {
+                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    requireContext().contentResolver.takePersistableUriPermission(sourceUri, takeFlags)
+                } catch (e: SecurityException) {
+                    // Fallback for providers that don't support persistable permissions
+                }
+                val fileName = getFileNameFromUri(requireContext(), sourceUri)
+                selectedAttachmentUri = sourceUri.toString()
+                selectedAttachmentName = fileName
+                binding.layoutAttachmentPreview.visibility = View.VISIBLE
+                binding.tvAttachmentFileName.text = fileName
+            }
+        }
+
+        binding.btnAttachAssessmentFile.setOnClickListener {
+            filePickerLauncher?.launch(arrayOf("*/*"))
+        }
+
+        binding.btnRemoveAttachment.setOnClickListener {
+            selectedAttachmentUri = null
+            selectedAttachmentName = null
+            binding.layoutAttachmentPreview.visibility = View.GONE
+            binding.tvAttachmentFileName.text = ""
         }
 
         // 4. Date Picker
@@ -313,7 +375,9 @@ class ScheduleAssessmentDialog(
                     endDate = date,
                     scoreOrMarks = time,
                     attachmentPath = room,
-                    examType = chosenType
+                    examType = chosenType,
+                    attachmentUri = selectedAttachmentUri,
+                    attachmentName = selectedAttachmentName
                 )
                 dbHelper.updateSubjectWorkItem(updatedItem)
 
@@ -340,7 +404,9 @@ class ScheduleAssessmentDialog(
                     room = room,
                     syllabus = syllabus,
                     teacher = teacher,
-                    status = "PENDING"
+                    status = "PENDING",
+                    attachmentUri = selectedAttachmentUri,
+                    attachmentName = selectedAttachmentName
                 )
                 val newId = dbHelper.insertSubjectWorkItem(assessmentEntity.toSubjectWorkItem())
                 val finalEntity = assessmentEntity.copy(id = newId)
@@ -351,6 +417,12 @@ class ScheduleAssessmentDialog(
 
             dialog.dismiss()
             onSaved()
+        }
+
+        dialog.setOnDismissListener {
+            try {
+                filePickerLauncher?.unregister()
+            } catch (_: Exception) {}
         }
 
         dialog.show()

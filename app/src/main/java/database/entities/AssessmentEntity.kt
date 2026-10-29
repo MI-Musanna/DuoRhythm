@@ -15,7 +15,9 @@ data class AssessmentEntity(
     val room: String = "",
     val syllabus: String = "",
     val teacher: String = "",
-    val status: String = "PENDING"
+    val status: String = "PENDING",
+    val attachmentUri: String? = null,
+    val attachmentName: String? = null
 ) {
     fun toSubjectWorkItem(): SubjectWorkItem {
         return SubjectWorkItem(
@@ -30,7 +32,9 @@ data class AssessmentEntity(
             scoreOrMarks = time,
             status = status,
             attachmentPath = room,
-            examType = type
+            examType = type,
+            attachmentUri = attachmentUri,
+            attachmentName = attachmentName
         )
     }
 
@@ -54,7 +58,9 @@ data class AssessmentEntity(
                 room = item.attachmentPath,
                 syllabus = item.description,
                 teacher = teacher,
-                status = item.status
+                status = item.status,
+                attachmentUri = item.attachmentUri,
+                attachmentName = item.attachmentName
             )
         }
     }

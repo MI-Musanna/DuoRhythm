@@ -73,6 +73,39 @@ object AlarmSyncManager {
     }
 
     /**
+     * Cancels all scheduled class lead reminder alarms (alertType = 1).
+     */
+    fun cancelAllClassLeadAlarms(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        try {
+            val db = DatabaseHelper.getInstance(context)
+            val classes = db.getAllClasses()
+            val receivers = listOf(
+                ClassAlarmReceiver::class.java,
+                ScheduleReceiver::class.java
+            )
+            for (cls in classes) {
+                val reqCode = getRequestCode(cls.id, 1)
+                for (receiver in receivers) {
+                    val intent = Intent(context, receiver)
+                    val pi = PendingIntent.getBroadcast(
+                        context,
+                        reqCode,
+                        intent,
+                        PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    if (pi != null) {
+                        alarmManager.cancel(pi)
+                        pi.cancel()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
      * Schedules alarms for a timetable class using configurable user lead time.
      */
     fun scheduleClassAlarms(context: Context, item: ClassScheduleItem) {
@@ -214,6 +247,21 @@ object AlarmSyncManager {
 
     fun cancelOrderAlarms(context: Context, orderId: Long) {
         OrderAlarmScheduler.cancelOrderReminders(context, orderId)
+    }
+
+    /**
+     * Cancels all scheduled order deadline lead alerts.
+     */
+    fun cancelAllOrderLeadAlarms(context: Context) {
+        try {
+            val db = DatabaseHelper.getInstance(context)
+            val orders = db.getAllWorkOrders()
+            for (order in orders) {
+                cancelOrderAlarms(context, order.id)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**

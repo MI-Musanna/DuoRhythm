@@ -33,10 +33,13 @@ import com.duorhythm.app.scheduler.AlarmSyncManager
 import com.duorhythm.app.scheduler.BriefingAlarmScheduler
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.button.MaterialButton
+import android.widget.CheckBox
 import android.widget.TextView
 import java.util.Calendar
 import com.duorhythm.app.security.LifeSyncSecurityManager
 import com.duorhythm.app.worker.LocalBackupWorker
+import com.duorhythm.app.worker.AutoBackupWorker
 import com.duorhythm.app.service.ReminderManager
 import com.duorhythm.app.ui.common.PermissionRationaleDialogs
 import com.duorhythm.app.ui.tools.SystemInfoBottomSheetDialog
@@ -61,7 +64,13 @@ class SettingsActivity : AppCompatActivity() {
         uri?.let { destinationUri ->
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val backupJson = DataBackupHelper.generateSelectedProfilesBackupJson(selectedSlots, this@SettingsActivity)
+                    val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                    val includeAttachments = prefs.getBoolean("pref_backup_include_attachments", false)
+                    val backupJson = DataBackupHelper.generateSelectedProfilesBackupJson(
+                        selectedSlots,
+                        this@SettingsActivity,
+                        includeAttachments
+                    )
                     contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
                         outputStream.write(backupJson.toByteArray())
                     }
@@ -318,11 +327,16 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
+            val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
             if (!switchLeadActive.isChecked) {
                 if (isClassMode) {
                     AppPreferences.setClassLeadMinutes(this, 0)
+                    prefs.edit().putBoolean("pref_class_reminder_enabled", false).apply()
+                    AlarmSyncManager.cancelAllClassLeadAlarms(this)
                 } else {
                     AppPreferences.setOrderLeadHours(this, 0)
+                    prefs.edit().putBoolean("pref_order_reminder_enabled", false).apply()
+                    AlarmSyncManager.cancelAllOrderLeadAlarms(this)
                 }
                 refreshLeadTimesUI()
                 AlarmSyncManager.resyncAll(this)
@@ -341,9 +355,11 @@ class SettingsActivity : AppCompatActivity() {
 
             if (isClassMode) {
                 AppPreferences.setClassLeadMinutes(this, inputNum)
+                prefs.edit().putBoolean("pref_class_reminder_enabled", true).apply()
                 Toast.makeText(this, "Class reminder lead time set to $inputNum minutes", Toast.LENGTH_SHORT).show()
             } else {
                 AppPreferences.setOrderLeadHours(this, inputNum)
+                prefs.edit().putBoolean("pref_order_reminder_enabled", true).apply()
                 Toast.makeText(this, "Deadline alert set to $inputNum hours before", Toast.LENGTH_SHORT).show()
             }
 
@@ -401,72 +417,159 @@ class SettingsActivity : AppCompatActivity() {
         AnimationUtils.rotateChevron(chevronView, isExpanding)
     }
 
+    private val backupIntervalLabels = arrayOf(
+        "Every 6 Hours",
+        "Every 12 Hours",
+        "Every 24 Hours (Default)",
+        "Every 1 Week"
+    )
+    private val backupIntervalHours = intArrayOf(6, 12, 24, 168)
+
+    private fun getBackupIntervalLabel(hours: Int): String {
+        return when (hours) {
+            6 -> "Every 6 Hours"
+            12 -> "Every 12 Hours"
+            168 -> "Every 1 Week"
+            else -> "Every 24 Hours (Default)"
+        }
+    }
+
     private fun setupAutoBackup() {
+        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val isEnabled = prefs.getBoolean("pref_auto_backup_enabled", prefs.getBoolean(LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, false))
+        val savedHours = prefs.getInt("pref_auto_backup_interval_hours", 24)
+
+        binding.switchAutoBackup.isChecked = isEnabled
+        binding.layoutBackupFrequency.visibility = if (isEnabled) View.VISIBLE else View.GONE
+        binding.tvBackupInterval.text = getBackupIntervalLabel(savedHours)
+
         binding.switchAutoBackup.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
-            val prefs = getSharedPreferences(LocalBackupWorker.PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit().putBoolean(LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, isChecked).apply()
+            prefs.edit()
+                .putBoolean("pref_auto_backup_enabled", isChecked)
+                .putBoolean(LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, isChecked)
+                .apply()
 
             TransitionManager.beginDelayedTransition(binding.layoutSettingsRoot)
-            binding.layoutAutoBackupInterval.visibility = if (isChecked) View.VISIBLE else View.GONE
-
-            val selectedInterval = when (binding.toggleAutoBackupInterval.checkedButtonId) {
-                R.id.btnBackupWeekly -> "WEEKLY"
-                R.id.btnBackupMonthly -> "MONTHLY"
-                else -> "DAILY"
-            }
+            binding.layoutBackupFrequency.visibility = if (isChecked) View.VISIBLE else View.GONE
 
             if (isChecked) {
-                LocalBackupWorker.schedule(this, selectedInterval)
-                Toast.makeText(this, "Automatic local backup scheduled ($selectedInterval)", Toast.LENGTH_SHORT).show()
+                val currentHours = prefs.getInt("pref_auto_backup_interval_hours", 24)
+                AutoBackupWorker.schedulePeriodicBackup(this, currentHours)
+                Toast.makeText(this, "Automatic local backup scheduled (${getBackupIntervalLabel(currentHours)})", Toast.LENGTH_SHORT).show()
             } else {
-                LocalBackupWorker.cancel(this)
+                AutoBackupWorker.cancel(this)
                 Toast.makeText(this, "Automatic local backup disabled", Toast.LENGTH_SHORT).show()
             }
         }
 
-        binding.toggleAutoBackupInterval.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isHydratingUI || !isChecked) return@addOnButtonCheckedListener
-            val newInterval = when (checkedId) {
-                R.id.btnBackupWeekly -> "WEEKLY"
-                R.id.btnBackupMonthly -> "MONTHLY"
-                else -> "DAILY"
-            }
-            val prefs = getSharedPreferences(LocalBackupWorker.PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit().putString(LocalBackupWorker.KEY_AUTO_BACKUP_INTERVAL, newInterval).apply()
-            if (binding.switchAutoBackup.isChecked) {
-                LocalBackupWorker.schedule(this, newInterval)
-                Toast.makeText(this, "Auto-backup interval set to $newInterval", Toast.LENGTH_SHORT).show()
-            }
+        binding.layoutBackupFrequency.setOnClickListener {
+            showBackupIntervalDialog()
         }
 
         syncAutoBackupState()
     }
 
+    private fun showBackupIntervalDialog() {
+        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val currentHours = prefs.getInt("pref_auto_backup_interval_hours", 24)
+        val selectedIndex = backupIntervalHours.indexOf(currentHours).let { if (it >= 0) it else 2 }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Backup Frequency Interval")
+            .setSingleChoiceItems(backupIntervalLabels, selectedIndex) { dialog, which ->
+                if (which in backupIntervalHours.indices) {
+                    val chosenHours = backupIntervalHours[which]
+                    prefs.edit()
+                        .putInt("pref_auto_backup_interval_hours", chosenHours)
+                        .apply()
+                    binding.tvBackupInterval.text = backupIntervalLabels[which]
+                    if (binding.switchAutoBackup.isChecked) {
+                        AutoBackupWorker.schedulePeriodicBackup(this, chosenHours)
+                    }
+                    Toast.makeText(this, "Auto-backup interval set to ${backupIntervalLabels[which]}", Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun syncAutoBackupState() {
-        val prefs = getSharedPreferences(LocalBackupWorker.PREFS_NAME, Context.MODE_PRIVATE)
-        val isEnabled = prefs.getBoolean(LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, false)
-        val interval = prefs.getString(LocalBackupWorker.KEY_AUTO_BACKUP_INTERVAL, "DAILY") ?: "DAILY"
+        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val isEnabled = prefs.getBoolean("pref_auto_backup_enabled", prefs.getBoolean(LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, false))
+        val intervalHours = prefs.getInt("pref_auto_backup_interval_hours", 24)
 
         binding.switchAutoBackup.isChecked = isEnabled
-        binding.layoutAutoBackupInterval.visibility = if (isEnabled) View.VISIBLE else View.GONE
+        binding.layoutBackupFrequency.visibility = if (isEnabled) View.VISIBLE else View.GONE
+        binding.tvBackupInterval.text = getBackupIntervalLabel(intervalHours)
+    }
 
-        val targetBtnId = when (interval.uppercase(Locale.US)) {
-            "WEEKLY" -> R.id.btnBackupWeekly
-            "MONTHLY" -> R.id.btnBackupMonthly
-            else -> R.id.btnBackupDaily
+    private fun showBackupProfilesDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_backup_profiles, null)
+        val cbSlot1 = dialogView.findViewById<CheckBox>(R.id.cbProfileSlot1)
+        val cbSlot2 = dialogView.findViewById<CheckBox>(R.id.cbProfileSlot2)
+        val cbSlot3 = dialogView.findViewById<CheckBox>(R.id.cbProfileSlot3)
+        val switchInclude = dialogView.findViewById<SwitchMaterial>(R.id.switchIncludeAttachments)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnCancelBackupDialog)
+        val btnConfirm = dialogView.findViewById<MaterialButton>(R.id.btnConfirmExportBackup)
+
+        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val includeAttachments = prefs.getBoolean("pref_backup_include_attachments", false)
+        switchInclude.isChecked = includeAttachments
+
+        val profiles = try { dbHelper.getAllProfiles() } catch (_: Exception) { emptyList() }
+        val p1 = profiles.firstOrNull { it.id == 1L }
+        val p2 = profiles.firstOrNull { it.id == 2L }
+        val p3 = profiles.firstOrNull { it.id == 3L }
+        if (p1 != null) cbSlot1.text = "${p1.name} (Slot 1)"
+        if (p2 != null) cbSlot2.text = "${p2.name} (Slot 2)"
+        if (p3 != null) cbSlot3.text = "${p3.name} (Slot 3)"
+
+        cbSlot1.isChecked = selectedSlots.contains(1)
+        cbSlot2.isChecked = selectedSlots.contains(2)
+        cbSlot3.isChecked = selectedSlots.contains(3)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
         }
-        if (binding.toggleAutoBackupInterval.checkedButtonId != targetBtnId) {
-            binding.toggleAutoBackupInterval.check(targetBtnId)
+
+        btnConfirm.setOnClickListener {
+            val chosen = mutableListOf<Int>()
+            if (cbSlot1.isChecked) chosen.add(1)
+            if (cbSlot2.isChecked) chosen.add(2)
+            if (cbSlot3.isChecked) chosen.add(3)
+
+            if (chosen.isEmpty()) {
+                Toast.makeText(this, "Please select at least one workspace profile", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val shouldInclude = switchInclude.isChecked
+            prefs.edit().putBoolean("pref_backup_include_attachments", shouldInclude).apply()
+            binding.switchIncludeAttachments.isChecked = shouldInclude
+            selectedSlots = chosen
+
+            dialog.dismiss()
+
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val defaultFileName = "DuoRhythm_Backup_$timeStamp.json"
+            exportBackupLauncher.launch(defaultFileName)
         }
+
+        dialog.show()
     }
 
     private fun setupListeners() {
         // --- 1. Streamlined Data Backup & Restore Hub ---
         binding.btnExportBackup.setOnClickListener {
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val defaultFileName = "DuoRhythm_Backup_$timeStamp.json"
-            exportBackupLauncher.launch(defaultFileName)
+            showBackupProfilesDialog()
         }
 
         binding.btnImportBackup.setOnClickListener {
@@ -599,6 +702,15 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun syncSwitchStates() {
+        // Include Attachments in Backup
+        val backupPrefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        binding.switchIncludeAttachments.setOnCheckedChangeListener(null)
+        binding.switchIncludeAttachments.isChecked = backupPrefs.getBoolean("pref_backup_include_attachments", false)
+        binding.switchIncludeAttachments.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            backupPrefs.edit().putBoolean("pref_backup_include_attachments", isChecked).apply()
+        }
+
         // Wallet Biometric Lock
         binding.switchWalletBiometric.setOnCheckedChangeListener(null)
         binding.switchWalletBiometric.isChecked = AppPreferences.isWalletBiometricLocked(this)

@@ -156,6 +156,7 @@ data class StudentSubject(
 ) {
     val teacher: String get() = instructorName
     val instructor: String get() = instructorName
+    val teacherName: String get() = instructorName
 }
 
 typealias SubjectEntity = StudentSubject
@@ -191,7 +192,9 @@ data class SubjectWorkItem(
     val scoreOrMarks: String = "",
     val status: String = "PENDING", // "PENDING", "DONE"
     val attachmentPath: String = "",
-    val examType: String = "" // "SEMESTER_FINAL", "MIDTERM", "CLASS_TEST_QUIZ"
+    val examType: String = "", // "SEMESTER_FINAL", "MIDTERM", "CLASS_TEST_QUIZ"
+    val attachmentUri: String? = null,
+    val attachmentName: String? = null
 ) {
     fun getDaysRemaining(): Long {
         return try {

@@ -228,7 +228,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 score_or_marks TEXT DEFAULT '',
                 status TEXT DEFAULT 'PENDING',
                 attachment_path TEXT DEFAULT '',
-                exam_type TEXT DEFAULT ''
+                exam_type TEXT DEFAULT '',
+                attachment_uri TEXT DEFAULT '',
+                attachment_name TEXT DEFAULT ''
             )"""
         )
 
@@ -546,6 +548,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureColumnExists(db, "student_subjects", "syllabus_text", "TEXT DEFAULT ''")
         ensureColumnExists(db, "student_subjects", "syllabus_path", "TEXT DEFAULT ''")
         ensureColumnExists(db, "subject_work_items", "exam_type", "TEXT DEFAULT ''")
+        ensureColumnExists(db, "subject_work_items", "attachment_uri", "TEXT DEFAULT ''")
+        ensureColumnExists(db, "subject_work_items", "attachment_name", "TEXT DEFAULT ''")
         ensureColumnExists(db, "contacts_groups", "phone_number", "TEXT DEFAULT ''")
         ensureColumnExists(db, "contacts_groups", "role", "TEXT DEFAULT 'Classmate'")
         ensureColumnExists(db, "contacts_groups", "scope", "TEXT DEFAULT 'SHARED'")
@@ -3539,6 +3543,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val cursor = db.rawQuery(query, args)
         cursor.use {
             val examTypeIdx = it.getColumnIndex("exam_type")
+            val attachUriIdx = it.getColumnIndex("attachment_uri")
+            val attachNameIdx = it.getColumnIndex("attachment_name")
             val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
                 val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
@@ -3555,7 +3561,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
                         status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
                         attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
-                        examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else ""
+                        examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else "",
+                        attachmentUri = if (attachUriIdx >= 0) it.getString(attachUriIdx) else null,
+                        attachmentName = if (attachNameIdx >= 0) it.getString(attachNameIdx) else null
                     )
                 )
             }
@@ -3576,6 +3584,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val cursor = db.rawQuery(query, args)
         cursor.use {
             val examTypeIdx = it.getColumnIndex("exam_type")
+            val attachUriIdx = it.getColumnIndex("attachment_uri")
+            val attachNameIdx = it.getColumnIndex("attachment_name")
             val pIdCol = it.getColumnIndex("profile_id")
             while (it.moveToNext()) {
                 val subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id"))
@@ -3593,7 +3603,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
                     status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
                     attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
-                    examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else ""
+                    examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else "",
+                    attachmentUri = if (attachUriIdx >= 0) it.getString(attachUriIdx) else null,
+                    attachmentName = if (attachNameIdx >= 0) it.getString(attachNameIdx) else null
                 )
                 list.add(Pair(item, subject))
             }
@@ -3694,6 +3706,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("status", item.status)
             put("attachment_path", item.attachmentPath)
             put("exam_type", item.examType)
+            put("attachment_uri", item.attachmentUri ?: "")
+            put("attachment_name", item.attachmentName ?: "")
         }
         return db.insertWithOnConflict("subject_work_items", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
@@ -3717,6 +3731,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("status", item.status)
             put("attachment_path", item.attachmentPath)
             put("exam_type", item.examType)
+            put("attachment_uri", item.attachmentUri ?: "")
+            put("attachment_name", item.attachmentName ?: "")
         }
         return db.update("subject_work_items", cv, "id = ?", arrayOf(item.id.toString()))
     }

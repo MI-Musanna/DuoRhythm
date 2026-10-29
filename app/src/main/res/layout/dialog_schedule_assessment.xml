@@ -198,6 +198,59 @@
                 android:textColorHint="?android:attr/textColorSecondary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Attachment Row -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAttachAssessmentFile"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:text="📎 Attach Material / PDF / Image"
+            android:textColor="#38BDF8"
+            app:cornerRadius="10dp"
+            app:strokeColor="#38BDF8" />
+
+        <!-- Preview Layout (Visibility GONE by default) -->
+        <LinearLayout
+            android:id="@+id/layoutAttachmentPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_glass_squircle_action"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_file"
+                app:tint="#38BDF8" />
+
+            <TextView
+                android:id="@+id/tvAttachmentFileName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnRemoveAttachment"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Remove Attachment"
+                android:src="@drawable/ic_close"
+                app:tint="#EF4444" />
+        </LinearLayout>
+
         <!-- Save Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveAssessment"

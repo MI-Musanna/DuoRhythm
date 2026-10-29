@@ -104,10 +104,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
-            val backupPrefs = getSharedPreferences(com.duorhythm.app.worker.LocalBackupWorker.PREFS_NAME, Context.MODE_PRIVATE)
-            if (backupPrefs.getBoolean(com.duorhythm.app.worker.LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, false)) {
-                val backupInterval = backupPrefs.getString(com.duorhythm.app.worker.LocalBackupWorker.KEY_AUTO_BACKUP_INTERVAL, "DAILY") ?: "DAILY"
-                com.duorhythm.app.worker.LocalBackupWorker.schedule(this, backupInterval)
+            val backupPrefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+            if (backupPrefs.getBoolean("pref_auto_backup_enabled", backupPrefs.getBoolean(com.duorhythm.app.worker.LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, false))) {
+                val intervalHours = backupPrefs.getInt("pref_auto_backup_interval_hours", 24)
+                com.duorhythm.app.worker.AutoBackupWorker.schedulePeriodicBackup(this, intervalHours)
             }
         } catch (t: Throwable) {
             t.printStackTrace()

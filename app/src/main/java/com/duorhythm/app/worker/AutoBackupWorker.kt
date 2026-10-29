@@ -8,6 +8,7 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.repository.BackupService
+import com.duorhythm.app.data.repository.DataBackupHelper
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -26,32 +27,40 @@ class AutoBackupWorker(
     }
 
     companion object {
-        const val UNIQUE_WORK_NAME = "DuoRhythm_AutoBackupWorker"
+        const val UNIQUE_WORK_NAME = "DUORHYTHM_AUTO_BACKUP"
         const val PREFS_NAME = "lifesync_prefs"
-        const val KEY_AUTO_BACKUP_ENABLED = "key_local_auto_backup_enabled"
-        const val KEY_AUTO_BACKUP_INTERVAL = "key_local_auto_backup_interval"
+        const val KEY_AUTO_BACKUP_ENABLED = "pref_auto_backup_enabled"
+        const val KEY_AUTO_BACKUP_INTERVAL_HOURS = "pref_auto_backup_interval_hours"
+        const val KEY_BACKUP_INCLUDE_ATTACHMENTS = "pref_backup_include_attachments"
 
         fun performAutoBackup(context: Context): Boolean {
             return try {
-                val db = DatabaseHelper.getInstance(context)
-                val json = db.exportDatabaseToJson()
+                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val includeAttachments = prefs.getBoolean(KEY_BACKUP_INCLUDE_ATTACHMENTS, false)
 
-                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
+                val db = DatabaseHelper.getInstance(context)
+                val profiles = db.getAllProfiles()
+                val allActiveSlots = if (profiles.isNotEmpty()) profiles.map { it.id.toInt() } else listOf(1, 2, 3)
+
+                val jsonPayload = DataBackupHelper.generateSelectedProfilesBackupJson(
+                    allActiveSlots,
+                    context,
+                    includeAttachments
+                )
+
+                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
                 val fileName = "DuoRhythm_AutoBackup_$timeStamp.json"
 
-                // Safely write internal snapshots using app-scoped storage: File(context.filesDir, "backups")
-                val backupDir = File(context.filesDir, "backups")
-                if (!backupDir.exists()) {
-                    backupDir.mkdirs()
-                }
+                val baseDir = context.getExternalFilesDir(null) ?: context.filesDir
+                val backupDir = File(baseDir, "AutoBackups").apply { mkdirs() }
 
                 val backupFile = File(backupDir, fileName)
                 FileOutputStream(backupFile).use { out ->
-                    out.write(json.toByteArray(Charsets.UTF_8))
+                    out.write(jsonPayload.toByteArray(Charsets.UTF_8))
                     out.flush()
                 }
 
-                // Rotate snapshots safely without throwing I/O exceptions on restricted devices
+                // Strictly retain the latest 3 JSON files
                 pruneOldBackups(backupDir, maxKeep = 3)
 
                 val displayTime = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
@@ -65,8 +74,9 @@ class AutoBackupWorker(
 
         private fun pruneOldBackups(dir: File, maxKeep: Int = 3) {
             try {
-                val files = dir.listFiles { f -> f.isFile && f.name.startsWith("DuoRhythm_AutoBackup_") && f.name.endsWith(".json") }
-                    ?: return
+                val files = dir.listFiles { f ->
+                    f.isFile && f.name.startsWith("DuoRhythm_AutoBackup_") && f.name.endsWith(".json")
+                } ?: return
                 if (files.size > maxKeep) {
                     files.sortBy { it.lastModified() }
                     val deleteCount = files.size - maxKeep
@@ -79,25 +89,30 @@ class AutoBackupWorker(
             } catch (_: Exception) {}
         }
 
-        fun schedule(context: Context, interval: String = "DAILY") {
-            val (repeatInterval, timeUnit) = when (interval.uppercase(Locale.US)) {
-                "WEEKLY" -> Pair(7L, TimeUnit.DAYS)
-                "MONTHLY" -> Pair(30L, TimeUnit.DAYS)
-                else -> Pair(1L, TimeUnit.DAYS)
-            }
-
-            val workRequest = PeriodicWorkRequestBuilder<AutoBackupWorker>(repeatInterval, timeUnit)
+        fun schedulePeriodicBackup(context: Context, intervalHours: Int) {
+            val safeHours = if (intervalHours > 0) intervalHours else 24
+            val request = PeriodicWorkRequestBuilder<AutoBackupWorker>(safeHours.toLong(), TimeUnit.HOURS)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 UNIQUE_WORK_NAME,
                 ExistingPeriodicWorkPolicy.UPDATE,
-                workRequest
+                request
             )
         }
 
         fun cancel(context: Context) {
             WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK_NAME)
+        }
+
+        @Deprecated("Use schedulePeriodicBackup with intervalHours instead")
+        fun schedule(context: Context, interval: String = "DAILY") {
+            val hours = when (interval.uppercase(Locale.US)) {
+                "WEEKLY" -> 168
+                "MONTHLY" -> 720
+                else -> 24
+            }
+            schedulePeriodicBackup(context, hours)
         }
     }
 }

@@ -1128,6 +1128,43 @@
                                 app:strokeColor="@color/primary" />
                         </LinearLayout>
 
+                        <!-- Include Attachments in Backup Toggle -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Include Attached Files in Backup"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Embed assessment PDFs and images directly inside the JSON export"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchIncludeAttachments"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
                         <!-- Divider for Auto-Backup Section -->
                         <View
                             android:layout_width="match_parent"
@@ -1173,71 +1210,48 @@
 
                         <!-- Backup Frequency Interval Selector -->
                         <LinearLayout
-                            android:id="@+id/layoutAutoBackupInterval"
+                            android:id="@+id/layoutBackupFrequency"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:orientation="vertical"
+                            android:layout_marginTop="12dp"
+                            android:background="@drawable/bg_chip_surface"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="10dp"
                             android:visibility="gone">
 
-                            <TextView
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="Backup Frequency Interval"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
+                                android:layout_weight="1"
+                                android:orientation="vertical">
 
-                            <com.google.android.material.button.MaterialButtonToggleGroup
-                                android:id="@+id/toggleAutoBackupInterval"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="6dp"
-                                app:selectionRequired="true"
-                                app:singleSelection="true">
-
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/btnBackupDaily"
-                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                    android:layout_width="0dp"
-                                    android:layout_height="38dp"
-                                    android:layout_weight="1"
-                                    android:insetTop="0dp"
-                                    android:insetBottom="0dp"
-                                    android:text="Daily"
-                                    android:textAllCaps="false"
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Backup Frequency Interval"
                                     android:textColor="@color/text_primary"
-                                    android:textSize="12sp"
-                                    app:strokeColor="@color/card_stroke" />
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
 
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/btnBackupWeekly"
-                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                    android:layout_width="0dp"
-                                    android:layout_height="38dp"
-                                    android:layout_weight="1"
-                                    android:insetTop="0dp"
-                                    android:insetBottom="0dp"
-                                    android:text="Weekly"
-                                    android:textAllCaps="false"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="12sp"
-                                    app:strokeColor="@color/card_stroke" />
+                                <TextView
+                                    android:id="@+id/tvBackupInterval"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Every 24 Hours (Default)"
+                                    android:textColor="@color/primary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
 
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/btnBackupMonthly"
-                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                    android:layout_width="0dp"
-                                    android:layout_height="38dp"
-                                    android:layout_weight="1"
-                                    android:insetTop="0dp"
-                                    android:insetBottom="0dp"
-                                    android:text="Monthly"
-                                    android:textAllCaps="false"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="12sp"
-                                    app:strokeColor="@color/card_stroke" />
-                            </com.google.android.material.button.MaterialButtonToggleGroup>
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_secondary" />
                         </LinearLayout>
 
                     </LinearLayout>
