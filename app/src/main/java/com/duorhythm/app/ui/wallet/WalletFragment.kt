@@ -817,13 +817,9 @@ class WalletFragment : Fragment() {
     }
 
     private fun showSubscriptionManager() {
-        SubscriptionManagerDialog(
-            requireContext(),
-            currentSymbol,
-            currentRate
-        ) {
-            loadData()
-        }.show()
+        RecurringSubscriptionsBottomSheet.newInstance(currentSymbol, currentRate).apply {
+            onDataChangedListener = { loadData() }
+        }.show(childFragmentManager, "RecurringSubscriptionsBottomSheet")
     }
 
     private fun showDuesDebtsTracker() {

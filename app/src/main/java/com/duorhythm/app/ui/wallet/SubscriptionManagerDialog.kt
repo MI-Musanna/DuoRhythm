@@ -191,7 +191,7 @@ class SubscriptionManagerDialog(
 
         // Fetch accounts for payment source
         val accounts = dbHelper.accountDao.getAccounts(profileId)
-        val sourceOptions = mutableListOf("None / External (Third-Party / Direct)")
+        val sourceOptions = mutableListOf("None / External (Third-Party)")
         sourceOptions.addAll(accounts.map { it.name })
 
         val sourceAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, sourceOptions)

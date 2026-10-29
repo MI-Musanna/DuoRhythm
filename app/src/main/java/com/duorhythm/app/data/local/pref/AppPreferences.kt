@@ -125,4 +125,27 @@ object AppPreferences {
             else -> "24h & 2h before (Default)"
         }
     }
+
+    const val KEY_MISSIONS_COLLAPSED = "pref_missions_collapsed"
+    const val KEY_NOTES_COLLAPSED = "pref_notes_collapsed"
+
+    fun isMissionsCollapsed(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_MISSIONS_COLLAPSED, false)
+    }
+
+    fun setMissionsCollapsed(context: Context, collapsed: Boolean) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_MISSIONS_COLLAPSED, collapsed).apply()
+    }
+
+    fun isNotesCollapsed(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_NOTES_COLLAPSED, false)
+    }
+
+    fun setNotesCollapsed(context: Context, collapsed: Boolean) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_NOTES_COLLAPSED, collapsed).apply()
+    }
 }

@@ -21,6 +21,11 @@ class SubscriptionsAdapter(
     private val onMarkPaidClick: (SubscriptionEntity) -> Unit
 ) : RecyclerView.Adapter<SubscriptionsAdapter.ViewHolder>() {
 
+    fun submitList(list: List<SubscriptionEntity>) {
+        subscriptions = list
+        notifyDataSetChanged()
+    }
+
     fun updateData(newList: List<SubscriptionEntity>, symbol: String, rate: Double) {
         subscriptions = newList
         currencySymbol = symbol

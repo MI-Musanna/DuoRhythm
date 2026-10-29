@@ -33,6 +33,10 @@ import com.duorhythm.app.util.BlurUtil
 import com.duorhythm.app.util.AnimationUtils
 import android.content.Context
 import android.content.Intent
+import android.transition.AutoTransition
+import android.transition.TransitionManager
+import android.widget.ImageView
+import com.duorhythm.app.data.local.pref.AppPreferences
 import com.duorhythm.app.ui.profile.ProfileActivity
 import com.duorhythm.app.ui.profile.ProfileSwitcherDialog
 import java.text.NumberFormat
@@ -51,6 +55,17 @@ class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private var currentWorkOrderIndex = 0
     private var activeWorkOrders = listOf<com.duorhythm.app.data.model.WorkOrder>()
+
+    private var isMissionsCollapsed = false
+    private var isNotesCollapsed = false
+
+    fun setSectionCollapsed(viewToHide: View, chevron: ImageView, isCollapsed: Boolean, animate: Boolean) {
+        if (animate && _binding != null) {
+            TransitionManager.beginDelayedTransition(binding.rootLayout, AutoTransition().apply { duration = 180 })
+        }
+        viewToHide.visibility = if (isCollapsed) View.GONE else View.VISIBLE
+        chevron.animate().rotation(if (isCollapsed) -90f else 0f).setDuration(180).start()
+    }
 
     private val walletSyncListener: () -> Unit = {
         activity?.runOnUiThread {
@@ -116,6 +131,13 @@ class HomeFragment : Fragment() {
             setupBlurEffects()
             loadUserProfile()
             setupGreetingAndDate()
+
+            val prefs = requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+            isMissionsCollapsed = prefs.getBoolean("pref_missions_collapsed", false)
+            isNotesCollapsed = prefs.getBoolean("pref_notes_collapsed", false)
+            setSectionCollapsed(binding.layoutMissionsContent, binding.ivChevronMissions, isMissionsCollapsed, animate = false)
+            setSectionCollapsed(binding.layoutNotesContent, binding.ivChevronNotes, isNotesCollapsed, animate = false)
+
             setupListeners()
             loadDashboardData()
         } catch (e: Throwable) {
@@ -245,7 +267,7 @@ class HomeFragment : Fragment() {
     private fun updateToggleStyle(isStudent: Boolean) {
         try {
             android.transition.TransitionManager.beginDelayedTransition(
-                binding.homeContainer,
+                binding.rootLayout,
                 android.transition.AutoTransition().apply { duration = 180 }
             )
             val persona = if (isStudent) PersonaMode.STUDENT else PersonaMode.WORK
@@ -317,6 +339,18 @@ class HomeFragment : Fragment() {
 
             binding.cardHomeTasks.setOnClickListener {
                 mainActivity?.selectNavTab(R.id.menu_tasks)
+            }
+
+            val prefs = requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+            binding.btnToggleMissions.setOnClickListener {
+                isMissionsCollapsed = !isMissionsCollapsed
+                prefs.edit().putBoolean("pref_missions_collapsed", isMissionsCollapsed).apply()
+                setSectionCollapsed(binding.layoutMissionsContent, binding.ivChevronMissions, isMissionsCollapsed, animate = true)
+            }
+            binding.btnToggleNotes.setOnClickListener {
+                isNotesCollapsed = !isNotesCollapsed
+                prefs.edit().putBoolean("pref_notes_collapsed", isNotesCollapsed).apply()
+                setSectionCollapsed(binding.layoutNotesContent, binding.ivChevronNotes, isNotesCollapsed, animate = true)
             }
 
             binding.cardHomePortal.setOnClickListener {

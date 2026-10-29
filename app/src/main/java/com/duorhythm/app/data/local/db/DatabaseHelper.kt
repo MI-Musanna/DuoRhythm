@@ -2817,7 +2817,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 return list
             }
 
-            private val subscriptionUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+            private val subscriptionUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
 
             override fun getSubscriptionsFlow(profileId: Long): kotlinx.coroutines.flow.Flow<List<database.entities.SubscriptionEntity>> = kotlinx.coroutines.flow.flow {
                 emit(getSubscriptions(profileId))

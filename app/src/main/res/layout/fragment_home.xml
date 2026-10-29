@@ -11,7 +11,7 @@
     android:background="@drawable/bg_ambient_canvas">
 
     <LinearLayout
-        android:id="@+id/homeContainer"
+        android:id="@+id/rootLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:animateLayoutChanges="true"
@@ -571,8 +571,12 @@
                     android:padding="12dp">
 
                     <LinearLayout
+                        android:id="@+id/btnToggleMissions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -590,16 +594,25 @@
                         </FrameLayout>
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
+                            android:layout_weight="1"
                             android:text="Missions"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"
                             android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/ivChevronMissions"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_chevron_down"
+                            app:tint="#00E5FF" />
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/layoutMissionsContent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
@@ -765,8 +778,12 @@
 
                 <!-- Header Row -->
                 <LinearLayout
+                    android:id="@+id/btnToggleNotes"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -786,6 +803,14 @@
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
+                    <ImageView
+                        android:id="@+id/ivChevronNotes"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/ic_chevron_down"
+                        app:tint="#00E5FF" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnHomeAddNote"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -803,55 +828,63 @@
                         android:background="@drawable/bg_action_pill_cyan" />
                 </LinearLayout>
 
-                <!-- RecyclerView for Notes (Horizontal scroll wrapped in NestedScrollableHost) -->
-                <com.duorhythm.app.ui.common.NestedScrollableHost
+                <!-- Collapsible Notes Content Container -->
+                <LinearLayout
+                    android:id="@+id/layoutNotesContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp">
+                    android:orientation="vertical">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvHomeQuickNotes"
+                    <!-- RecyclerView for Notes (Horizontal scroll wrapped in NestedScrollableHost) -->
+                    <com.duorhythm.app.ui.common.NestedScrollableHost
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        android:clipToPadding="false"
-                        android:orientation="horizontal"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        tools:listitem="@layout/item_quick_note_home" />
-                </com.duorhythm.app.ui.common.NestedScrollableHost>
+                        android:layout_marginTop="12dp">
 
-                <!-- Empty State -->
-                <TextView
-                    android:id="@+id/tvEmptyHomeQuickNotes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_scratchpad_field"
-                    android:padding="14dp"
-                    android:text="Tap + Quick Note to jot down lecture formulas, ideas, or quick memos."
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"
-                    android:visibility="gone" />
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvHomeQuickNotes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:nestedScrollingEnabled="false"
+                            android:clipToPadding="false"
+                            android:orientation="horizontal"
+                            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                            tools:listitem="@layout/item_quick_note_home" />
+                    </com.duorhythm.app.ui.common.NestedScrollableHost>
 
-                <!-- Bounded Scratchpad Preview -->
-                <androidx.core.widget.NestedScrollView
-                    android:id="@+id/scrollScratchpadPreview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:maxHeight="120dp"
-                    android:scrollbars="vertical"
-                    android:overScrollMode="ifContentScrolls">
-
+                    <!-- Empty State -->
                     <TextView
-                        android:id="@+id/tvScratchpadPreview"
+                        android:id="@+id/tvEmptyHomeQuickNotes"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:maxLines="6"
-                        android:ellipsize="end"
-                        android:textColor="#CBD5E1"
-                        android:textSize="13sp" />
-                </androidx.core.widget.NestedScrollView>
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_scratchpad_field"
+                        android:padding="14dp"
+                        android:text="Tap + Quick Note to jot down lecture formulas, ideas, or quick memos."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
+                    <!-- Bounded Scratchpad Preview -->
+                    <androidx.core.widget.NestedScrollView
+                        android:id="@+id/scrollScratchpadPreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:maxHeight="120dp"
+                        android:scrollbars="vertical"
+                        android:overScrollMode="ifContentScrolls">
+
+                        <TextView
+                            android:id="@+id/tvScratchpadPreview"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:maxLines="6"
+                            android:ellipsize="end"
+                            android:textColor="#CBD5E1"
+                            android:textSize="13sp" />
+                    </androidx.core.widget.NestedScrollView>
+                </LinearLayout>
             </LinearLayout>
         </eightbitlab.com.blurview.BlurView>
 

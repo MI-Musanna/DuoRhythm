@@ -10,6 +10,7 @@ import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.scheduler.SubscriptionAlarmScheduler
+import com.duorhythm.app.util.DateRollValidator
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -39,19 +40,8 @@ class SubscriptionAlarmReceiver : BroadcastReceiver() {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
 
         for (sub in activeSubs) {
-            // If already settled this month, skip
-            if (sub.lastPaidMonthYear == currentMonthYear) {
-                continue
-            }
-
-            // Check if due today
-            val isDueToday = if (sub.isRange) {
-                currentDay in sub.startDay..sub.endDay
-            } else {
-                currentDay == sub.dueDay
-            }
-
-            if (!isDueToday) {
+            // Check if due today with safe monthly date-roll clamping
+            if (!DateRollValidator.isDueToday(sub, cal)) {
                 continue
             }
 
@@ -62,9 +52,9 @@ class SubscriptionAlarmReceiver : BroadcastReceiver() {
             }
 
             val dueDesc = if (sub.isRange) {
-                "Window: Day ${sub.startDay} - ${sub.endDay}"
+                "Window: Day ${DateRollValidator.getClampedDay(sub.startDay, cal)} - ${DateRollValidator.getClampedDay(sub.endDay, cal)}"
             } else {
-                "Due today (Day ${sub.dueDay})"
+                "Due today (Day ${DateRollValidator.getClampedDay(sub.dueDay, cal)})"
             }
 
             // Action Intent: Mark as Paid

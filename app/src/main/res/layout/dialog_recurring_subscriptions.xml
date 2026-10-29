@@ -38,11 +38,11 @@
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvSubManagerSummary"
+                    android:id="@+id/tvHeaderSubtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Total Projected: ৳3,150 / mo • 3 Active"
+                    android:text="Total Projected: ৳0 / mo • 0 Tracked"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -65,15 +65,15 @@
 
         <!-- Subscriptions List -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvManagerSubscriptions"
+            android:id="@+id/rvSubscriptions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:nestedScrollingEnabled="false"
-            tools:listitem="@layout/item_subscription" />
+            tools:listitem="@layout/item_subscription_card" />
 
         <TextView
-            android:id="@+id/tvEmptySubscriptions"
+            android:id="@+id/tvEmptyState"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"

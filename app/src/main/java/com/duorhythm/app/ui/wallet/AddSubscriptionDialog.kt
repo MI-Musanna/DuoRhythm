@@ -36,7 +36,7 @@ class AddSubscriptionDialog(
         binding.spSubCurrency.adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, currencies)
 
         val accounts = dbHelper.accountDao.getAccounts(activeProfileId)
-        val sourceOptions = mutableListOf("None / External (Third-Party / Direct)")
+        val sourceOptions = mutableListOf("None / External (Third-Party)")
         sourceOptions.addAll(accounts.map { it.name })
         binding.spnPaymentSource.adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, sourceOptions)
 
