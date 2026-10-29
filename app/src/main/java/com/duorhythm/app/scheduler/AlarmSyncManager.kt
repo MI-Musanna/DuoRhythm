@@ -226,8 +226,8 @@ object AlarmSyncManager {
             return
         }
 
-        val mode = AppPreferences.getOrderLeadMode(context)
-        if (mode.equals("DISABLED", ignoreCase = true)) {
+        val leadHours = AppPreferences.getOrderLeadHours(context)
+        if (leadHours <= 0) {
             return
         }
 
@@ -269,19 +269,7 @@ object AlarmSyncManager {
             }
         }
 
-        when (mode) {
-            "24_2" -> {
-                scheduleInterval(24, (600000 + (order.id % 50000) * 2).toInt())
-                scheduleInterval(2, (600000 + (order.id % 50000) * 2 + 1).toInt())
-            }
-            "12_1" -> {
-                scheduleInterval(12, (600000 + (order.id % 50000) * 2).toInt())
-                scheduleInterval(1, (600000 + (order.id % 50000) * 2 + 1).toInt())
-            }
-            "2" -> {
-                scheduleInterval(2, (600000 + (order.id % 50000) * 2 + 1).toInt())
-            }
-        }
+        scheduleInterval(leadHours, (600000 + (order.id % 50000) * 2).toInt())
     }
 
     /**

@@ -28,6 +28,8 @@ import com.duorhythm.app.data.model.WalletBucketItem
 import com.duorhythm.app.databinding.DialogAddBucketBinding
 import com.duorhythm.app.databinding.DialogAddTransactionBinding
 import com.duorhythm.app.databinding.FragmentWalletBinding
+import com.duorhythm.app.MainActivity
+import com.duorhythm.app.data.local.pref.AppPreferences
 import com.duorhythm.app.security.LifeSyncSecurityManager
 import com.duorhythm.app.ui.common.AppIconRegistry
 import com.duorhythm.app.ui.common.ColorPickerHelper
@@ -99,17 +101,41 @@ class WalletFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (_binding != null) {
-            try {
-                loadData()
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
+            checkWalletBiometricLock()
         }
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden && _binding != null) {
+            checkWalletBiometricLock()
+        }
+    }
+
+    private fun checkWalletBiometricLock() {
+        val ctx = context ?: return
+        val isBiometricLocked = AppPreferences.isWalletBiometricLocked(ctx)
+        if (isBiometricLocked && !WalletSessionManager.isWalletUnlockedForSession) {
+            binding.layoutWalletLocked.visibility = View.VISIBLE
+            binding.layoutZeroState.visibility = View.GONE
+            binding.layoutActiveDashboard.visibility = View.GONE
+            binding.tvTotalBalance.text = "••••••"
+            binding.tvAccountsSummary.text = "••••••"
+
+            LifeSyncSecurityManager.authenticate(
+                requireActivity(),
+                title = "Unlock DuoRhythm Wallet",
+                subtitle = "Authenticate to access financial buckets & balances",
+                onSuccess = {
+                    WalletSessionManager.isWalletUnlockedForSession = true
+                    LifeSyncSecurityManager.setSessionUnlocked(true)
+                    loadData()
+                },
+                onError = { _ ->
+                    (activity as? MainActivity)?.selectNavTab(R.id.nav_home)
+                }
+            )
+        } else {
             try {
                 loadData()
             } catch (e: Throwable) {
@@ -372,6 +398,8 @@ class WalletFragment : Fragment() {
                 title = "Unlock DuoRhythm Wallet",
                 subtitle = "Authenticate to access financial buckets & balances",
                 onSuccess = {
+                    WalletSessionManager.isWalletUnlockedForSession = true
+                    LifeSyncSecurityManager.setSessionUnlocked(true)
                     loadData()
                     Toast.makeText(requireContext(), "Wallet Unlocked", Toast.LENGTH_SHORT).show()
                 },
@@ -382,16 +410,18 @@ class WalletFragment : Fragment() {
         }
 
         binding.btnToggleLockWallet.setOnClickListener {
-            val isEnabled = LifeSyncSecurityManager.isLockEnabled(requireContext())
+            val ctx = requireContext()
+            val isEnabled = AppPreferences.isWalletBiometricLocked(ctx) || LifeSyncSecurityManager.isLockEnabled(ctx)
             if (isEnabled) {
-                if (LifeSyncSecurityManager.isSessionUnlocked()) {
-                    AlertDialog.Builder(requireContext())
+                if (WalletSessionManager.isWalletUnlockedForSession || LifeSyncSecurityManager.isSessionUnlocked()) {
+                    AlertDialog.Builder(ctx)
                         .setTitle("Lock Wallet")
                         .setMessage("Lock DuoRhythm wallet screen immediately?")
                         .setPositiveButton("Lock Now") { _, _ ->
+                            WalletSessionManager.isWalletUnlockedForSession = false
                             LifeSyncSecurityManager.lockSession()
                             loadData()
-                            Toast.makeText(requireContext(), "Wallet Locked", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(ctx, "Wallet Locked", Toast.LENGTH_SHORT).show()
                         }
                         .setNegativeButton("Cancel", null)
                         .show()
@@ -399,7 +429,7 @@ class WalletFragment : Fragment() {
                     binding.btnUnlockWallet.performClick()
                 }
             } else {
-                AlertDialog.Builder(requireContext())
+                AlertDialog.Builder(ctx)
                     .setTitle("Enable Biometric Lock")
                     .setMessage("Protect your buckets, balances, and records with biometric unlock or device PIN?")
                     .setPositiveButton("Enable") { _, _ ->
@@ -408,12 +438,13 @@ class WalletFragment : Fragment() {
                             title = "Verify Identity",
                             subtitle = "Confirm credentials to enable security lock",
                             onSuccess = {
-                                LifeSyncSecurityManager.setLockEnabled(requireContext(), true)
+                                AppPreferences.setWalletBiometricLocked(ctx, true)
+                                WalletSessionManager.isWalletUnlockedForSession = true
                                 loadData()
-                                Toast.makeText(requireContext(), "Biometric Lock Enabled!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(ctx, "Biometric Lock Enabled!", Toast.LENGTH_SHORT).show()
                             },
                             onError = { err ->
-                                Toast.makeText(requireContext(), "Could not enable: $err", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(ctx, "Could not enable: $err", Toast.LENGTH_SHORT).show()
                             }
                         )
                     }
@@ -433,7 +464,8 @@ class WalletFragment : Fragment() {
                 currentSymbol = rateObj.symbol
             }
 
-            val isLocked = LifeSyncSecurityManager.isLockEnabled(ctx) && !LifeSyncSecurityManager.isSessionUnlocked()
+            val isLocked = (AppPreferences.isWalletBiometricLocked(ctx) && !WalletSessionManager.isWalletUnlockedForSession) ||
+                           (LifeSyncSecurityManager.isLockEnabled(ctx) && !LifeSyncSecurityManager.isSessionUnlocked())
 
             if (isLocked) {
                 binding.layoutWalletLocked.visibility = View.VISIBLE
@@ -599,7 +631,20 @@ class WalletFragment : Fragment() {
 
     private fun renderMonthlyCashFlowChart(totalIncome: Double, totalExpenses: Double, monthName: String) {
         if (_binding == null) return
-        binding.tvMonthlyChartSubtitle.text = "$monthName • Cash Flow"
+        val walletViewModel = WalletViewModel()
+        val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+        val currentMonthYear = SimpleDateFormat("yyyy-MM", Locale.US).format(selectedCalendar.time)
+        val unpaidSubsTotal = try {
+            val subs = dbHelper.subscriptionDao.getSubscriptions(activeProfileId)
+            subs.filter { it.lastPaidMonthYear != currentMonthYear }.sumOf { it.amount }
+        } catch (_: Exception) {
+            0.0
+        }
+        val projectedTotal = walletViewModel.calculateProjectedMonthlyOutflow(totalExpenses, unpaidSubsTotal)
+        val symbol = if (currentSymbol.isNotBlank()) currentSymbol else "৳"
+        val spentStr = if (totalExpenses % 1.0 == 0.0) totalExpenses.toLong().toString() else String.format(Locale.US, "%.0f", totalExpenses)
+        val projStr = if (projectedTotal % 1.0 == 0.0) projectedTotal.toLong().toString() else String.format(Locale.US, "%.0f", projectedTotal)
+        binding.tvMonthlyChartSubtitle.text = "Spent: $symbol$spentStr • Projected: $symbol$projStr"
         binding.tvChartInflowBadge.text = String.format(Locale.US, "＋ In: %s%,.0f", currentSymbol, totalIncome)
         binding.tvChartOutflowBadge.text = String.format(Locale.US, "－ Out: %s%,.0f", currentSymbol, totalExpenses)
 

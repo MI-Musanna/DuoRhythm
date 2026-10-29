@@ -30,7 +30,11 @@ import com.duorhythm.app.data.local.pref.AppPreferences
 import com.duorhythm.app.data.local.pref.AppSettings
 import com.duorhythm.app.databinding.ActivitySettingsBinding
 import com.duorhythm.app.scheduler.AlarmSyncManager
-import com.duorhythm.app.ui.wallet.CategoryManagementDialog
+import com.duorhythm.app.scheduler.BriefingAlarmScheduler
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.switchmaterial.SwitchMaterial
+import android.widget.TextView
+import java.util.Calendar
 import com.duorhythm.app.security.LifeSyncSecurityManager
 import com.duorhythm.app.worker.LocalBackupWorker
 import com.duorhythm.app.service.ReminderManager
@@ -117,7 +121,6 @@ class SettingsActivity : AppCompatActivity() {
         super.onResume()
         isHydratingUI = true
         refreshStartOfWeekUI()
-        refreshCategoriesCountUI()
         refreshAutoTrackAttendanceUI()
         refreshShowRunningBalanceUI()
         refreshLeadTimesUI()
@@ -173,7 +176,6 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupPreferencesSection() {
         refreshStartOfWeekUI()
-        refreshCategoriesCountUI()
         refreshAutoTrackAttendanceUI()
         refreshShowRunningBalanceUI()
 
@@ -196,11 +198,6 @@ class SettingsActivity : AppCompatActivity() {
                 AppSettings.setShowRunningBalanceEnabled(this, isChecked)
             }
         }
-        binding.rowManageTransactionCategories.setOnClickListener {
-            CategoryManagementDialog.show(this, dbHelper) {
-                refreshCategoriesCountUI()
-            }
-        }
     }
 
     private fun refreshShowRunningBalanceUI() {
@@ -220,15 +217,6 @@ class SettingsActivity : AppCompatActivity() {
             if (!isHydratingUI) {
                 AppSettings.setAutoTrackAttendanceEnabled(this, isChecked)
             }
-        }
-    }
-
-    private fun refreshCategoriesCountUI() {
-        val count = dbHelper.getAllTransactionCategories().size
-        binding.tvManageCategoriesSubtext.text = if (count == 0) {
-            "0 categories • Tap to create custom categories"
-        } else {
-            "$count custom categories • Tap to edit or add"
         }
     }
 
@@ -259,52 +247,150 @@ class SettingsActivity : AppCompatActivity() {
     private fun refreshLeadTimesUI() {
         val classMinutes = AppPreferences.getClassLeadMinutes(this)
         binding.tvClassLeadTimeValue.text = AppPreferences.getClassLeadMinutesDisplayLabel(classMinutes)
-        val orderMode = AppPreferences.getOrderLeadMode(this)
-        binding.tvOrderLeadTimeValue.text = AppPreferences.getOrderLeadModeDisplayLabel(orderMode)
+        val orderHours = AppPreferences.getOrderLeadHours(this)
+        binding.tvOrderLeadTimeValue.text = AppPreferences.getOrderLeadHoursDisplayLabel(orderHours)
     }
 
-    private fun showClassLeadTimeDialog() {
-        val currentMinutes = AppPreferences.getClassLeadMinutes(this)
-        val selectedIndex = AppPreferences.CLASS_LEAD_MINUTES_OPTIONS.indexOf(currentMinutes).let {
-            if (it >= 0) it else 2 // default to 15 min
+    private fun showCustomLeadTimeDialog(isClassMode: Boolean) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_custom_lead_time, null)
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvLeadDialogTitle)
+        val tvSubtitle = dialogView.findViewById<TextView>(R.id.tvLeadDialogSubtitle)
+        val switchLeadActive = dialogView.findViewById<SwitchMaterial>(R.id.switchLeadActive)
+        val layoutLeadInput = dialogView.findViewById<View>(R.id.layoutLeadInput)
+        val etLeadInput = dialogView.findViewById<TextInputEditText>(R.id.etLeadInput)
+        val tvLeadUnit = dialogView.findViewById<TextView>(R.id.tvLeadUnit)
+        val tvValidationError = dialogView.findViewById<TextView>(R.id.tvValidationError)
+        val btnCancel = dialogView.findViewById<View>(R.id.btnCancelLead)
+        val btnSave = dialogView.findViewById<View>(R.id.btnSaveLead)
+
+        val minVal: Int
+        val maxVal: Int
+        val currentVal: Int
+        val unitLabel: String
+        val errorMsg: String
+
+        if (isClassMode) {
+            tvTitle.text = "Class Reminder Timing"
+            tvSubtitle.text = "Set custom notification lead time before scheduled lectures"
+            unitLabel = "Minutes before class"
+            minVal = 1
+            maxVal = 240
+            errorMsg = "Enter between 1 to 240 minutes."
+            currentVal = AppPreferences.getClassLeadMinutes(this)
+        } else {
+            tvTitle.text = "Client Deadline Alerts"
+            tvSubtitle.text = "Set custom alert lead time before order deadlines"
+            unitLabel = "Hours before deadline"
+            minVal = 1
+            maxVal = 72
+            errorMsg = "Enter between 1 to 72 hours."
+            currentVal = AppPreferences.getOrderLeadHours(this)
         }
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Class Reminder Lead Time")
-            .setSingleChoiceItems(AppPreferences.CLASS_LEAD_MINUTES_LABELS, selectedIndex) { dialog, which ->
-                if (which in AppPreferences.CLASS_LEAD_MINUTES_OPTIONS.indices) {
-                    val newMinutes = AppPreferences.CLASS_LEAD_MINUTES_OPTIONS[which]
-                    AppPreferences.setClassLeadMinutes(this, newMinutes)
-                    binding.tvClassLeadTimeValue.text = AppPreferences.getClassLeadMinutesDisplayLabel(newMinutes)
-                    AlarmSyncManager.resyncAll(this)
-                    Toast.makeText(this, "Class reminder lead time set to ${AppPreferences.CLASS_LEAD_MINUTES_LABELS[which]}", Toast.LENGTH_SHORT).show()
-                }
-                dialog.dismiss()
+        tvLeadUnit.text = unitLabel
+        val isInitiallyEnabled = currentVal > 0
+        switchLeadActive.isChecked = isInitiallyEnabled
+        layoutLeadInput.visibility = if (isInitiallyEnabled) View.VISIBLE else View.GONE
+        etLeadInput.setText(if (isInitiallyEnabled) currentVal.toString() else (if (isClassMode) "15" else "2"))
+        etLeadInput.setSelection(etLeadInput.text?.length ?: 0)
+
+        switchLeadActive.setOnCheckedChangeListener { _, isChecked ->
+            layoutLeadInput.visibility = if (isChecked) View.VISIBLE else View.GONE
+            tvValidationError.visibility = View.GONE
+        }
+
+        etLeadInput.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                tvValidationError.visibility = View.GONE
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnSave.setOnClickListener {
+            if (!switchLeadActive.isChecked) {
+                if (isClassMode) {
+                    AppPreferences.setClassLeadMinutes(this, 0)
+                } else {
+                    AppPreferences.setOrderLeadHours(this, 0)
+                }
+                refreshLeadTimesUI()
+                AlarmSyncManager.resyncAll(this)
+                Toast.makeText(this, "Reminder alert disabled", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                return@setOnClickListener
+            }
+
+            val text = etLeadInput.text?.toString()?.trim() ?: ""
+            val inputNum = text.toIntOrNull()
+            if (inputNum == null || inputNum < minVal || inputNum > maxVal) {
+                tvValidationError.text = errorMsg
+                tvValidationError.visibility = View.VISIBLE
+                return@setOnClickListener
+            }
+
+            if (isClassMode) {
+                AppPreferences.setClassLeadMinutes(this, inputNum)
+                Toast.makeText(this, "Class reminder lead time set to $inputNum minutes", Toast.LENGTH_SHORT).show()
+            } else {
+                AppPreferences.setOrderLeadHours(this, inputNum)
+                Toast.makeText(this, "Deadline alert set to $inputNum hours before", Toast.LENGTH_SHORT).show()
+            }
+
+            refreshLeadTimesUI()
+            AlarmSyncManager.resyncAll(this)
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
-    private fun showOrderLeadTimeDialog() {
-        val currentMode = AppPreferences.getOrderLeadMode(this)
-        val selectedIndex = AppPreferences.ORDER_LEAD_MODE_OPTIONS.indexOf(currentMode).let {
-            if (it >= 0) it else 0 // default to 24_2
+    private fun showTimePickerDialog(isMorning: Boolean) {
+        val currentTimeStr = if (isMorning) {
+            AppPreferences.getMorningBriefingTime(this)
+        } else {
+            AppPreferences.getEveningBriefingTime(this)
         }
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Client Deadline Alerts")
-            .setSingleChoiceItems(AppPreferences.ORDER_LEAD_MODE_LABELS, selectedIndex) { dialog, which ->
-                if (which in AppPreferences.ORDER_LEAD_MODE_OPTIONS.indices) {
-                    val newMode = AppPreferences.ORDER_LEAD_MODE_OPTIONS[which]
-                    AppPreferences.setOrderLeadMode(this, newMode)
-                    binding.tvOrderLeadTimeValue.text = AppPreferences.getOrderLeadModeDisplayLabel(newMode)
-                    AlarmSyncManager.resyncAll(this)
-                    Toast.makeText(this, "Deadline alerts set to ${AppPreferences.ORDER_LEAD_MODE_LABELS[which]}", Toast.LENGTH_SHORT).show()
-                }
-                dialog.dismiss()
+        val pair = BriefingAlarmScheduler.parseTime(currentTimeStr) ?: (if (isMorning) Pair(8, 0) else Pair(20, 30))
+
+        val picker = com.google.android.material.timepicker.MaterialTimePicker.Builder()
+            .setTimeFormat(com.google.android.material.timepicker.TimeFormat.CLOCK_12H)
+            .setHour(pair.first)
+            .setMinute(pair.second)
+            .setTitleText(if (isMorning) "Morning Briefing Time" else "Evening Briefing Time")
+            .build()
+
+        picker.addOnPositiveButtonClickListener {
+            val hour = picker.hour
+            val minute = picker.minute
+            val cal = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, hour)
+                set(Calendar.MINUTE, minute)
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+            val formatted = SimpleDateFormat("hh:mm a", Locale.US).format(cal.time)
+            if (isMorning) {
+                AppPreferences.setMorningBriefingTime(this, formatted)
+                binding.tvMorningBriefingTime.text = formatted
+            } else {
+                AppPreferences.setEveningBriefingTime(this, formatted)
+                binding.tvEveningBriefingTime.text = formatted
+            }
+            BriefingAlarmScheduler.resyncBriefings(this)
+            Toast.makeText(this, "Briefing time updated to $formatted", Toast.LENGTH_SHORT).show()
+        }
+
+        picker.show(supportFragmentManager, "BRIEFING_TIME_PICKER")
     }
 
     private fun toggleAccordion(bodyView: View, dividerView: View, chevronView: ImageView) {
@@ -474,10 +560,10 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.rowClassLeadTime.setOnClickListener {
-            showClassLeadTimeDialog()
+            showCustomLeadTimeDialog(isClassMode = true)
         }
         binding.rowOrderLeadTime.setOnClickListener {
-            showOrderLeadTimeDialog()
+            showCustomLeadTimeDialog(isClassMode = false)
         }
 
         AnimationUtils.attachTactileFeedback(
@@ -513,32 +599,28 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun syncSwitchStates() {
-        // Biometric Lock
-        binding.switchBiometricLock.setOnCheckedChangeListener(null)
-        binding.switchBiometricLock.isChecked = LifeSyncSecurityManager.isLockEnabled(this)
-        binding.switchBiometricLock.setOnCheckedChangeListener { buttonView, isChecked ->
+        // Wallet Biometric Lock
+        binding.switchWalletBiometric.setOnCheckedChangeListener(null)
+        binding.switchWalletBiometric.isChecked = AppPreferences.isWalletBiometricLocked(this)
+        binding.switchWalletBiometric.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
             if (isChecked) {
-                if (!LifeSyncSecurityManager.isLockEnabled(this)) {
-                    LifeSyncSecurityManager.authenticate(
-                        this,
-                        title = "Verify Identity",
-                        subtitle = "Confirm credentials to activate lock",
-                        onSuccess = {
-                            LifeSyncSecurityManager.setLockEnabled(this, true)
-                            Toast.makeText(this, "Biometric Lock Activated", Toast.LENGTH_SHORT).show()
-                        },
-                        onError = { err ->
-                            binding.switchBiometricLock.isChecked = false
-                            Toast.makeText(this, "Lock not enabled: $err", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                }
+                LifeSyncSecurityManager.authenticate(
+                    this,
+                    title = "Verify Identity",
+                    subtitle = "Confirm credentials to lock wallet",
+                    onSuccess = {
+                        AppPreferences.setWalletBiometricLocked(this, true)
+                        Toast.makeText(this, "Wallet Biometric Lock Activated", Toast.LENGTH_SHORT).show()
+                    },
+                    onError = { err ->
+                        binding.switchWalletBiometric.isChecked = false
+                        Toast.makeText(this, "Lock not enabled: $err", Toast.LENGTH_SHORT).show()
+                    }
+                )
             } else {
-                if (LifeSyncSecurityManager.isLockEnabled(this)) {
-                    LifeSyncSecurityManager.setLockEnabled(this, false)
-                    Toast.makeText(this, "Biometric Lock Disabled", Toast.LENGTH_SHORT).show()
-                }
+                AppPreferences.setWalletBiometricLocked(this, false)
+                Toast.makeText(this, "Wallet Biometric Lock Disabled", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -580,14 +662,27 @@ class SettingsActivity : AppCompatActivity() {
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
 
-        // Morning & Evening Briefings
-        binding.switchSmartBriefings.setOnCheckedChangeListener(null)
-        binding.switchSmartBriefings.isChecked = SmartAutomationManager.isSmartBriefingsEnabled(this)
-        binding.switchSmartBriefings.setOnCheckedChangeListener { buttonView, isChecked ->
+        // Morning & Evening Daily Briefings
+        binding.switchDailyBriefings.setOnCheckedChangeListener(null)
+        val briefingsEnabled = SmartAutomationManager.isSmartBriefingsEnabled(this)
+        binding.switchDailyBriefings.isChecked = briefingsEnabled
+        binding.layoutBriefingTimes.visibility = if (briefingsEnabled) View.VISIBLE else View.GONE
+        binding.tvMorningBriefingTime.text = AppPreferences.getMorningBriefingTime(this)
+        binding.tvEveningBriefingTime.text = AppPreferences.getEveningBriefingTime(this)
+        binding.switchDailyBriefings.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
             SmartAutomationManager.setSmartBriefingsEnabled(this, isChecked)
-            val msg = if (isChecked) "Daily 8 AM & 10 PM briefings enabled" else "Daily briefings disabled"
+            binding.layoutBriefingTimes.visibility = if (isChecked) View.VISIBLE else View.GONE
+            BriefingAlarmScheduler.resyncBriefings(this)
+            val msg = if (isChecked) "Daily briefings enabled" else "Daily briefings disabled"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
+        binding.rowMorningBriefing.setOnClickListener {
+            showTimePickerDialog(isMorning = true)
+        }
+        binding.rowEveningBriefing.setOnClickListener {
+            showTimePickerDialog(isMorning = false)
         }
 
         // Subscription Alerts

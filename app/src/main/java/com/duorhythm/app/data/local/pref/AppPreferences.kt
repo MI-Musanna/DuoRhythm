@@ -8,8 +8,19 @@ object AppPreferences {
     const val KEY_CLASS_LEAD_MINUTES = "pref_class_lead_minutes"
     const val DEFAULT_CLASS_LEAD_MINUTES = 15
 
+    const val KEY_ORDER_LEAD_HOURS = "pref_order_lead_hours"
+    const val DEFAULT_ORDER_LEAD_HOURS = 2
+
     const val KEY_ORDER_LEAD_MODE = "pref_order_lead_mode"
     const val DEFAULT_ORDER_LEAD_MODE = "24_2"
+
+    const val KEY_WALLET_BIOMETRIC_LOCKED = "pref_wallet_biometric_locked"
+
+    const val KEY_MORNING_BRIEFING_TIME = "pref_morning_briefing_time"
+    const val DEFAULT_MORNING_BRIEFING_TIME = "08:00 AM"
+
+    const val KEY_EVENING_BRIEFING_TIME = "pref_evening_briefing_time"
+    const val DEFAULT_EVENING_BRIEFING_TIME = "08:30 PM"
 
     val CLASS_LEAD_MINUTES_OPTIONS = listOf(5, 10, 15, 30, 0)
     val CLASS_LEAD_MINUTES_LABELS = arrayOf(
@@ -39,14 +50,60 @@ object AppPreferences {
     }
 
     fun getClassLeadMinutesDisplayLabel(minutes: Int): String {
-        return when (minutes) {
-            5 -> "5 Minutes"
-            10 -> "10 Minutes"
-            15 -> "15 Minutes (Default)"
-            30 -> "30 Minutes"
-            0, -1 -> "Disabled"
+        return when {
+            minutes <= 0 -> "Disabled"
+            minutes == 15 -> "15 Minutes (Default)"
             else -> "$minutes Minutes"
         }
+    }
+
+    fun getOrderLeadHours(context: Context): Int {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_ORDER_LEAD_HOURS, DEFAULT_ORDER_LEAD_HOURS)
+    }
+
+    fun setOrderLeadHours(context: Context, hours: Int) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putInt(KEY_ORDER_LEAD_HOURS, hours).apply()
+    }
+
+    fun getOrderLeadHoursDisplayLabel(hours: Int): String {
+        return when {
+            hours <= 0 -> "Disabled"
+            hours == 1 -> "1 Hour before"
+            hours == 2 -> "2 Hours before (Default)"
+            else -> "$hours Hours before"
+        }
+    }
+
+    fun isWalletBiometricLocked(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_WALLET_BIOMETRIC_LOCKED, false)
+    }
+
+    fun setWalletBiometricLocked(context: Context, locked: Boolean) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_WALLET_BIOMETRIC_LOCKED, locked).apply()
+    }
+
+    fun getMorningBriefingTime(context: Context): String {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_MORNING_BRIEFING_TIME, DEFAULT_MORNING_BRIEFING_TIME) ?: DEFAULT_MORNING_BRIEFING_TIME
+    }
+
+    fun setMorningBriefingTime(context: Context, timeStr: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_MORNING_BRIEFING_TIME, timeStr).apply()
+    }
+
+    fun getEveningBriefingTime(context: Context): String {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_EVENING_BRIEFING_TIME, DEFAULT_EVENING_BRIEFING_TIME) ?: DEFAULT_EVENING_BRIEFING_TIME
+    }
+
+    fun setEveningBriefingTime(context: Context, timeStr: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_EVENING_BRIEFING_TIME, timeStr).apply()
     }
 
     fun getOrderLeadMode(context: Context): String {

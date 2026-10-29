@@ -318,54 +318,7 @@
                                 android:layout_marginStart="8dp" />
                         </LinearLayout>
 
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="8dp"
-                            android:background="@color/card_stroke" />
 
-                        <!-- Transaction Categories Management Row -->
-                        <LinearLayout
-                            android:id="@+id/rowManageTransactionCategories"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingVertical="10dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Transaction Categories"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/tvManageCategoriesSubtext"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="Create, edit, rename, or delete custom categories"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_chevron_right"
-                                app:tint="@color/text_muted" />
-                        </LinearLayout>
 
                     </LinearLayout>
                 </LinearLayout>
@@ -457,7 +410,7 @@
                         android:paddingVertical="14dp"
                         android:visibility="gone">
 
-                        <!-- Biometric Lock Row -->
+                        <!-- Row 1: Money Tracker & Wallet Lock -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -473,7 +426,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Biometric / PIN Lock"
+                                    android:text="Money Tracker &amp; Wallet Lock"
                                     android:textColor="@color/text_primary"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
@@ -482,15 +435,63 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
-                                    android:text="Fingerprint, face unlock, or PIN for Workspaces, Wallet &amp; Notes"
+                                    android:text="Require biometric or device PIN to access financial data"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="12sp" />
                             </LinearLayout>
 
                             <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/switchBiometricLock"
+                                android:id="@+id/switchWalletBiometric"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="10dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Row 2: Workspace Profile Switching Auth -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Workspace Profile Switching Auth"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Default Enabled with Fingerprint or PIN fallback"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_chip_surface"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="Protected"
+                                android:textColor="#10B981"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
                         </LinearLayout>
 
                         <View
@@ -706,15 +707,119 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
-                                    android:text="Agenda at 7:30 AM &amp; daily recap at 10:00 PM"
+                                    android:text="Configurable morning agenda &amp; evening recap alarms"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="12sp" />
                             </LinearLayout>
 
                             <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/switchSmartBriefings"
+                                android:id="@+id/switchDailyBriefings"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <!-- Configurable Briefing Times Container -->
+                        <LinearLayout
+                            android:id="@+id/layoutBriefingTimes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <!-- Morning Briefing Selector Row -->
+                            <LinearLayout
+                                android:id="@+id/rowMorningBriefing"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:background="?attr/selectableItemBackground"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingVertical="8dp">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Morning Briefing Time"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:id="@+id/tvMorningBriefingTime"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="2dp"
+                                        android:text="08:00 AM"
+                                        android:textColor="#38BDF8"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/text_muted" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginVertical="4dp"
+                                android:background="@color/card_stroke" />
+
+                            <!-- Evening Briefing Selector Row -->
+                            <LinearLayout
+                                android:id="@+id/rowEveningBriefing"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="?attr/selectableItemBackground"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingVertical="8dp">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Evening Briefing Time"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:id="@+id/tvEveningBriefingTime"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="2dp"
+                                        android:text="08:30 PM"
+                                        android:textColor="#38BDF8"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/text_muted" />
+                            </LinearLayout>
                         </LinearLayout>
 
                         <View

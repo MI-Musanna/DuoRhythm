@@ -180,13 +180,11 @@ object SmartAutomationManager {
     // DAILY BRIEFING & SUBSCRIPTION SCHEDULERS
     // ==========================================
     fun scheduleMorningBriefing(context: Context) {
-        if (!isSmartBriefingsEnabled(context)) return
-        scheduleDailyAlarm(context, DailyAutomationReceiver.ACTION_MORNING_BRIEFING, 7, 30, REQUEST_CODE_MORNING)
+        com.duorhythm.app.scheduler.BriefingAlarmScheduler.scheduleMorningBriefing(context)
     }
 
     fun scheduleEveningBriefing(context: Context) {
-        if (!isSmartBriefingsEnabled(context)) return
-        scheduleDailyAlarm(context, DailyAutomationReceiver.ACTION_EVENING_BRIEFING, 22, 0, REQUEST_CODE_EVENING)
+        com.duorhythm.app.scheduler.BriefingAlarmScheduler.scheduleEveningBriefing(context)
     }
 
     fun scheduleSubscriptionCheck(context: Context) {
