@@ -47,6 +47,8 @@ class PortalFragment : Fragment() {
     private lateinit var studentSubjectsAdapter: StudentSubjectsAdapter
     private lateinit var workOrdersAdapter: WorkOrdersAdapter
     private lateinit var unifiedAssessmentsAdapter: SubjectItemsAdapter
+    val coursesAdapter: StudentSubjectsAdapter get() = studentSubjectsAdapter
+    val assessmentAdapter: SubjectItemsAdapter get() = unifiedAssessmentsAdapter
     private var selectedAssessmentFilter = "ALL"
     private lateinit var studentContactsAdapter: com.duorhythm.app.ui.tools.ContactsAdapter
     private lateinit var workContactsAdapter: com.duorhythm.app.ui.tools.ContactsAdapter
@@ -559,6 +561,7 @@ class PortalFragment : Fragment() {
             }
             subject.id to progressPercentage
         }
+        coursesAdapter.submitList(if (subjects != null) ArrayList(subjects) else null, attendanceMap, progressMap)
         studentSubjectsAdapter.updateList(subjects, attendanceMap, progressMap)
         binding.tvCourseCountBadge.text = "${subjects.size} Courses"
         if (subjects.isEmpty()) {
@@ -598,6 +601,7 @@ class PortalFragment : Fragment() {
             "VIVA" -> allExams.filter { it.examType.contains("Viva", ignoreCase = true) || it.examType.contains("Presentation", ignoreCase = true) }
             else -> allExams
         }
+        assessmentAdapter.submitList(if (filteredList != null) ArrayList(filteredList) else null)
         unifiedAssessmentsAdapter.updateList(filteredList)
         binding.tvAssessmentsCountBadge.text = "${allExams.size} Scheduled"
         if (filteredList.isEmpty()) {

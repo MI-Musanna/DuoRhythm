@@ -26,6 +26,12 @@ class SubjectItemsAdapter(
         notifyDataSetChanged()
     }
 
+    fun submitList(list: List<SubjectWorkItem>?, commitCallback: (() -> Unit)? = null) {
+        items = if (list != null) ArrayList(list) else emptyList()
+        notifyDataSetChanged()
+        commitCallback?.invoke()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         val binding = ItemSubjectWorkBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ItemViewHolder(binding)

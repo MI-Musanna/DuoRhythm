@@ -36,6 +36,66 @@ class CalendarAdapter(
         notifyDataSetChanged()
     }
 
+    fun populateMonth(
+        context: android.content.Context,
+        currentYear: Int,
+        currentMonth: Int,
+        monthDays: List<CalendarDayItem>
+    ) {
+        val firstDayOfWeek = com.duorhythm.app.util.CalendarUtils.getFirstDayOfWeekConstant(context)
+        val emptyLeadingSlots = com.duorhythm.app.util.CalendarUtils.getLeadingEmptyCellCount(currentYear, currentMonth, firstDayOfWeek)
+        val items = ArrayList<CalendarDayItem>()
+        // Insert empty leading slots before day 1 so date cells align accurately with day headers.
+        for (i in 0 until emptyLeadingSlots) {
+            items.add(CalendarDayItem(dayNumber = 0, dateString = "", isCurrentMonth = false))
+        }
+        items.addAll(monthDays)
+        setDays(items)
+    }
+
+    fun populateMonthDates(
+        context: android.content.Context,
+        currentYear: Int,
+        currentMonth: Int,
+        selectedDay: Int = -1,
+        attendanceMap: Map<Int, AttendanceDotStatus> = emptyMap(),
+        subscriptionDueDays: Set<Int> = emptySet()
+    ) {
+        val firstDayOfWeek = com.duorhythm.app.util.CalendarUtils.getFirstDayOfWeekConstant(context)
+        val emptyLeadingSlots = com.duorhythm.app.util.CalendarUtils.getLeadingEmptyCellCount(currentYear, currentMonth, firstDayOfWeek)
+        val cal = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.YEAR, currentYear)
+            set(java.util.Calendar.MONTH, currentMonth)
+            set(java.util.Calendar.DAY_OF_MONTH, 1)
+        }
+        val maxDays = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
+        val todayCal = java.util.Calendar.getInstance()
+        val isThisYearMonth = todayCal.get(java.util.Calendar.YEAR) == currentYear &&
+                todayCal.get(java.util.Calendar.MONTH) == currentMonth
+        val todayDay = if (isThisYearMonth) todayCal.get(java.util.Calendar.DAY_OF_MONTH) else -1
+
+        val list = ArrayList<CalendarDayItem>()
+        // Insert empty leading slots before day 1 so date cells align accurately with day headers.
+        for (i in 0 until emptyLeadingSlots) {
+            list.add(CalendarDayItem(dayNumber = 0, dateString = "", isCurrentMonth = false))
+        }
+        for (day in 1..maxDays) {
+            val dateStr = String.format(java.util.Locale.US, "%04d-%02d-%02d", currentYear, currentMonth + 1, day)
+            list.add(
+                CalendarDayItem(
+                    dayNumber = day,
+                    dateString = dateStr,
+                    isCurrentMonth = true,
+                    isSelected = (day == selectedDay),
+                    isToday = (day == todayDay),
+                    attendanceStatus = attendanceMap[day] ?: AttendanceDotStatus.NONE,
+                    hasSubscriptionDue = subscriptionDueDays.contains(day)
+                )
+            )
+        }
+        setDays(list)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_calendar_day, parent, false)
         return DayViewHolder(view)
@@ -54,6 +114,17 @@ class CalendarAdapter(
         private val dotSubscription: View = itemView.findViewById(R.id.dotSubscription)
 
         fun bind(item: CalendarDayItem) {
+            if (item.dayNumber <= 0 || (!item.isCurrentMonth && item.dateString.isEmpty())) {
+                tvDayNumber.text = ""
+                dotAttendance.visibility = View.GONE
+                dotSubscription.visibility = View.GONE
+                layoutDotIndicators.visibility = View.GONE
+                itemView.setOnClickListener(null)
+                itemView.isClickable = false
+                return
+            }
+            itemView.isClickable = true
+
             tvDayNumber.text = item.dayNumber.toString()
 
             // Month dimming & today/selected styling

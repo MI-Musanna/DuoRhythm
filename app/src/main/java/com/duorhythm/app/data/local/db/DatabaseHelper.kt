@@ -141,6 +141,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         )
         ensureDefaultTaskCategories(db)
         ensureTransactionCategoriesTable(db)
+        seedDefaultTransactionCategories(db)
 
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS classes (
@@ -568,6 +569,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
         ensureDefaultTaskCategories(db)
         ensureTransactionCategoriesTable(db)
+        seedDefaultTransactionCategories(db)
 
         // Wipe out any legacy pre-populated/seeded transaction categories so categories start at 0
         try {
@@ -1287,8 +1289,23 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } catch (_: Exception) {}
     }
 
+    fun seedDefaultTransactionCategories(db: SQLiteDatabase) {
+        try {
+            ensureTransactionCategoriesTable(db)
+            val cursor = db.rawQuery("SELECT COUNT(*) FROM transaction_categories", null)
+            val count = cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
+            if (count == 0) {
+                db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Food & Dining', 'ic_food', '#F59E0B', 'EXPENSE')")
+                db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Education', 'ic_book', '#00E5FF', 'EXPENSE')")
+                db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Transport', 'ic_bus', '#10B981', 'EXPENSE')")
+                db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Allowance', 'ic_wallet', '#8B5CF6', 'INCOME')")
+            }
+        } catch (_: Exception) {}
+    }
+
     fun ensureDefaultTransactionCategories(db: SQLiteDatabase) {
         ensureTransactionCategoriesTable(db)
+        seedDefaultTransactionCategories(db)
     }
 
     fun getAllTransactionCategories(typeFilter: String? = null): List<TransactionCategoryItem> {

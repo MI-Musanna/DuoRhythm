@@ -33,7 +33,6 @@ class ExamsViewModel(application: Application) : AndroidViewModel(application) {
     }
 }
 
-typealias ExamsFragment = PortalFragment
 typealias DirectoryFragment = PortalFragment
 typealias AcademicOverviewFragment = PortalFragment
 typealias TimetableFragment = com.duorhythm.app.ui.schedule.ScheduleFragment

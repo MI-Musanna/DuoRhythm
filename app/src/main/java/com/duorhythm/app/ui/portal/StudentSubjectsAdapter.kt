@@ -29,6 +29,19 @@ class StudentSubjectsAdapter(
         notifyDataSetChanged()
     }
 
+    fun submitList(
+        list: List<StudentSubject>?,
+        newAttendance: Map<String, SubjectAttendanceItem> = attendanceMap,
+        newProgress: Map<Long, Int> = progressMap,
+        commitCallback: (() -> Unit)? = null
+    ) {
+        subjects = if (list != null) ArrayList(list) else emptyList()
+        attendanceMap = newAttendance
+        progressMap = newProgress
+        notifyDataSetChanged()
+        commitCallback?.invoke()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SubjectViewHolder {
         val binding = ItemStudentSubjectBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return SubjectViewHolder(binding)

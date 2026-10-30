@@ -2,6 +2,8 @@ package com.duorhythm.app.data.local.db
 
 import android.content.Context
 import androidx.room.Database
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import database.dao.AccountDao
 import database.dao.AssessmentCategoryDao
 import database.dao.AssessmentDao
@@ -91,6 +93,86 @@ class AppDatabase private constructor(context: Context) {
         fun getProfileDao(context: Context): ProfileDao = getInstance(context).profileDao()
         fun getClassTypeDao(context: Context): ClassTypeDao = getInstance(context).classTypeDao()
 
+        val roomDatabaseCallback = object : RoomDatabase.Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Food & Dining', 'ic_food', '#F59E0B', 'EXPENSE')")
+                db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Education', 'ic_book', '#00E5FF', 'EXPENSE')")
+                db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Transport', 'ic_bus', '#10B981', 'EXPENSE')")
+                db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Allowance', 'ic_wallet', '#8B5CF6', 'INCOME')")
+            }
+        }
+
+        fun databaseBuilder(context: Context, klass: Class<AppDatabase> = AppDatabase::class.java, name: String = DATABASE_NAME): Builder {
+            return Builder(context)
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        super.onCreate(db)
+                        db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Food & Dining', 'ic_food', '#F59E0B', 'EXPENSE')")
+                        db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Education', 'ic_book', '#00E5FF', 'EXPENSE')")
+                        db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Transport', 'ic_bus', '#10B981', 'EXPENSE')")
+                        db.execSQL("INSERT INTO transaction_categories (name, icon, color, type) VALUES ('Allowance', 'ic_wallet', '#8B5CF6', 'INCOME')")
+                    }
+                })
+        }
+
+        private fun createSupportSQLiteDatabaseWrapper(sqliteDb: android.database.sqlite.SQLiteDatabase): SupportSQLiteDatabase {
+            return java.lang.reflect.Proxy.newProxyInstance(
+                SupportSQLiteDatabase::class.java.classLoader,
+                arrayOf(SupportSQLiteDatabase::class.java)
+            ) { _, method, args ->
+                when (method.name) {
+                    "execSQL" -> {
+                        if (args != null && args.size == 1) {
+                            sqliteDb.execSQL(args[0] as String)
+                        } else if (args != null && args.size == 2) {
+                            sqliteDb.execSQL(args[0] as String, args[1] as Array<out Any?>)
+                        }
+                        null
+                    }
+                    "isOpen" -> sqliteDb.isOpen
+                    "isReadOnly" -> sqliteDb.isReadOnly
+                    "close" -> {
+                        sqliteDb.close()
+                        null
+                    }
+                    else -> null
+                }
+            } as SupportSQLiteDatabase
+        }
+
+        class Builder(private val context: Context) {
+            private val callbacks = mutableListOf<RoomDatabase.Callback>()
+            private var fallbackDestructive = false
+
+            fun addCallback(callback: RoomDatabase.Callback): Builder {
+                callbacks.add(callback)
+                return this
+            }
+
+            fun fallbackToDestructiveMigration(): Builder {
+                fallbackDestructive = true
+                return this
+            }
+
+            fun build(): AppDatabase {
+                val db = getInstance(context)
+                val helper = db.getDatabaseHelper()
+                try {
+                    val sqliteDb = helper.writableDatabase
+                    val cursor = sqliteDb.rawQuery("SELECT COUNT(*) FROM transaction_categories", null)
+                    val count = cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                    if (count == 0) {
+                        val supportDb = createSupportSQLiteDatabaseWrapper(sqliteDb)
+                        for (cb in callbacks) {
+                            cb.onCreate(supportDb)
+                        }
+                    }
+                } catch (_: Throwable) {}
+                return db
+            }
+        }
+
         /**
          * Verifies and configures fallback to destructive migration for database instances
          * to prevent startup crashes on older local installations.
@@ -112,6 +194,15 @@ class AppDatabase private constructor(context: Context) {
                     DatabaseHelper.getInstance(context).writableDatabase
                 } catch (_: Throwable) {}
             }
+            try {
+                val sqliteDb = DatabaseHelper.getInstance(context).writableDatabase
+                val cursor = sqliteDb.rawQuery("SELECT COUNT(*) FROM transaction_categories", null)
+                val count = cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                if (count == 0) {
+                    val supportDb = createSupportSQLiteDatabaseWrapper(sqliteDb)
+                    roomDatabaseCallback.onCreate(supportDb)
+                }
+            } catch (_: Throwable) {}
         }
     }
 
