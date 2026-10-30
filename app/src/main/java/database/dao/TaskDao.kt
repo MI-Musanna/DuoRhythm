@@ -7,4 +7,5 @@ interface TaskDao {
     fun insertTask(task: TaskItem): Long
     fun updateTask(task: TaskItem): Int
     fun deleteTask(id: Long): Int
+    fun deleteByProfileId(profileId: Long): Int
 }

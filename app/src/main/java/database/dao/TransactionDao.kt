@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TransactionDao {
-    @Query("SELECT * FROM transactions WHERE profile_id = :profileId AND date LIKE :monthYear || '%' ORDER BY date DESC, id DESC")
+    @Query("SELECT * FROM transactions WHERE (profile_id = :profileId OR profile_id = 0 OR profile_id IS NULL) AND date LIKE :monthYear || '%' ORDER BY date DESC, id DESC")
     fun getMonthlyTransactionsFlow(profileId: Long, monthYear: String): Flow<List<TransactionEntity>>
 
-    @Query("SELECT * FROM transactions WHERE profile_id = :profileId ORDER BY date DESC, id DESC")
+    @Query("SELECT * FROM transactions WHERE (profile_id = :profileId OR profile_id = 0 OR profile_id IS NULL) ORDER BY date DESC, id DESC")
     fun getAllTransactionsFlow(profileId: Long): Flow<List<TransactionEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -59,6 +59,8 @@ class AppDatabase private constructor(context: Context) {
     fun taskDao(): DatabaseHelper.TaskDao = dbHelper.taskDao
     fun subscriptionDao(): SubscriptionDao = dbHelper.subscriptionDao
     fun accountDao(): AccountDao = dbHelper.accountDao
+    fun cardDao(): database.dao.CardDao = dbHelper.cardDao
+    fun studentSubjectDao(): database.dao.StudentSubjectDao = dbHelper.studentSubjectDao
 
     val attendanceDao: AttendanceDao get() = dbHelper.attendanceDao
     val timetableDao: TimetableDao get() = dbHelper.timetableDao
@@ -73,6 +75,8 @@ class AppDatabase private constructor(context: Context) {
     val taskDao: DatabaseHelper.TaskDao get() = dbHelper.taskDao
     val subscriptionDao: SubscriptionDao get() = dbHelper.subscriptionDao
     val accountDao: AccountDao get() = dbHelper.accountDao
+    val cardDao: database.dao.CardDao get() = dbHelper.cardDao
+    val studentSubjectDao: database.dao.StudentSubjectDao get() = dbHelper.studentSubjectDao
 
     companion object {
         const val DATABASE_NAME = DatabaseHelper.DATABASE_NAME

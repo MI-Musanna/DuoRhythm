@@ -8,7 +8,7 @@ import database.entities.ClassTypeEntity
 
 @Dao
 interface ClassTypeDao {
-    @Query("SELECT * FROM class_types WHERE profile_id = :profileId ORDER BY name ASC")
+    @Query("SELECT * FROM class_types WHERE (profile_id = :profileId OR profile_id = 0 OR profile_id IS NULL) ORDER BY name ASC")
     fun getTypesByProfile(profileId: Long): List<ClassTypeEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

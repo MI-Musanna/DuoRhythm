@@ -2,6 +2,11 @@ package com.duorhythm.app.data.local.db
 
 import android.database.Cursor
 
+fun Cursor.getColumnIndexSafe(columnName: String): Int {
+    val idx = this.getColumnIndex(columnName)
+    return if (idx >= 0) idx else -1
+}
+
 fun Cursor.safeGetLong(columnName1: String, columnName2: String? = null, default: Long = 0L): Long {
     var idx = this.getColumnIndex(columnName1)
     if (idx == -1 && columnName2 != null) {

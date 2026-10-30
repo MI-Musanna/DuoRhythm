@@ -43,6 +43,9 @@ class PortalFragment : Fragment() {
     private var _binding: FragmentPortalBinding? = null
     private val binding get() = _binding!!
 
+    private val portalViewModel: PortalViewModel by lazy {
+        androidx.lifecycle.ViewModelProvider(this)[PortalViewModel::class.java]
+    }
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var studentSubjectsAdapter: StudentSubjectsAdapter
     private lateinit var workOrdersAdapter: WorkOrdersAdapter
@@ -127,6 +130,8 @@ class PortalFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        val profileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId()
+        portalViewModel.loadCourses(profileId)
         if (_binding != null) {
             try {
                 // Check profile from parent activity

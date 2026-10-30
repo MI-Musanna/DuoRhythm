@@ -35,7 +35,7 @@ class WalletViewModel(application: Application = com.duorhythm.app.LifeSyncApp.i
     val accountsFlow: StateFlow<List<WalletBucketItem>> = _accountsFlow.asStateFlow()
 
     fun loadAccounts(profileId: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 _accountsFlow.value = dbHelper.accountDao.getAccounts(profileId)
             } catch (e: Throwable) {
