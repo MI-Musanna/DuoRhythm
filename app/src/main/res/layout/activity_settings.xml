@@ -79,7 +79,7 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
-            android:id="@+id/layoutSettingsRoot"
+            android:id="@+id/rootLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -88,9 +88,9 @@
 
 
 
-            <!-- 2. PREFERENCES / GENERAL ACCORDION -->
+            <!-- 1. PREFERENCES / GENERAL ACCORDION -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAccordionPreferences"
+                android:id="@+id/cardPreferencesGeneral"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -101,14 +101,14 @@
                 app:strokeWidth="1dp">
 
                 <LinearLayout
-                    android:id="@+id/containerAccordionPreferences"
+                    android:id="@+id/containerPreferencesGeneral"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
                     <!-- Accordion Header -->
                     <LinearLayout
-                        android:id="@+id/headerAccordionPreferences"
+                        android:id="@+id/headerPreferencesGeneral"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
@@ -121,7 +121,7 @@
                         <ImageView
                             android:layout_width="22dp"
                             android:layout_height="22dp"
-                            android:src="@drawable/ic_schedule"
+                            android:src="@drawable/ic_calendar"
                             app:tint="@color/neon_cyan" />
 
                         <LinearLayout
@@ -143,13 +143,13 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="Timetable start day &amp; calendar configuration"
+                                android:text="Calendar configuration &amp; daily briefing schedule"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
                         <ImageView
-                            android:id="@+id/ivChevronPreferences"
+                            android:id="@+id/ivChevronPreferencesGeneral"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:rotation="0"
@@ -157,24 +157,23 @@
                             app:tint="@color/neon_cyan" />
                     </LinearLayout>
 
-                    <View
-                        android:id="@+id/dividerAccordionPreferences"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/card_stroke"
-                        android:visibility="gone" />
-
-                    <!-- Accordion Body: Collapsed by default -->
+                    <!-- Accordion Body: Expanded by default -->
                     <LinearLayout
-                        android:id="@+id/bodyAccordionPreferences"
+                        android:id="@+id/bodyPreferencesGeneral"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:paddingHorizontal="16dp"
-                        android:paddingVertical="14dp"
-                        android:visibility="gone">
+                        android:paddingBottom="14dp"
+                        android:visibility="visible">
 
-                        <!-- First Day of the Week Item Row -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Row: First Day of the Week -->
                         <LinearLayout
                             android:id="@+id/itemStartOfWeek"
                             android:layout_width="match_parent"
@@ -202,7 +201,7 @@
                                     android:textStyle="bold" />
 
                                 <TextView
-                                    android:id="@+id/tvStartOfWeekValue"
+                                    android:id="@+id/tvFirstDayOfWeekSubtitle"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
@@ -224,470 +223,14 @@
                             android:layout_marginVertical="8dp"
                             android:background="@color/card_stroke" />
 
-                        <!-- Auto-link Attendance to Courses Toggle Row -->
+                        <!-- Switch Row: Smart Daily Briefings -->
                         <LinearLayout
-                            android:id="@+id/rowAutoTrackAttendance"
+                            android:id="@+id/rowDailyBriefings"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
                             android:paddingVertical="10dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:id="@+id/tvAutoTrackAttendanceTitle"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Auto-link Attendance to Courses"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/tvAutoTrackAttendanceSubtitle"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="Automatically add newly created subjects to the Timetable Attendance Tracker"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/switchAutoTrackAttendance"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="8dp"
-                            android:background="@color/card_stroke" />
-
-                        <!-- Show Running Balance Toggle Row -->
-                        <LinearLayout
-                            android:id="@+id/rowShowRunningBalance"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingVertical="10dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:id="@+id/tvShowRunningBalanceTitle"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Show Running Balance"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/tvShowRunningBalanceSubtitle"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="Display remaining account balance underneath each transaction amount"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/switchShowRunningBalance"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp" />
-                        </LinearLayout>
-
-
-
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- 3. SECURITY & AUTOMATIONS ACCORDION (Collapsed by default) -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAccordionSecurity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardBackgroundColor="@color/surface_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:id="@+id/containerAccordionSecurity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <!-- Accordion Header -->
-                    <LinearLayout
-                        android:id="@+id/headerAccordionSecurity"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_shield_check"
-                            app:tint="@color/neon_green" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Security &amp; Automations"
-                                android:textColor="@color/text_primary"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="Biometrics, smart class alarms &amp; briefings"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <ImageView
-                            android:id="@+id/ivChevronSecurity"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:rotation="0"
-                            android:src="@drawable/ic_expand_more"
-                            app:tint="@color/neon_green" />
-                    </LinearLayout>
-
-                    <View
-                        android:id="@+id/dividerAccordionSecurity"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/card_stroke"
-                        android:visibility="gone" />
-
-                    <!-- Accordion Body: Collapsed by default -->
-                    <LinearLayout
-                        android:id="@+id/bodyAccordionSecurity"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="14dp"
-                        android:visibility="gone">
-
-                        <!-- Row 1: Money Tracker & Wallet Lock -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Money Tracker &amp; Wallet Lock"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="Require biometric or device PIN to access financial data"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/switchWalletBiometric"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="10dp"
-                            android:background="@color/card_stroke" />
-
-                        <!-- Row 2: Workspace Profile Switching Auth -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Workspace Profile Switching Auth"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="Default Enabled with Fingerprint or PIN fallback"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_chip_surface"
-                                android:paddingHorizontal="10dp"
-                                android:paddingVertical="4dp"
-                                android:text="Protected"
-                                android:textColor="#10B981"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="10dp"
-                            android:background="@color/card_stroke" />
-
-                        <!-- Class Alarm Reminders Row -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Class &amp; Exam Alarms"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="System alarm reminders before scheduled lectures"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/switchClassReminders"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="8dp"
-                            android:background="@color/card_stroke" />
-
-                        <!-- Class Reminder Lead Time Selector Row -->
-                        <LinearLayout
-                            android:id="@+id/rowClassLeadTime"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingVertical="8dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Class Reminder Lead Time"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/tvClassLeadTimeValue"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="15 Minutes (Default)"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_chevron_right"
-                                app:tint="@color/text_muted" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="8dp"
-                            android:background="@color/card_stroke" />
-
-                        <!-- Work Order Alarm Lead Time Selector Row -->
-                        <LinearLayout
-                            android:id="@+id/rowOrderLeadTime"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingVertical="8dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Client Deadline Alerts"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/tvOrderLeadTimeValue"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="24h &amp; 2h before (Default)"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_chevron_right"
-                                app:tint="@color/text_muted" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="10dp"
-                            android:background="@color/card_stroke" />
-
-                        <!-- Auto-Silent During Classes Row -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Auto-Silent During Classes (DND)"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="Silences ringer during scheduled lectures"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="12sp" />
-                            </LinearLayout>
-
-                            <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/switchAutoSilentClasses"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginVertical="10dp"
-                            android:background="@color/card_stroke" />
-
-                        <!-- Smart Morning & Evening Briefings Row -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -715,7 +258,8 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial
                                 android:id="@+id/switchDailyBriefings"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
                         </LinearLayout>
 
                         <!-- Configurable Briefing Times Container -->
@@ -726,12 +270,12 @@
                             android:orientation="vertical"
                             android:visibility="gone">
 
-                            <!-- Morning Briefing Selector Row -->
+                            <!-- Sub-Row: Morning Briefing Time -->
                             <LinearLayout
                                 android:id="@+id/rowMorningBriefing"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:layout_marginTop="4dp"
                                 android:background="?attr/selectableItemBackground"
                                 android:clickable="true"
                                 android:focusable="true"
@@ -777,7 +321,7 @@
                                 android:layout_marginVertical="4dp"
                                 android:background="@color/card_stroke" />
 
-                            <!-- Evening Briefing Selector Row -->
+                            <!-- Sub-Row: Evening Briefing Time -->
                             <LinearLayout
                                 android:id="@+id/rowEveningBriefing"
                                 android:layout_width="match_parent"
@@ -821,19 +365,424 @@
                                     app:tint="@color/text_muted" />
                             </LinearLayout>
                         </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 2. ACADEMIC & SCHEDULE AUTOMATIONS ACCORDION -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAcademicAutomations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:id="@+id/containerAcademicAutomations"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Accordion Header -->
+                    <LinearLayout
+                        android:id="@+id/headerAcademicAutomations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_school"
+                            app:tint="@color/neon_green" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Academic &amp; Schedule Automations"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Lecture reminders, class DND, and course linking"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/ivChevronAcademicAutomations"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:rotation="0"
+                            android:src="@drawable/ic_expand_more"
+                            app:tint="@color/neon_green" />
+                    </LinearLayout>
+
+                    <!-- Accordion Body: Expanded by default -->
+                    <LinearLayout
+                        android:id="@+id/bodyAcademicAutomations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="14dp"
+                        android:visibility="visible">
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginVertical="10dp"
+                            android:layout_marginBottom="10dp"
                             android:background="@color/card_stroke" />
 
-                        <!-- Subscription Renewal Alerts Row -->
+                        <!-- Switch Row: Auto-link Attendance to Courses -->
                         <LinearLayout
+                            android:id="@+id/rowAutoLinkAttendance"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvAutoLinkAttendanceTitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Auto-link Attendance to Courses"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvAutoLinkAttendanceSubtitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Automatically add newly created subjects to the Timetable Attendance Tracker"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchAutoLinkAttendance"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="8dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Switch Row: Class & Exam Alarms -->
+                        <LinearLayout
+                            android:id="@+id/rowClassAlarms"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Class &amp; Exam Alarms"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="System alarm reminders before scheduled lectures"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchClassAlarms"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="8dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Row: Class Reminder Lead Time -->
+                        <LinearLayout
+                            android:id="@+id/rowClassLeadTime"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Class Reminder Lead Time"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvClassLeadSubtitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="15 Minutes (Default)"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="8dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Switch Row: Auto-Silent During Classes (DND) -->
+                        <LinearLayout
+                            android:id="@+id/rowClassDnd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Auto-Silent During Classes (DND)"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Silences ringer during scheduled lectures"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchClassDnd"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 3. FINANCIAL LEDGER & WALLET ACCORDION -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFinanceAutomations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:id="@+id/containerFinanceAutomations"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Accordion Header -->
+                    <LinearLayout
+                        android:id="@+id/headerFinanceAutomations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_wallet"
+                            app:tint="@color/accent_amber" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Financial Ledger &amp; Wallet"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Balance display, recurring subscriptions, and SMS detection"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/ivChevronFinanceAutomations"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:rotation="0"
+                            android:src="@drawable/ic_expand_more"
+                            app:tint="@color/accent_amber" />
+                    </LinearLayout>
+
+                    <!-- Accordion Body: Collapsed by default -->
+                    <LinearLayout
+                        android:id="@+id/bodyFinanceAutomations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="14dp"
+                        android:visibility="gone">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Switch Row: Show Running Balance -->
+                        <LinearLayout
+                            android:id="@+id/rowShowRunningBalance"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvShowRunningBalanceTitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Show Running Balance"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvShowRunningBalanceSubtitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Display remaining account balance underneath each transaction amount"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchRunningBalance"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="8dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Switch Row: Subscription Renewal Alerts -->
+                        <LinearLayout
+                            android:id="@+id/rowSubscriptionAlerts"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -861,21 +810,24 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial
                                 android:id="@+id/switchSubscriptionAlerts"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
                         </LinearLayout>
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginVertical="10dp"
+                            android:layout_marginVertical="8dp"
                             android:background="@color/card_stroke" />
 
-                        <!-- Smart Expense Notification Detection Row -->
+                        <!-- Switch Row: Auto SMS & Notification Expense Detection -->
                         <LinearLayout
+                            android:id="@+id/rowAutoSmsDetection"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -901,23 +853,108 @@
                             </LinearLayout>
 
                             <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/switchSmartExpenseDetection"
+                                android:id="@+id/switchAutoSmsDetection"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
                         </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 4. FREELANCE & WORK PORTAL ACCORDION -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardWorkPortal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:id="@+id/containerWorkPortal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Accordion Header -->
+                    <LinearLayout
+                        android:id="@+id/headerWorkPortal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_briefcase"
+                            app:tint="@color/accent_indigo" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Freelance &amp; Work Portal"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Client contract tracking and deadline notifications"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/ivChevronWorkPortal"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:rotation="0"
+                            android:src="@drawable/ic_expand_more"
+                            app:tint="@color/accent_indigo" />
+                    </LinearLayout>
+
+                    <!-- Accordion Body: Collapsed by default -->
+                    <LinearLayout
+                        android:id="@+id/bodyWorkPortal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="14dp"
+                        android:visibility="gone">
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:layout_marginVertical="10dp"
+                            android:layout_marginBottom="10dp"
                             android:background="@color/card_stroke" />
 
-                        <!-- Work Portal Module Row -->
+                        <!-- Switch Row: Work Portal Module -->
                         <LinearLayout
+                            android:id="@+id/rowWorkPortal"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -945,15 +982,238 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial
                                 android:id="@+id/switchWorkPortal"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <!-- Row: Client Deadline Alerts (visible when switchWorkPortal is checked) -->
+                        <LinearLayout
+                            android:id="@+id/rowClientLeadTime"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp"
+                            android:visibility="gone">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Client Deadline Alerts"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvClientLeadSubtitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="24h &amp; 2h before (Default)"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 3. DATA BACKUP & RESTORE ACCORDION (Expanded by default) -->
+            <!-- 5. SECURITY & BIOMETRICS ACCORDION -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAccordionBackup"
+                android:id="@+id/cardSecurityBiometrics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:id="@+id/containerSecurityBiometrics"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Accordion Header -->
+                    <LinearLayout
+                        android:id="@+id/headerSecurityBiometrics"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_shield_check"
+                            app:tint="@color/neon_green" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Security &amp; Biometrics"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Vault protection, fingerprint lock, and profile authentication"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/ivChevronSecurityBiometrics"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:rotation="0"
+                            android:src="@drawable/ic_expand_more"
+                            app:tint="@color/neon_green" />
+                    </LinearLayout>
+
+                    <!-- Accordion Body: Collapsed by default -->
+                    <LinearLayout
+                        android:id="@+id/bodySecurityBiometrics"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingBottom="14dp"
+                        android:visibility="gone">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Switch Row: Money Tracker & Wallet Lock -->
+                        <LinearLayout
+                            android:id="@+id/rowWalletBiometric"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Money Tracker &amp; Wallet Lock"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Require biometric or device PIN to access financial data"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchWalletBiometric"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="8dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Informative Badge Row: Workspace Profile Switching Auth -->
+                        <LinearLayout
+                            android:id="@+id/rowProfileAuth"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Workspace Profile Switching Auth"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Default Enabled with Fingerprint or PIN fallback"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_chip_surface"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="Protected"
+                                android:textColor="#10B981"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 6. DATA BACKUP & RESTORE ACCORDION -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardBackupRestore"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -1258,9 +1518,9 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 4. DATA & CLEAN SLATE ACCORDION (Collapsed by default) -->
+            <!-- 7. DATA & CLEAN SLATE ACCORDION (Collapsed by default) -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAccordionDataSlate"
+                android:id="@+id/cardStorageReset"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
@@ -1387,9 +1647,9 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 5. ABOUT DEVELOPER ACCORDION (Collapsed by default) -->
+            <!-- 8. ABOUT DEVELOPER ACCORDION (Collapsed by default) -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAccordionAbout"
+                android:id="@+id/cardAboutDeveloper"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"

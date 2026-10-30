@@ -6,8 +6,10 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -47,6 +49,22 @@ import com.duorhythm.app.util.AnimationUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+val ActivitySettingsBinding.tvStartOfWeekValue: TextView get() = tvFirstDayOfWeekSubtitle
+val ActivitySettingsBinding.switchAutoTrackAttendance: SwitchMaterial get() = switchAutoLinkAttendance
+val ActivitySettingsBinding.switchClassReminders: SwitchMaterial get() = switchClassAlarms
+val ActivitySettingsBinding.tvClassLeadTimeValue: TextView get() = tvClassLeadSubtitle
+val ActivitySettingsBinding.switchAutoSilentClasses: SwitchMaterial get() = switchClassDnd
+val ActivitySettingsBinding.switchShowRunningBalance: SwitchMaterial get() = switchRunningBalance
+val ActivitySettingsBinding.switchSmartExpenseDetection: SwitchMaterial get() = switchAutoSmsDetection
+val ActivitySettingsBinding.tvOrderLeadTimeValue: TextView get() = tvClientLeadSubtitle
+val ActivitySettingsBinding.rowOrderLeadTime: View get() = rowClientLeadTime
+val ActivitySettingsBinding.layoutSettingsRoot: ViewGroup get() = rootLayout
+val ActivitySettingsBinding.cardAccordionPreferences: com.google.android.material.card.MaterialCardView get() = cardPreferencesGeneral
+val ActivitySettingsBinding.cardAccordionSecurity: com.google.android.material.card.MaterialCardView get() = cardSecurityBiometrics
+val ActivitySettingsBinding.cardAccordionBackup: com.google.android.material.card.MaterialCardView get() = cardBackupRestore
+val ActivitySettingsBinding.cardAccordionDataSlate: com.google.android.material.card.MaterialCardView get() = cardStorageReset
+val ActivitySettingsBinding.cardAccordionAbout: com.google.android.material.card.MaterialCardView get() = cardAboutDeveloper
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -165,22 +183,27 @@ class SettingsActivity : AppCompatActivity() {
         })
     }
 
+    fun setupAccordion(cardHeader: View, contentLayout: View, chevron: ImageView, defaultExpanded: Boolean = false) {
+        contentLayout.visibility = if (defaultExpanded) View.VISIBLE else View.GONE
+        chevron.rotation = if (defaultExpanded) 180f else 0f
+        cardHeader.setOnClickListener {
+            val isExpanding = contentLayout.visibility != View.VISIBLE
+            TransitionManager.beginDelayedTransition(binding.rootLayout, AutoTransition().apply { duration = 180 })
+            contentLayout.visibility = if (isExpanding) View.VISIBLE else View.GONE
+            chevron.animate().rotation(if (isExpanding) 180f else 0f).setDuration(180).start()
+        }
+    }
+
     private fun setupAccordions() {
-        binding.headerAccordionPreferences.setOnClickListener {
-            toggleAccordion(binding.bodyAccordionPreferences, binding.dividerAccordionPreferences, binding.ivChevronPreferences)
-        }
-        binding.headerAccordionSecurity.setOnClickListener {
-            toggleAccordion(binding.bodyAccordionSecurity, binding.dividerAccordionSecurity, binding.ivChevronSecurity)
-        }
-        binding.headerAccordionBackup.setOnClickListener {
-            toggleAccordion(binding.bodyAccordionBackup, binding.dividerAccordionBackup, binding.ivChevronBackup)
-        }
-        binding.headerAccordionDataSlate.setOnClickListener {
-            toggleAccordion(binding.bodyAccordionDataSlate, binding.dividerAccordionDataSlate, binding.ivChevronDataSlate)
-        }
-        binding.headerAccordionAbout.setOnClickListener {
-            toggleAccordion(binding.bodyAccordionAbout, binding.dividerAccordionAbout, binding.ivChevronAbout)
-        }
+        setupAccordion(binding.headerPreferencesGeneral, binding.bodyPreferencesGeneral, binding.ivChevronPreferencesGeneral, defaultExpanded = true)
+        setupAccordion(binding.headerAcademicAutomations, binding.bodyAcademicAutomations, binding.ivChevronAcademicAutomations, defaultExpanded = true)
+        setupAccordion(binding.headerFinanceAutomations, binding.bodyFinanceAutomations, binding.ivChevronFinanceAutomations, defaultExpanded = false)
+        setupAccordion(binding.headerWorkPortal, binding.bodyWorkPortal, binding.ivChevronWorkPortal, defaultExpanded = false)
+        setupAccordion(binding.headerSecurityBiometrics, binding.bodySecurityBiometrics, binding.ivChevronSecurityBiometrics, defaultExpanded = false)
+
+        setupAccordion(binding.headerAccordionBackup, binding.bodyAccordionBackup, binding.ivChevronBackup, defaultExpanded = false)
+        setupAccordion(binding.headerAccordionDataSlate, binding.bodyAccordionDataSlate, binding.ivChevronDataSlate, defaultExpanded = false)
+        setupAccordion(binding.headerAccordionAbout, binding.bodyAccordionAbout, binding.ivChevronAbout, defaultExpanded = false)
     }
 
     private fun setupPreferencesSection() {
@@ -191,39 +214,49 @@ class SettingsActivity : AppCompatActivity() {
         binding.itemStartOfWeek.setOnClickListener {
             showStartOfWeekDialog()
         }
-        binding.rowAutoTrackAttendance.setOnClickListener {
-            binding.switchAutoTrackAttendance.toggle()
+        binding.rowAutoLinkAttendance.setOnClickListener {
+            binding.switchAutoLinkAttendance.toggle()
         }
-        binding.switchAutoTrackAttendance.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchAutoLinkAttendance.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
+                getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                    .edit().putBoolean("pref_auto_link_attendance", isChecked).apply()
                 AppSettings.setAutoTrackAttendanceEnabled(this, isChecked)
             }
         }
         binding.rowShowRunningBalance.setOnClickListener {
-            binding.switchShowRunningBalance.toggle()
+            binding.switchRunningBalance.toggle()
         }
-        binding.switchShowRunningBalance.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchRunningBalance.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
+                getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                    .edit().putBoolean("pref_show_running_balance", isChecked).apply()
                 AppSettings.setShowRunningBalanceEnabled(this, isChecked)
             }
         }
     }
 
     private fun refreshShowRunningBalanceUI() {
-        binding.switchShowRunningBalance.setOnCheckedChangeListener(null)
-        binding.switchShowRunningBalance.isChecked = AppSettings.isShowRunningBalanceEnabled(this)
-        binding.switchShowRunningBalance.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchRunningBalance.setOnCheckedChangeListener(null)
+        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val isEnabled = prefs.getBoolean("pref_show_running_balance", AppSettings.isShowRunningBalanceEnabled(this))
+        binding.switchRunningBalance.isChecked = isEnabled
+        binding.switchRunningBalance.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
+                prefs.edit().putBoolean("pref_show_running_balance", isChecked).apply()
                 AppSettings.setShowRunningBalanceEnabled(this, isChecked)
             }
         }
     }
 
     private fun refreshAutoTrackAttendanceUI() {
-        binding.switchAutoTrackAttendance.setOnCheckedChangeListener(null)
-        binding.switchAutoTrackAttendance.isChecked = AppSettings.isAutoTrackAttendanceEnabled(this)
-        binding.switchAutoTrackAttendance.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchAutoLinkAttendance.setOnCheckedChangeListener(null)
+        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val isEnabled = prefs.getBoolean("pref_auto_link_attendance", AppSettings.isAutoTrackAttendanceEnabled(this))
+        binding.switchAutoLinkAttendance.isChecked = isEnabled
+        binding.switchAutoLinkAttendance.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
+                prefs.edit().putBoolean("pref_auto_link_attendance", isChecked).apply()
                 AppSettings.setAutoTrackAttendanceEnabled(this, isChecked)
             }
         }
@@ -231,7 +264,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshStartOfWeekUI() {
         val currentStart = AppSettings.getStartOfWeek(this)
-        binding.tvStartOfWeekValue.text = AppSettings.getStartOfWeekDisplayLabel(currentStart)
+        binding.tvFirstDayOfWeekSubtitle.text = AppSettings.getStartOfWeekDisplayLabel(currentStart)
     }
 
     private fun showStartOfWeekDialog() {
@@ -255,9 +288,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshLeadTimesUI() {
         val classMinutes = AppPreferences.getClassLeadMinutes(this)
-        binding.tvClassLeadTimeValue.text = AppPreferences.getClassLeadMinutesDisplayLabel(classMinutes)
+        binding.tvClassLeadSubtitle.text = AppPreferences.getClassLeadMinutesDisplayLabel(classMinutes)
         val orderHours = AppPreferences.getOrderLeadHours(this)
-        binding.tvOrderLeadTimeValue.text = AppPreferences.getOrderLeadHoursDisplayLabel(orderHours)
+        binding.tvClientLeadSubtitle.text = AppPreferences.getOrderLeadHoursDisplayLabel(orderHours)
     }
 
     private fun showCustomLeadTimeDialog(isClassMode: Boolean) {
@@ -665,8 +698,29 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowClassLeadTime.setOnClickListener {
             showCustomLeadTimeDialog(isClassMode = true)
         }
-        binding.rowOrderLeadTime.setOnClickListener {
+        binding.rowClientLeadTime.setOnClickListener {
             showCustomLeadTimeDialog(isClassMode = false)
+        }
+        binding.rowDailyBriefings.setOnClickListener {
+            binding.switchDailyBriefings.toggle()
+        }
+        binding.rowClassAlarms.setOnClickListener {
+            binding.switchClassAlarms.toggle()
+        }
+        binding.rowClassDnd.setOnClickListener {
+            binding.switchClassDnd.toggle()
+        }
+        binding.rowSubscriptionAlerts.setOnClickListener {
+            binding.switchSubscriptionAlerts.toggle()
+        }
+        binding.rowAutoSmsDetection.setOnClickListener {
+            binding.switchAutoSmsDetection.toggle()
+        }
+        binding.rowWorkPortal.setOnClickListener {
+            binding.switchWorkPortal.toggle()
+        }
+        binding.rowWalletBiometric.setOnClickListener {
+            binding.switchWalletBiometric.toggle()
         }
 
         AnimationUtils.attachTactileFeedback(
@@ -681,7 +735,7 @@ class SettingsActivity : AppCompatActivity() {
             binding.cardAboutTelegram,
             binding.cardAboutBlog,
             binding.rowClassLeadTime,
-            binding.rowOrderLeadTime
+            binding.rowClientLeadTime
         )
     }
 
@@ -702,8 +756,9 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun syncSwitchStates() {
-        // Include Attachments in Backup
         val backupPrefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+
+        // Include Attachments in Backup
         binding.switchIncludeAttachments.setOnCheckedChangeListener(null)
         binding.switchIncludeAttachments.isChecked = backupPrefs.getBoolean("pref_backup_include_attachments", false)
         binding.switchIncludeAttachments.setOnCheckedChangeListener { buttonView, isChecked ->
@@ -711,70 +766,7 @@ class SettingsActivity : AppCompatActivity() {
             backupPrefs.edit().putBoolean("pref_backup_include_attachments", isChecked).apply()
         }
 
-        // Wallet Biometric Lock
-        binding.switchWalletBiometric.setOnCheckedChangeListener(null)
-        binding.switchWalletBiometric.isChecked = AppPreferences.isWalletBiometricLocked(this)
-        binding.switchWalletBiometric.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
-            if (isChecked) {
-                LifeSyncSecurityManager.authenticate(
-                    this,
-                    title = "Verify Identity",
-                    subtitle = "Confirm credentials to lock wallet",
-                    onSuccess = {
-                        AppPreferences.setWalletBiometricLocked(this, true)
-                        Toast.makeText(this, "Wallet Biometric Lock Activated", Toast.LENGTH_SHORT).show()
-                    },
-                    onError = { err ->
-                        binding.switchWalletBiometric.isChecked = false
-                        Toast.makeText(this, "Lock not enabled: $err", Toast.LENGTH_SHORT).show()
-                    }
-                )
-            } else {
-                AppPreferences.setWalletBiometricLocked(this, false)
-                Toast.makeText(this, "Wallet Biometric Lock Disabled", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // Class Alarms
-        binding.switchClassReminders.setOnCheckedChangeListener(null)
-        binding.switchClassReminders.isChecked = ReminderManager.isRemindersEnabled(this)
-        binding.switchClassReminders.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
-            ReminderManager.setRemindersEnabled(this, isChecked)
-            AlarmSyncManager.resyncAll(this)
-            val msg = if (isChecked) "Class alarms enabled" else "Class alarms disabled"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-        }
-
-        // Auto-Silent During Classes
-        binding.switchAutoSilentClasses.setOnCheckedChangeListener(null)
-        binding.switchAutoSilentClasses.isChecked = SmartAutomationManager.isAutoSilentClassesEnabled(this)
-        binding.switchAutoSilentClasses.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
-            if (isChecked && !SmartAutomationManager.isNotificationPolicyAccessGranted(this)) {
-                PermissionRationaleDialogs.showDndRationale(this)
-            }
-            SmartAutomationManager.setAutoSilentClassesEnabled(this, isChecked)
-            AlarmSyncManager.resyncAll(this)
-            val msg = if (isChecked) "Auto-silent during classes activated" else "Auto-silent disabled"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-        }
-
-        // Smart Expense Detection
-        binding.switchSmartExpenseDetection.setOnCheckedChangeListener(null)
-        binding.switchSmartExpenseDetection.isChecked = SmartAutomationManager.isExpenseDetectionEnabled(this)
-        binding.switchSmartExpenseDetection.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
-            if (isChecked && !SmartAutomationManager.isNotificationListenerEnabled(this)) {
-                PermissionRationaleDialogs.showNotificationListenerRationale(this)
-            }
-            SmartAutomationManager.setExpenseDetectionEnabled(this, isChecked)
-            val msg = if (isChecked) "Smart expense detection activated" else "Smart expense detection disabled"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-        }
-
-        // Morning & Evening Daily Briefings
+        // Card 1: Preferences / General - Daily Briefings
         binding.switchDailyBriefings.setOnCheckedChangeListener(null)
         val briefingsEnabled = SmartAutomationManager.isSmartBriefingsEnabled(this)
         binding.switchDailyBriefings.isChecked = briefingsEnabled
@@ -797,7 +789,40 @@ class SettingsActivity : AppCompatActivity() {
             showTimePickerDialog(isMorning = false)
         }
 
-        // Subscription Alerts
+        // Card 2: Academic - Auto-link Attendance
+        refreshAutoTrackAttendanceUI()
+
+        // Card 2: Academic - Class & Exam Alarms
+        binding.switchClassAlarms.setOnCheckedChangeListener(null)
+        binding.switchClassAlarms.isChecked = ReminderManager.isRemindersEnabled(this)
+        binding.switchClassAlarms.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            ReminderManager.setRemindersEnabled(this, isChecked)
+            AlarmSyncManager.resyncAll(this)
+            val msg = if (isChecked) "Class alarms enabled" else "Class alarms disabled"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
+        // Card 2: Academic - Auto-Silent During Classes (DND)
+        binding.switchClassDnd.setOnCheckedChangeListener(null)
+        val isDnd = backupPrefs.getBoolean("pref_class_dnd_enabled", SmartAutomationManager.isAutoSilentClassesEnabled(this))
+        binding.switchClassDnd.isChecked = isDnd
+        binding.switchClassDnd.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            backupPrefs.edit().putBoolean("pref_class_dnd_enabled", isChecked).apply()
+            if (isChecked && !SmartAutomationManager.isNotificationPolicyAccessGranted(this)) {
+                PermissionRationaleDialogs.showDndRationale(this)
+            }
+            SmartAutomationManager.setAutoSilentClassesEnabled(this, isChecked)
+            AlarmSyncManager.resyncAll(this)
+            val msg = if (isChecked) "Auto-silent during classes activated" else "Auto-silent disabled"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
+        // Card 3: Financial - Show Running Balance
+        refreshShowRunningBalanceUI()
+
+        // Card 3: Financial - Subscription Renewal Alerts
         binding.switchSubscriptionAlerts.setOnCheckedChangeListener(null)
         binding.switchSubscriptionAlerts.isChecked = SmartAutomationManager.isSubscriptionAlertsEnabled(this)
         binding.switchSubscriptionAlerts.setOnCheckedChangeListener { buttonView, isChecked ->
@@ -807,14 +832,57 @@ class SettingsActivity : AppCompatActivity() {
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
 
-        // Work Portal Module
+        // Card 3: Financial - Auto SMS & Notification Expense Detection
+        binding.switchAutoSmsDetection.setOnCheckedChangeListener(null)
+        binding.switchAutoSmsDetection.isChecked = SmartAutomationManager.isExpenseDetectionEnabled(this)
+        binding.switchAutoSmsDetection.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isChecked && !SmartAutomationManager.isNotificationListenerEnabled(this)) {
+                PermissionRationaleDialogs.showNotificationListenerRationale(this)
+            }
+            SmartAutomationManager.setExpenseDetectionEnabled(this, isChecked)
+            val msg = if (isChecked) "Smart expense detection activated" else "Smart expense detection disabled"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
+        // Card 4: Work - Work Portal Module & Client Deadline Alerts
+        val isWorkEnabled = dbHelper.isWorkPortalEnabled()
         binding.switchWorkPortal.setOnCheckedChangeListener(null)
-        binding.switchWorkPortal.isChecked = dbHelper.isWorkPortalEnabled()
+        binding.switchWorkPortal.isChecked = isWorkEnabled
+        binding.rowClientLeadTime.visibility = if (isWorkEnabled) View.VISIBLE else View.GONE
         binding.switchWorkPortal.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
             dbHelper.setWorkPortalEnabled(isChecked)
+            binding.rowClientLeadTime.visibility = if (isChecked) View.VISIBLE else View.GONE
             val msg = if (isChecked) "Work Portal module enabled" else "Work Portal disabled (Student Mode only)"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
+        // Card 5: Security - Wallet Biometric Lock
+        binding.switchWalletBiometric.setOnCheckedChangeListener(null)
+        binding.switchWalletBiometric.isChecked = AppPreferences.isWalletBiometricLocked(this)
+        binding.switchWalletBiometric.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isChecked) {
+                LifeSyncSecurityManager.authenticate(
+                    this,
+                    title = "Verify Identity",
+                    subtitle = "Confirm credentials to lock wallet",
+                    onSuccess = {
+                        AppPreferences.setWalletBiometricLocked(this, true)
+                        backupPrefs.edit().putBoolean("pref_wallet_biometric_locked", true).apply()
+                        Toast.makeText(this, "Wallet Biometric Lock Activated", Toast.LENGTH_SHORT).show()
+                    },
+                    onError = { err ->
+                        binding.switchWalletBiometric.isChecked = false
+                        Toast.makeText(this, "Lock not enabled: $err", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            } else {
+                AppPreferences.setWalletBiometricLocked(this, false)
+                backupPrefs.edit().putBoolean("pref_wallet_biometric_locked", false).apply()
+                Toast.makeText(this, "Wallet Biometric Lock Disabled", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
