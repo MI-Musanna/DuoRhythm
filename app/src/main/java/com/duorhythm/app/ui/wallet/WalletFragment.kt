@@ -46,13 +46,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
+import com.duorhythm.app.util.lifecycleScope
+import com.duorhythm.app.util.repeatOnLifecycle
 import com.duorhythm.app.data.local.pref.ProfileManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -769,7 +767,7 @@ class WalletFragment : Fragment() {
             axisRight.isEnabled = false
 
             data = barData
-            animateY(500)
+            notifyDataSetChanged()
             invalidate()
         }
     }
@@ -1270,17 +1268,5 @@ class WalletFragment : Fragment() {
         transactionsJob = null
         super.onDestroyView()
         _binding = null
-    }
-
-    private val LifecycleOwner.lifecycleScope: CoroutineScope
-        get() = CoroutineScope(Dispatchers.Main)
-
-    private suspend fun LifecycleOwner.repeatOnLifecycle(
-        state: Lifecycle.State,
-        block: suspend CoroutineScope.() -> Unit
-    ) {
-        coroutineScope {
-            block()
-        }
     }
 }

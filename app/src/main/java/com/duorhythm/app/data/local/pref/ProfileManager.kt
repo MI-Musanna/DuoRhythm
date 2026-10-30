@@ -16,7 +16,17 @@ object ProfileManager {
     }
 
     fun getActiveProfileId(context: Context): Long {
-        return getPrefs(context).getLong(KEY_ACTIVE_PROFILE_ID, 1L)
+        return try {
+            getPrefs(context).getLong(KEY_ACTIVE_PROFILE_ID, 1L)
+        } catch (_: ClassCastException) {
+            try {
+                getPrefs(context).getInt(KEY_ACTIVE_PROFILE_ID, 1).toLong()
+            } catch (_: Exception) {
+                1L
+            }
+        } catch (_: Throwable) {
+            1L
+        }
     }
 
     fun setActiveProfileId(context: Context, id: Long) {

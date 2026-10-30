@@ -21,7 +21,7 @@ class WalletViewModel(application: Application = com.duorhythm.app.LifeSyncApp.i
     private val subscriptionDao: SubscriptionDao = dbHelper.subscriptionDao
 
     private val vmJob = SupervisorJob()
-    val viewModelScope = CoroutineScope(Dispatchers.Main + vmJob)
+    val viewModelScope = CoroutineScope(Dispatchers.Main.immediate + vmJob)
 
     private val _subscriptionsFlow = MutableStateFlow<List<SubscriptionEntity>>(emptyList())
     val subscriptionsFlow: StateFlow<List<SubscriptionEntity>> = _subscriptionsFlow.asStateFlow()
@@ -67,7 +67,7 @@ class WalletViewModel(application: Application = com.duorhythm.app.LifeSyncApp.i
 
     /**
      * Calculates projected monthly outflow by combining recorded expenses
-     * and unpaid recurring subscriptions for the month.
+     * and unpaid recurring subscriptions remaining in the current billing cycle.
      */
     fun calculateProjectedMonthlyOutflow(recordedExpenses: Double, unpaidSubscriptionsTotal: Double): Double {
         return recordedExpenses + unpaidSubscriptionsTotal

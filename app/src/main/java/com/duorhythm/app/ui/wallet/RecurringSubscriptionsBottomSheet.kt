@@ -8,8 +8,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
+import com.duorhythm.app.util.lifecycleScope
+import com.duorhythm.app.util.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
@@ -18,10 +19,7 @@ import com.duorhythm.app.data.repository.SubscriptionRepository
 import com.duorhythm.app.databinding.DialogRecurringSubscriptionsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import database.entities.SubscriptionEntity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -191,18 +189,6 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
         lifecycleJob?.cancel()
         super.onDestroyView()
         _binding = null
-    }
-
-    private val LifecycleOwner.lifecycleScope: CoroutineScope
-        get() = CoroutineScope(Dispatchers.Main)
-
-    private suspend fun LifecycleOwner.repeatOnLifecycle(
-        state: Lifecycle.State,
-        block: suspend CoroutineScope.() -> Unit
-    ) {
-        coroutineScope {
-            block()
-        }
     }
 
     private inline fun <reified VM : androidx.lifecycle.ViewModel> Fragment.activityViewModels(): Lazy<VM> = lazy {
