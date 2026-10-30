@@ -10,6 +10,9 @@ interface SubscriptionDao {
     fun getSubscriptions(profileId: Long): List<SubscriptionEntity>
 
     @Query("SELECT * FROM subscriptions WHERE profileId = :profileId ORDER BY id DESC")
+    fun getSubscriptionsSync(profileId: Long): List<SubscriptionEntity> = getSubscriptions(profileId)
+
+    @Query("SELECT * FROM subscriptions WHERE profileId = :profileId ORDER BY id DESC")
     fun getSubscriptionsFlow(profileId: Long): Flow<List<SubscriptionEntity>>
 
     @Query("SELECT * FROM subscriptions WHERE profileId = :profileId")

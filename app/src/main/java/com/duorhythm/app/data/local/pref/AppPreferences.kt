@@ -148,4 +148,40 @@ object AppPreferences {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putBoolean(KEY_NOTES_COLLAPSED, collapsed).apply()
     }
+
+    const val KEY_FIRST_DAY_OF_WEEK = "pref_first_day_of_week"
+    const val DEFAULT_FIRST_DAY_OF_WEEK = "saturday"
+
+    fun getFirstDayOfWeek(context: Context): String {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val legacyVal = prefs.getInt(AppSettings.KEY_START_OF_WEEK, -1)
+        if (legacyVal != -1 && !prefs.contains(KEY_FIRST_DAY_OF_WEEK)) {
+            val legacyStr = when (legacyVal) {
+                java.util.Calendar.SUNDAY -> "sunday"
+                java.util.Calendar.MONDAY -> "monday"
+                else -> "saturday"
+            }
+            return legacyStr
+        }
+        return prefs.getString(KEY_FIRST_DAY_OF_WEEK, DEFAULT_FIRST_DAY_OF_WEEK) ?: DEFAULT_FIRST_DAY_OF_WEEK
+    }
+
+    fun setFirstDayOfWeek(context: Context, firstDay: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_FIRST_DAY_OF_WEEK, firstDay.lowercase()).apply()
+        val intVal = when (firstDay.lowercase()) {
+            "sunday" -> java.util.Calendar.SUNDAY
+            "monday" -> java.util.Calendar.MONDAY
+            else -> java.util.Calendar.SATURDAY
+        }
+        AppSettings.setStartOfWeek(context, intVal)
+    }
+
+    operator fun invoke(context: Context): AppPreferencesWrapper = AppPreferencesWrapper(context)
+}
+
+class AppPreferencesWrapper(private val context: Context) {
+    var firstDayOfWeek: String
+        get() = AppPreferences.getFirstDayOfWeek(context)
+        set(value) = AppPreferences.setFirstDayOfWeek(context, value)
 }

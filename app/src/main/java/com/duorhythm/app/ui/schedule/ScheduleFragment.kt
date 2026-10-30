@@ -25,6 +25,7 @@ import com.duorhythm.app.service.ReminderManager
 import com.duorhythm.app.scheduler.AlarmSyncManager
 import com.duorhythm.app.scheduler.ClassAlarmScheduler
 import com.duorhythm.app.util.AnimationUtils
+import com.duorhythm.app.util.CalendarUtils
 import com.duorhythm.app.util.TimetableUtils
 
 val DialogAddClassBinding.etClassSubject: AutoCompleteTextView get() = actvSubjectName
@@ -187,7 +188,7 @@ class ScheduleFragment : Fragment() {
     private fun setupCalendarDateStrip() {
         if (_binding == null) return
         try {
-            val startOfWeek = AppSettings.getStartOfWeek(requireContext())
+            val startOfWeek = CalendarUtils.getFirstDayOfWeekConstant(requireContext())
             val weekDays = TimetableUtils.getWeekDays(startOfWeek)
 
             binding.chipGroupDays.setOnCheckedChangeListener(null)

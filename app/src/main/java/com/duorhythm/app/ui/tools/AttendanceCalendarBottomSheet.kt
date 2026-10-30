@@ -61,8 +61,9 @@ open class AttendanceCalendarBottomSheet(context: Context) : BottomSheetDialog(c
         setupViews()
         setupListeners()
 
-        // Initialize with today's date
-        selectedCalendar = Calendar.getInstance()
+        // Initialize with today's date using global first day of week
+        selectedCalendar = com.duorhythm.app.util.CalendarUtils.getAppConfiguredCalendar(context)
+        binding.calendarViewAttendance.firstDayOfWeek = com.duorhythm.app.util.CalendarUtils.getFirstDayOfWeekConstant(context)
         binding.calendarViewAttendance.date = selectedCalendar.timeInMillis
         loadAttendanceForDate(selectedCalendar)
 

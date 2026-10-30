@@ -45,6 +45,16 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelProvider
+import com.duorhythm.app.data.local.pref.ProfileManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class WalletFragment : Fragment() {
 
@@ -54,6 +64,10 @@ class WalletFragment : Fragment() {
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var bucketsAdapter: WalletBucketsAdapter
     private lateinit var subscriptionsPreviewAdapter: SubscriptionsPreviewAdapter
+    private val walletViewModel: WalletViewModel by lazy {
+        ViewModelProvider(requireActivity())[WalletViewModel::class.java]
+    }
+    private var transactionsJob: Job? = null
 
     private var currentCurrency = "BDT"
     private var currentRate = 1.0
@@ -93,6 +107,18 @@ class WalletFragment : Fragment() {
                 }
             }
             loadData()
+
+            val activeProfileId = ProfileManager.getActiveProfileId(requireContext()).let { if (it > 0) it else 1L }
+            val currentMonthYear = SimpleDateFormat("yyyy-MM", Locale.US).format(selectedCalendar.time)
+            walletViewModel.loadMonthlyTransactions(activeProfileId, currentMonthYear)
+
+            transactionsJob = viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    walletViewModel.monthlyTransactionsFlow.collect {
+                        loadData()
+                    }
+                }
+            }
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -631,7 +657,6 @@ class WalletFragment : Fragment() {
 
     private fun renderMonthlyCashFlowChart(totalIncome: Double, totalExpenses: Double, monthName: String) {
         if (_binding == null) return
-        val walletViewModel = WalletViewModel()
         val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
         val currentMonthYear = SimpleDateFormat("yyyy-MM", Locale.US).format(selectedCalendar.time)
         val unpaidSubsTotal = try {
@@ -1229,7 +1254,20 @@ class WalletFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        transactionsJob?.cancel()
         super.onDestroyView()
         _binding = null
+    }
+
+    private val LifecycleOwner.lifecycleScope: CoroutineScope
+        get() = CoroutineScope(Dispatchers.Main)
+
+    private suspend fun LifecycleOwner.repeatOnLifecycle(
+        state: Lifecycle.State,
+        block: suspend CoroutineScope.() -> Unit
+    ) {
+        coroutineScope {
+            block()
+        }
     }
 }

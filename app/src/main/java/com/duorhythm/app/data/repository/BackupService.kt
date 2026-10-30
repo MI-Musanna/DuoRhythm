@@ -127,6 +127,7 @@ object BackupService {
             if (success) {
                 DataBackupHelper.restoreProfileAvatarsFromJson(context, root)
                 DataBackupHelper.restoreAttachmentsFromJson(context, root)
+                DataBackupHelper.restoreUiPreferencesFromJson(context, root)
                 val exportedTime = root.optString("exported_at", "Unknown date")
                 val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
                 setLastBackupTimestamp(context, "$now (Restored)")

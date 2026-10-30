@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tvReleaseNotesTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Release Notes"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvReleaseNotesVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="DuoRhythm v1.0.1-beta"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:maxHeight="360dp"
+        android:scrollbars="vertical">
+
+        <TextView
+            android:id="@+id/tvReleaseNotesBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4dp"
+            android:text="• Financial Vault &amp; Subscriptions: Added date-range recurring billing, non-deducting external payer modes, and monthly cash flow expenditure projections.\n\n• Academic Hub &amp; Assessments: Unified exam scheduler with custom HSV color palettes, course instructor auto-fill, and document attachments with persistable permissions.\n\n• Adaptive Scheduling &amp; Automation: Global first-day-of-week calendar synchronization, configurable lecture reminder lead times, and consecutive-class silent mode protection.\n\n• System Stability &amp; Storage: Multi-tier automated periodic JSON backups (6h to 1 week), background alarm leak prevention, and zero-jerk dashboard transitions.\n\n---\n\n## [v1.0.0-beta] - 2026-10-17\n• Initial public beta release featuring isolated workspace profiles, offline Room database ledger, student timetable management, and work order portal."
+            android:textColor="#E2E8F0"
+            android:textSize="13sp" />
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCloseReleaseNotes"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="20dp"
+        android:text="Close"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:backgroundTint="#0284C7"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

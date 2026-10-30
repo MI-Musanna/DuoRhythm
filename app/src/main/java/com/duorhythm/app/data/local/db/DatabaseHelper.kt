@@ -1140,7 +1140,50 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         if (targetBucketId > 0L) {
             db.execSQL("UPDATE wallet_buckets SET balance = balance + ? WHERE id = ?", arrayOf(delta, targetBucketId))
         }
+        transactionUpdateFlow.tryEmit(Unit)
         return id
+    }
+
+    val transactionUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+
+    fun getMonthlyTransactions(profileId: Long, monthYear: String): List<TransactionItem> {
+        val list = mutableListOf<TransactionItem>()
+        val db = readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT * FROM transactions WHERE (profile_id = ? OR profileId = ?) AND (strftime('%Y-%m', date / 1000, 'unixepoch') = ? OR date LIKE ?) ORDER BY date DESC, id DESC",
+            arrayOf(profileId.toString(), profileId.toString(), monthYear, "$monthYear%")
+        )
+        cursor.use {
+            val bIdCol = it.getColumnIndex("bucket_id")
+            val pIdCol = it.getColumnIndex("profile_id")
+            while (it.moveToNext()) {
+                val bId = if (bIdCol >= 0) it.getLong(bIdCol) else 0L
+                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
+                list.add(
+                    TransactionItem(
+                        id = it.getLong(it.getColumnIndexOrThrow("id")),
+                        profileId = pId,
+                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
+                        amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
+                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "EXPENSE",
+                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "General",
+                        date = it.getString(it.getColumnIndexOrThrow("date")) ?: "",
+                        cardId = it.getLong(it.getColumnIndexOrThrow("card_id")),
+                        currency = it.getString(it.getColumnIndexOrThrow("currency")) ?: "USD",
+                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
+                        bucketId = bId
+                    )
+                )
+            }
+        }
+        return list
+    }
+
+    fun getMonthlyTransactionsFlow(profileId: Long, monthYear: String): kotlinx.coroutines.flow.Flow<List<TransactionItem>> = kotlinx.coroutines.flow.flow {
+        emit(getMonthlyTransactions(profileId, monthYear))
+        transactionUpdateFlow.collect {
+            emit(getMonthlyTransactions(profileId, monthYear))
+        }
     }
 
     fun deleteTransaction(txId: Long): Int {
@@ -1158,7 +1201,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
             }
         }
-        return db.delete("transactions", "id = ?", arrayOf(txId.toString()))
+        val count = db.delete("transactions", "id = ?", arrayOf(txId.toString()))
+        transactionUpdateFlow.tryEmit(Unit)
+        return count
     }
 
     fun updateTransaction(tx: TransactionItem): Int {
@@ -2816,6 +2861,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
                 return list
             }
+
+            override fun getSubscriptionsSync(profileId: Long): List<database.entities.SubscriptionEntity> =
+                getSubscriptions(profileId)
 
             private val subscriptionUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
 

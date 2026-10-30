@@ -2,6 +2,7 @@ package com.duorhythm.app.ui.wallet
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
@@ -9,6 +10,8 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
@@ -17,6 +20,8 @@ import com.duorhythm.app.scheduler.SubscriptionAlarmScheduler
 import database.dao.SubscriptionDao
 import database.entities.SubscriptionEntity
 
+val DialogAddSubscriptionBinding.etCostAmount: com.google.android.material.textfield.TextInputEditText get() = etSubCost
+
 class AddSubscriptionDialog(
     private val context: Context,
     private val onSubscriptionAddedListener: (() -> Unit)? = null
@@ -24,9 +29,16 @@ class AddSubscriptionDialog(
     private val dbHelper = DatabaseHelper.getInstance(context)
     private val subscriptionDao: SubscriptionDao = dbHelper.subscriptionDao
 
+    private val walletViewModel: WalletViewModel by activityViewModels()
+
+    private val sessionManager = object {
+        fun getActiveProfileId(): Long =
+            ProfileManager.getActiveProfileId(context).let { if (it > 0) it else 1L }
+    }
+
     fun show() {
         val binding = DialogAddSubscriptionBinding.inflate(LayoutInflater.from(context))
-        val activeProfileId = ProfileManager.getActiveProfileId(context).let { if (it > 0) it else 1L }
+        val activeProfileId = sessionManager.getActiveProfileId()
 
         binding.tvSubscriptionDialogTitle.text = "Add Recurring Subscription"
         binding.tvSubscriptionDialogSubtitle.text = "Track recurring tools, memberships, and billing windows."
@@ -59,7 +71,7 @@ class AddSubscriptionDialog(
 
         binding.btnSaveSubscription.setOnClickListener {
             val name = binding.etServiceName.text?.toString()?.trim().orEmpty()
-            val costStr = binding.etSubCost.text?.toString()?.trim().orEmpty()
+            val costStr = binding.etCostAmount.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty() || costStr.isEmpty()) {
                 Toast.makeText(context, "Service name and cost are required", Toast.LENGTH_SHORT).show()
@@ -78,10 +90,10 @@ class AddSubscriptionDialog(
                 null
             }
 
-            val newSub = SubscriptionEntity(
-                profileId = activeProfileId, // Ensure NOT 0 or null
-                name = name,
-                amount = amount,
+            val sub = SubscriptionEntity(
+                profileId = sessionManager.getActiveProfileId(),
+                name = binding.etServiceName.text.toString().trim(),
+                amount = binding.etCostAmount.text.toString().toDoubleOrNull() ?: 0.0,
                 isRange = isRangeMode,
                 startDay = startDay,
                 endDay = endDay,
@@ -90,16 +102,31 @@ class AddSubscriptionDialog(
                 lastPaidMonthYear = null
             )
 
-            subscriptionDao.insertSubscription(newSub)
+            walletViewModel.addSubscription(sub)
             onSubscriptionAddedListener?.invoke()
 
             SubscriptionAlarmScheduler.scheduleDailyAlarms(context)
-            Toast.makeText(context, "Added '$name' subscription", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Added '${sub.name}' subscription", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
         }
 
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.show()
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+
+    private inline fun <reified VM : androidx.lifecycle.ViewModel> activityViewModels(): Lazy<VM> = lazy {
+        val owner = when (context) {
+            is ViewModelStoreOwner -> context
+            is ContextWrapper -> context.baseContext as? ViewModelStoreOwner
+            else -> null
+        }
+        if (owner != null) {
+            ViewModelProvider(owner)[VM::class.java]
+        } else {
+            val app = context.applicationContext as? android.app.Application
+                ?: com.duorhythm.app.LifeSyncApp.instance
+            ViewModelProvider.AndroidViewModelFactory.getInstance(app).create(VM::class.java)
+        }
     }
 }

@@ -70,7 +70,32 @@ object DataBackupHelper {
         root.put("version", "1.0.1-beta")
         root.put("exported_at", System.currentTimeMillis())
 
+        val prefs = ctx.getSharedPreferences(com.duorhythm.app.data.local.pref.AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+        val uiPreferences = JSONObject().apply {
+            put("isMissionsCollapsed", prefs.getBoolean("pref_missions_collapsed", false))
+            put("isNotesCollapsed", prefs.getBoolean("pref_notes_collapsed", false))
+            put("isCoursesCollapsed", prefs.getBoolean("pref_courses_collapsed", false))
+        }
+        root.put("uiPreferences", uiPreferences)
+
         return root.toString(2)
+    }
+
+    fun restoreUiPreferencesFromJson(context: Context, root: JSONObject) {
+        if (!root.has("uiPreferences")) return
+        val uiPreferences = root.optJSONObject("uiPreferences") ?: return
+        val prefs = context.getSharedPreferences(com.duorhythm.app.data.local.pref.AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        if (uiPreferences.has("isMissionsCollapsed")) {
+            editor.putBoolean("pref_missions_collapsed", uiPreferences.optBoolean("isMissionsCollapsed", false))
+        }
+        if (uiPreferences.has("isNotesCollapsed")) {
+            editor.putBoolean("pref_notes_collapsed", uiPreferences.optBoolean("isNotesCollapsed", false))
+        }
+        if (uiPreferences.has("isCoursesCollapsed")) {
+            editor.putBoolean("pref_courses_collapsed", uiPreferences.optBoolean("isCoursesCollapsed", false))
+        }
+        editor.apply()
     }
 
     fun restoreProfileAvatarsFromJson(context: Context, root: JSONObject) {

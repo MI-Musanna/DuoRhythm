@@ -6,8 +6,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
@@ -20,7 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -40,12 +42,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
     private var lifecycleJob: Job? = null
     var onDataChangedListener: (() -> Unit)? = null
 
-    private val viewModel by lazy {
-        object {
-            fun getSubscriptionsFlow(profileId: Long): Flow<List<SubscriptionEntity>> =
-                repository.getSubscriptionsFlow(profileId)
-        }
-    }
+    private val walletViewModel: WalletViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,6 +70,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
             currencyRate,
             onEditClick = { sub ->
                 EditSubscriptionDialog(context, sub) {
+                    walletViewModel.loadSubscriptions(activeProfileId)
                     onDataChangedListener?.invoke()
                 }.show()
             },
@@ -89,14 +87,15 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
 
         binding.btnAddNewSubscription.setOnClickListener {
             AddSubscriptionDialog(context) {
+                walletViewModel.loadSubscriptions(activeProfileId)
                 onDataChangedListener?.invoke()
             }.show()
         }
 
-        // Observe Live Flow in RecurringSubscriptionsBottomSheet
+        // Observe StateFlow from activity-scoped WalletViewModel
         lifecycleJob = viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.getSubscriptionsFlow(activeProfileId).collect { list ->
+                walletViewModel.subscriptionsFlow.collect { list ->
                     // Resolve account display names
                     val accounts = dbHelper.accountDao.getAccounts(activeProfileId).associateBy { it.id }
                     for (sub in list) {
@@ -104,15 +103,18 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
                             sub.accountName = accounts[sub.linkedAccountId]?.name ?: "Account"
                         }
                     }
-                    subscriptionsAdapter.submitList(list)
-                    val activeCount = list.size
+                    subscriptionsAdapter.submitList(ArrayList(list)) {
+                        binding.rvSubscriptions.scrollToPosition(0)
+                    }
                     val totalProjected = list.sumOf { it.amount }
-                    binding.tvHeaderSubtitle.text = "Total Projected: ৳${totalProjected.toInt()} / mo • $activeCount Tracked"
+                    binding.tvHeaderSubtitle.text = "Total Projected: ৳${totalProjected.toInt()} / mo • ${list.size} Tracked"
                     binding.tvEmptyState.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
                     binding.rvSubscriptions.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE
                 }
             }
         }
+
+        walletViewModel.loadSubscriptions(activeProfileId)
     }
 
     private fun handleMarkPaid(sub: SubscriptionEntity) {
@@ -121,6 +123,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
 
         if (isSettledThisMonth) {
             repository.updatePaidMonth(sub.id, null)
+            walletViewModel.loadSubscriptions(activeProfileId)
             onDataChangedListener?.invoke()
             Toast.makeText(requireContext(), "Unmarked '${sub.name}' as paid", Toast.LENGTH_SHORT).show()
         } else {
@@ -142,11 +145,13 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
                         )
                         dbHelper.insertTransaction(tx)
                         repository.updatePaidMonth(sub.id, currentMonthYear)
+                        walletViewModel.loadSubscriptions(activeProfileId)
                         onDataChangedListener?.invoke()
                         Toast.makeText(requireContext(), "Deducted and marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
                     }
                     .setNeutralButton("JUST MARK PAID") { _, _ ->
                         repository.updatePaidMonth(sub.id, currentMonthYear)
+                        walletViewModel.loadSubscriptions(activeProfileId)
                         onDataChangedListener?.invoke()
                         Toast.makeText(requireContext(), "Marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
                     }
@@ -154,6 +159,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
                     .show()
             } else {
                 repository.updatePaidMonth(sub.id, currentMonthYear)
+                walletViewModel.loadSubscriptions(activeProfileId)
                 onDataChangedListener?.invoke()
                 Toast.makeText(requireContext(), "Marked '${sub.name}' as paid (External payer)", Toast.LENGTH_SHORT).show()
             }
@@ -166,6 +172,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
             .setMessage("Delete '${sub.name}'? This will remove it from tracked recurring expenses.")
             .setPositiveButton("Delete") { _, _ ->
                 repository.deleteSubscription(sub.id)
+                walletViewModel.loadSubscriptions(activeProfileId)
                 onDataChangedListener?.invoke()
                 Toast.makeText(requireContext(), "Deleted '${sub.name}'", Toast.LENGTH_SHORT).show()
             }
@@ -189,6 +196,10 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
         coroutineScope {
             block()
         }
+    }
+
+    private inline fun <reified VM : androidx.lifecycle.ViewModel> Fragment.activityViewModels(): Lazy<VM> = lazy {
+        ViewModelProvider(requireActivity())[VM::class.java]
     }
 
     companion object {
