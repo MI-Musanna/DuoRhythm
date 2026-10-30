@@ -9,6 +9,9 @@ class LifeSyncApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        AppCrashHandler.install(this)
+
         try {
             // Force the application-wide night mode strictly to dark
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -18,7 +21,7 @@ class LifeSyncApp : Application() {
             com.duorhythm.app.data.local.db.AppDatabase.fallbackToDestructiveMigration(this)
             DatabaseHelper.getInstance(this).writableDatabase
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("DUO_STARTUP", "Error during Application initialization", e)
         }
 
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
@@ -43,3 +46,5 @@ class LifeSyncApp : Application() {
             private set
     }
 }
+
+typealias DuoApplication = LifeSyncApp

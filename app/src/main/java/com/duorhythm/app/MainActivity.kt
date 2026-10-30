@@ -56,17 +56,26 @@ class MainActivity : AppCompatActivity() {
     private var hasInitializedTabs = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
-            androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
-        )
-        super.onCreate(savedInstanceState)
-        if (!com.duorhythm.app.data.local.pref.ProfileManager.isOnboardingCompleted(this)) {
-            val intent = Intent(this, com.duorhythm.app.ui.onboarding.OnboardingActivity::class.java)
-            startActivity(intent)
-            finish()
-            return
+        try {
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+            )
+        } catch (t: Throwable) {
+            android.util.Log.e("DUO_MAIN", "Error setting night mode", t)
         }
-        com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this).ensureDefaultProfileIfEmpty()
+        super.onCreate(savedInstanceState)
+
+        try {
+            if (!com.duorhythm.app.data.local.pref.ProfileManager.isOnboardingCompleted(this)) {
+                val intent = Intent(this, com.duorhythm.app.ui.onboarding.OnboardingActivity::class.java)
+                startActivity(intent)
+                finish()
+                return
+            }
+            com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this).ensureDefaultProfileIfEmpty()
+        } catch (t: Throwable) {
+            android.util.Log.e("DUO_MAIN", "Error checking onboarding or default profile", t)
+        }
 
         try {
             window.setBackgroundDrawableResource(R.drawable.bg_ambient_canvas)
@@ -211,7 +220,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupViewPager() {
         pagerAdapter = MainPagerAdapter(this)
         binding.mainViewPager.adapter = pagerAdapter
-        binding.mainViewPager.offscreenPageLimit = 4
+        binding.mainViewPager.offscreenPageLimit = ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT
         binding.mainViewPager.isUserInputEnabled = false
         binding.mainViewPager.setPageTransformer(null)
         binding.mainViewPager.setCurrentItem(MainPagerAdapter.INDEX_HOME, false)

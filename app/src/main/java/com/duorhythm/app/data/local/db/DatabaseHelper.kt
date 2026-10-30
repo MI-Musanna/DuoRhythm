@@ -20,7 +20,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     companion object {
         const val DATABASE_NAME = "lifesync.db"
-        const val DATABASE_VERSION = 8
+        const val DATABASE_VERSION = 9
 
         @Volatile
         private var instance: DatabaseHelper? = null
@@ -405,6 +405,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         } catch (_: Exception) {}
                     }
                 }
+                if (oldVersion < 9) {
+                    try {
+                        ensureSubscriptionsTable()
+                    } catch (_: Exception) {}
+                }
                 ensureDefaultCurrencies(db)
             }
         } catch (e: Exception) {
@@ -470,17 +475,6 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 )"""
             )
         } catch (_: Exception) {}
-
-        val tablesToAddProfileId = listOf(
-            "cards", "transactions", "wallet_buckets", "subscriptions",
-            "tasks", "classes", "attendance_records", "holiday_records",
-            "student_subjects", "subject_work_items", "notes", "dues_debts"
-        )
-        for (table in tablesToAddProfileId) {
-            ensureColumnExists(db, table, "profile_id", "INTEGER DEFAULT 1")
-            ensureColumnExists(db, table, "profileId", "INTEGER DEFAULT 1")
-        }
-        ensureSubscriptionsTable()
 
         // One-time fallback wipe to ensure 100% clean zero state
         val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)

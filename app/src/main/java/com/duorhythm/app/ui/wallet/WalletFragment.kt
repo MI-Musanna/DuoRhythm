@@ -47,8 +47,8 @@ import java.util.Date
 import java.util.Locale
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import com.duorhythm.app.util.lifecycleScope
-import com.duorhythm.app.util.repeatOnLifecycle
+import androidx.lifecycle.lifecycleScope
+import android.util.Log
 import com.duorhythm.app.data.local.pref.ProfileManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -117,15 +117,13 @@ class WalletFragment : Fragment() {
 
             transactionsJob = viewLifecycleOwner.lifecycleScope.launch {
                 try {
-                    viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        walletViewModel.monthlyTransactionsFlow.collect {
-                            if (_binding != null && isAdded) {
-                                loadData()
-                            }
+                    walletViewModel.monthlyTransactionsFlow.collect {
+                        if (_binding != null && isAdded) {
+                            loadData()
                         }
                     }
-                } catch (e: Throwable) {
-                    e.printStackTrace()
+                } catch (e: Exception) {
+                    Log.e("DUO_WALLET", "Safe flow collection catch", e)
                 }
             }
         } catch (e: Throwable) {

@@ -18,17 +18,33 @@ class SplashActivity : AppCompatActivity() {
         // Ensure default database integrity
         try {
             DatabaseHelper.getInstance(this).ensureDefaultProfileIfEmpty()
-        } catch (_: Exception) {}
-
-        val isOnboardingDone = ProfileManager.isOnboardingCompleted(this)
-        val targetIntent = if (isOnboardingDone) {
-            Intent(this, MainActivity::class.java)
-        } else {
-            Intent(this, OnboardingActivity::class.java)
+        } catch (e: Throwable) {
+            android.util.Log.e("DUO_SPLASH", "Error ensuring default profile", e)
         }
 
-        targetIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(targetIntent)
-        finish()
+        try {
+            val isOnboardingDone = ProfileManager.isOnboardingCompleted(this)
+            val targetIntent = if (isOnboardingDone) {
+                Intent(this, MainActivity::class.java)
+            } else {
+                Intent(this, OnboardingActivity::class.java)
+            }
+
+            targetIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(targetIntent)
+            finish()
+        } catch (e: Throwable) {
+            android.util.Log.e("DUO_SPLASH", "Error launching target activity", e)
+            try {
+                val fallbackIntent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(fallbackIntent)
+                finish()
+            } catch (fatal: Throwable) {
+                android.util.Log.e("DUO_SPLASH", "Fatal fallback error", fatal)
+                finish()
+            }
+        }
     }
 }

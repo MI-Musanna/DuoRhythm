@@ -96,18 +96,21 @@ class AppDatabase private constructor(context: Context) {
          * to prevent startup crashes on older local installations.
          */
         fun fallbackToDestructiveMigration(context: Context) {
-            val db = DatabaseHelper.getInstance(context)
             try {
-                // Ensure writable database can be opened
+                val db = DatabaseHelper.getInstance(context)
                 val sqliteDb = db.writableDatabase
                 if (!sqliteDb.isOpen) {
                     context.deleteDatabase(DATABASE_NAME)
+                    context.deleteDatabase("duorhythm.db")
+                    DatabaseHelper.getInstance(context).writableDatabase
                 }
-            } catch (_: Exception) {
+            } catch (_: Throwable) {
                 // Perform clean fallback destructive rebuild if corrupt
                 try {
                     context.deleteDatabase(DATABASE_NAME)
-                } catch (_: Exception) {}
+                    context.deleteDatabase("duorhythm.db")
+                    DatabaseHelper.getInstance(context).writableDatabase
+                } catch (_: Throwable) {}
             }
         }
     }
