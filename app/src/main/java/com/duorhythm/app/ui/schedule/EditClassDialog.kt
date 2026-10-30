@@ -78,7 +78,7 @@ class EditClassDialog(
         }
 
         // AutoComplete enrolled subjects
-        val enrolledSubjects = dbHelper.getAllStudentSubjects()
+        val enrolledSubjects = dbHelper.getAllStudentSubjects(activeProfileId)
         if (enrolledSubjects.isNotEmpty()) {
             val subjectNames = enrolledSubjects.map { it.name }.distinct()
             val subjectAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, subjectNames)

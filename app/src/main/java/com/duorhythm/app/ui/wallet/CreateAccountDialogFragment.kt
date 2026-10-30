@@ -84,7 +84,9 @@ class CreateAccountDialogFragment : DialogFragment() {
 
             val balance = balanceStr.toDoubleOrNull() ?: 0.0
 
+            val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
             val item = WalletBucketItem(
+                profileId = activeProfileId,
                 name = name,
                 icon = selectedIcon,
                 colorHex = selectedColor,

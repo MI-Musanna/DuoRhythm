@@ -41,6 +41,9 @@ class TasksFragment : Fragment() {
 
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var tasksAdapter: TasksAdapter
+    private val tasksViewModel by lazy {
+        androidx.lifecycle.ViewModelProvider(this)[TasksViewModel::class.java]
+    }
     private var currentFilter = "ALL"
     private var currentTab = TaskTab.TASKS
 
@@ -95,6 +98,8 @@ class TasksFragment : Fragment() {
         super.onResume()
         if (_binding != null) {
             try {
+                val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+                tasksViewModel.loadTasks(activeProfileId)
                 loadTasks()
             } catch (e: Throwable) {
                 e.printStackTrace()
@@ -657,7 +662,9 @@ class TasksFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
             val task = TaskItem(
+                profileId = activeProfileId,
                 title = title,
                 description = desc,
                 category = category,

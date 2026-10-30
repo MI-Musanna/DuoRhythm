@@ -41,6 +41,9 @@ class ScheduleFragment : Fragment() {
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var timetableRepository: TimetableRepository
     private lateinit var classesAdapter: ClassesAdapter
+    private val scheduleViewModel by lazy {
+        androidx.lifecycle.ViewModelProvider(this)[ScheduleViewModel::class.java]
+    }
     private var selectedDay = TimetableUtils.calendarDayToDbDay(java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK))
 
     override fun onCreateView(
@@ -96,6 +99,8 @@ class ScheduleFragment : Fragment() {
         if (_binding != null) {
             try {
                 setupCalendarDateStrip()
+                val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+                scheduleViewModel.loadClassesForDay(activeProfileId, selectedDay)
                 loadData()
                 context?.let { ctx ->
                     AlarmSyncManager.resyncAll(ctx)
@@ -306,9 +311,11 @@ class ScheduleFragment : Fragment() {
             classItem = null,
             defaultDayOfWeek = selectedDay
         ) { scheduledItem ->
-            val allSubjects = dbHelper.getAllStudentSubjects()
+            val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+            val allSubjects = dbHelper.getAllStudentSubjects(activeProfileId)
             if (allSubjects.none { it.name.equals(scheduledItem.subjectName, ignoreCase = true) }) {
                 val newSub = StudentSubject(
+                    profileId = activeProfileId,
                     name = scheduledItem.subjectName,
                     code = "",
                     colorHex = "#2563EB",
@@ -319,7 +326,8 @@ class ScheduleFragment : Fragment() {
                 dbHelper.insertStudentSubject(newSub, autoTrackAttendance = false)
             }
 
-            timetableRepository.insertClass(scheduledItem)
+            val classWithProfile = scheduledItem.copy(profileId = activeProfileId)
+            timetableRepository.insertClass(classWithProfile)
             loadData()
             Toast.makeText(requireContext(), "${scheduledItem.classType} scheduled with alarm reminder", Toast.LENGTH_SHORT).show()
         }.show()
@@ -348,7 +356,9 @@ class ScheduleFragment : Fragment() {
             val credits = etCredits?.text?.toString()?.trim()?.toIntOrNull() ?: 3
             val instructor = etInstructor?.text?.toString()?.trim().orEmpty()
 
+            val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(activity)
             val subject = StudentSubject(
+                profileId = activeProfileId,
                 name = name,
                 code = code,
                 colorHex = "#2563EB",

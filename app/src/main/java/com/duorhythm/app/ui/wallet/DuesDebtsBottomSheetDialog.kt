@@ -124,9 +124,10 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
     }
 
     private fun loadData() {
-        val allItems = dbHelper.getAllDuesDebts()
+        val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+        val allItems = dbHelper.getAllDuesDebts(activeProfileId)
 
-        val summary = dbHelper.getDuesDebtsSummary()
+        val summary = dbHelper.getDuesDebtsSummary(activeProfileId)
         binding.tvTotalLent.text = String.format(Locale.US, "+%s%,.2f", currentSymbol, summary.first)
         binding.tvTotalBorrowed.text = String.format(Locale.US, "-%s%,.2f", currentSymbol, summary.second)
 
@@ -237,7 +238,9 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
             val notes = dialogBinding.etDueNotes.text?.toString()?.trim().orEmpty()
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
+            val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
             val item = DueDebtItem(
+                profileId = activeProfileId,
                 personName = personName,
                 phoneOrContact = contact,
                 amount = enteredAmount,

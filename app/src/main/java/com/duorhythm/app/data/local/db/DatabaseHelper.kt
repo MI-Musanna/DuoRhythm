@@ -9,6 +9,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -1000,29 +1001,36 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     fun getAllCards(profileId: Long = getActiveProfileId()): List<CardItem> {
         val list = mutableListOf<CardItem>()
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM cards WHERE profile_id = ? ORDER BY id ASC", arrayOf(profileId.toString()))
-        cursor.use {
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    CardItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        profileId = pId,
-                        cardName = it.getString(it.getColumnIndexOrThrow("card_name")) ?: "",
-                        bankName = it.getString(it.getColumnIndexOrThrow("bank_name")) ?: "",
-                        cardNumber = it.getString(it.getColumnIndexOrThrow("card_number")) ?: "",
-                        holderName = it.getString(it.getColumnIndexOrThrow("holder_name")) ?: "",
-                        cardType = it.getString(it.getColumnIndexOrThrow("card_type")) ?: "VISA",
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#1E293B",
-                        balance = it.getDouble(it.getColumnIndexOrThrow("balance"))
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT * FROM cards WHERE (profile_id = ? OR profileId = ?) ORDER BY id ASC",
+                arrayOf(profileId.toString(), profileId.toString())
+            )
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        CardItem(
+                            id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", profileId),
+                            cardName = it.safeGetString("card_name", "name", "Account"),
+                            bankName = it.safeGetString("bank_name", default = ""),
+                            cardNumber = it.safeGetString("card_number", default = ""),
+                            holderName = it.safeGetString("holder_name", default = ""),
+                            cardType = it.safeGetString("card_type", "type", "CASH"),
+                            colorHex = it.safeGetString("color_hex", default = "#1E293B"),
+                            balance = it.safeGetDouble("balance", default = 0.0)
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading cards table", e)
         }
         return list
     }
+
+    fun getCards(profileId: Long = getActiveProfileId()): List<CardItem> = getAllCards(profileId)
 
     fun insertCard(card: CardItem): Long {
         val db = writableDatabase
@@ -1062,7 +1070,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val clauses = mutableListOf<String>()
         val args = mutableListOf<String>()
 
-        clauses.add("profile_id = ?")
+        clauses.add("(profile_id = ? OR profileId = ?)")
+        args.add(profileId.toString())
         args.add(profileId.toString())
 
         if (!typeFilter.isNullOrEmpty() && typeFilter != "ALL") {
@@ -1078,30 +1087,30 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             args.add(bucketIdFilter.toString())
         }
 
-        val where = if (clauses.isNotEmpty()) "WHERE " + clauses.joinToString(" AND ") else ""
-        val cursor = db.rawQuery("SELECT * FROM transactions $where ORDER BY date DESC, id DESC", args.toTypedArray())
-        cursor.use {
-            val bIdCol = it.getColumnIndex("bucket_id")
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val bId = if (bIdCol >= 0) it.getLong(bIdCol) else 0L
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    TransactionItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        profileId = pId,
-                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                        amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "EXPENSE",
-                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "General",
-                        date = it.getString(it.getColumnIndexOrThrow("date")) ?: "",
-                        cardId = it.getLong(it.getColumnIndexOrThrow("card_id")),
-                        currency = it.getString(it.getColumnIndexOrThrow("currency")) ?: "USD",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        bucketId = bId
+        try {
+            val where = if (clauses.isNotEmpty()) "WHERE " + clauses.joinToString(" AND ") else ""
+            val cursor = db.rawQuery("SELECT * FROM transactions $where ORDER BY date DESC, id DESC", args.toTypedArray())
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        TransactionItem(
+                            id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", profileId),
+                            title = it.safeGetString("title", default = ""),
+                            amount = it.safeGetDouble("amount", default = 0.0),
+                            type = it.safeGetString("type", default = "EXPENSE"),
+                            category = it.safeGetString("category", default = "General"),
+                            date = it.safeGetString("date", default = ""),
+                            cardId = it.safeGetLong("card_id", default = 0L),
+                            currency = it.safeGetString("currency", default = "USD"),
+                            notes = it.safeGetString("notes", default = ""),
+                            bucketId = it.safeGetLong("bucket_id", default = 0L)
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading transactions table", e)
         }
         return list
     }
@@ -1151,39 +1160,26 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 arrayOf(profileId.toString(), profileId.toString(), "$monthYear%")
             )
             cursor.use {
-                val idCol = it.getColumnIndex("id")
-                val bIdCol = it.getColumnIndex("bucket_id")
-                val pIdCol = it.getColumnIndex("profile_id").takeIf { it >= 0 } ?: it.getColumnIndex("profileId")
-                val titleCol = it.getColumnIndex("title")
-                val amountCol = it.getColumnIndex("amount")
-                val typeCol = it.getColumnIndex("type")
-                val catCol = it.getColumnIndex("category")
-                val dateCol = it.getColumnIndex("date")
-                val cardIdCol = it.getColumnIndex("card_id")
-                val currCol = it.getColumnIndex("currency")
-                val notesCol = it.getColumnIndex("notes")
                 while (it.moveToNext()) {
-                    val bId = if (bIdCol >= 0) it.getLong(bIdCol) else 0L
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId
                     list.add(
                         TransactionItem(
-                            id = if (idCol >= 0) it.getLong(idCol) else 0L,
-                            profileId = pId,
-                            title = if (titleCol >= 0) it.getString(titleCol) ?: "" else "",
-                            amount = if (amountCol >= 0) it.getDouble(amountCol) else 0.0,
-                            type = if (typeCol >= 0) it.getString(typeCol) ?: "EXPENSE" else "EXPENSE",
-                            category = if (catCol >= 0) it.getString(catCol) ?: "General" else "General",
-                            date = if (dateCol >= 0) it.getString(dateCol) ?: "" else "",
-                            cardId = if (cardIdCol >= 0) it.getLong(cardIdCol) else 0L,
-                            currency = if (currCol >= 0) it.getString(currCol) ?: "USD" else "USD",
-                            notes = if (notesCol >= 0) it.getString(notesCol) ?: "" else "",
-                            bucketId = bId
+                            id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                            title = it.safeGetString("title"),
+                            amount = it.safeGetDouble("amount"),
+                            type = it.safeGetString("type", default = "EXPENSE"),
+                            category = it.safeGetString("category", default = "General"),
+                            date = it.safeGetString("date"),
+                            cardId = it.safeGetLong("card_id", "cardId"),
+                            currency = it.safeGetString("currency", default = "USD"),
+                            notes = it.safeGetString("notes"),
+                            bucketId = it.safeGetLong("bucket_id", "bucketId")
                         )
                     )
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB_READ", "Failed reading monthly transactions for profile $profileId", e)
         }
         return list
     }
@@ -1445,23 +1441,19 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             )
             cursor.use {
                 if (it.moveToFirst()) {
-                    val idCol = it.getColumnIndex("id")
-                    val nameCol = it.getColumnIndex("name")
-                    val typeCol = it.getColumnIndex("type")
-                    val defCol = it.getColumnIndex("is_default")
-                    val colorCol = it.getColumnIndex("color_hex")
-                    val iconCol = it.getColumnIndex("icon")
                     return TransactionCategoryItem(
-                        id = if (idCol >= 0) it.getLong(idCol) else 0L,
-                        name = if (nameCol >= 0) it.getString(nameCol) ?: "" else "",
-                        type = if (typeCol >= 0) it.getString(typeCol) ?: "BOTH" else "BOTH",
-                        isDefault = if (defCol >= 0) it.getInt(defCol) == 1 else false,
-                        colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#0284C7" else "#0284C7",
-                        icon = if (iconCol >= 0) it.getString(iconCol) ?: "category" else "category"
+                        id = it.safeGetLong("id"),
+                        name = it.safeGetString("name"),
+                        type = it.safeGetString("type", default = "BOTH"),
+                        isDefault = it.safeGetBoolean("is_default", "isDefault"),
+                        colorHex = it.safeGetString("color_hex", "colorHex", default = "#0284C7"),
+                        icon = it.safeGetString("icon", default = "category")
                     )
                 }
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading transaction category $name", e)
+        }
         return null
     }
 
@@ -1474,32 +1466,23 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val db = readableDatabase
             val cursor = db.rawQuery("SELECT * FROM wallet_buckets WHERE (profile_id = ? OR profileId = ?) ORDER BY id ASC", arrayOf(profileId.toString(), profileId.toString()))
             cursor.use {
-                val idCol = it.getColumnIndex("id")
-                val pIdCol = it.getColumnIndex("profile_id").takeIf { it >= 0 } ?: it.getColumnIndex("profileId")
-                val nameCol = it.getColumnIndex("name")
-                val iconCol = it.getColumnIndex("icon")
-                val colorCol = it.getColumnIndex("color_hex")
-                val accCol = it.getColumnIndex("connected_accounts")
-                val balCol = it.getColumnIndex("balance")
-                val noteCol = it.getColumnIndex("note")
                 while (it.moveToNext()) {
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId
                     list.add(
                         WalletBucketItem(
-                            id = if (idCol >= 0) it.getLong(idCol) else 0L,
-                            profileId = pId,
-                            name = if (nameCol >= 0) it.getString(nameCol) ?: "" else "",
-                            icon = if (iconCol >= 0) it.getString(iconCol) ?: "wallet" else "wallet",
-                            colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#0284C7" else "#0284C7",
-                            connectedAccounts = if (accCol >= 0) it.getString(accCol) ?: "" else "",
-                            balance = if (balCol >= 0) it.getDouble(balCol) else 0.0,
-                            note = if (noteCol >= 0) it.getString(noteCol) ?: "" else ""
+                            id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                            name = it.safeGetString("name"),
+                            icon = it.safeGetString("icon", default = "wallet"),
+                            colorHex = it.safeGetString("color_hex", "colorHex", default = "#0284C7"),
+                            connectedAccounts = it.safeGetString("connected_accounts", "connectedAccounts"),
+                            balance = it.safeGetDouble("balance"),
+                            note = it.safeGetString("note")
                         )
                     )
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB_READ", "Failed reading wallet buckets for profile $profileId", e)
         }
         return list
     }
@@ -1510,29 +1493,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val cursor = db.rawQuery("SELECT * FROM wallet_buckets WHERE id = ?", arrayOf(id.toString()))
             cursor.use {
                 if (it.moveToFirst()) {
-                    val idCol = it.getColumnIndex("id")
-                    val pIdCol = it.getColumnIndex("profile_id").takeIf { it >= 0 } ?: it.getColumnIndex("profileId")
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                    val nameCol = it.getColumnIndex("name")
-                    val iconCol = it.getColumnIndex("icon")
-                    val colorCol = it.getColumnIndex("color_hex")
-                    val accCol = it.getColumnIndex("connected_accounts")
-                    val balCol = it.getColumnIndex("balance")
-                    val noteCol = it.getColumnIndex("note")
                     return WalletBucketItem(
-                        id = if (idCol >= 0) it.getLong(idCol) else id,
-                        profileId = pId,
-                        name = if (nameCol >= 0) it.getString(nameCol) ?: "" else "",
-                        icon = if (iconCol >= 0) it.getString(iconCol) ?: "wallet" else "wallet",
-                        colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#0284C7" else "#0284C7",
-                        connectedAccounts = if (accCol >= 0) it.getString(accCol) ?: "" else "",
-                        balance = if (balCol >= 0) it.getDouble(balCol) else 0.0,
-                        note = if (noteCol >= 0) it.getString(noteCol) ?: "" else ""
+                        id = it.safeGetLong("id", default = id),
+                        profileId = it.safeGetLong("profile_id", "profileId", default = 1L),
+                        name = it.safeGetString("name"),
+                        icon = it.safeGetString("icon", default = "wallet"),
+                        colorHex = it.safeGetString("color_hex", "colorHex", default = "#0284C7"),
+                        connectedAccounts = it.safeGetString("connected_accounts", "connectedAccounts"),
+                        balance = it.safeGetDouble("balance"),
+                        note = it.safeGetString("note")
                     )
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB_READ", "Failed reading wallet bucket $id", e)
         }
         return null
     }
@@ -1653,34 +1627,37 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun getTransactionsByBucket(bucketId: Long, typeFilter: String? = null): List<TransactionItem> {
         val list = mutableListOf<TransactionItem>()
-        val db = readableDatabase
-        val clauses = mutableListOf("bucket_id = ?")
-        val args = mutableListOf(bucketId.toString())
-        if (!typeFilter.isNullOrEmpty() && typeFilter != "ALL") {
-            clauses.add("type = ?")
-            args.add(typeFilter)
-        }
-        val where = "WHERE " + clauses.joinToString(" AND ")
-        val cursor = db.rawQuery("SELECT * FROM transactions $where ORDER BY date DESC, id DESC", args.toTypedArray())
-        cursor.use {
-            val bIdCol = it.getColumnIndex("bucket_id")
-            while (it.moveToNext()) {
-                val bId = if (bIdCol >= 0) it.getLong(bIdCol) else bucketId
-                list.add(
-                    TransactionItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                        amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "EXPENSE",
-                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "General",
-                        date = it.getString(it.getColumnIndexOrThrow("date")) ?: "",
-                        cardId = it.getLong(it.getColumnIndexOrThrow("card_id")),
-                        currency = it.getString(it.getColumnIndexOrThrow("currency")) ?: "USD",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        bucketId = bId
-                    )
-                )
+        try {
+            val db = readableDatabase
+            val clauses = mutableListOf("bucket_id = ?")
+            val args = mutableListOf(bucketId.toString())
+            if (!typeFilter.isNullOrEmpty() && typeFilter != "ALL") {
+                clauses.add("type = ?")
+                args.add(typeFilter)
             }
+            val where = "WHERE " + clauses.joinToString(" AND ")
+            val cursor = db.rawQuery("SELECT * FROM transactions $where ORDER BY date DESC, id DESC", args.toTypedArray())
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        TransactionItem(
+                            id = it.safeGetLong("id"),
+                            title = it.safeGetString("title"),
+                            amount = it.safeGetDouble("amount"),
+                            type = it.safeGetString("type", default = "EXPENSE"),
+                            category = it.safeGetString("category", default = "General"),
+                            date = it.safeGetString("date"),
+                            cardId = it.safeGetLong("card_id", "cardId"),
+                            currency = it.safeGetString("currency", default = "USD"),
+                            notes = it.safeGetString("notes"),
+                            bucketId = it.safeGetLong("bucket_id", "bucketId", default = bucketId),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = 1L)
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading transactions for bucket $bucketId", e)
         }
         return list
     }
@@ -1695,46 +1672,34 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val db = readableDatabase
             val cursor = db.rawQuery("SELECT * FROM subscriptions WHERE (profile_id = ? OR profileId = ?) ORDER BY id ASC", arrayOf(profileId.toString(), profileId.toString()))
             cursor.use {
-                val idCol = it.getColumnIndex("id")
-                val nameCol = it.getColumnIndex("service_name").takeIf { it >= 0 } ?: it.getColumnIndex("name")
-                val costCol = it.getColumnIndex("cost").takeIf { it >= 0 } ?: it.getColumnIndex("amount")
-                val currCol = it.getColumnIndex("currency")
-                val cycleCol = it.getColumnIndex("billing_cycle")
-                val renewCol = it.getColumnIndex("renewal_date")
-                val bIdCol = it.getColumnIndex("bucket_id").takeIf { it >= 0 } ?: it.getColumnIndex("linkedAccountId")
-                val bNameCol = it.getColumnIndex("bucket_name")
-                val catCol = it.getColumnIndex("category")
-                val iconCol = it.getColumnIndex("icon")
-                val activeCol = it.getColumnIndex("is_active")
-                val autoLogIdx = it.getColumnIndex("auto_log")
-                val pIdCol = it.getColumnIndex("profile_id").takeIf { it >= 0 } ?: it.getColumnIndex("profileId")
-                val dueDayCol = it.getColumnIndex("dueDay").takeIf { it >= 0 } ?: it.getColumnIndex("due_day")
-
                 while (it.moveToNext()) {
-                    val autoLog = if (autoLogIdx >= 0) it.getInt(autoLogIdx) == 1 else true
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId
-                    val sName = if (nameCol >= 0) it.getString(nameCol) ?: "" else ""
-                    val cost = if (costCol >= 0) it.getDouble(costCol) else 0.0
-                    var renewal = if (renewCol >= 0) it.getString(renewCol) ?: "" else ""
-                    if (renewal.isBlank() && dueDayCol >= 0) {
-                        val d = it.getInt(dueDayCol).coerceIn(1, 28)
-                        val cal = java.util.Calendar.getInstance()
-                        renewal = String.format(Locale.US, "%04d-%02d-%02d", cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH) + 1, d)
+                    val autoLog = it.safeGetBoolean("auto_log", "autoLog", default = true)
+                    val pId = it.safeGetLong("profile_id", "profileId", default = profileId)
+                    val sName = it.safeGetString("service_name", "name")
+                    val cost = it.safeGetDouble("cost", "amount")
+                    var renewal = it.safeGetString("renewal_date", "renewalDate")
+                    if (renewal.isBlank()) {
+                        val dueDay = it.safeGetInt("dueDay", "due_day", default = 0)
+                        if (dueDay > 0) {
+                            val d = dueDay.coerceIn(1, 28)
+                            val cal = java.util.Calendar.getInstance()
+                            renewal = String.format(Locale.US, "%04d-%02d-%02d", cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH) + 1, d)
+                        }
                     }
 
                     list.add(
                         SubscriptionItem(
-                            id = if (idCol >= 0) it.getLong(idCol) else 0L,
+                            id = it.safeGetLong("id"),
                             serviceName = sName,
                             cost = cost,
-                            currency = if (currCol >= 0) it.getString(currCol) ?: "BDT" else "BDT",
-                            billingCycle = if (cycleCol >= 0) it.getString(cycleCol) ?: "MONTHLY" else "MONTHLY",
+                            currency = it.safeGetString("currency", default = "BDT"),
+                            billingCycle = it.safeGetString("billing_cycle", "billingCycle", default = "MONTHLY"),
                             renewalDate = renewal,
-                            bucketId = if (bIdCol >= 0) it.getLong(bIdCol) else 0L,
-                            bucketName = if (bNameCol >= 0) it.getString(bNameCol) ?: "" else "",
-                            category = if (catCol >= 0) it.getString(catCol) ?: "Entertainment" else "Entertainment",
-                            icon = if (iconCol >= 0) it.getString(iconCol) ?: "subscription" else "subscription",
-                            isActive = if (activeCol >= 0) it.getInt(activeCol) == 1 else true,
+                            bucketId = it.safeGetLong("bucket_id", "linkedAccountId"),
+                            bucketName = it.safeGetString("bucket_name", "bucketName"),
+                            category = it.safeGetString("category", default = "Entertainment"),
+                            icon = it.safeGetString("icon", default = "subscription"),
+                            isActive = it.safeGetBoolean("is_active", "isActive", default = true),
                             autoLog = autoLog,
                             profileId = pId
                         )
@@ -1742,7 +1707,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB_READ", "Failed reading subscriptions for profile $profileId", e)
         }
         return list
     }
@@ -1861,19 +1826,23 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     fun getAllCurrencyRates(): List<CurrencyRate> {
         val list = mutableListOf<CurrencyRate>()
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM currency_rates", null)
-        cursor.use {
-            while (it.moveToNext()) {
-                list.add(
-                    CurrencyRate(
-                        code = it.getString(it.getColumnIndexOrThrow("code")) ?: "",
-                        rate = it.getDouble(it.getColumnIndexOrThrow("rate")),
-                        symbol = it.getString(it.getColumnIndexOrThrow("symbol")) ?: "",
-                        lastUpdated = it.getString(it.getColumnIndexOrThrow("last_updated")) ?: ""
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM currency_rates", null)
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        CurrencyRate(
+                            code = it.safeGetString("code"),
+                            rate = it.safeGetDouble("rate"),
+                            symbol = it.safeGetString("symbol"),
+                            lastUpdated = it.safeGetString("last_updated", "lastUpdated")
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading currency rates", e)
         }
         val priorityOrder = listOf(
             "BDT", "USD", "EUR", "GBP", "INR", "JPY",
@@ -1940,47 +1909,38 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
             val cursor = db.rawQuery(query, args)
             cursor.use {
-                val idCol = it.getColumnIndex("id")
-                val pIdCol = it.getColumnIndex("profile_id").takeIf { it >= 0 } ?: it.getColumnIndex("profileId")
-                val titleCol = it.getColumnIndex("title")
-                val descCol = it.getColumnIndex("description")
-                val catCol = it.getColumnIndex("category")
-                val dueCol = it.getColumnIndex("due_date")
-                val prioCol = it.getColumnIndex("priority")
-                val compCol = it.getColumnIndex("is_completed")
-                val goalCol = it.getColumnIndex("is_goal")
-                val progCol = it.getColumnIndex("progress")
-                val startCol = it.getColumnIndex("start_date")
                 while (it.moveToNext()) {
-                    val rawDue = if (dueCol >= 0 && !it.isNull(dueCol)) it.getString(dueCol) else null
-                    val dueDate = if (rawDue.isNullOrBlank()) null else rawDue
+                    val rawDue = it.safeGetString("due_date", "dueDate")
+                    val dueDate = if (rawDue.isBlank()) null else rawDue
 
-                    val rawStart = if (startCol >= 0 && !it.isNull(startCol)) it.getString(startCol) else null
-                    val startDate = if (rawStart.isNullOrBlank()) null else rawStart
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId
+                    val rawStart = it.safeGetString("start_date", "startDate")
+                    val startDate = if (rawStart.isBlank()) null else rawStart
+                    val pId = it.safeGetLong("profile_id", "profileId", default = profileId)
 
                     list.add(
                         TaskItem(
-                            id = if (idCol >= 0) it.getLong(idCol) else 0L,
+                            id = it.safeGetLong("id"),
                             profileId = pId,
-                            title = if (titleCol >= 0) it.getString(titleCol) ?: "" else "",
-                            description = if (descCol >= 0) it.getString(descCol) ?: "" else "",
-                            category = if (catCol >= 0) it.getString(catCol) ?: "General" else "General",
+                            title = it.safeGetString("title"),
+                            description = it.safeGetString("description"),
+                            category = it.safeGetString("category", default = "General"),
                             dueDate = dueDate,
-                            priority = if (prioCol >= 0) it.getString(prioCol) ?: "MEDIUM" else "MEDIUM",
-                            isCompleted = if (compCol >= 0) it.getInt(compCol) == 1 else false,
-                            isGoal = if (goalCol >= 0) it.getInt(goalCol) == 1 else false,
-                            progress = if (progCol >= 0) it.getInt(progCol) else 0,
+                            priority = it.safeGetString("priority", default = "MEDIUM"),
+                            isCompleted = it.safeGetBoolean("is_completed", "isCompleted"),
+                            isGoal = it.safeGetBoolean("is_goal", "isGoal"),
+                            progress = it.safeGetInt("progress"),
                             startDate = startDate
                         )
                     )
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB_READ", "Failed reading tasks for profile $profileId (filter=$filter)", e)
         }
         return list
     }
+
+    fun getTasks(profileId: Long = getActiveProfileId()): List<TaskItem> = getAllTasks("ALL", null, profileId)
 
     fun insertTask(task: TaskItem): Long {
         val db = writableDatabase
@@ -2069,38 +2029,27 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 arrayOf(dayOfWeek.toString(), profileId.toString(), profileId.toString())
             )
             cursor.use {
-                val idCol = it.getColumnIndex("id")
-                val pIdCol = it.getColumnIndex("profile_id").takeIf { it >= 0 } ?: it.getColumnIndex("profileId")
-                val subCol = it.getColumnIndex("subject_name")
-                val roomCol = it.getColumnIndex("room")
-                val teachCol = it.getColumnIndex("teacher")
-                val dayCol = it.getColumnIndex("day_of_week")
-                val startCol = it.getColumnIndex("start_time")
-                val endCol = it.getColumnIndex("end_time")
-                val colorCol = it.getColumnIndex("color_hex")
-                val classTypeIdx = it.getColumnIndex("class_type")
-                val buildingIdx = it.getColumnIndex("building_or_link")
                 while (it.moveToNext()) {
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId
+                    val pId = it.safeGetLong("profile_id", "profileId", default = profileId)
                     list.add(
                         ClassScheduleItem(
-                            id = if (idCol >= 0) it.getLong(idCol) else 0L,
+                            id = it.safeGetLong("id"),
                             profileId = pId,
-                            subjectName = if (subCol >= 0) it.getString(subCol) ?: "" else "",
-                            room = if (roomCol >= 0) it.getString(roomCol) ?: "" else "",
-                            teacher = if (teachCol >= 0) it.getString(teachCol) ?: "" else "",
-                            dayOfWeek = if (dayCol >= 0) it.getInt(dayCol) else dayOfWeek,
-                            startTime = if (startCol >= 0) it.getString(startCol) ?: "" else "",
-                            endTime = if (endCol >= 0) it.getString(endCol) ?: "" else "",
-                            colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#2563EB" else "#2563EB",
-                            classType = if (classTypeIdx >= 0) it.getString(classTypeIdx) ?: "LECTURE" else "LECTURE",
-                            buildingOrLink = if (buildingIdx >= 0) it.getString(buildingIdx) ?: "" else ""
+                            subjectName = it.safeGetString("subject_name", "subjectName"),
+                            room = it.safeGetString("room"),
+                            teacher = it.safeGetString("teacher"),
+                            dayOfWeek = it.safeGetInt("day_of_week", "dayOfWeek", default = dayOfWeek),
+                            startTime = it.safeGetString("start_time", "startTime"),
+                            endTime = it.safeGetString("end_time", "endTime"),
+                            colorHex = it.safeGetString("color_hex", "colorHex", default = "#2563EB"),
+                            classType = it.safeGetString("class_type", "classType", default = "LECTURE"),
+                            buildingOrLink = it.safeGetString("building_or_link", "buildingOrLink")
                         )
                     )
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB_READ", "Failed reading schedule for day $dayOfWeek, profile $profileId", e)
         }
         return list
     }
@@ -2114,41 +2063,32 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 arrayOf(profileId.toString(), profileId.toString())
             )
             cursor.use {
-                val idCol = it.getColumnIndex("id")
-                val pIdCol = it.getColumnIndex("profile_id").takeIf { it >= 0 } ?: it.getColumnIndex("profileId")
-                val subCol = it.getColumnIndex("subject_name")
-                val roomCol = it.getColumnIndex("room")
-                val teachCol = it.getColumnIndex("teacher")
-                val dayCol = it.getColumnIndex("day_of_week")
-                val startCol = it.getColumnIndex("start_time")
-                val endCol = it.getColumnIndex("end_time")
-                val colorCol = it.getColumnIndex("color_hex")
-                val classTypeIdx = it.getColumnIndex("class_type")
-                val buildingIdx = it.getColumnIndex("building_or_link")
                 while (it.moveToNext()) {
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId
+                    val pId = it.safeGetLong("profile_id", "profileId", default = profileId)
                     list.add(
                         ClassScheduleItem(
-                            id = if (idCol >= 0) it.getLong(idCol) else 0L,
+                            id = it.safeGetLong("id"),
                             profileId = pId,
-                            subjectName = if (subCol >= 0) it.getString(subCol) ?: "" else "",
-                            room = if (roomCol >= 0) it.getString(roomCol) ?: "" else "",
-                            teacher = if (teachCol >= 0) it.getString(teachCol) ?: "" else "",
-                            dayOfWeek = if (dayCol >= 0) it.getInt(dayCol) else 1,
-                            startTime = if (startCol >= 0) it.getString(startCol) ?: "" else "",
-                            endTime = if (endCol >= 0) it.getString(endCol) ?: "" else "",
-                            colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#2563EB" else "#2563EB",
-                            classType = if (classTypeIdx >= 0) it.getString(classTypeIdx) ?: "LECTURE" else "LECTURE",
-                            buildingOrLink = if (buildingIdx >= 0) it.getString(buildingIdx) ?: "" else ""
+                            subjectName = it.safeGetString("subject_name", "subjectName"),
+                            room = it.safeGetString("room"),
+                            teacher = it.safeGetString("teacher"),
+                            dayOfWeek = it.safeGetInt("day_of_week", "dayOfWeek", default = 1),
+                            startTime = it.safeGetString("start_time", "startTime"),
+                            endTime = it.safeGetString("end_time", "endTime"),
+                            colorHex = it.safeGetString("color_hex", "colorHex", default = "#2563EB"),
+                            classType = it.safeGetString("class_type", "classType", default = "LECTURE"),
+                            buildingOrLink = it.safeGetString("building_or_link", "buildingOrLink")
                         )
                     )
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB_READ", "Failed reading all classes for profile $profileId", e)
         }
         return list
     }
+
+    fun getClasses(profileId: Long = getActiveProfileId()): List<ClassScheduleItem> = getAllClasses(profileId)
 
     fun insertClassSchedule(item: ClassScheduleItem): Long {
         val db = writableDatabase
@@ -2193,19 +2133,23 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun getAllAttendance(): List<SubjectAttendanceItem> {
         val list = mutableListOf<SubjectAttendanceItem>()
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM attendance ORDER BY subject_name ASC", null)
-        cursor.use {
-            while (it.moveToNext()) {
-                list.add(
-                    SubjectAttendanceItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        subjectName = it.getString(it.getColumnIndexOrThrow("subject_name")) ?: "",
-                        attendedClasses = it.getInt(it.getColumnIndexOrThrow("attended_classes")),
-                        totalClasses = it.getInt(it.getColumnIndexOrThrow("total_classes"))
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM attendance ORDER BY subject_name ASC", null)
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        SubjectAttendanceItem(
+                            id = it.safeGetLong("id"),
+                            subjectName = it.safeGetString("subject_name", "subjectName"),
+                            attendedClasses = it.safeGetInt("attended_classes", "attendedClasses"),
+                            totalClasses = it.safeGetInt("total_classes", "totalClasses")
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading attendance", e)
         }
         return list
     }
@@ -2281,23 +2225,25 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun getAttendanceRecordsByDate(date: String, profileId: Long = getActiveProfileId()): List<database.entities.AttendanceRecord> {
         val list = mutableListOf<database.entities.AttendanceRecord>()
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM attendance_records WHERE date = ? AND profile_id = ?", arrayOf(date, profileId.toString()))
-        cursor.use {
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    database.entities.AttendanceRecord(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        profileId = pId,
-                        subjectName = it.getString(it.getColumnIndexOrThrow("subjectName")),
-                        date = it.getString(it.getColumnIndexOrThrow("date")),
-                        dayOfWeek = it.getString(it.getColumnIndexOrThrow("dayOfWeek")),
-                        status = it.getString(it.getColumnIndexOrThrow("status"))
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM attendance_records WHERE date = ? AND (profile_id = ? OR profileId = ?)", arrayOf(date, profileId.toString(), profileId.toString()))
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        database.entities.AttendanceRecord(
+                            id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                            subjectName = it.safeGetString("subjectName", "subject_name"),
+                            date = it.safeGetString("date", default = date),
+                            dayOfWeek = it.safeGetString("dayOfWeek", "day_of_week"),
+                            status = it.safeGetString("status")
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading attendance records for date $date, profile $profileId", e)
         }
         return list
     }
@@ -2586,16 +2532,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     arrayOf(profileId.toString())
                 )
                 cursor.use {
-                    val colorIdx = it.getColumnIndex("color_hex")
                     while (it.moveToNext()) {
-                        val colorHex = if (colorIdx >= 0 && !it.isNull(colorIdx)) it.getString(colorIdx) else "#0284C7"
+                        val colorHex = it.safeGetString("color_hex", default = "#0284C7")
                         list.add(
                             database.entities.ClassTypeEntity(
-                                id = it.getLong(it.getColumnIndexOrThrow("id")),
-                                profileId = it.getLong(it.getColumnIndexOrThrow("profile_id")),
-                                name = it.getString(it.getColumnIndexOrThrow("name")),
-                                isDefault = it.getInt(it.getColumnIndexOrThrow("is_default")) == 1,
-                                colorHex = if (!colorHex.isNullOrBlank()) colorHex else "#0284C7"
+                                id = it.safeGetLong("id"),
+                                profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                                name = it.safeGetString("name"),
+                                isDefault = it.safeGetBoolean("is_default", "isDefault"),
+                                colorHex = if (colorHex.isNotBlank()) colorHex else "#0284C7"
                             )
                         )
                     }
@@ -2740,16 +2685,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     arrayOf(profileId.toString())
                 )
                 cursor.use {
-                    val colorIdx = it.getColumnIndex("color_hex")
                     while (it.moveToNext()) {
-                        val colorHex = if (colorIdx >= 0 && !it.isNull(colorIdx)) it.getString(colorIdx) else "#8B5CF6"
+                        val colorHex = it.safeGetString("color_hex", default = "#8B5CF6")
                         list.add(
                             database.entities.AssessmentCategoryEntity(
-                                id = it.getLong(it.getColumnIndexOrThrow("id")),
-                                profileId = it.getLong(it.getColumnIndexOrThrow("profile_id")),
-                                name = it.getString(it.getColumnIndexOrThrow("name")),
-                                isDefault = it.getInt(it.getColumnIndexOrThrow("is_default")) == 1,
-                                colorHex = if (!colorHex.isNullOrBlank()) colorHex else "#8B5CF6"
+                                id = it.safeGetLong("id"),
+                                profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                                name = it.safeGetString("name"),
+                                isDefault = it.safeGetBoolean("is_default", "isDefault"),
+                                colorHex = if (colorHex.isNotBlank()) colorHex else "#8B5CF6"
                             )
                         )
                     }
@@ -3499,35 +3443,31 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     fun getAllStudentSubjects(profileId: Long = getActiveProfileId()): List<StudentSubject> {
         val list = mutableListOf<StudentSubject>()
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM student_subjects WHERE profile_id = ? ORDER BY name ASC", arrayOf(profileId.toString()))
-        cursor.use {
-            val creditsIdx = it.getColumnIndex("credits")
-            val instructorNameIdx = it.getColumnIndex("instructor_name")
-            val instructorEmailIdx = it.getColumnIndex("instructor_email")
-            val instructorPhoneIdx = it.getColumnIndex("instructor_phone")
-            val syllabusTextIdx = it.getColumnIndex("syllabus_text")
-            val syllabusPathIdx = it.getColumnIndex("syllabus_path")
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    StudentSubject(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        profileId = pId,
-                        name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
-                        code = it.getString(it.getColumnIndexOrThrow("code")) ?: "",
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#2563EB",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        credits = if (creditsIdx >= 0) it.getInt(creditsIdx) else 3,
-                        instructorName = if (instructorNameIdx >= 0) it.getString(instructorNameIdx) ?: "" else "",
-                        instructorEmail = if (instructorEmailIdx >= 0) it.getString(instructorEmailIdx) ?: "" else "",
-                        instructorPhone = if (instructorPhoneIdx >= 0) it.getString(instructorPhoneIdx) ?: "" else "",
-                        syllabusText = if (syllabusTextIdx >= 0) it.getString(syllabusTextIdx) ?: "" else "",
-                        syllabusPath = if (syllabusPathIdx >= 0) it.getString(syllabusPathIdx) ?: "" else ""
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM student_subjects WHERE (profile_id = ? OR profileId = ?) ORDER BY name ASC", arrayOf(profileId.toString(), profileId.toString()))
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        StudentSubject(
+                            id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                            name = it.safeGetString("name"),
+                            code = it.safeGetString("code"),
+                            colorHex = it.safeGetString("color_hex", "colorHex", default = "#2563EB"),
+                            notes = it.safeGetString("notes"),
+                            credits = it.safeGetInt("credits", default = 3),
+                            instructorName = it.safeGetString("instructor_name", "instructorName"),
+                            instructorEmail = it.safeGetString("instructor_email", "instructorEmail"),
+                            instructorPhone = it.safeGetString("instructor_phone", "instructorPhone"),
+                            syllabusText = it.safeGetString("syllabus_text", "syllabusText"),
+                            syllabusPath = it.safeGetString("syllabus_path", "syllabusPath")
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading student subjects for profile $profileId", e)
         }
         return list
     }
@@ -3535,33 +3475,29 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun getAllSubjectsSync(): List<StudentSubject> = getAllStudentSubjects()
 
     fun getStudentSubjectById(subjectId: Long): StudentSubject? {
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM student_subjects WHERE id = ?", arrayOf(subjectId.toString()))
-        cursor.use {
-            if (it.moveToFirst()) {
-                val creditsIdx = it.getColumnIndex("credits")
-                val instructorNameIdx = it.getColumnIndex("instructor_name")
-                val instructorEmailIdx = it.getColumnIndex("instructor_email")
-                val instructorPhoneIdx = it.getColumnIndex("instructor_phone")
-                val syllabusTextIdx = it.getColumnIndex("syllabus_text")
-                val syllabusPathIdx = it.getColumnIndex("syllabus_path")
-                val pIdCol = it.getColumnIndex("profile_id")
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                return StudentSubject(
-                    id = it.getLong(it.getColumnIndexOrThrow("id")),
-                    profileId = pId,
-                    name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
-                    code = it.getString(it.getColumnIndexOrThrow("code")) ?: "",
-                    colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "#2563EB",
-                    notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                    credits = if (creditsIdx >= 0) it.getInt(creditsIdx) else 3,
-                    instructorName = if (instructorNameIdx >= 0) it.getString(instructorNameIdx) ?: "" else "",
-                    instructorEmail = if (instructorEmailIdx >= 0) it.getString(instructorEmailIdx) ?: "" else "",
-                    instructorPhone = if (instructorPhoneIdx >= 0) it.getString(instructorPhoneIdx) ?: "" else "",
-                    syllabusText = if (syllabusTextIdx >= 0) it.getString(syllabusTextIdx) ?: "" else "",
-                    syllabusPath = if (syllabusPathIdx >= 0) it.getString(syllabusPathIdx) ?: "" else ""
-                )
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM student_subjects WHERE id = ?", arrayOf(subjectId.toString()))
+            cursor.use {
+                if (it.moveToFirst()) {
+                    return StudentSubject(
+                        id = it.safeGetLong("id", default = subjectId),
+                        profileId = it.safeGetLong("profile_id", "profileId", default = 1L),
+                        name = it.safeGetString("name"),
+                        code = it.safeGetString("code"),
+                        colorHex = it.safeGetString("color_hex", "colorHex", default = "#2563EB"),
+                        notes = it.safeGetString("notes"),
+                        credits = it.safeGetInt("credits", default = 3),
+                        instructorName = it.safeGetString("instructor_name", "instructorName"),
+                        instructorEmail = it.safeGetString("instructor_email", "instructorEmail"),
+                        instructorPhone = it.safeGetString("instructor_phone", "instructorPhone"),
+                        syllabusText = it.safeGetString("syllabus_text", "syllabusText"),
+                        syllabusPath = it.safeGetString("syllabus_path", "syllabusPath")
+                    )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading student subject $subjectId", e)
         }
         return null
     }
@@ -3659,25 +3595,29 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     fun getMaterialsForSubject(subjectId: Long): List<SubjectMaterial> {
         val list = mutableListOf<SubjectMaterial>()
-        val db = readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT * FROM subject_materials WHERE subject_id = ? ORDER BY id DESC",
-            arrayOf(subjectId.toString())
-        )
-        cursor.use {
-            while (it.moveToNext()) {
-                list.add(
-                    SubjectMaterial(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "PDF_DOCUMENT",
-                        filePath = it.getString(it.getColumnIndexOrThrow("file_path")) ?: "",
-                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: "",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: ""
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT * FROM subject_materials WHERE subject_id = ? ORDER BY id DESC",
+                arrayOf(subjectId.toString())
+            )
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        SubjectMaterial(
+                            id = it.safeGetLong("id"),
+                            subjectId = it.safeGetLong("subject_id", "subjectId", default = subjectId),
+                            title = it.safeGetString("title"),
+                            type = it.safeGetString("type", default = "PDF_DOCUMENT"),
+                            filePath = it.safeGetString("file_path", "filePath"),
+                            createdAt = it.safeGetString("created_at", "createdAt"),
+                            notes = it.safeGetString("notes")
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading materials for subject $subjectId", e)
         }
         return list
     }
@@ -3735,164 +3675,168 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun getItemsForSubject(subjectId: Long, itemTypeFilter: String? = null, profileId: Long = getActiveProfileId()): List<SubjectWorkItem> {
         val list = mutableListOf<SubjectWorkItem>()
-        val db = readableDatabase
-        val query = if (itemTypeFilter != null && itemTypeFilter != "ALL") {
-            "SELECT * FROM subject_work_items WHERE subject_id = ? AND item_type = ? AND profile_id = ? ORDER BY id DESC"
-        } else {
-            "SELECT * FROM subject_work_items WHERE subject_id = ? AND profile_id = ? ORDER BY id DESC"
-        }
-        val args = if (itemTypeFilter != null && itemTypeFilter != "ALL") {
-            arrayOf(subjectId.toString(), itemTypeFilter, profileId.toString())
-        } else {
-            arrayOf(subjectId.toString(), profileId.toString())
-        }
-        val cursor = db.rawQuery(query, args)
-        cursor.use {
-            val examTypeIdx = it.getColumnIndex("exam_type")
-            val attachUriIdx = it.getColumnIndex("attachment_uri")
-            val attachNameIdx = it.getColumnIndex("attachment_name")
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    SubjectWorkItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        profileId = pId,
-                        subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id")),
-                        itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "HOMEWORK",
-                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                        description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
-                        startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
-                        endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
-                        scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
-                        status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
-                        attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
-                        examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else "",
-                        attachmentUri = if (attachUriIdx >= 0) it.getString(attachUriIdx) else null,
-                        attachmentName = if (attachNameIdx >= 0) it.getString(attachNameIdx) else null
-                    )
-                )
+        try {
+            val db = readableDatabase
+            val query = if (itemTypeFilter != null && itemTypeFilter != "ALL") {
+                "SELECT * FROM subject_work_items WHERE subject_id = ? AND item_type = ? AND (profile_id = ? OR profileId = ?) ORDER BY id DESC"
+            } else {
+                "SELECT * FROM subject_work_items WHERE subject_id = ? AND (profile_id = ? OR profileId = ?) ORDER BY id DESC"
             }
+            val args = if (itemTypeFilter != null && itemTypeFilter != "ALL") {
+                arrayOf(subjectId.toString(), itemTypeFilter, profileId.toString(), profileId.toString())
+            } else {
+                arrayOf(subjectId.toString(), profileId.toString(), profileId.toString())
+            }
+            val cursor = db.rawQuery(query, args)
+            cursor.use {
+                val attachUriIdx = it.getColumnIndex("attachment_uri")
+                val attachNameIdx = it.getColumnIndex("attachment_name")
+                while (it.moveToNext()) {
+                    list.add(
+                        SubjectWorkItem(
+                            id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                            subjectId = it.safeGetLong("subject_id", "subjectId", default = subjectId),
+                            itemType = it.safeGetString("item_type", "itemType", default = "HOMEWORK"),
+                            title = it.safeGetString("title"),
+                            description = it.safeGetString("description"),
+                            startDate = it.safeGetString("start_date", "startDate"),
+                            endDate = it.safeGetString("end_date", "endDate"),
+                            scoreOrMarks = it.safeGetString("score_or_marks", "scoreOrMarks"),
+                            status = it.safeGetString("status", default = "PENDING"),
+                            attachmentPath = it.safeGetString("attachment_path", "attachmentPath"),
+                            examType = it.safeGetString("exam_type", "examType"),
+                            attachmentUri = if (attachUriIdx >= 0) it.getString(attachUriIdx) else null,
+                            attachmentName = if (attachNameIdx >= 0) it.getString(attachNameIdx) else null
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading items for subject $subjectId", e)
         }
         return list
     }
 
     fun getAllExams(examTypeFilter: String? = null, profileId: Long = getActiveProfileId()): List<Pair<SubjectWorkItem, StudentSubject>> {
         val list = mutableListOf<Pair<SubjectWorkItem, StudentSubject>>()
-        val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
-        val db = readableDatabase
-        val query = if (!examTypeFilter.isNullOrBlank()) {
-            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND exam_type = ? AND profile_id = ? ORDER BY end_date ASC, start_date ASC"
-        } else {
-            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND profile_id = ? ORDER BY end_date ASC, start_date ASC"
-        }
-        val args = if (!examTypeFilter.isNullOrBlank()) arrayOf(examTypeFilter, profileId.toString()) else arrayOf(profileId.toString())
-        val cursor = db.rawQuery(query, args)
-        cursor.use {
-            val examTypeIdx = it.getColumnIndex("exam_type")
-            val attachUriIdx = it.getColumnIndex("attachment_uri")
-            val attachNameIdx = it.getColumnIndex("attachment_name")
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id"))
-                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                val item = SubjectWorkItem(
-                    id = it.getLong(it.getColumnIndexOrThrow("id")),
-                    profileId = pId,
-                    subjectId = subjectId,
-                    itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "EXAM",
-                    title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                    description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
-                    startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
-                    endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
-                    scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
-                    status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
-                    attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
-                    examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else "",
-                    attachmentUri = if (attachUriIdx >= 0) it.getString(attachUriIdx) else null,
-                    attachmentName = if (attachNameIdx >= 0) it.getString(attachNameIdx) else null
-                )
-                list.add(Pair(item, subject))
+        try {
+            val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
+            val db = readableDatabase
+            val query = if (!examTypeFilter.isNullOrBlank()) {
+                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND exam_type = ? AND (profile_id = ? OR profileId = ?) ORDER BY end_date ASC, start_date ASC"
+            } else {
+                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND (profile_id = ? OR profileId = ?) ORDER BY end_date ASC, start_date ASC"
             }
+            val args = if (!examTypeFilter.isNullOrBlank()) arrayOf(examTypeFilter, profileId.toString(), profileId.toString()) else arrayOf(profileId.toString(), profileId.toString())
+            val cursor = db.rawQuery(query, args)
+            cursor.use {
+                val attachUriIdx = it.getColumnIndex("attachment_uri")
+                val attachNameIdx = it.getColumnIndex("attachment_name")
+                while (it.moveToNext()) {
+                    val subjectId = it.safeGetLong("subject_id", "subjectId")
+                    val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
+                    val item = SubjectWorkItem(
+                        id = it.safeGetLong("id"),
+                        profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                        subjectId = subjectId,
+                        itemType = it.safeGetString("item_type", "itemType", default = "EXAM"),
+                        title = it.safeGetString("title"),
+                        description = it.safeGetString("description"),
+                        startDate = it.safeGetString("start_date", "startDate"),
+                        endDate = it.safeGetString("end_date", "endDate"),
+                        scoreOrMarks = it.safeGetString("score_or_marks", "scoreOrMarks"),
+                        status = it.safeGetString("status", default = "PENDING"),
+                        attachmentPath = it.safeGetString("attachment_path", "attachmentPath"),
+                        examType = it.safeGetString("exam_type", "examType"),
+                        attachmentUri = if (attachUriIdx >= 0) it.getString(attachUriIdx) else null,
+                        attachmentName = if (attachNameIdx >= 0) it.getString(attachNameIdx) else null
+                    )
+                    list.add(Pair(item, subject))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading all exams for profile $profileId", e)
         }
         return list
     }
 
     fun getTodayHomeworkDue(todayDate: String, profileId: Long = getActiveProfileId()): List<Pair<SubjectWorkItem, StudentSubject>> {
         val list = mutableListOf<Pair<SubjectWorkItem, StudentSubject>>()
-        val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
-        val db = readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT * FROM subject_work_items WHERE status != 'DONE' AND (item_type = 'HOMEWORK' OR item_type = 'ASSIGNMENT') AND profile_id = ? AND (end_date = ? OR (end_date = '' AND start_date = ?))",
-            arrayOf(profileId.toString(), todayDate, todayDate)
-        )
-        cursor.use {
-            val examTypeIdx = it.getColumnIndex("exam_type")
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id"))
-                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    Pair(
-                        SubjectWorkItem(
-                            id = it.getLong(it.getColumnIndexOrThrow("id")),
-                            profileId = pId,
-                            subjectId = subjectId,
-                            itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "HOMEWORK",
-                            title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                            description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
-                            startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
-                            endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
-                            scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
-                            status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
-                            attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
-                            examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else ""
-                        ),
-                        subject
+        try {
+            val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
+            val db = readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT * FROM subject_work_items WHERE status != 'DONE' AND (item_type = 'HOMEWORK' OR item_type = 'ASSIGNMENT') AND (profile_id = ? OR profileId = ?) AND (end_date = ? OR (end_date = '' AND start_date = ?))",
+                arrayOf(profileId.toString(), profileId.toString(), todayDate, todayDate)
+            )
+            cursor.use {
+                while (it.moveToNext()) {
+                    val subjectId = it.safeGetLong("subject_id", "subjectId")
+                    val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
+                    list.add(
+                        Pair(
+                            SubjectWorkItem(
+                                id = it.safeGetLong("id"),
+                                profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                                subjectId = subjectId,
+                                itemType = it.safeGetString("item_type", "itemType", default = "HOMEWORK"),
+                                title = it.safeGetString("title"),
+                                description = it.safeGetString("description"),
+                                startDate = it.safeGetString("start_date", "startDate"),
+                                endDate = it.safeGetString("end_date", "endDate"),
+                                scoreOrMarks = it.safeGetString("score_or_marks", "scoreOrMarks"),
+                                status = it.safeGetString("status", default = "PENDING"),
+                                attachmentPath = it.safeGetString("attachment_path", "attachmentPath"),
+                                examType = it.safeGetString("exam_type", "examType")
+                            ),
+                            subject
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading today's homework for profile $profileId", e)
         }
         return list
     }
 
     fun getTodayClassTests(todayDate: String, profileId: Long = getActiveProfileId()): List<Pair<SubjectWorkItem, StudentSubject>> {
         val list = mutableListOf<Pair<SubjectWorkItem, StudentSubject>>()
-        val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
-        val db = readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND (exam_type = 'CLASS_TEST_QUIZ' OR exam_type = '') AND profile_id = ? AND (end_date = ? OR start_date = ?)",
-            arrayOf(profileId.toString(), todayDate, todayDate)
-        )
-        cursor.use {
-            val examTypeIdx = it.getColumnIndex("exam_type")
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val subjectId = it.getLong(it.getColumnIndexOrThrow("subject_id"))
-                val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    Pair(
-                        SubjectWorkItem(
-                            id = it.getLong(it.getColumnIndexOrThrow("id")),
-                            profileId = pId,
-                            subjectId = subjectId,
-                            itemType = it.getString(it.getColumnIndexOrThrow("item_type")) ?: "EXAM",
-                            title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                            description = it.getString(it.getColumnIndexOrThrow("description")) ?: "",
-                            startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
-                            endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
-                            scoreOrMarks = it.getString(it.getColumnIndexOrThrow("score_or_marks")) ?: "",
-                            status = it.getString(it.getColumnIndexOrThrow("status")) ?: "PENDING",
-                            attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: "",
-                            examType = if (examTypeIdx >= 0) it.getString(examTypeIdx) ?: "" else ""
-                        ),
-                        subject
+        try {
+            val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
+            val db = readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND (exam_type = 'CLASS_TEST_QUIZ' OR exam_type = '') AND (profile_id = ? OR profileId = ?) AND (end_date = ? OR start_date = ?)",
+                arrayOf(profileId.toString(), profileId.toString(), todayDate, todayDate)
+            )
+            cursor.use {
+                while (it.moveToNext()) {
+                    val subjectId = it.safeGetLong("subject_id", "subjectId")
+                    val subject = subjects[subjectId] ?: StudentSubject(id = subjectId, profileId = profileId, name = "Subject")
+                    list.add(
+                        Pair(
+                            SubjectWorkItem(
+                                id = it.safeGetLong("id"),
+                                profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
+                                subjectId = subjectId,
+                                itemType = it.safeGetString("item_type", "itemType", default = "EXAM"),
+                                title = it.safeGetString("title"),
+                                description = it.safeGetString("description"),
+                                startDate = it.safeGetString("start_date", "startDate"),
+                                endDate = it.safeGetString("end_date", "endDate"),
+                                scoreOrMarks = it.safeGetString("score_or_marks", "scoreOrMarks"),
+                                status = it.safeGetString("status", default = "PENDING"),
+                                attachmentPath = it.safeGetString("attachment_path", "attachmentPath"),
+                                examType = it.safeGetString("exam_type", "examType")
+                            ),
+                            subject
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading today's class tests for profile $profileId", e)
         }
         return list
     }
@@ -3956,26 +3900,30 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     fun getAllWorkOrders(): List<WorkOrder> {
         val list = mutableListOf<WorkOrder>()
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM work_orders ORDER BY id DESC", null)
-        cursor.use {
-            while (it.moveToNext()) {
-                list.add(
-                    WorkOrder(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                        clientName = it.getString(it.getColumnIndexOrThrow("client_name")) ?: "",
-                        quantity = it.getInt(it.getColumnIndexOrThrow("quantity")),
-                        unitPrice = it.getDouble(it.getColumnIndexOrThrow("unit_price")),
-                        totalPrice = it.getDouble(it.getColumnIndexOrThrow("total_price")),
-                        startDate = it.getString(it.getColumnIndexOrThrow("start_date")) ?: "",
-                        endDate = it.getString(it.getColumnIndexOrThrow("end_date")) ?: "",
-                        status = it.getString(it.getColumnIndexOrThrow("status")) ?: "",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        attachmentPath = it.getString(it.getColumnIndexOrThrow("attachment_path")) ?: ""
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM work_orders ORDER BY id DESC", null)
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        WorkOrder(
+                            id = it.safeGetLong("id"),
+                            title = it.safeGetString("title"),
+                            clientName = it.safeGetString("client_name", "clientName"),
+                            quantity = it.safeGetInt("quantity"),
+                            unitPrice = it.safeGetDouble("unit_price", "unitPrice"),
+                            totalPrice = it.safeGetDouble("total_price", "totalPrice"),
+                            startDate = it.safeGetString("start_date", "startDate"),
+                            endDate = it.safeGetString("end_date", "endDate"),
+                            status = it.safeGetString("status"),
+                            notes = it.safeGetString("notes"),
+                            attachmentPath = it.safeGetString("attachment_path", "attachmentPath")
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading work orders", e)
         }
         return list
     }
@@ -4030,24 +3978,26 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     fun getAllNotes(profileId: Long = getActiveProfileId()): List<NoteItem> {
         val list = mutableListOf<NoteItem>()
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM notes WHERE profile_id = ? ORDER BY id DESC", arrayOf(profileId.toString()))
-        cursor.use {
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    NoteItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                        content = it.getString(it.getColumnIndexOrThrow("content")) ?: "",
-                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "",
-                        colorHex = it.getString(it.getColumnIndexOrThrow("color_hex")) ?: "",
-                        updatedAt = it.getString(it.getColumnIndexOrThrow("updated_at")) ?: "",
-                        profileId = pId
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM notes WHERE (profile_id = ? OR profileId = ?) ORDER BY id DESC", arrayOf(profileId.toString(), profileId.toString()))
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        NoteItem(
+                            id = it.safeGetLong("id"),
+                            title = it.safeGetString("title"),
+                            content = it.safeGetString("content"),
+                            category = it.safeGetString("category"),
+                            colorHex = it.safeGetString("color_hex", "colorHex"),
+                            updatedAt = it.safeGetString("updated_at", "updatedAt"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId)
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading notes for profile $profileId", e)
         }
         return list
     }
@@ -4085,70 +4035,72 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun getAllContactsGroups(): List<ContactGroupItem> {
         val list = mutableListOf<ContactGroupItem>()
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM contacts_groups ORDER BY id DESC", null)
-        cursor.use {
-            val phoneIdx = it.getColumnIndex("phone_number")
-            val roleIdx = it.getColumnIndex("role")
-            val scopeIdx = it.getColumnIndex("scope")
-            while (it.moveToNext()) {
-                list.add(
-                    ContactGroupItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
-                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
-                        platform = it.getString(it.getColumnIndexOrThrow("platform")) ?: "",
-                        targetLink = it.getString(it.getColumnIndexOrThrow("target_link")) ?: "",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        phoneNumber = if (phoneIdx >= 0) it.getString(phoneIdx) ?: "" else "",
-                        role = if (roleIdx >= 0) it.getString(roleIdx) ?: "Classmate" else "Classmate",
-                        scope = if (scopeIdx >= 0) it.getString(scopeIdx) ?: "SHARED" else "SHARED"
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM contacts_groups ORDER BY id DESC", null)
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        ContactGroupItem(
+                            id = it.safeGetLong("id"),
+                            name = it.safeGetString("name"),
+                            type = it.safeGetString("type"),
+                            platform = it.safeGetString("platform"),
+                            targetLink = it.safeGetString("target_link", "targetLink"),
+                            notes = it.safeGetString("notes"),
+                            phoneNumber = it.safeGetString("phone_number", "phoneNumber"),
+                            role = it.safeGetString("role", default = "Classmate"),
+                            scope = it.safeGetString("scope", default = "SHARED")
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading contacts groups", e)
         }
         return list
     }
 
     fun getContactsForPortal(isStudent: Boolean, roleFilter: String? = null): List<ContactGroupItem> {
         val list = mutableListOf<ContactGroupItem>()
-        val db = readableDatabase
-        val scopeClause = if (isStudent) {
-            "(scope = 'STUDENT_ONLY' OR scope = 'SHARED' OR scope = '')"
-        } else {
-            "(scope = 'WORK_ONLY' OR scope = 'SHARED' OR scope = '')"
-        }
-
-        val query: String
-        val args: Array<String>?
-        if (!roleFilter.isNullOrBlank() && roleFilter != "ALL") {
-            query = "SELECT * FROM contacts_groups WHERE $scopeClause AND role = ? ORDER BY id DESC"
-            args = arrayOf(roleFilter)
-        } else {
-            query = "SELECT * FROM contacts_groups WHERE $scopeClause ORDER BY id DESC"
-            args = null
-        }
-
-        val cursor = db.rawQuery(query, args)
-        cursor.use {
-            val phoneIdx = it.getColumnIndex("phone_number")
-            val roleIdx = it.getColumnIndex("role")
-            val scopeIdx = it.getColumnIndex("scope")
-            while (it.moveToNext()) {
-                list.add(
-                    ContactGroupItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        name = it.getString(it.getColumnIndexOrThrow("name")) ?: "",
-                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
-                        platform = it.getString(it.getColumnIndexOrThrow("platform")) ?: "",
-                        targetLink = it.getString(it.getColumnIndexOrThrow("target_link")) ?: "",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        phoneNumber = if (phoneIdx >= 0) it.getString(phoneIdx) ?: "" else "",
-                        role = if (roleIdx >= 0) it.getString(roleIdx) ?: "Classmate" else "Classmate",
-                        scope = if (scopeIdx >= 0) it.getString(scopeIdx) ?: "SHARED" else "SHARED"
-                    )
-                )
+        try {
+            val db = readableDatabase
+            val scopeClause = if (isStudent) {
+                "(scope = 'STUDENT_ONLY' OR scope = 'SHARED' OR scope = '')"
+            } else {
+                "(scope = 'WORK_ONLY' OR scope = 'SHARED' OR scope = '')"
             }
+
+            val query: String
+            val args: Array<String>?
+            if (!roleFilter.isNullOrBlank() && roleFilter != "ALL") {
+                query = "SELECT * FROM contacts_groups WHERE $scopeClause AND role = ? ORDER BY id DESC"
+                args = arrayOf(roleFilter)
+            } else {
+                query = "SELECT * FROM contacts_groups WHERE $scopeClause ORDER BY id DESC"
+                args = null
+            }
+
+            val cursor = db.rawQuery(query, args)
+            cursor.use {
+                while (it.moveToNext()) {
+                    list.add(
+                        ContactGroupItem(
+                            id = it.safeGetLong("id"),
+                            name = it.safeGetString("name"),
+                            type = it.safeGetString("type"),
+                            platform = it.safeGetString("platform"),
+                            targetLink = it.safeGetString("target_link", "targetLink"),
+                            notes = it.safeGetString("notes"),
+                            phoneNumber = it.safeGetString("phone_number", "phoneNumber"),
+                            role = it.safeGetString("role", default = "Classmate"),
+                            scope = it.safeGetString("scope", default = "SHARED")
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading contacts for portal (isStudent=$isStudent)", e)
         }
         return list
     }
@@ -4441,28 +4393,28 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val db = readableDatabase
         ensureDuesDebtsTable(db)
         try {
-            val cursor = db.rawQuery("SELECT * FROM dues_debts WHERE profile_id = ? ORDER BY status ASC, id DESC", arrayOf(profileId.toString()))
+            val cursor = db.rawQuery("SELECT * FROM dues_debts WHERE (profile_id = ? OR profileId = ?) ORDER BY status ASC, id DESC", arrayOf(profileId.toString(), profileId.toString()))
             cursor.use {
-                val pIdCol = it.getColumnIndex("profile_id")
                 while (it.moveToNext()) {
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                     list.add(
                         DueDebtItem(
-                            id = it.getLong(it.getColumnIndexOrThrow("id")),
-                            personName = it.getString(it.getColumnIndexOrThrow("person_name")) ?: "",
-                            phoneOrContact = it.getString(it.getColumnIndexOrThrow("phone_or_contact")) ?: "",
-                            amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                            dueDate = it.getString(it.getColumnIndexOrThrow("due_date")) ?: "",
-                            type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
-                            status = it.getString(it.getColumnIndexOrThrow("status")) ?: "",
-                            notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                            createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: "",
-                            profileId = pId
+                            id = it.safeGetLong("id"),
+                            personName = it.safeGetString("person_name", "personName"),
+                            phoneOrContact = it.safeGetString("phone_or_contact", "phoneOrContact"),
+                            amount = it.safeGetDouble("amount"),
+                            dueDate = it.safeGetString("due_date", "dueDate"),
+                            type = it.safeGetString("type"),
+                            status = it.safeGetString("status"),
+                            notes = it.safeGetString("notes"),
+                            createdAt = it.safeGetString("created_at", "createdAt"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId)
                         )
                     )
                 }
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading dues debts for profile $profileId", e)
+        }
         return list
     }
 
@@ -4473,25 +4425,27 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val cursor = db.rawQuery("SELECT * FROM dues_debts WHERE id = ?", arrayOf(id.toString()))
             cursor.use {
                 if (it.moveToFirst()) {
-                    val pIdCol = it.getColumnIndex("profile_id")
-                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
                     return DueDebtItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        personName = it.getString(it.getColumnIndexOrThrow("person_name")) ?: "",
-                        phoneOrContact = it.getString(it.getColumnIndexOrThrow("phone_or_contact")) ?: "",
-                        amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                        dueDate = it.getString(it.getColumnIndexOrThrow("due_date")) ?: "",
-                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "",
-                        status = it.getString(it.getColumnIndexOrThrow("status")) ?: "",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        createdAt = it.getString(it.getColumnIndexOrThrow("created_at")) ?: "",
-                        profileId = pId
+                        id = it.safeGetLong("id", default = id),
+                        personName = it.safeGetString("person_name", "personName"),
+                        phoneOrContact = it.safeGetString("phone_or_contact", "phoneOrContact"),
+                        amount = it.safeGetDouble("amount"),
+                        dueDate = it.safeGetString("due_date", "dueDate"),
+                        type = it.safeGetString("type"),
+                        status = it.safeGetString("status"),
+                        notes = it.safeGetString("notes"),
+                        createdAt = it.safeGetString("created_at", "createdAt"),
+                        profileId = it.safeGetLong("profile_id", "profileId", default = 1L)
                     )
                 }
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading due debt $id", e)
+        }
         return null
     }
+
+    fun getDuesDebts(profileId: Long = getActiveProfileId()): List<DueDebtItem> = getAllDuesDebts(profileId)
 
     fun settleDueDebt(
         id: Long,
@@ -4557,15 +4511,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         var totalLentUnpaid = 0.0
         var totalBorrowedUnpaid = 0.0
         try {
-            val cursorLent = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'LENT' AND status = 'UNPAID' AND profile_id = ?", arrayOf(profileId.toString()))
+            val cursorLent = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'LENT' AND status = 'UNPAID' AND (profile_id = ? OR profileId = ?)", arrayOf(profileId.toString(), profileId.toString()))
             cursorLent.use {
                 if (it.moveToFirst() && !it.isNull(0)) totalLentUnpaid = it.getDouble(0)
             }
-            val cursorBorrowed = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'BORROWED' AND status = 'UNPAID' AND profile_id = ?", arrayOf(profileId.toString()))
+            val cursorBorrowed = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'BORROWED' AND status = 'UNPAID' AND (profile_id = ? OR profileId = ?)", arrayOf(profileId.toString(), profileId.toString()))
             cursorBorrowed.use {
                 if (it.moveToFirst() && !it.isNull(0)) totalBorrowedUnpaid = it.getDouble(0)
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.e("DUO_DB_READ", "Failed reading dues debts summary for profile $profileId", e)
+        }
         return Pair(totalLentUnpaid, totalBorrowedUnpaid)
     }
 }

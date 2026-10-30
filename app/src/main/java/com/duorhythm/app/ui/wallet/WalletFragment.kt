@@ -135,6 +135,12 @@ class WalletFragment : Fragment() {
         super.onResume()
         if (_binding != null) {
             checkWalletBiometricLock()
+            val activeProfileId = ProfileManager.getActiveProfileId(context)
+            val currentMonthYear = SimpleDateFormat("yyyy-MM", Locale.US).format(selectedCalendar.time)
+            walletViewModel.loadAccounts(activeProfileId)
+            walletViewModel.loadSubscriptions(activeProfileId)
+            walletViewModel.loadMonthlyTransactions(activeProfileId, currentMonthYear)
+            loadData()
         }
     }
 
@@ -973,7 +979,9 @@ class WalletFragment : Fragment() {
                 WalletDataSyncManager.notifyChanged()
                 Toast.makeText(requireContext(), "Updated '$name'", Toast.LENGTH_SHORT).show()
             } else {
+                val activeProfileId = ProfileManager.getActiveProfileId(requireContext())
                 val newBucket = WalletBucketItem(
+                    profileId = activeProfileId,
                     name = name,
                     icon = selectedIcon,
                     colorHex = selectedColor,

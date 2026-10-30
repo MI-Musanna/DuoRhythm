@@ -49,7 +49,8 @@ class AddRecordDialog(
     private var alertDialog: AlertDialog? = null
 
     fun create(): Dialog {
-        val buckets = dbHelper.getAllWalletBuckets()
+        val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(context)
+        val buckets = dbHelper.getAllWalletBuckets(activeProfileId)
         dialogBinding = DialogAddTransactionBinding.inflate(LayoutInflater.from(context))
 
         val prefs = context.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
@@ -302,7 +303,9 @@ class AddRecordDialog(
             val finalCategory = chosenCategory.ifBlank { "General" }
             val finalTitle = customTitle.ifBlank { finalCategory }
 
+            val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(context)
             val tx = TransactionItem(
+                profileId = activeProfileId,
                 title = finalTitle,
                 category = finalCategory,
                 amount = enteredAmount,

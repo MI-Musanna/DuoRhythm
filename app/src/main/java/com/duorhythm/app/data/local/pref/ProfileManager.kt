@@ -15,18 +15,21 @@ object ProfileManager {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    fun getActiveProfileId(context: Context): Long {
-        return try {
-            getPrefs(context).getLong(KEY_ACTIVE_PROFILE_ID, 1L)
+    fun getActiveProfileId(context: Context? = null): Long {
+        val ctx = context ?: try { com.duorhythm.app.LifeSyncApp.instance } catch (_: Throwable) { null }
+        if (ctx == null) return 1L
+        val id = try {
+            getPrefs(ctx).getLong(KEY_ACTIVE_PROFILE_ID, 1L)
         } catch (_: ClassCastException) {
             try {
-                getPrefs(context).getInt(KEY_ACTIVE_PROFILE_ID, 1).toLong()
+                getPrefs(ctx).getInt(KEY_ACTIVE_PROFILE_ID, 1).toLong()
             } catch (_: Exception) {
                 1L
             }
         } catch (_: Throwable) {
             1L
         }
+        return if (id <= 0L) 1L else id
     }
 
     fun setActiveProfileId(context: Context, id: Long) {
