@@ -619,6 +619,22 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureColumnExists(db, "subscriptions", "auto_log", "INTEGER DEFAULT 1")
         ensureColumnExists(db, "transactions", "bucket_id", "INTEGER DEFAULT 0")
 
+        addColumnIfNotExists(db, "subscriptions", "profile_id", "INTEGER DEFAULT 1")
+        addColumnIfNotExists(db, "subscriptions", "profileId", "INTEGER DEFAULT 1")
+        addColumnIfNotExists(db, "subscriptions", "is_range", "INTEGER DEFAULT 0")
+        addColumnIfNotExists(db, "subscriptions", "start_day", "INTEGER DEFAULT 1")
+        addColumnIfNotExists(db, "subscriptions", "end_day", "INTEGER DEFAULT 1")
+        addColumnIfNotExists(db, "subscriptions", "due_day", "INTEGER DEFAULT 1")
+        addColumnIfNotExists(db, "subscriptions", "linked_account_id", "INTEGER DEFAULT NULL")
+        addColumnIfNotExists(db, "subscriptions", "last_paid_month_year", "TEXT DEFAULT ''")
+        addColumnIfNotExists(db, "subscriptions", "billing_cycle", "TEXT DEFAULT 'MONTHLY'")
+        addColumnIfNotExists(db, "subscriptions", "next_renewal_date", "TEXT DEFAULT ''")
+        addColumnIfNotExists(db, "subscriptions", "name", "TEXT DEFAULT ''")
+        addColumnIfNotExists(db, "subscriptions", "amount", "REAL DEFAULT 0.0")
+        addColumnIfNotExists(db, "subscriptions", "service_name", "TEXT DEFAULT ''")
+        addColumnIfNotExists(db, "subscriptions", "cost", "REAL DEFAULT 0.0")
+        addColumnIfNotExists(db, "subscriptions", "renewal_date", "TEXT DEFAULT ''")
+
         ensureDuesDebtsTable(db)
         migrateLegacyTransactionsAndAccounts(db)
 
@@ -654,6 +670,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 db.execSQL("ALTER TABLE $tableName ADD COLUMN $columnName $columnDef")
             }
         } catch (_: Exception) {}
+    }
+
+    fun addColumnIfNotExists(db: SQLiteDatabase, tableName: String, columnName: String, columnDef: String) {
+        ensureColumnExists(db, tableName, columnName, columnDef)
     }
 
     private fun seedInitialData(db: SQLiteDatabase) {
@@ -2877,7 +2897,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureColumnExists(db, "subscriptions", "linkedAccountId", "INTEGER")
         ensureColumnExists(db, "subscriptions", "linked_account_id", "INTEGER")
         ensureColumnExists(db, "subscriptions", "lastPaidMonthYear", "TEXT")
-        ensureColumnExists(db, "subscriptions", "last_paid_month_year", "TEXT")
+        ensureColumnExists(db, "subscriptions", "last_paid_month_year", "TEXT DEFAULT ''")
+        ensureColumnExists(db, "subscriptions", "billing_cycle", "TEXT DEFAULT 'MONTHLY'")
+        ensureColumnExists(db, "subscriptions", "next_renewal_date", "TEXT DEFAULT ''")
+        ensureColumnExists(db, "subscriptions", "renewal_date", "TEXT DEFAULT ''")
         try {
             db.execSQL("UPDATE subscriptions SET name = service_name WHERE (name IS NULL OR name = '') AND service_name IS NOT NULL AND service_name != ''")
             db.execSQL("UPDATE subscriptions SET service_name = name WHERE (service_name IS NULL OR service_name = '') AND name IS NOT NULL AND name != ''")
@@ -2944,50 +2967,122 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return entity
     }
 
+    val subscriptionUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+
+    fun insertSubscription(sub: database.entities.SubscriptionEntity): Long {
+        ensureSubscriptionsTable()
+        val db = this.writableDatabase
+        val pId = if (sub.profileId <= 0L) 1L else sub.profileId
+        val values = ContentValues().apply {
+            put("profile_id", pId)
+            put("profileId", pId)
+            put("name", sub.name.trim())
+            put("service_name", sub.name.trim())
+            put("amount", sub.amount)
+            put("cost", sub.amount)
+            put("is_range", if (sub.isRange) 1 else 0)
+            put("isRange", if (sub.isRange) 1 else 0)
+            put("start_day", sub.startDay)
+            put("startDay", sub.startDay)
+            put("end_day", sub.endDay)
+            put("endDay", sub.endDay)
+            put("due_day", sub.dueDay)
+            put("dueDay", sub.dueDay)
+            if (sub.linkedAccountId != null && sub.linkedAccountId > 0) {
+                put("linked_account_id", sub.linkedAccountId)
+                put("linkedAccountId", sub.linkedAccountId)
+                put("bucket_id", sub.linkedAccountId)
+                val bucket = getWalletBucketById(sub.linkedAccountId)
+                put("bucket_name", bucket?.name ?: "")
+            } else {
+                putNull("linked_account_id")
+                putNull("linkedAccountId")
+                put("bucket_id", 0)
+                put("bucket_name", "")
+            }
+            put("last_paid_month_year", sub.lastPaidMonthYear ?: "")
+            put("lastPaidMonthYear", sub.lastPaidMonthYear ?: "")
+            put("billing_cycle", "MONTHLY")
+            put("next_renewal_date", "")
+            put("renewal_date", "")
+            put("is_active", 1)
+        }
+        val rowId = db.insertWithOnConflict("subscriptions", null, values, SQLiteDatabase.CONFLICT_REPLACE)
+        Log.d("DUO_SUB_INSERT", "Inserted subscription: ${sub.name}, rowId=$rowId")
+        subscriptionUpdateFlow.tryEmit(Unit)
+        return rowId
+    }
+
+    fun getSubscriptions(profileId: Long): List<database.entities.SubscriptionEntity> {
+        ensureSubscriptionsTable()
+        val list = mutableListOf<database.entities.SubscriptionEntity>()
+        val db = this.readableDatabase
+        val query = "SELECT * FROM subscriptions WHERE profile_id = ? OR profile_id = 0 OR profile_id IS NULL ORDER BY id DESC"
+        var cursor: android.database.Cursor? = null
+        try {
+            cursor = db.rawQuery(query, arrayOf(profileId.toString()))
+            val idIdx = cursor.getColumnIndexSafe("id")
+            val nameIdx = cursor.getColumnIndexSafe("name").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("service_name")
+            val amountIdx = cursor.getColumnIndexSafe("amount").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("cost")
+            val isRangeIdx = cursor.getColumnIndexSafe("is_range").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("isRange")
+            val startDayIdx = cursor.getColumnIndexSafe("start_day").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("startDay")
+            val endDayIdx = cursor.getColumnIndexSafe("end_day").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("endDay")
+            val dueDayIdx = cursor.getColumnIndexSafe("due_day").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("dueDay")
+            val linkedAccIdx = cursor.getColumnIndexSafe("linked_account_id").takeIf { it != -1 }
+                ?: cursor.getColumnIndexSafe("linkedAccountId").takeIf { it != -1 }
+                ?: cursor.getColumnIndexSafe("bucket_id")
+            val lastPaidIdx = cursor.getColumnIndexSafe("last_paid_month_year").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("lastPaidMonthYear")
+
+            while (cursor.moveToNext()) {
+                val entity = database.entities.SubscriptionEntity(
+                    id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
+                    profileId = profileId,
+                    name = if (nameIdx != -1) cursor.getString(nameIdx) ?: "" else "",
+                    amount = if (amountIdx != -1) cursor.getDouble(amountIdx) else 0.0,
+                    isRange = if (isRangeIdx != -1) cursor.getInt(isRangeIdx) == 1 else false,
+                    startDay = if (startDayIdx != -1) cursor.getInt(startDayIdx).coerceIn(1, 31) else 1,
+                    endDay = if (endDayIdx != -1) cursor.getInt(endDayIdx).coerceIn(1, 31) else 8,
+                    dueDay = if (dueDayIdx != -1) cursor.getInt(dueDayIdx).coerceIn(1, 31) else 5,
+                    linkedAccountId = if (linkedAccIdx != -1 && !cursor.isNull(linkedAccIdx)) {
+                        val v = cursor.getLong(linkedAccIdx)
+                        if (v > 0) v else null
+                    } else null,
+                    lastPaidMonthYear = if (lastPaidIdx != -1 && !cursor.isNull(lastPaidIdx)) cursor.getString(lastPaidIdx) else null
+                )
+                if (entity.linkedAccountId != null) {
+                    val bucket = getWalletBucketById(entity.linkedAccountId)
+                    entity.accountName = bucket?.name ?: "Account #${entity.linkedAccountId}"
+                } else {
+                    entity.accountName = "None / External"
+                }
+                list.add(entity)
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_SUB_QUERY", "Error fetching subscriptions", e)
+        } finally {
+            cursor?.close()
+        }
+        return list
+    }
+
     val subscriptionDao: database.dao.SubscriptionDao by lazy {
         object : database.dao.SubscriptionDao {
             override fun getSubscriptions(profileId: Long): List<database.entities.SubscriptionEntity> {
-                ensureSubscriptionsTable()
-                val list = mutableListOf<database.entities.SubscriptionEntity>()
-                val db = readableDatabase
-                val cursor = db.rawQuery(
-                    "SELECT * FROM subscriptions WHERE (profileId = ? OR profile_id = ?) ORDER BY id DESC",
-                    arrayOf(profileId.toString(), profileId.toString())
-                )
-                cursor.use {
-                    while (it.moveToNext()) {
-                        list.add(mapCursorToSubscriptionEntity(it))
-                    }
-                }
-                return list
+                return this@DatabaseHelper.getSubscriptions(profileId)
             }
 
             override fun getSubscriptionsSync(profileId: Long): List<database.entities.SubscriptionEntity> =
-                getSubscriptions(profileId)
-
-            private val subscriptionUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+                this@DatabaseHelper.getSubscriptions(profileId)
 
             override fun getSubscriptionsFlow(profileId: Long): kotlinx.coroutines.flow.Flow<List<database.entities.SubscriptionEntity>> = kotlinx.coroutines.flow.flow {
-                emit(getSubscriptions(profileId))
+                emit(this@DatabaseHelper.getSubscriptions(profileId))
                 subscriptionUpdateFlow.collect {
-                    emit(getSubscriptions(profileId))
+                    emit(this@DatabaseHelper.getSubscriptions(profileId))
                 }
             }
 
             override fun getActiveSubscriptions(profileId: Long): List<database.entities.SubscriptionEntity> {
-                ensureSubscriptionsTable()
-                val list = mutableListOf<database.entities.SubscriptionEntity>()
-                val db = readableDatabase
-                val cursor = db.rawQuery(
-                    "SELECT * FROM subscriptions WHERE (profileId = ? OR profile_id = ?) AND (is_active = 1 OR is_active IS NULL) ORDER BY id DESC",
-                    arrayOf(profileId.toString(), profileId.toString())
-                )
-                cursor.use {
-                    while (it.moveToNext()) {
-                        list.add(mapCursorToSubscriptionEntity(it))
-                    }
-                }
-                return list
+                return this@DatabaseHelper.getSubscriptions(profileId)
             }
 
             override fun getSubscriptionById(id: Long): database.entities.SubscriptionEntity? {
@@ -3000,47 +3095,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
 
             override fun insertSubscription(subscription: database.entities.SubscriptionEntity): Long {
-                ensureSubscriptionsTable()
-                val db = writableDatabase
-                val cv = ContentValues().apply {
-                    put("profileId", subscription.profileId)
-                    put("profile_id", subscription.profileId)
-                    put("name", subscription.name)
-                    put("service_name", subscription.name)
-                    put("amount", subscription.amount)
-                    put("cost", subscription.amount)
-                    put("isRange", if (subscription.isRange) 1 else 0)
-                    put("is_range", if (subscription.isRange) 1 else 0)
-                    put("startDay", subscription.startDay)
-                    put("start_day", subscription.startDay)
-                    put("endDay", subscription.endDay)
-                    put("end_day", subscription.endDay)
-                    put("dueDay", subscription.dueDay)
-                    put("due_day", subscription.dueDay)
-                    if (subscription.linkedAccountId != null) {
-                        put("linkedAccountId", subscription.linkedAccountId)
-                        put("linked_account_id", subscription.linkedAccountId)
-                        put("bucket_id", subscription.linkedAccountId)
-                        val bucket = getWalletBucketById(subscription.linkedAccountId)
-                        put("bucket_name", bucket?.name ?: "")
-                    } else {
-                        putNull("linkedAccountId")
-                        putNull("linked_account_id")
-                        put("bucket_id", 0)
-                        put("bucket_name", "")
-                    }
-                    if (subscription.lastPaidMonthYear != null) {
-                        put("lastPaidMonthYear", subscription.lastPaidMonthYear)
-                        put("last_paid_month_year", subscription.lastPaidMonthYear)
-                    } else {
-                        putNull("lastPaidMonthYear")
-                        putNull("last_paid_month_year")
-                    }
-                    put("is_active", 1)
-                }
-                val newId = db.insert("subscriptions", null, cv)
-                subscriptionUpdateFlow.tryEmit(Unit)
-                return newId
+                return this@DatabaseHelper.insertSubscription(subscription)
             }
 
             override fun updateSubscription(subscription: database.entities.SubscriptionEntity): Int {
@@ -3114,7 +3169,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             override fun deleteByProfileId(profileId: Long): Int {
                 ensureSubscriptionsTable()
                 val db = writableDatabase
-                val deletedCount = db.delete("subscriptions", "(profileId = ? OR profile_id = ?)", arrayOf(profileId.toString(), profileId.toString()))
+                val deletedCount = db.delete("subscriptions", "profile_id = ?", arrayOf(profileId.toString()))
                 subscriptionUpdateFlow.tryEmit(Unit)
                 return deletedCount
             }

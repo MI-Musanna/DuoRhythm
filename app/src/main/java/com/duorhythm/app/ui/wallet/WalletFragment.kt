@@ -54,6 +54,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
+val FragmentWalletBinding.tvActiveSubscriptionsCount: android.widget.TextView get() = tvActiveSubCount
+val FragmentWalletBinding.tvActiveSubscriptionsSubtitle: android.widget.TextView get() = tvSubscriptionsSummaryHeader
+
 class WalletFragment : Fragment() {
 
     private var _binding: FragmentWalletBinding? = null
@@ -141,6 +144,11 @@ class WalletFragment : Fragment() {
             walletViewModel.loadSubscriptions(activeProfileId)
             walletViewModel.loadMonthlyTransactions(activeProfileId, currentMonthYear)
             loadData()
+
+            val profileId = ProfileManager.getActiveProfileId()
+            val subs = DatabaseHelper.getInstance(requireContext()).getSubscriptions(profileId)
+            binding.tvActiveSubscriptionsCount.text = "${subs.size} Active"
+            binding.tvActiveSubscriptionsSubtitle.text = "Active Subscriptions: ৳${subs.sumOf { it.amount }.toInt()}/mo"
         }
     }
 
@@ -558,26 +566,17 @@ class WalletFragment : Fragment() {
             binding.layoutEmptyBuckets.visibility = View.GONE
 
             // 2. Load Dedicated Recurring Subscriptions
-            val subscriptions = dbHelper.getAllSubscriptions()
+            val activeProfileId = ProfileManager.getActiveProfileId(ctx)
+            val subs = dbHelper.getSubscriptions(activeProfileId)
+            val subscriptions = dbHelper.getAllSubscriptions(activeProfileId)
+            val activeSubs = subscriptions.filter { it.isActive }
             subscriptionsPreviewAdapter.updateData(subscriptions, currentSymbol, 1.0)
 
-            val activeSubs = subscriptions.filter { it.isActive }
-            binding.tvActiveSubCount.text = "${activeSubs.size} Active"
+            binding.tvActiveSubscriptionsCount.text = "${subs.size} Active"
 
-            val totalMonthlyCost = activeSubs.sumOf { sub ->
-                sub.getMonthlyEquivalentCost()
-            }
+            val totalMonthlyCost = subs.sumOf { it.amount }
             binding.tvSubTotalCost.text = String.format(Locale.US, "%s%.0f / month", currentSymbol, totalMonthlyCost)
-            binding.tvSubscriptionsSummaryHeader.text = if (activeSubs.isEmpty()) {
-                "Active Subscriptions: ${currentSymbol}0/mo"
-            } else {
-                String.format(
-                    Locale.US,
-                    "Active Subscriptions: %s%.2f/mo",
-                    currentSymbol,
-                    totalMonthlyCost
-                )
-            }
+            binding.tvActiveSubscriptionsSubtitle.text = "Active Subscriptions: ৳${totalMonthlyCost.toInt()}/mo"
 
             if (subscriptions.isEmpty()) {
                 binding.rvSubscriptionsPreview.visibility = View.GONE
