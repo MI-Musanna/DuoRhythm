@@ -3,6 +3,7 @@ package com.duorhythm.app.ui.portal
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -273,42 +274,56 @@ class ScheduleAssessmentDialog(
                 } catch (_: Exception) {}
             }
 
-            val fm = fragmentManager ?: (context as? FragmentActivity)?.supportFragmentManager
-            if (fm != null) {
-                val firstDay = com.duorhythm.app.util.CalendarUtils.getFirstDayOfWeekConstant(context)
-                val constraints = com.google.android.material.datepicker.CalendarConstraints.Builder()
-                    .setFirstDayOfWeek(firstDay)
-                    .build()
-
-                val picker = com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker()
-                    .setTitleText("Select Assessment Date")
-                    .setSelection(cal.timeInMillis)
-                    .setCalendarConstraints(constraints)
-                    .build()
-
-                picker.addOnPositiveButtonClickListener { selectionMillis ->
-                    val selectedCal = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
-                        timeInMillis = selectionMillis
-                    }
-                    val dateFormatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selectedCal.time)
-                    binding.etAssessmentDate.setText(dateFormatted)
+            var currentContext: Context? = context
+            var act: FragmentActivity? = null
+            while (currentContext != null) {
+                if (currentContext is FragmentActivity) {
+                    act = currentContext
+                    break
                 }
-                picker.show(fm, "ASSESSMENT_DATE_PICKER")
-            } else {
-                DatePickerDialog(
-                    context,
-                    { _, year, month, dayOfMonth ->
-                        val selectedCal = Calendar.getInstance().apply {
-                            set(year, month, dayOfMonth)
+                currentContext = (currentContext as? ContextWrapper)?.baseContext
+            }
+            val fm = fragmentManager ?: act?.supportFragmentManager
+            if (fm != null) {
+                try {
+                    val firstDay = com.duorhythm.app.util.CalendarUtils.getFirstDayOfWeekConstant(context)
+                    val constraints = com.google.android.material.datepicker.CalendarConstraints.Builder()
+                        .setFirstDayOfWeek(firstDay)
+                        .build()
+
+                    val picker = com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker()
+                        .setTitleText("Select Assessment Date")
+                        .setSelection(cal.timeInMillis)
+                        .setCalendarConstraints(constraints)
+                        .build()
+
+                    picker.addOnPositiveButtonClickListener { selectionMillis ->
+                        val selectedCal = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+                            timeInMillis = selectionMillis
                         }
                         val dateFormatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selectedCal.time)
                         binding.etAssessmentDate.setText(dateFormatted)
-                    },
-                    cal.get(Calendar.YEAR),
-                    cal.get(Calendar.MONTH),
-                    cal.get(Calendar.DAY_OF_MONTH)
-                ).show()
+                    }
+                    picker.show(fm, "ASSESSMENT_DATE_PICKER")
+                    return@setOnClickListener
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
             }
+
+            DatePickerDialog(
+                context,
+                { _, year, month, dayOfMonth ->
+                    val selectedCal = Calendar.getInstance().apply {
+                        set(year, month, dayOfMonth)
+                    }
+                    val dateFormatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(selectedCal.time)
+                    binding.etAssessmentDate.setText(dateFormatted)
+                },
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+            ).show()
         }
 
         // 5. Time Picker

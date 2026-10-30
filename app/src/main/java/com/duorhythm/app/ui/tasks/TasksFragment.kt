@@ -174,26 +174,31 @@ class TasksFragment : Fragment() {
         updateDisplay(initialDate)
 
         fun launchPicker() {
-            val firstDay = com.duorhythm.app.util.CalendarUtils.getFirstDayOfWeekConstant(requireContext())
-            val constraints = com.google.android.material.datepicker.CalendarConstraints.Builder()
-                .setFirstDayOfWeek(firstDay)
-                .build()
+            try {
+                if (!isAdded || isStateSaved) return
+                val firstDay = com.duorhythm.app.util.CalendarUtils.getFirstDayOfWeekConstant(requireContext())
+                val constraints = com.google.android.material.datepicker.CalendarConstraints.Builder()
+                    .setFirstDayOfWeek(firstDay)
+                    .build()
 
-            val builder = com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker()
-            builder.setTitleText(title)
-            builder.setCalendarConstraints(constraints)
-            val currentTag = editText.tag as? String
-            val utcMillis = TaskDateUtils.toUtcMillis(currentTag)
-            if (utcMillis != null) {
-                builder.setSelection(utcMillis)
+                val builder = com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker()
+                builder.setTitleText(title)
+                builder.setCalendarConstraints(constraints)
+                val currentTag = editText.tag as? String
+                val utcMillis = TaskDateUtils.toUtcMillis(currentTag)
+                if (utcMillis != null) {
+                    builder.setSelection(utcMillis)
+                }
+                val picker = builder.build()
+                picker.addOnPositiveButtonClickListener { selectionMillis ->
+                    val dateStr = TaskDateUtils.fromUtcMillisToStorage(selectionMillis)
+                    updateDisplay(dateStr)
+                    onDateChanged(dateStr)
+                }
+                picker.show(childFragmentManager, "TASK_DATE_PICKER_${System.currentTimeMillis()}")
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
-            val picker = builder.build()
-            picker.addOnPositiveButtonClickListener { selectionMillis ->
-                val dateStr = TaskDateUtils.fromUtcMillisToStorage(selectionMillis)
-                updateDisplay(dateStr)
-                onDateChanged(dateStr)
-            }
-            picker.show(childFragmentManager, "TASK_DATE_PICKER_${System.currentTimeMillis()}")
         }
 
         editText.setOnClickListener { launchPicker() }

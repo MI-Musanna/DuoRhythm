@@ -94,23 +94,30 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
 
         // Observe StateFlow from activity-scoped WalletViewModel
         lifecycleJob = viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                walletViewModel.subscriptionsFlow.collect { list ->
-                    // Resolve account display names
-                    val accounts = dbHelper.accountDao.getAccounts(activeProfileId).associateBy { it.id }
-                    for (sub in list) {
-                        if (sub.linkedAccountId != null && sub.linkedAccountId > 0) {
-                            sub.accountName = accounts[sub.linkedAccountId]?.name ?: "Account"
+            try {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    walletViewModel.subscriptionsFlow.collect { list ->
+                        if (_binding == null) return@collect
+                        // Resolve account display names
+                        val accounts = dbHelper.accountDao.getAccounts(activeProfileId).associateBy { it.id }
+                        for (sub in list) {
+                            if (sub.linkedAccountId != null && sub.linkedAccountId > 0) {
+                                sub.accountName = accounts[sub.linkedAccountId]?.name ?: "Account"
+                            }
                         }
+                        subscriptionsAdapter.submitList(ArrayList(list)) {
+                            if (_binding != null) {
+                                binding.rvSubscriptions.scrollToPosition(0)
+                            }
+                        }
+                        val totalProjected = list.sumOf { it.amount }
+                        binding.tvHeaderSubtitle.text = "Total Projected: ৳${totalProjected.toInt()} / mo • ${list.size} Tracked"
+                        binding.tvEmptyState.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                        binding.rvSubscriptions.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE
                     }
-                    subscriptionsAdapter.submitList(ArrayList(list)) {
-                        binding.rvSubscriptions.scrollToPosition(0)
-                    }
-                    val totalProjected = list.sumOf { it.amount }
-                    binding.tvHeaderSubtitle.text = "Total Projected: ৳${totalProjected.toInt()} / mo • ${list.size} Tracked"
-                    binding.tvEmptyState.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-                    binding.rvSubscriptions.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE
                 }
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
         }
 
@@ -199,7 +206,12 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
     }
 
     private inline fun <reified VM : androidx.lifecycle.ViewModel> Fragment.activityViewModels(): Lazy<VM> = lazy {
-        ViewModelProvider(requireActivity())[VM::class.java]
+        try {
+            ViewModelProvider(requireActivity())[VM::class.java]
+        } catch (_: Throwable) {
+            val app = activity?.application ?: com.duorhythm.app.LifeSyncApp.instance
+            ViewModelProvider.AndroidViewModelFactory.getInstance(app).create(VM::class.java)
+        }
     }
 
     companion object {

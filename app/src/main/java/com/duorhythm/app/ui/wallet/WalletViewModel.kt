@@ -31,24 +31,36 @@ class WalletViewModel(application: Application = com.duorhythm.app.LifeSyncApp.i
 
     fun loadSubscriptions(profileId: Long) {
         viewModelScope.launch {
-            subscriptionDao.getSubscriptionsFlow(profileId).collect { list ->
-                _subscriptionsFlow.value = list
+            try {
+                subscriptionDao.getSubscriptionsFlow(profileId).collect { list ->
+                    _subscriptionsFlow.value = list
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
         }
     }
 
     fun addSubscription(subscription: SubscriptionEntity) {
         viewModelScope.launch {
-            subscriptionDao.insertSubscription(subscription)
-            val freshList = subscriptionDao.getSubscriptionsSync(subscription.profileId)
-            _subscriptionsFlow.value = freshList
+            try {
+                subscriptionDao.insertSubscription(subscription)
+                val freshList = subscriptionDao.getSubscriptionsSync(subscription.profileId)
+                _subscriptionsFlow.value = freshList
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
         }
     }
 
     fun loadMonthlyTransactions(profileId: Long, monthYear: String) {
         viewModelScope.launch {
-            dbHelper.getMonthlyTransactionsFlow(profileId, monthYear).collect { list ->
-                _monthlyTransactionsFlow.value = list
+            try {
+                dbHelper.getMonthlyTransactionsFlow(profileId, monthYear).collect { list ->
+                    _monthlyTransactionsFlow.value = list
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
         }
     }

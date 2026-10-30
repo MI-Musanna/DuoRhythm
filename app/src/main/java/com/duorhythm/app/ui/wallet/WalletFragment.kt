@@ -65,7 +65,12 @@ class WalletFragment : Fragment() {
     private lateinit var bucketsAdapter: WalletBucketsAdapter
     private lateinit var subscriptionsPreviewAdapter: SubscriptionsPreviewAdapter
     private val walletViewModel: WalletViewModel by lazy {
-        ViewModelProvider(requireActivity())[WalletViewModel::class.java]
+        try {
+            ViewModelProvider(requireActivity())[WalletViewModel::class.java]
+        } catch (_: Throwable) {
+            val app = activity?.application ?: com.duorhythm.app.LifeSyncApp.instance
+            ViewModelProvider.AndroidViewModelFactory.getInstance(app).create(WalletViewModel::class.java)
+        }
     }
     private var transactionsJob: Job? = null
 
@@ -113,10 +118,16 @@ class WalletFragment : Fragment() {
             walletViewModel.loadMonthlyTransactions(activeProfileId, currentMonthYear)
 
             transactionsJob = viewLifecycleOwner.lifecycleScope.launch {
-                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    walletViewModel.monthlyTransactionsFlow.collect {
-                        loadData()
+                try {
+                    viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        walletViewModel.monthlyTransactionsFlow.collect {
+                            if (_binding != null && isAdded) {
+                                loadData()
+                            }
+                        }
                     }
+                } catch (e: Throwable) {
+                    e.printStackTrace()
                 }
             }
         } catch (e: Throwable) {
@@ -656,8 +667,9 @@ class WalletFragment : Fragment() {
     }
 
     private fun renderMonthlyCashFlowChart(totalIncome: Double, totalExpenses: Double, monthName: String) {
-        if (_binding == null) return
-        val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+        if (_binding == null || !isAdded) return
+        val ctx = context ?: return
+        val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(ctx)
         val currentMonthYear = SimpleDateFormat("yyyy-MM", Locale.US).format(selectedCalendar.time)
         val unpaidSubsTotal = try {
             val subs = dbHelper.subscriptionDao.getSubscriptions(activeProfileId)
@@ -708,7 +720,7 @@ class WalletFragment : Fragment() {
                 Color.parseColor("#EF4444")  // Rose Spending
             )
             setDrawValues(true)
-            valueTextColor = ContextCompat.getColor(requireContext(), R.color.text_secondary)
+            valueTextColor = ContextCompat.getColor(ctx, R.color.text_secondary)
             valueTextSize = 10f
             valueTypeface = Typeface.DEFAULT_BOLD
             valueFormatter = object : ValueFormatter() {
@@ -737,7 +749,7 @@ class WalletFragment : Fragment() {
                 position = XAxis.XAxisPosition.BOTTOM
                 setDrawGridLines(false)
                 setDrawAxisLine(false)
-                textColor = ContextCompat.getColor(requireContext(), R.color.text_secondary)
+                textColor = ContextCompat.getColor(ctx, R.color.text_secondary)
                 textSize = 11f
                 typeface = Typeface.DEFAULT_BOLD
                 granularity = 1f
@@ -750,7 +762,7 @@ class WalletFragment : Fragment() {
                 setDrawGridLines(true)
                 gridColor = Color.parseColor("#1594A3B8")
                 setDrawAxisLine(false)
-                textColor = ContextCompat.getColor(requireContext(), R.color.text_secondary)
+                textColor = ContextCompat.getColor(ctx, R.color.text_secondary)
                 textSize = 9f
                 axisMinimum = 0f
             }
@@ -1255,6 +1267,7 @@ class WalletFragment : Fragment() {
 
     override fun onDestroyView() {
         transactionsJob?.cancel()
+        transactionsJob = null
         super.onDestroyView()
         _binding = null
     }

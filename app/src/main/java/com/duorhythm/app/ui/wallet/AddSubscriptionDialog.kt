@@ -92,8 +92,8 @@ class AddSubscriptionDialog(
 
             val sub = SubscriptionEntity(
                 profileId = sessionManager.getActiveProfileId(),
-                name = binding.etServiceName.text.toString().trim(),
-                amount = binding.etCostAmount.text.toString().toDoubleOrNull() ?: 0.0,
+                name = name,
+                amount = amount,
                 isRange = isRangeMode,
                 startDay = startDay,
                 endDay = endDay,
@@ -116,15 +116,22 @@ class AddSubscriptionDialog(
     }
 
     private inline fun <reified VM : androidx.lifecycle.ViewModel> activityViewModels(): Lazy<VM> = lazy {
-        val owner = when (context) {
-            is ViewModelStoreOwner -> context
-            is ContextWrapper -> context.baseContext as? ViewModelStoreOwner
-            else -> null
+        var current: Context? = context
+        var owner: ViewModelStoreOwner? = null
+        while (current != null) {
+            if (current is ViewModelStoreOwner) {
+                owner = current
+                break
+            }
+            current = (current as? ContextWrapper)?.baseContext
+        }
+        if (owner == null && context is ViewModelStoreOwner) {
+            owner = context
         }
         if (owner != null) {
             ViewModelProvider(owner)[VM::class.java]
         } else {
-            val app = context.applicationContext as? android.app.Application
+            val app = (context.applicationContext as? android.app.Application)
                 ?: com.duorhythm.app.LifeSyncApp.instance
             ViewModelProvider.AndroidViewModelFactory.getInstance(app).create(VM::class.java)
         }

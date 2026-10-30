@@ -196,6 +196,7 @@ class ScheduleFragment : Fragment() {
 
             for (dayInfo in weekDays) {
                 val chip = getChipForDay(dayInfo.dbDay)
+                (chip.parent as? android.view.ViewGroup)?.removeView(chip)
                 chip.text = "${dayInfo.shortName} ${dayInfo.dayOfMonth}"
                 binding.chipGroupDays.addView(chip)
             }

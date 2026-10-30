@@ -31,6 +31,12 @@ object AppSettings {
     fun setStartOfWeek(context: Context, startOfWeek: Int) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putInt(KEY_START_OF_WEEK, startOfWeek).apply()
+        val strVal = when (startOfWeek) {
+            Calendar.SUNDAY -> "sunday"
+            Calendar.MONDAY -> "monday"
+            else -> "saturday"
+        }
+        prefs.edit().putString(AppPreferences.KEY_FIRST_DAY_OF_WEEK, strVal).apply()
     }
 
     fun getStartOfWeekDisplayLabel(startOfWeek: Int): String {

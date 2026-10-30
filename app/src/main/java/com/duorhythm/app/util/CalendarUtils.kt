@@ -6,12 +6,16 @@ import java.util.Calendar
 
 object CalendarUtils {
     fun getFirstDayOfWeekConstant(context: Context): Int {
-        val prefs = AppPreferences(context)
-        return when (prefs.firstDayOfWeek.lowercase()) {
-            "saturday" -> Calendar.SATURDAY
-            "sunday" -> Calendar.SUNDAY
-            "monday" -> Calendar.MONDAY
-            else -> Calendar.SATURDAY
+        return try {
+            val prefs = AppPreferences(context)
+            when (prefs.firstDayOfWeek.lowercase()) {
+                "saturday" -> Calendar.SATURDAY
+                "sunday" -> Calendar.SUNDAY
+                "monday" -> Calendar.MONDAY
+                else -> Calendar.SATURDAY
+            }
+        } catch (_: Throwable) {
+            Calendar.SATURDAY
         }
     }
 

@@ -1148,33 +1148,45 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun getMonthlyTransactions(profileId: Long, monthYear: String): List<TransactionItem> {
         val list = mutableListOf<TransactionItem>()
-        val db = readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT * FROM transactions WHERE (profile_id = ? OR profileId = ?) AND (strftime('%Y-%m', date / 1000, 'unixepoch') = ? OR date LIKE ?) ORDER BY date DESC, id DESC",
-            arrayOf(profileId.toString(), profileId.toString(), monthYear, "$monthYear%")
-        )
-        cursor.use {
-            val bIdCol = it.getColumnIndex("bucket_id")
-            val pIdCol = it.getColumnIndex("profile_id")
-            while (it.moveToNext()) {
-                val bId = if (bIdCol >= 0) it.getLong(bIdCol) else 0L
-                val pId = if (pIdCol >= 0) it.getLong(pIdCol) else 1L
-                list.add(
-                    TransactionItem(
-                        id = it.getLong(it.getColumnIndexOrThrow("id")),
-                        profileId = pId,
-                        title = it.getString(it.getColumnIndexOrThrow("title")) ?: "",
-                        amount = it.getDouble(it.getColumnIndexOrThrow("amount")),
-                        type = it.getString(it.getColumnIndexOrThrow("type")) ?: "EXPENSE",
-                        category = it.getString(it.getColumnIndexOrThrow("category")) ?: "General",
-                        date = it.getString(it.getColumnIndexOrThrow("date")) ?: "",
-                        cardId = it.getLong(it.getColumnIndexOrThrow("card_id")),
-                        currency = it.getString(it.getColumnIndexOrThrow("currency")) ?: "USD",
-                        notes = it.getString(it.getColumnIndexOrThrow("notes")) ?: "",
-                        bucketId = bId
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT * FROM transactions WHERE profile_id = ? AND date LIKE ? ORDER BY date DESC, id DESC",
+                arrayOf(profileId.toString(), "$monthYear%")
+            )
+            cursor.use {
+                val bIdCol = it.getColumnIndex("bucket_id")
+                val pIdCol = it.getColumnIndex("profile_id")
+                val titleCol = it.getColumnIndex("title")
+                val amountCol = it.getColumnIndex("amount")
+                val typeCol = it.getColumnIndex("type")
+                val catCol = it.getColumnIndex("category")
+                val dateCol = it.getColumnIndex("date")
+                val cardIdCol = it.getColumnIndex("card_id")
+                val currCol = it.getColumnIndex("currency")
+                val notesCol = it.getColumnIndex("notes")
+                while (it.moveToNext()) {
+                    val bId = if (bIdCol >= 0) it.getLong(bIdCol) else 0L
+                    val pId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId
+                    list.add(
+                        TransactionItem(
+                            id = it.getLong(it.getColumnIndexOrThrow("id")),
+                            profileId = pId,
+                            title = if (titleCol >= 0) it.getString(titleCol) ?: "" else "",
+                            amount = if (amountCol >= 0) it.getDouble(amountCol) else 0.0,
+                            type = if (typeCol >= 0) it.getString(typeCol) ?: "EXPENSE" else "EXPENSE",
+                            category = if (catCol >= 0) it.getString(catCol) ?: "General" else "General",
+                            date = if (dateCol >= 0) it.getString(dateCol) ?: "" else "",
+                            cardId = if (cardIdCol >= 0) it.getLong(cardIdCol) else 0L,
+                            currency = if (currCol >= 0) it.getString(currCol) ?: "USD" else "USD",
+                            notes = if (notesCol >= 0) it.getString(notesCol) ?: "" else "",
+                            bucketId = bId
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return list
     }
@@ -1241,12 +1253,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("notes", tx.notes)
             put("bucket_id", tx.bucketId)
         }
-        return db.update("transactions", cv, "id = ?", arrayOf(tx.id.toString()))
+        val count = db.update("transactions", cv, "id = ?", arrayOf(tx.id.toString()))
+        transactionUpdateFlow.tryEmit(Unit)
+        return count
     }
 
     fun clearAllTransactions(): Int {
         val db = writableDatabase
-        return db.delete("transactions", null, null)
+        val count = db.delete("transactions", null, null)
+        transactionUpdateFlow.tryEmit(Unit)
+        return count
     }
 
     // ==========================================
