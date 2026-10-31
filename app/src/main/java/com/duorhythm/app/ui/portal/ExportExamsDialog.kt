@@ -75,7 +75,12 @@ class ExportExamsDialog : DialogFragment() {
                 Toast.makeText(requireContext(), "No matching assessments to export", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            ScheduleExportHelper.saveBitmapToGallery(requireContext(), bmp, "DuoRhythm_Exams.png")
+            val format = if (binding.switchExamFormatJpeg.isChecked) {
+                ScheduleExportHelper.ExportImageFormat.JPEG
+            } else {
+                ScheduleExportHelper.ExportImageFormat.PNG
+            }
+            ScheduleExportHelper.saveBitmapToGallery(requireContext(), bmp, "DuoRhythm_Exams", format)
             dismiss()
         }
 
@@ -85,7 +90,12 @@ class ExportExamsDialog : DialogFragment() {
                 Toast.makeText(requireContext(), "No matching assessments to export", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            ScheduleExportHelper.shareBitmapViaIntent(requireContext(), bmp, "DuoRhythm Upcoming Exams")
+            val format = if (binding.switchExamFormatJpeg.isChecked) {
+                ScheduleExportHelper.ExportImageFormat.JPEG
+            } else {
+                ScheduleExportHelper.ExportImageFormat.PNG
+            }
+            ScheduleExportHelper.shareBitmapViaIntent(requireContext(), bmp, "DuoRhythm Upcoming Exams", format)
             dismiss()
         }
 

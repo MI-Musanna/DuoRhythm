@@ -23,6 +23,11 @@ import java.io.OutputStream
 
 object ScheduleExportHelper {
 
+    enum class ExportImageFormat(val mimeType: String, val extension: String, val compressFormat: Bitmap.CompressFormat, val quality: Int) {
+        PNG("image/png", ".png", Bitmap.CompressFormat.PNG, 100),
+        JPEG("image/jpeg", ".jpg", Bitmap.CompressFormat.JPEG, 90)
+    }
+
     fun generateWeeklyScheduleBitmap(context: Context, weeklyClasses: Map<String, List<ClassEntity>>): Bitmap {
         val width = 1080
         var calculatedHeight = 260
@@ -160,22 +165,33 @@ object ScheduleExportHelper {
                 canvas.drawText("[${item.category.uppercase()}]", (width - 240).toFloat(), currentY + 50f, tagPaint)
 
                 val syllabusText = if (!item.syllabus.isNullOrBlank()) " • Syllabus: ${item.syllabus}" else ""
-                val roomText = if (item.room.isNotBlank()) item.room else "N/A"
-                canvas.drawText("Due: ${item.dueDate}  |  Time: ${item.dueTime}  |  Room: $roomText$syllabusText", 90f, currentY + 98f, textDetailsPaint)
+                canvas.drawText("Due: ${item.dueDate}  |  Time: ${item.dueTime}  |  Room: ${item.room ?: "N/A"}$syllabusText", 90f, currentY + 98f, textDetailsPaint)
                 currentY += rowHeight
             }
         }
         return bitmap
     }
 
-    fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Boolean {
+    fun saveBitmapToGallery(
+        context: Context,
+        bitmap: Bitmap,
+        baseFileName: String,
+        format: ExportImageFormat = ExportImageFormat.PNG
+    ): Boolean {
+        val cleanName = if (baseFileName.endsWith(".png") || baseFileName.endsWith(".jpg")) {
+            baseFileName.substringBeforeLast(".")
+        } else {
+            baseFileName
+        }
+        val fullFileName = cleanName + format.extension
+
         return try {
             val fos: OutputStream?
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val resolver = context.contentResolver
                 val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fullFileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, format.mimeType)
                     put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/DuoRhythm")
                 }
                 val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
@@ -184,12 +200,12 @@ object ScheduleExportHelper {
                 val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + "/DuoRhythm"
                 val file = File(imagesDir)
                 if (!file.exists()) file.mkdirs()
-                fos = FileOutputStream(File(file, fileName))
+                fos = FileOutputStream(File(file, fullFileName))
             }
 
             fos?.use {
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
-                Toast.makeText(context, "Saved to Pictures/DuoRhythm", Toast.LENGTH_SHORT).show()
+                bitmap.compress(format.compressFormat, format.quality, it)
+                Toast.makeText(context, "Saved as ${format.name} to Pictures/DuoRhythm", Toast.LENGTH_SHORT).show()
             }
             true
         } catch (e: Exception) {
@@ -198,17 +214,22 @@ object ScheduleExportHelper {
         }
     }
 
-    fun shareBitmapViaIntent(context: Context, bitmap: Bitmap, shareTitle: String) {
+    fun shareBitmapViaIntent(
+        context: Context,
+        bitmap: Bitmap,
+        shareTitle: String,
+        format: ExportImageFormat = ExportImageFormat.PNG
+    ) {
         try {
             val cacheDir = File(context.cacheDir, "exports")
             if (!cacheDir.exists()) cacheDir.mkdirs()
-            val file = File(cacheDir, "DuoRhythm_Shared_Schedule.png")
+            val file = File(cacheDir, "DuoRhythm_Shared_Schedule${format.extension}")
             FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                bitmap.compress(format.compressFormat, format.quality, out)
             }
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
             val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "image/png"
+                type = format.mimeType
                 putExtra(Intent.EXTRA_STREAM, uri)
                 putExtra(Intent.EXTRA_SUBJECT, shareTitle)
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -219,7 +240,12 @@ object ScheduleExportHelper {
         }
     }
 
-    fun exportDayScheduleAsImage(context: Context, dayName: String, classes: List<ClassEntity>) {
+    fun exportDayScheduleAsImage(
+        context: Context,
+        dayName: String,
+        classes: List<ClassEntity>,
+        format: ExportImageFormat = ExportImageFormat.PNG
+    ) {
         val width = 1080
         val baseHeight = 360
         val rowHeight = 160
@@ -228,11 +254,9 @@ object ScheduleExportHelper {
         val bitmap = Bitmap.createBitmap(width, totalHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        // Background
         val bgPaint = Paint().apply { color = Color.parseColor("#0F172A") }
         canvas.drawRect(0f, 0f, width.toFloat(), totalHeight.toFloat(), bgPaint)
 
-        // Header Bar
         val headerPaint = Paint().apply {
             color = Color.parseColor("#00E5FF")
             textSize = 42f
@@ -280,6 +304,6 @@ object ScheduleExportHelper {
             }
         }
 
-        saveBitmapToGallery(context, bitmap, "DuoRhythm_${dayName}_Schedule.png")
+        saveBitmapToGallery(context, bitmap, "DuoRhythm_${dayName}_Schedule", format)
     }
 }

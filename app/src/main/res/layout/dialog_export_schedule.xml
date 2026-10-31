@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -14,7 +15,6 @@
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <!-- Live Preview Card -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="140dp"
@@ -110,6 +110,17 @@
             android:textColor="#FFFFFF"
             app:chipBackgroundColor="@color/bg_chip_selector" />
     </com.google.android.material.chip.ChipGroup>
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switchScheduleFormatJpeg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:checked="false"
+        android:text="Save as lightweight JPEG (.jpg)"
+        android:textColor="#94A3B8"
+        android:textSize="13sp"
+        app:useMaterialThemeColors="true" />
 
     <LinearLayout
         android:layout_width="match_parent"

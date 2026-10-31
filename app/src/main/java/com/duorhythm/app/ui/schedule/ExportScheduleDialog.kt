@@ -75,7 +75,12 @@ class ExportScheduleDialog : DialogFragment() {
                 Toast.makeText(requireContext(), "Select at least one day", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            ScheduleExportHelper.saveBitmapToGallery(requireContext(), bmp, "DuoRhythm_Timetable.png")
+            val format = if (binding.switchScheduleFormatJpeg.isChecked) {
+                ScheduleExportHelper.ExportImageFormat.JPEG
+            } else {
+                ScheduleExportHelper.ExportImageFormat.PNG
+            }
+            ScheduleExportHelper.saveBitmapToGallery(requireContext(), bmp, "DuoRhythm_Timetable", format)
             dismiss()
         }
 
@@ -85,7 +90,12 @@ class ExportScheduleDialog : DialogFragment() {
                 Toast.makeText(requireContext(), "Select at least one day", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            ScheduleExportHelper.shareBitmapViaIntent(requireContext(), bmp, "DuoRhythm Academic Timetable")
+            val format = if (binding.switchScheduleFormatJpeg.isChecked) {
+                ScheduleExportHelper.ExportImageFormat.JPEG
+            } else {
+                ScheduleExportHelper.ExportImageFormat.PNG
+            }
+            ScheduleExportHelper.shareBitmapViaIntent(requireContext(), bmp, "DuoRhythm Academic Timetable", format)
             dismiss()
         }
 
