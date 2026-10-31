@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="12dp">
 
-    <!-- Header with Quick Refresh Button -->
+    <!-- Header with Quick Refresh & Spinner -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -27,19 +27,36 @@
             android:id="@+id/tvWidgetSyncTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="8dp"
             android:textColor="#64748B"
             android:textSize="10sp" />
 
-        <ImageView
-            android:id="@+id/btnWidgetRefresh"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Quick Refresh"
-            android:src="@drawable/ic_refresh" />
+        <!-- Refresh Container: Button & Spinning Loader -->
+        <FrameLayout
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/btnWidgetRefresh"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:contentDescription="Quick Refresh"
+                android:src="@drawable/ic_refresh" />
+
+            <ProgressBar
+                android:id="@+id/pbWidgetLoading"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateTint="#00E5FF"
+                android:visibility="gone" />
+        </FrameLayout>
     </LinearLayout>
 
+    <!-- Main Content Container -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -132,7 +149,8 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <View
+        <!-- Divider -->
+        <FrameLayout
             android:layout_width="8dp"
             android:layout_height="match_parent" />
 
