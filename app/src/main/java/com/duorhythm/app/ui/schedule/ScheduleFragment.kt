@@ -168,7 +168,7 @@ class ScheduleFragment : Fragment() {
 
     private fun setupListeners() {
         binding.btnExportSchedule.setOnClickListener {
-            ExportScheduleDialog().show(parentFragmentManager, "ExportScheduleDialog")
+            ExportScheduleBottomSheet().show(childFragmentManager, "EXPORT_SCHEDULE_SHEET")
         }
 
         binding.btnJumpToToday.setOnClickListener {

@@ -24,6 +24,7 @@ import com.duorhythm.app.R
 import com.duorhythm.app.automation.SmartAutomationManager
 import com.duorhythm.app.data.repository.BackupService
 import com.duorhythm.app.data.repository.DataBackupHelper
+import com.duorhythm.app.ui.history.ExportHistoryBottomSheet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -758,6 +759,10 @@ class SettingsActivity : AppCompatActivity() {
             importBackupLauncher.launch(arrayOf("application/json", "text/*", "*/*"))
         }
 
+        binding.rowExportHistory.setOnClickListener {
+            ExportHistoryBottomSheet().show(supportFragmentManager, "EXPORT_HISTORY")
+        }
+
         // --- 2. Storage & Reset ---
         binding.btnLoadDemoData.visibility = View.GONE
 
@@ -884,7 +889,8 @@ class SettingsActivity : AppCompatActivity() {
             binding.cardAboutTelegram,
             binding.cardAboutBlog,
             binding.rowClassLeadTime,
-            binding.rowClientLeadTime
+            binding.rowClientLeadTime,
+            binding.rowExportHistory
         )
     }
 

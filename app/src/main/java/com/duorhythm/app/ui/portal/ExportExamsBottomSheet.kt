@@ -1,36 +1,36 @@
 package com.duorhythm.app.ui.portal
 
-import android.app.Dialog
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Window
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import com.duorhythm.app.data.local.db.DatabaseHelper
-import com.duorhythm.app.databinding.DialogExportExamsBinding
+import com.duorhythm.app.databinding.BottomSheetExportExamsBinding
+import com.duorhythm.app.ui.history.ExportHistoryBottomSheet
 import com.duorhythm.app.util.ProfileManager
 import com.duorhythm.app.util.ScheduleExportHelper
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class ExportExamsDialog : DialogFragment() {
-    private var _binding: DialogExportExamsBinding? = null
+class ExportExamsBottomSheet : BottomSheetDialogFragment() {
+    private var _binding: BottomSheetExportExamsBinding? = null
     private val binding get() = _binding!!
     private var currentGeneratedBitmap: Bitmap? = null
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = super.onCreateDialog(savedInstanceState)
-        dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        _binding = DialogExportExamsBinding.inflate(LayoutInflater.from(context))
-        dialog.setContentView(binding.root)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = BottomSheetExportExamsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val profileId = ProfileManager.getActiveProfileId()
+        val db = DatabaseHelper.getInstance(requireContext())
 
         fun refreshThumbnail() {
-            val profileId = ProfileManager.getActiveProfileId()
-            val db = DatabaseHelper.getInstance(requireContext())
             var items = db.getAssessments(profileId)
-
             if (binding.switchOnlyPendingExams.isChecked) {
                 items = items.filter { it.status.uppercase() != "COMPLETED" }
             }
@@ -67,6 +67,10 @@ class ExportExamsDialog : DialogFragment() {
 
         refreshThumbnail()
 
+        binding.btnViewExamHistory.setOnClickListener {
+            ExportHistoryBottomSheet().show(parentFragmentManager, "EXPORT_HISTORY")
+        }
+
         binding.btnCancelExamExport.setOnClickListener { dismiss() }
 
         binding.btnSaveExams.setOnClickListener {
@@ -98,8 +102,6 @@ class ExportExamsDialog : DialogFragment() {
             ScheduleExportHelper.shareBitmapViaIntent(requireContext(), bmp, "DuoRhythm Upcoming Exams", format)
             dismiss()
         }
-
-        return dialog
     }
 
     override fun onDestroyView() {

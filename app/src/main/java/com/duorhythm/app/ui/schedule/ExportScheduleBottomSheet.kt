@@ -1,32 +1,36 @@
 package com.duorhythm.app.ui.schedule
 
-import android.app.Dialog
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Window
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.ClassEntity
-import com.duorhythm.app.databinding.DialogExportScheduleBinding
+import com.duorhythm.app.databinding.BottomSheetExportScheduleBinding
+import com.duorhythm.app.ui.history.ExportHistoryBottomSheet
 import com.duorhythm.app.util.ProfileManager
 import com.duorhythm.app.util.ScheduleExportHelper
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class ExportScheduleDialog : DialogFragment() {
-    private var _binding: DialogExportScheduleBinding? = null
+class ExportScheduleBottomSheet : BottomSheetDialogFragment() {
+    private var _binding: BottomSheetExportScheduleBinding? = null
     private val binding get() = _binding!!
     private var currentGeneratedBitmap: Bitmap? = null
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = super.onCreateDialog(savedInstanceState)
-        dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        _binding = DialogExportScheduleBinding.inflate(LayoutInflater.from(context))
-        dialog.setContentView(binding.root)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = BottomSheetExportScheduleBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val profileId = ProfileManager.getActiveProfileId()
+        val db = DatabaseHelper.getInstance(requireContext())
+
+        // Ordered starting with Saturday as First Day of the Week
         val dayChips = listOf(
             Pair(binding.chipSat, "Saturday" to 7),
             Pair(binding.chipSun, "Sunday" to 1),
@@ -43,8 +47,6 @@ class ExportScheduleDialog : DialogFragment() {
                 currentGeneratedBitmap = null
                 return
             }
-            val profileId = ProfileManager.getActiveProfileId()
-            val db = DatabaseHelper.getInstance(requireContext())
             val exportMap = linkedMapOf<String, List<ClassEntity>>()
             for ((dayName, dayInt) in selectedDays) {
                 exportMap[dayName] = db.getClasses(profileId, dayInt)
@@ -54,18 +56,32 @@ class ExportScheduleDialog : DialogFragment() {
             binding.ivScheduleThumbnail.setImageBitmap(bmp)
         }
 
-        binding.switchSelectAllDays.setOnCheckedChangeListener { _, isChecked ->
-            dayChips.forEach { it.first.isChecked = isChecked }
+        fun applyAutoSelection() {
+            dayChips.forEach { (chip, dayInfo) ->
+                val classCount = db.getClasses(profileId, dayInfo.second).size
+                chip.isChecked = classCount > 0
+            }
             refreshThumbnail()
         }
 
-        dayChips.forEach { (chip, _) ->
-            chip.setOnCheckedChangeListener { _, _ ->
+        applyAutoSelection()
+
+        binding.switchOnlyClassDays.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                applyAutoSelection()
+            } else {
+                dayChips.forEach { it.first.isChecked = true }
                 refreshThumbnail()
             }
         }
 
-        refreshThumbnail()
+        dayChips.forEach { (chip, _) ->
+            chip.setOnCheckedChangeListener { _, _ -> refreshThumbnail() }
+        }
+
+        binding.btnViewHistory.setOnClickListener {
+            ExportHistoryBottomSheet().show(parentFragmentManager, "EXPORT_HISTORY")
+        }
 
         binding.btnCancelScheduleExport.setOnClickListener { dismiss() }
 
@@ -98,8 +114,6 @@ class ExportScheduleDialog : DialogFragment() {
             ScheduleExportHelper.shareBitmapViaIntent(requireContext(), bmp, "DuoRhythm Academic Timetable", format)
             dismiss()
         }
-
-        return dialog
     }
 
     override fun onDestroyView() {
