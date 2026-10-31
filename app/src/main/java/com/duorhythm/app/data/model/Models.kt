@@ -1,5 +1,6 @@
 package com.duorhythm.app.data.model
 
+import database.entities.SubscriptionEntity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -79,6 +80,24 @@ val TransactionItem.previousBalance: Double
 
 typealias Record = TransactionItem
 typealias TransactionRecord = TransactionItem
+
+typealias SubscriptionEntity = database.entities.SubscriptionEntity
+
+data class TransactionEntity(
+    val id: Long = 0L,
+    val profileId: Long = 1L,
+    val accountId: Long = 0L,
+    val title: String = "",
+    val amount: Double = 0.0,
+    val type: String = "EXPENSE",
+    val category: String = "Subscriptions",
+    val date: String = "",
+    val note: String = "",
+    val notes: String = note,
+    val bucketId: Long = accountId,
+    val cardId: Long? = null,
+    val currency: String = "BDT"
+)
 
 data class DueDebtItem(
     val id: Long = 0,

@@ -665,6 +665,67 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                   AND room = '904'
             """.trimIndent())
         } catch (_: Exception) {}
+
+        // Auto-Repair Database: Refund ৳2000 to Cash & Delete False Transaction
+        ensureColumnExists(db, "transactions", "account_id", "INTEGER DEFAULT 0")
+        try {
+            db.execSQL("UPDATE transactions SET account_id = bucket_id WHERE (account_id IS NULL OR account_id = 0) AND bucket_id > 0")
+        } catch (_: Exception) {}
+        try {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS accounts (
+                    id INTEGER PRIMARY KEY,
+                    profile_id INTEGER DEFAULT 1,
+                    name TEXT NOT NULL,
+                    balance REAL DEFAULT 0.0
+                )
+            """.trimIndent())
+            db.execSQL("INSERT OR REPLACE INTO accounts (id, profile_id, name, balance) SELECT id, profile_id, name, balance FROM wallet_buckets")
+        } catch (_: Exception) {}
+
+        try {
+            // 1. Check if the false renewal transaction exists
+            var cursor = db.rawQuery(
+                "SELECT id, amount, account_id FROM transactions WHERE title LIKE '%DPI Monthly Fee%' AND date = '2026-10-31'",
+                null
+            )
+            if (!cursor.moveToFirst()) {
+                cursor.close()
+                cursor = db.rawQuery(
+                    "SELECT id, amount, account_id FROM transactions WHERE title LIKE '%DPI%' AND date = '2026-10-31'",
+                    null
+                )
+            }
+            if (cursor.moveToFirst()) {
+                val transId = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+                val amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount"))
+                val accountId = cursor.getLong(cursor.getColumnIndexOrThrow("account_id"))
+                cursor.close()
+
+                // 2. Delete the rogue transaction record
+                db.execSQL("DELETE FROM transactions WHERE id = ?", arrayOf(transId))
+
+                // 3. Re-credit the balance back to Cash account
+                db.execSQL("UPDATE accounts SET balance = balance + ? WHERE id = ? OR name = 'Cash'", arrayOf(amount, accountId))
+                try {
+                    db.execSQL("UPDATE wallet_buckets SET balance = balance + ? WHERE id = ? OR name = 'Cash' OR name LIKE '%Cash%'", arrayOf(amount, accountId))
+                } catch (_: Exception) {}
+                Log.d("DUO_REPAIR", "Successfully refunded ৳$amount to Cash and deleted transaction #$transId")
+            } else {
+                cursor.close()
+            }
+
+            // 4. Set DPI subscription strictly to External / Third-party and lock for upcoming Nov 1-5 window
+            db.execSQL("""
+                UPDATE subscriptions 
+                SET linked_account_id = NULL,
+                    last_paid_month_year = '2026-10',
+                    next_renewal_date = '2026-11-01'
+                WHERE name LIKE '%DPI%'
+            """.trimIndent())
+        } catch (e: Exception) {
+            Log.e("DUO_REPAIR", "Failed to repair accidental deduction", e)
+        }
     }
 
     private fun ensureColumnExists(db: SQLiteDatabase, tableName: String, columnName: String, columnDef: String) {
@@ -1819,6 +1880,51 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun deleteSubscription(subId: Long): Int {
         val db = writableDatabase
         return db.delete("subscriptions", "id = ?", arrayOf(subId.toString()))
+    }
+
+    fun updateSubscriptionPaidState(subId: Long, monthYearKey: String, nextRenewalDate: String) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("last_paid_month_year", monthYearKey)
+            put("next_renewal_date", nextRenewalDate)
+        }
+        db.update("subscriptions", values, "id = ?", arrayOf(subId.toString()))
+        subscriptionUpdateFlow.tryEmit(Unit)
+    }
+
+    fun deductAccountBalance(accountId: Long, amount: Double) {
+        val db = this.writableDatabase
+        try {
+            db.execSQL("UPDATE accounts SET balance = balance - ? WHERE id = ?", arrayOf(amount, accountId))
+        } catch (_: Exception) {}
+        try {
+            db.execSQL("UPDATE wallet_buckets SET balance = balance - ? WHERE id = ?", arrayOf(amount, accountId))
+        } catch (_: Exception) {}
+    }
+
+    fun getAccountById(id: Long): WalletBucketItem? {
+        return getWalletBucketById(id)
+    }
+
+    fun insertTransaction(tx: com.duorhythm.app.data.model.TransactionEntity): Long {
+        val db = writableDatabase
+        val pId = if (tx.profileId > 0) tx.profileId else getActiveProfileId()
+        val cv = ContentValues().apply {
+            put("profile_id", pId)
+            put("title", tx.title)
+            put("amount", tx.amount)
+            put("type", tx.type)
+            put("category", tx.category)
+            put("date", tx.date)
+            put("card_id", tx.cardId ?: 0L)
+            put("currency", tx.currency)
+            put("notes", if (tx.note.isNotBlank()) tx.note else tx.notes)
+            put("bucket_id", if (tx.accountId > 0) tx.accountId else tx.bucketId)
+            put("account_id", if (tx.accountId > 0) tx.accountId else tx.bucketId)
+        }
+        val id = db.insertWithOnConflict("transactions", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        transactionUpdateFlow.tryEmit(Unit)
+        return id
     }
 
     fun getTodayTotalExpense(dateStr: String): Double {
