@@ -28,6 +28,7 @@ import com.duorhythm.app.databinding.DialogEditGoalBinding
 import com.duorhythm.app.databinding.DialogEditTaskBinding
 import com.duorhythm.app.databinding.FragmentTasksBinding
 import com.duorhythm.app.util.AnimationUtils
+import com.duorhythm.app.util.KeyboardUtils
 import com.duorhythm.app.util.TaskDateUtils
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -62,6 +63,7 @@ class TasksFragment : Fragment() {
         try {
             dbHelper = DatabaseHelper.getInstance(requireContext())
             setupRecyclerView()
+            KeyboardUtils.attachScrollDismiss(binding.rvTasks, activity)
             setupListeners()
             populateCategoryChips()
             loadTasks()

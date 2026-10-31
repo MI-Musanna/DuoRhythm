@@ -3,6 +3,7 @@ package com.duorhythm.app
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.data.local.db.DatabaseMaintenanceWorker
 
 class LifeSyncApp : Application() {
 
@@ -11,6 +12,12 @@ class LifeSyncApp : Application() {
         instance = this
 
         AppCrashHandler.install(this)
+
+        try {
+            DatabaseMaintenanceWorker.scheduleWeekly(this)
+        } catch (e: Exception) {
+            android.util.Log.e("DUO_STARTUP", "Error scheduling DB maintenance", e)
+        }
 
         try {
             // Force the application-wide night mode strictly to dark
@@ -46,5 +53,3 @@ class LifeSyncApp : Application() {
             private set
     }
 }
-
-typealias DuoApplication = LifeSyncApp

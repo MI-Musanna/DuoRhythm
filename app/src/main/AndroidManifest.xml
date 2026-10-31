@@ -34,6 +34,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
         <activity
@@ -43,8 +46,21 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+
+        <activity-alias
+            android:name="com.duorhythm.app.ui.main.MainActivity"
+            android:targetActivity=".MainActivity"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
 
         <activity
             android:name=".ui.portal.StudentSubjectDetailActivity"
@@ -235,6 +251,18 @@
             <intent-filter>
                 <action android:name="com.duorhythm.app.ACTION_MARK_SUB_PAID" />
             </intent-filter>
+        </receiver>
+
+        <!-- Homescreen Next-Up Timetable Glance Widget (4x2 Dark Glass) -->
+        <receiver
+            android:name=".widget.TimetableGlanceWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_timetable_info" />
         </receiver>
 
     </application>

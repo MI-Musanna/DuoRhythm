@@ -1,0 +1,43 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="shortcut_record_expense"
+        android:enabled="true"
+        android:icon="@drawable/ic_wallet"
+        android:shortcutShortLabel="@string/shortcut_expense_short"
+        android:shortcutLongLabel="@string/shortcut_expense_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.duorhythm.app"
+            android:targetClass="com.duorhythm.app.ui.main.MainActivity">
+            <extra android:name="EXTRA_ACTION_SHORTCUT" android:value="RECORD_EXPENSE" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcut_new_task"
+        android:enabled="true"
+        android:icon="@drawable/ic_tasks"
+        android:shortcutShortLabel="@string/shortcut_task_short"
+        android:shortcutLongLabel="@string/shortcut_task_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.duorhythm.app"
+            android:targetClass="com.duorhythm.app.ui.main.MainActivity">
+            <extra android:name="EXTRA_ACTION_SHORTCUT" android:value="NEW_TASK" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcut_timetable"
+        android:enabled="true"
+        android:icon="@drawable/ic_timetable"
+        android:shortcutShortLabel="@string/shortcut_schedule_short"
+        android:shortcutLongLabel="@string/shortcut_schedule_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.duorhythm.app"
+            android:targetClass="com.duorhythm.app.ui.main.MainActivity">
+            <extra android:name="EXTRA_ACTION_SHORTCUT" android:value="SHOW_SCHEDULE" />
+        </intent>
+    </shortcut>
+</shortcuts>

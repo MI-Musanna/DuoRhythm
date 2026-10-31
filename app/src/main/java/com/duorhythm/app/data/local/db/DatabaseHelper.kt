@@ -2127,6 +2127,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun getClasses(profileId: Long = getActiveProfileId()): List<ClassScheduleItem> = getAllClasses(profileId)
 
+    fun getClasses(profileId: Long = getActiveProfileId(), dayOfWeek: Int): List<ClassScheduleItem> {
+        val dbDay = com.duorhythm.app.util.TimetableUtils.calendarDayToDbDay(dayOfWeek)
+        val res = getScheduleForDay(dbDay, profileId)
+        if (res.isNotEmpty()) return res
+        val direct = getScheduleForDay(dayOfWeek, profileId)
+        if (direct.isNotEmpty()) return direct
+        return emptyList()
+    }
+
     fun insertClassSchedule(item: ClassScheduleItem): Long {
         val db = writableDatabase
         val pId = if (item.profileId > 0) item.profileId else getActiveProfileId()

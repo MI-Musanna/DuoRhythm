@@ -23,6 +23,11 @@ class ScheduleViewModel(application: Application = com.duorhythm.app.LifeSyncApp
 
     private val _classesFlow = MutableStateFlow<List<ClassScheduleItem>>(emptyList())
     val classesFlow: StateFlow<List<ClassScheduleItem>> = _classesFlow.asStateFlow()
+    val currentDayClasses: StateFlow<List<ClassScheduleItem>> get() = classesFlow
+
+    fun setClassesForDay(classes: List<ClassScheduleItem>) {
+        _classesFlow.value = classes
+    }
 
     fun loadClassesForDay(profileId: Long = ProfileManager.getActiveProfileId(), dayOfWeek: Int) {
         viewModelScope.launch(Dispatchers.IO) {

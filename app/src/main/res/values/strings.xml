@@ -10,4 +10,11 @@
     <string name="profile_student">Student Portal</string>
     <string name="profile_work">Work Portal</string>
     <string name="about_developer">About Developer</string>
+
+    <string name="shortcut_expense_short">Record Expense</string>
+    <string name="shortcut_expense_long">Record New Expense</string>
+    <string name="shortcut_task_short">New Task</string>
+    <string name="shortcut_task_long">Create Priority Task</string>
+    <string name="shortcut_schedule_short">Timetable</string>
+    <string name="shortcut_schedule_long">View Today\'s Routine</string>
 </resources>

@@ -33,12 +33,16 @@ import com.duorhythm.app.databinding.DialogAddQuizBinding
 import com.duorhythm.app.databinding.DialogAddWorkOrderBinding
 import com.duorhythm.app.databinding.FragmentPortalBinding
 import com.duorhythm.app.util.CountryUtils
+import com.duorhythm.app.util.KeyboardUtils
 import database.entities.AssessmentEntity
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+val FragmentPortalBinding.rvExams: androidx.recyclerview.widget.RecyclerView get() = rvUnifiedAssessments
+val FragmentPortalBinding.rvDirectory: androidx.recyclerview.widget.RecyclerView get() = rvStudentContacts
 
 class PortalFragment : Fragment() {
 
@@ -103,6 +107,12 @@ class PortalFragment : Fragment() {
             setupListeners()
         } catch (e: Throwable) {
             android.util.Log.e("PortalFragment", "Error in setupListeners", e)
+        }
+        try {
+            KeyboardUtils.attachScrollDismiss(binding.rvExams, activity)
+            KeyboardUtils.attachScrollDismiss(binding.rvDirectory, activity)
+        } catch (e: Throwable) {
+            android.util.Log.e("PortalFragment", "Error attaching scroll dismiss", e)
         }
         try {
             val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)

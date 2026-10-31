@@ -26,7 +26,9 @@ import com.duorhythm.app.scheduler.AlarmSyncManager
 import com.duorhythm.app.scheduler.ClassAlarmScheduler
 import com.duorhythm.app.util.AnimationUtils
 import com.duorhythm.app.util.CalendarUtils
+import com.duorhythm.app.util.ScheduleExportHelper
 import com.duorhythm.app.util.TimetableUtils
+import com.duorhythm.app.widget.TimetableGlanceWidget
 
 val DialogAddClassBinding.etClassSubject: AutoCompleteTextView get() = actvSubjectName
 val DialogAddClassBinding.etTeacher: com.google.android.material.textfield.TextInputEditText get() = etClassTeacher
@@ -134,6 +136,7 @@ class ScheduleFragment : Fragment() {
                     .setPositiveButton("Delete") { _, _ ->
                         timetableRepository.deleteClass(item.id)
                         loadClasses()
+                        TimetableGlanceWidget.pushUpdate(requireContext())
                         Toast.makeText(requireContext(), "Class deleted", Toast.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("Cancel", null)
@@ -161,7 +164,15 @@ class ScheduleFragment : Fragment() {
         }
     }
 
+    private fun getSelectedDayName(): String = TimetableUtils.getDayFullName(selectedDay)
+
     private fun setupListeners() {
+        binding.btnExportSchedule.setOnClickListener {
+            val dayName = getSelectedDayName()
+            val classes = scheduleViewModel.currentDayClasses.value.orEmpty()
+            ScheduleExportHelper.exportDayScheduleAsImage(requireContext(), dayName, classes)
+        }
+
         binding.btnJumpToToday.setOnClickListener {
             val nowCal = java.util.Calendar.getInstance()
             val todayDbDay = TimetableUtils.calendarDayToDbDay(nowCal.get(java.util.Calendar.DAY_OF_WEEK))
@@ -184,6 +195,7 @@ class ScheduleFragment : Fragment() {
 
         AnimationUtils.attachTactileFeedback(
             binding.btnAddClass,
+            binding.btnExportSchedule,
             binding.fabAddClass,
             binding.btnEmptyAddClass,
             binding.btnJumpToToday
@@ -244,6 +256,7 @@ class ScheduleFragment : Fragment() {
     private fun loadClasses() {
         if (_binding == null) return
         val classes = dbHelper.getScheduleForDay(selectedDay)
+        scheduleViewModel.setClassesForDay(classes)
         classesAdapter.updateList(classes, selectedDay)
 
         val dayName = TimetableUtils.getDayFullName(selectedDay)
@@ -329,6 +342,7 @@ class ScheduleFragment : Fragment() {
             val classWithProfile = scheduledItem.copy(profileId = activeProfileId)
             timetableRepository.insertClass(classWithProfile)
             loadData()
+            TimetableGlanceWidget.pushUpdate(requireContext())
             Toast.makeText(requireContext(), "${scheduledItem.classType} scheduled with alarm reminder", Toast.LENGTH_SHORT).show()
         }.show()
     }
@@ -388,6 +402,7 @@ class ScheduleFragment : Fragment() {
         ) { updated ->
             timetableRepository.updateClass(updated)
             loadData()
+            TimetableGlanceWidget.pushUpdate(requireContext())
             Toast.makeText(requireContext(), "Class schedule updated", Toast.LENGTH_SHORT).show()
         }.show()
     }

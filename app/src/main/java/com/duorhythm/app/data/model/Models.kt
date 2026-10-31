@@ -133,7 +133,11 @@ data class ClassScheduleItem(
     val colorHex: String = "#2563EB",
     val classType: String = "LECTURE", // "LECTURE", "LAB", "TUTORIAL", "SEMINAR"
     val buildingOrLink: String = ""
-)
+) {
+    val teacherName: String get() = teacher
+}
+
+typealias ClassEntity = ClassScheduleItem
 
 data class SubjectAttendanceItem(
     val id: Long = 0,

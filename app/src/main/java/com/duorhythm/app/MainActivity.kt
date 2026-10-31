@@ -127,6 +127,62 @@ class MainActivity : AppCompatActivity() {
         } catch (t: Throwable) {
             t.printStackTrace()
         }
+
+        try {
+            binding.root.post {
+                handleShortcutIntent(intent)
+            }
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        binding.root.post {
+            handleShortcutIntent(intent)
+        }
+    }
+
+    private fun handleShortcutIntent(intent: Intent?) {
+        when (intent?.getStringExtra("EXTRA_ACTION_SHORTCUT")) {
+            "RECORD_EXPENSE" -> {
+                binding.mainViewPager.setCurrentItem(0, false) // Navigate to Wallet
+                openAddTransactionDialog()
+            }
+            "NEW_TASK" -> {
+                binding.mainViewPager.setCurrentItem(1, false) // Navigate to Tasks
+                openAddTaskDialog()
+            }
+            "SHOW_SCHEDULE" -> {
+                binding.mainViewPager.setCurrentItem(3, false) // Navigate to Schedule
+            }
+        }
+    }
+
+    private fun openAddTransactionDialog() {
+        binding.root.post {
+            try {
+                val walletFrag = (pagerAdapter.getFragment(MainPagerAdapter.INDEX_WALLET) as? com.duorhythm.app.ui.wallet.WalletFragment)
+                    ?: (supportFragmentManager.findFragmentByTag("f0") as? com.duorhythm.app.ui.wallet.WalletFragment)
+                walletFrag?.view?.findViewById<View>(R.id.btnAddTransaction)?.performClick()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun openAddTaskDialog() {
+        binding.root.post {
+            try {
+                val tasksFrag = (pagerAdapter.getFragment(MainPagerAdapter.INDEX_TASKS) as? com.duorhythm.app.ui.tasks.TasksFragment)
+                    ?: (supportFragmentManager.findFragmentByTag("f1") as? com.duorhythm.app.ui.tasks.TasksFragment)
+                tasksFrag?.view?.findViewById<View>(R.id.fabAddTask)?.performClick()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     override fun onResume() {

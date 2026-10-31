@@ -47,6 +47,7 @@ import com.duorhythm.app.service.ReminderManager
 import com.duorhythm.app.ui.common.PermissionRationaleDialogs
 import com.duorhythm.app.ui.tools.SystemInfoBottomSheetDialog
 import com.duorhythm.app.util.AnimationUtils
+import com.duorhythm.app.util.KeyboardUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -736,6 +737,18 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.nestedScrollViewSettings.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+            if (Math.abs(scrollY - oldScrollY) > 5) {
+                KeyboardUtils.hideKeyboard(this)
+            }
+        }
+        binding.nestedScrollViewSettings.setOnTouchListener { _, motionEvent ->
+            if (motionEvent.action == android.view.MotionEvent.ACTION_MOVE) {
+                KeyboardUtils.hideKeyboard(this)
+            }
+            false
+        }
+
         // --- 1. Streamlined Data Backup & Restore Hub ---
         binding.btnExportBackup.setOnClickListener {
             showBackupProfilesDialog()
