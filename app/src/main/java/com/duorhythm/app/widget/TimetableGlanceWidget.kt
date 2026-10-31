@@ -55,6 +55,9 @@ class TimetableGlanceWidget : AppWidgetProvider() {
         }
 
         fun pushUpdate(context: Context) {
+            try {
+                AcademicHubWidget.pushUpdate(context)
+            } catch (_: Exception) {}
             val intent = Intent(context, TimetableGlanceWidget::class.java).apply {
                 action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
             }

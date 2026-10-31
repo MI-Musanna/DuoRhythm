@@ -109,6 +109,23 @@ class PortalFragment : Fragment() {
             android.util.Log.e("PortalFragment", "Error in setupListeners", e)
         }
         try {
+            parentFragmentManager.setFragmentResultListener("REQUEST_PORTAL_TAB", viewLifecycleOwner) { _, bundle ->
+                val targetTab = bundle.getInt("TARGET_TAB", 0)
+                if (targetTab == 1) {
+                    if (!isStudentProfile) {
+                        isStudentProfile = true
+                        binding.togglePortalProfile.check(R.id.btnProfileStudent)
+                        (activity as? MainActivity)?.setStudentProfile(true)
+                        updateProfileView()
+                    }
+                    binding.toggleStudentSegment.check(R.id.btnSegmentExams)
+                    updateStudentSegmentView(R.id.btnSegmentExams)
+                }
+            }
+        } catch (e: Throwable) {
+            android.util.Log.e("PortalFragment", "Error setting fragment result listener", e)
+        }
+        try {
             KeyboardUtils.attachScrollDismiss(binding.rvExams, activity)
             KeyboardUtils.attachScrollDismiss(binding.rvDirectory, activity)
         } catch (e: Throwable) {

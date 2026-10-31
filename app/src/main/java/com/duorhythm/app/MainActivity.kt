@@ -129,8 +129,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
+            handleDeepLinkIntent(intent)
             binding.root.post {
                 handleShortcutIntent(intent)
+                handleDeepLinkIntent(intent)
             }
         } catch (t: Throwable) {
             t.printStackTrace()
@@ -140,8 +142,27 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleDeepLinkIntent(intent)
         binding.root.post {
             handleShortcutIntent(intent)
+            handleDeepLinkIntent(intent)
+        }
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        handleDeepLinkIntent(intent)
+    }
+
+    private fun handleDeepLinkIntent(intent: Intent?) {
+        val destination = intent?.getStringExtra("EXTRA_DEEP_LINK_DESTINATION") ?: return
+        when (destination) {
+            "DESTINATION_SCHEDULE" -> {
+                binding.mainViewPager.setCurrentItem(3, false)
+            }
+            "DESTINATION_PORTAL_EXAMS" -> {
+                binding.mainViewPager.setCurrentItem(4, false)
+                supportFragmentManager.setFragmentResult("REQUEST_PORTAL_TAB", androidx.core.os.bundleOf("TARGET_TAB" to 1))
+            }
         }
     }
 

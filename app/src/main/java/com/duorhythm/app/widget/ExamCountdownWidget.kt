@@ -89,6 +89,9 @@ class ExamCountdownWidget : AppWidgetProvider() {
 
         fun pushUpdate(context: Context) {
             try {
+                AcademicHubWidget.pushUpdate(context)
+            } catch (_: Exception) {}
+            try {
                 val intent = Intent(context, ExamCountdownWidget::class.java).apply {
                     action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
                 }
