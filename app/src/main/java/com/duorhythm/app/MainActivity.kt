@@ -129,10 +129,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
-            handleDeepLinkIntent(intent)
             binding.root.post {
                 handleShortcutIntent(intent)
-                handleDeepLinkIntent(intent)
+                handleIncomingIntent(intent)
             }
         } catch (t: Throwable) {
             t.printStackTrace()
@@ -248,6 +247,7 @@ class MainActivity : AppCompatActivity() {
     fun isStudentProfile(): Boolean = isStudent
 
     fun setStudentProfile(student: Boolean) {
+        if (isStudent == student) return
         isStudent = student
         val currentPos = binding.mainViewPager.currentItem
         if (currentPos == MainPagerAdapter.INDEX_HOME) {
@@ -297,7 +297,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupViewPager() {
         pagerAdapter = MainPagerAdapter(this)
         binding.mainViewPager.adapter = pagerAdapter
-        binding.mainViewPager.offscreenPageLimit = ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT
+        binding.mainViewPager.offscreenPageLimit = 4
         binding.mainViewPager.isUserInputEnabled = false
         binding.mainViewPager.setPageTransformer(null)
         binding.mainViewPager.setCurrentItem(MainPagerAdapter.INDEX_HOME, false)

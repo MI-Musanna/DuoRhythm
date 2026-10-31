@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.view.View
 import android.widget.RemoteViews
+import android.widget.Toast
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.ui.main.MainActivity
@@ -20,6 +21,14 @@ import java.util.concurrent.TimeUnit
 
 class AcademicHubWidget : AppWidgetProvider() {
 
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == ACTION_MANUAL_REFRESH) {
+            pushUpdate(context)
+            Toast.makeText(context, "Academic Hub refreshed", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (widgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, widgetId)
@@ -27,6 +36,8 @@ class AcademicHubWidget : AppWidgetProvider() {
     }
 
     companion object {
+        const val ACTION_MANUAL_REFRESH = "com.duorhythm.app.widget.ACTION_MANUAL_REFRESH"
+
         fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val views = RemoteViews(context.packageName, R.layout.widget_academic_hub)
             val db = DatabaseHelper.getInstance(context)
@@ -35,6 +46,19 @@ class AcademicHubWidget : AppWidgetProvider() {
             val timeFormat = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
             views.setTextViewText(R.id.tvWidgetSyncTime, timeFormat.format(Date()))
 
+            // Wire Quick Refresh Button
+            val refreshIntent = Intent(context, AcademicHubWidget::class.java).apply {
+                action = ACTION_MANUAL_REFRESH
+            }
+            val piRefresh = PendingIntent.getBroadcast(
+                context,
+                301,
+                refreshIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.btnWidgetRefresh, piRefresh)
+
+            // Resolve Classes
             val daySequence = listOf("Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday")
             val cal = Calendar.getInstance()
             val todayDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(cal.time)
@@ -82,6 +106,7 @@ class AcademicHubWidget : AppWidgetProvider() {
                 views.setViewVisibility(R.id.tvNoClasses, View.VISIBLE)
             }
 
+            // Resolve Exams
             val allExams = db.getAssessments(profileId)
                 .filter { it.status.uppercase() != "COMPLETED" }
                 .sortedBy { it.dueDate + " " + it.dueTime }
@@ -111,16 +136,14 @@ class AcademicHubWidget : AppWidgetProvider() {
                 views.setViewVisibility(R.id.tvNoExams, View.VISIBLE)
             }
 
-            // Explicit Deep Linking Intents
+            // Deep Links
             val scheduleIntent = Intent(context, MainActivity::class.java).apply {
                 action = "ACTION_OPEN_TAB"
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 putExtra("EXTRA_DEEP_LINK_DESTINATION", "DESTINATION_SCHEDULE")
             }
             val piSchedule = PendingIntent.getActivity(
-                context,
-                201,
-                scheduleIntent,
+                context, 201, scheduleIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.layoutScheduleSection, piSchedule)
@@ -131,9 +154,7 @@ class AcademicHubWidget : AppWidgetProvider() {
                 putExtra("EXTRA_DEEP_LINK_DESTINATION", "DESTINATION_PORTAL_EXAMS")
             }
             val piExam = PendingIntent.getActivity(
-                context,
-                202,
-                examIntent,
+                context, 202, examIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.layoutExamSection, piExam)

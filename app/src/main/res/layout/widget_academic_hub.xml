@@ -7,6 +7,7 @@
     android:orientation="vertical"
     android:padding="12dp">
 
+    <!-- Header with Quick Refresh Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,8 +27,17 @@
             android:id="@+id/tvWidgetSyncTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
             android:textColor="#64748B"
             android:textSize="10sp" />
+
+        <ImageView
+            android:id="@+id/btnWidgetRefresh"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Quick Refresh"
+            android:src="@drawable/ic_refresh" />
     </LinearLayout>
 
     <LinearLayout

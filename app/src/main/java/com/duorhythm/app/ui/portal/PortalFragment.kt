@@ -63,6 +63,7 @@ class PortalFragment : Fragment() {
     private lateinit var workContactsAdapter: com.duorhythm.app.ui.tools.ContactsAdapter
 
     private var isStudentProfile = true
+    private var isSwitchingMode = false
     private var isStudentContactsTab = true
     private var isWorkContactsTab = true
     private var pendingOrderAttachmentPath = ""
@@ -114,7 +115,12 @@ class PortalFragment : Fragment() {
                 if (targetTab == 1) {
                     if (!isStudentProfile) {
                         isStudentProfile = true
-                        binding.togglePortalProfile.check(R.id.btnProfileStudent)
+                        isSwitchingMode = true
+                        try {
+                            binding.togglePortalProfile.check(R.id.btnProfileStudent)
+                        } finally {
+                            isSwitchingMode = false
+                        }
                         (activity as? MainActivity)?.setStudentProfile(true)
                         updateProfileView()
                     }
@@ -191,6 +197,7 @@ class PortalFragment : Fragment() {
     }
 
     fun setProfile(student: Boolean) {
+        if (isStudentProfile == student) return
         isStudentProfile = student
         updateProfileView()
     }
@@ -343,12 +350,33 @@ class PortalFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.togglePortalProfile.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isChecked) {
-                isStudentProfile = (checkedId == R.id.btnProfileStudent)
-                (activity as? MainActivity)?.setStudentProfile(isStudentProfile)
-                updateProfileView()
+        binding.togglePortalProfile.addOnButtonCheckedListener { group, checkedId, isChecked ->
+            if (!isChecked || isSwitchingMode) return@addOnButtonCheckedListener
+
+            val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)
+            val workCurrentlyEnabled = prefs.getBoolean("pref_work_portal", dbHelper.isWorkPortalEnabled())
+
+            if (checkedId == R.id.btnProfileWork) {
+                if (!workCurrentlyEnabled) {
+                    android.widget.Toast.makeText(requireContext(), "Work Portal is disabled in Settings", android.widget.Toast.LENGTH_SHORT).show()
+                    isSwitchingMode = true
+                    try {
+                        group.check(R.id.btnProfileStudent)
+                    } finally {
+                        isSwitchingMode = false
+                    }
+                    isStudentProfile = true
+                    (activity as? MainActivity)?.setStudentProfile(true)
+                    updateProfileView()
+                    return@addOnButtonCheckedListener
+                }
+                isStudentProfile = false
+            } else if (checkedId == R.id.btnProfileStudent) {
+                isStudentProfile = true
             }
+
+            (activity as? MainActivity)?.setStudentProfile(isStudentProfile)
+            updateProfileView()
         }
         binding.toggleStudentSegment.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
@@ -533,9 +561,11 @@ class PortalFragment : Fragment() {
     }
 
     private fun updateProfileView() {
-        if (_binding == null || !isAdded || !::dbHelper.isInitialized) return
+        if (_binding == null || !isAdded || !::dbHelper.isInitialized || isSwitchingMode) return
+        isSwitchingMode = true
         try {
-            val workEnabled = dbHelper.isWorkPortalEnabled()
+            val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)
+            val workEnabled = prefs.getBoolean("pref_work_portal", dbHelper.isWorkPortalEnabled())
             if (!workEnabled) {
                 isStudentProfile = true
                 binding.togglePortalProfile.visibility = View.GONE
@@ -568,6 +598,8 @@ class PortalFragment : Fragment() {
             }
         } catch (e: Throwable) {
             e.printStackTrace()
+        } finally {
+            isSwitchingMode = false
         }
     }
 
