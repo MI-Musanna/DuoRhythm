@@ -17,4 +17,5 @@ data class ProfileEntity(
     val rememberEmail: Boolean = false
 ) {
     val password: String get() = passwordHash
+    val slot: Int get() = slotNumber
 }

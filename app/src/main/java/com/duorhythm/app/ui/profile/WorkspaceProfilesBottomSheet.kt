@@ -28,6 +28,7 @@ import com.duorhythm.app.databinding.DialogProfileEditBinding
 import com.duorhythm.app.databinding.DialogProfileLoginBinding
 import com.duorhythm.app.databinding.ItemWorkspaceProfileBinding
 import com.duorhythm.app.security.BiometricAuthHelper
+import com.duorhythm.app.security.BiometricHelper
 import com.duorhythm.app.util.AnimationUtils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -189,27 +190,27 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun handleSwitchWorkspace(profile: ProfileEntity) {
-        val act = activity ?: return
-        if (BiometricAuthHelper.isBiometricsAvailable(act)) {
-            BiometricAuthHelper.authenticate(
-                activity = act,
-                title = "Switch Workspace",
-                subtitle = "Confirm identity to access ${profile.name}'s workspace",
-                negativeButtonText = "Use Password/PIN",
-                onSuccess = {
-                    executeProfileSwitch(profile)
-                },
-                onFallbackToPassword = {
-                    showVerifyCredentialsDialog(profile) {
-                        executeProfileSwitch(profile)
-                    }
+        val targetSlot = profile.slot
+        BiometricHelper.showBiometricOrDeviceLock(
+            activity = requireActivity(),
+            title = "Authenticate Workspace",
+            subtitle = "Confirm fingerprint or device PIN to switch to ${profile.name}",
+            onSuccess = {
+                ProfileManager.switchProfile(requireContext(), targetSlot)
+                dismiss()
+                requireActivity().recreate()
+            },
+            onFallbackToPassword = {
+                // ONLY if device credential / biometrics is cancelled or unavailable
+                val dialog = VerifyCredentialsDialog.newInstance(targetSlot, profile.name)
+                dialog.onVerificationSuccess = {
+                    ProfileManager.switchProfile(requireContext(), targetSlot)
+                    dismiss()
+                    requireActivity().recreate()
                 }
-            )
-        } else {
-            showVerifyCredentialsDialog(profile) {
-                executeProfileSwitch(profile)
+                dialog.show(parentFragmentManager, "VERIFY_DIALOG")
             }
-        }
+        )
     }
 
     private fun executeProfileSwitch(profile: ProfileEntity) {
@@ -583,7 +584,27 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                         itemBinding.btnSwitchProfile.text = "SWITCH"
                         itemBinding.btnSwitchProfile.setBackgroundResource(R.drawable.bg_ocean_pill_btn)
                         val onSwitchClick = View.OnClickListener {
-                            handleSwitchWorkspace(profile)
+                            val targetSlot = profile.slot
+                            BiometricHelper.showBiometricOrDeviceLock(
+                                activity = requireActivity(),
+                                title = "Authenticate Workspace",
+                                subtitle = "Confirm fingerprint or device PIN to switch to ${profile.name}",
+                                onSuccess = {
+                                    ProfileManager.switchProfile(requireContext(), targetSlot)
+                                    dismiss()
+                                    requireActivity().recreate()
+                                },
+                                onFallbackToPassword = {
+                                    // ONLY if device credential / biometrics is cancelled or unavailable
+                                    val dialog = VerifyCredentialsDialog.newInstance(targetSlot, profile.name)
+                                    dialog.onVerificationSuccess = {
+                                        ProfileManager.switchProfile(requireContext(), targetSlot)
+                                        dismiss()
+                                        requireActivity().recreate()
+                                    }
+                                    dialog.show(parentFragmentManager, "VERIFY_DIALOG")
+                                }
+                            )
                         }
                         itemBinding.cardProfileSlot.setOnClickListener(onSwitchClick)
                         itemBinding.btnSwitchProfile.setOnClickListener(onSwitchClick)

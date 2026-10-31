@@ -58,6 +58,35 @@ object ProfileManager {
         getPrefs(context).edit().putBoolean(KEY_ONBOARDING_COMPLETED, completed).apply()
     }
 
+    fun createInitialProfile(context: Context, name: String, password: String, avatarUri: String = ""): Long {
+        val dbHelper = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(context)
+        val existingSlot1 = dbHelper.profileDao.getProfileBySlot(1)
+        val passwordHash = if (password.isNotBlank()) hashPassword(password) else ""
+        val profile = ProfileEntity(
+            id = existingSlot1?.id ?: 0L,
+            slotNumber = 1,
+            name = name.ifBlank { "Scholar" },
+            email = "",
+            passwordHash = passwordHash,
+            institution = "",
+            department = "",
+            semester = "",
+            avatarUri = avatarUri.ifBlank { null } ?: existingSlot1?.avatarUri,
+            rememberEmail = false
+        )
+        val id = if (existingSlot1 != null) {
+            dbHelper.profileDao.updateProfile(profile)
+            existingSlot1.id
+        } else {
+            dbHelper.profileDao.insertProfile(profile)
+        }
+        val finalId = if (id <= 0L) 1L else id
+        setActiveProfileId(context, finalId)
+        syncUserProfile(context, profile.copy(id = finalId))
+        setOnboardingCompleted(context, true)
+        return finalId
+    }
+
     fun hashPassword(password: String): String {
         return try {
             val digest = MessageDigest.getInstance("SHA-256")

@@ -114,6 +114,12 @@ data class TaskItem(
 )
 
 typealias TasksEntity = TaskItem
+typealias TaskEntity = TaskItem
+
+fun TaskItem.isScheduledForToday(): Boolean {
+    val today = com.duorhythm.app.util.TaskDateUtils.getTodayStorageDate()
+    return !dueDate.isNullOrBlank() && dueDate == today
+}
 
 data class ClassScheduleItem(
     val id: Long = 0,

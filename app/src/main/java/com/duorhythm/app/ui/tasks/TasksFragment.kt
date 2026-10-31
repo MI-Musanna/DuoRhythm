@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.R
@@ -374,17 +375,29 @@ class TasksFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        binding.etTaskSearch.doAfterTextChanged { text ->
+            val query = text?.toString().orEmpty()
+            binding.btnClearTaskSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
+            tasksAdapter.updateSearchQuery(query)
+            updateEmptyState()
+        }
+
+        binding.btnClearTaskSearch.setOnClickListener {
+            binding.etTaskSearch.setText("")
+        }
+
         binding.chipGroupTaskFilters.setOnCheckedChangeListener { _, checkedId ->
             if (checkedId != View.NO_ID) {
                 binding.chipGroupCustomCategories.clearCheck()
                 currentFilter = when (checkedId) {
-                    R.id.chipFilterToday -> "TODAY"
-                    R.id.chipFilterCompleted -> "COMPLETED"
-                    R.id.chipFilterAll -> "ALL"
-                    else -> "ALL"
+                    R.id.chipFilterToday -> "Today"
+                    R.id.chipFilterCompleted -> "Completed"
+                    R.id.chipFilterAll -> "All"
+                    else -> "All"
                 }
+                tasksAdapter.updateFilterType(currentFilter)
                 binding.rvTasks.crossfade(true, 150)
-                loadTasks()
+                updateEmptyState()
             } else if (binding.chipGroupCustomCategories.checkedChipId == View.NO_ID) {
                 // Keep "All" checked by default if nothing selected
                 binding.chipFilterAll.isChecked = true
@@ -395,9 +408,10 @@ class TasksFragment : Fragment() {
             if (checkedId != View.NO_ID) {
                 binding.chipGroupTaskFilters.clearCheck()
                 val chip = group.findViewById<com.google.android.material.chip.Chip>(checkedId)
-                currentFilter = chip?.text?.toString() ?: "ALL"
+                currentFilter = chip?.text?.toString() ?: "All"
+                tasksAdapter.updateFilterType(currentFilter)
                 binding.rvTasks.crossfade(true, 150)
-                loadTasks()
+                updateEmptyState()
             }
         }
 
@@ -511,15 +525,41 @@ class TasksFragment : Fragment() {
             .show()
     }
 
+    private fun updateEmptyState() {
+        if (_binding == null) return
+        val count = tasksAdapter.itemCount
+        if (currentTab == TaskTab.TASKS) {
+            if (count == 0) {
+                binding.rvTasks.visibility = View.GONE
+                binding.layoutEmptyTasks.visibility = View.VISIBLE
+                binding.layoutEmptyGoals.visibility = View.GONE
+            } else {
+                binding.rvTasks.visibility = View.VISIBLE
+                binding.layoutEmptyTasks.visibility = View.GONE
+                binding.layoutEmptyGoals.visibility = View.GONE
+            }
+        } else {
+            if (count == 0) {
+                binding.rvTasks.visibility = View.GONE
+                binding.layoutEmptyTasks.visibility = View.GONE
+                binding.layoutEmptyGoals.visibility = View.VISIBLE
+            } else {
+                binding.rvTasks.visibility = View.VISIBLE
+                binding.layoutEmptyTasks.visibility = View.GONE
+                binding.layoutEmptyGoals.visibility = View.GONE
+            }
+        }
+    }
+
     fun loadTasks() {
         if (_binding == null || !isAdded || !::dbHelper.isInitialized || !::tasksAdapter.isInitialized) return
         try {
             if (currentTab == TaskTab.TASKS) {
-                val tasks = dbHelper.getAllTasks(currentFilter, isGoal = false)
-                tasksAdapter.updateList(tasks)
+                val allTasks = dbHelper.getAllTasks("ALL", isGoal = false)
+                tasksAdapter.updateFilterType(currentFilter)
+                tasksAdapter.setMasterTasks(allTasks)
 
                 val today = TaskDateUtils.getTodayStorageDate()
-                val allTasks = if (currentFilter == "ALL") tasks else dbHelper.getAllTasks("ALL", isGoal = false)
                 val pendingToday = allTasks.count { !it.isCompleted && !it.dueDate.isNullOrBlank() && it.dueDate <= today }
                 binding.tvTasksSubtitle.text = "$pendingToday pending today"
 
@@ -536,18 +576,11 @@ class TasksFragment : Fragment() {
                 binding.progressGoalHorizontal.setProgressCompat(taskPercent, true)
                 binding.tvGoalPercentText.text = "$taskPercent%"
 
-                if (tasks.isEmpty()) {
-                    binding.rvTasks.visibility = View.GONE
-                    binding.layoutEmptyTasks.visibility = View.VISIBLE
-                    binding.layoutEmptyGoals.visibility = View.GONE
-                } else {
-                    binding.rvTasks.visibility = View.VISIBLE
-                    binding.layoutEmptyTasks.visibility = View.GONE
-                    binding.layoutEmptyGoals.visibility = View.GONE
-                }
+                updateEmptyState()
             } else {
                 val goals = dbHelper.getAllTasks("ALL", isGoal = true)
-                tasksAdapter.updateList(goals)
+                tasksAdapter.updateFilterType(currentFilter)
+                tasksAdapter.setMasterTasks(goals)
 
                 val activeGoals = goals.count { it.progress < 100 }
                 binding.tvTasksSubtitle.text = "$activeGoals active goals"
@@ -567,15 +600,7 @@ class TasksFragment : Fragment() {
                 binding.progressGoalHorizontal.setProgressCompat(goalPercent, true)
                 binding.tvGoalPercentText.text = "$goalPercent%"
 
-                if (goals.isEmpty()) {
-                    binding.rvTasks.visibility = View.GONE
-                    binding.layoutEmptyTasks.visibility = View.GONE
-                    binding.layoutEmptyGoals.visibility = View.VISIBLE
-                } else {
-                    binding.rvTasks.visibility = View.VISIBLE
-                    binding.layoutEmptyTasks.visibility = View.GONE
-                    binding.layoutEmptyGoals.visibility = View.GONE
-                }
+                updateEmptyState()
             }
         } catch (e: Throwable) {
             e.printStackTrace()

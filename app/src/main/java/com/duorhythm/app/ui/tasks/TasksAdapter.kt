@@ -7,21 +7,68 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.duorhythm.app.R
+import com.duorhythm.app.data.model.TaskEntity
 import com.duorhythm.app.data.model.TaskItem
+import com.duorhythm.app.data.model.isScheduledForToday
 import com.duorhythm.app.databinding.ItemTaskBinding
-
 import com.duorhythm.app.util.AnimationUtils
 
 class TasksAdapter(
-    private var tasks: List<TaskItem>,
+    private var tasks: List<TaskItem> = emptyList(),
     private val onToggleCompleted: (TaskItem, Boolean) -> Unit,
     private val onTaskClick: (TaskItem) -> Unit,
     private val onDeleteClick: (TaskItem) -> Unit
 ) : RecyclerView.Adapter<TasksAdapter.TaskViewHolder>() {
 
-    fun updateList(newTasks: List<TaskItem>) {
-        tasks = newTasks
+    private var masterTaskList: List<TaskEntity> = emptyList()
+    private var currentFilterType: String = "All"
+    private var currentSearchQuery: String = ""
+
+    fun setMasterTasks(list: List<TaskEntity>) {
+        masterTaskList = list
+        applyFilters()
+    }
+
+    fun updateFilterType(filterType: String) {
+        currentFilterType = filterType
+        applyFilters()
+    }
+
+    fun updateSearchQuery(query: String) {
+        currentSearchQuery = query.lowercase().trim()
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        val filtered = masterTaskList.filter { task ->
+            val matchesType = when (currentFilterType) {
+                "All", "ALL" -> true
+                "Today", "TODAY" -> task.isScheduledForToday()
+                "Completed", "COMPLETED" -> task.isCompleted
+                else -> task.category.equals(currentFilterType, ignoreCase = true)
+            }
+
+            val matchesQuery = if (currentSearchQuery.isEmpty()) {
+                true
+            } else {
+                task.title.lowercase().contains(currentSearchQuery) ||
+                task.category.lowercase().contains(currentSearchQuery) ||
+                task.priority.lowercase().contains(currentSearchQuery)
+            }
+
+            matchesType && matchesQuery
+        }
+        submitList(ArrayList(filtered))
+    }
+
+    fun submitList(list: List<TaskEntity>) {
+        tasks = list
         notifyDataSetChanged()
+    }
+
+    fun updateList(newTasks: List<TaskItem>) {
+        masterTaskList = newTasks
+        applyFilters()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
