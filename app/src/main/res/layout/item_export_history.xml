@@ -9,6 +9,14 @@
     android:orientation="horizontal"
     android:padding="12dp">
 
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/cbSelectFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="6dp"
+        android:visibility="gone"
+        app:buttonTint="#00E5FF" />
+
     <ImageView
         android:id="@+id/ivFileThumb"
         android:layout_width="48dp"

@@ -124,17 +124,19 @@ fun TaskItem.isScheduledForToday(): Boolean {
 data class ClassScheduleItem(
     val id: Long = 0,
     val profileId: Long = 1,
-    val subjectName: String,
+    val subjectName: String = "",
     val room: String = "",
     val teacher: String = "",
     val dayOfWeek: Int = 1, // 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun
-    val startTime: String, // "09:00 AM"
-    val endTime: String, // "10:30 AM"
+    val startTime: String = "", // "09:00 AM"
+    val endTime: String = "", // "10:30 AM"
     val colorHex: String = "#2563EB",
     val classType: String = "LECTURE", // "LECTURE", "LAB", "TUTORIAL", "SEMINAR"
-    val buildingOrLink: String = ""
+    val buildingOrLink: String = "",
+    val dayName: String = "",
+    val teacherName: String = teacher
 ) {
-    val teacherName: String get() = teacher
+    val displayTeacherName: String get() = if (teacherName.isNotBlank()) teacherName else teacher
 }
 
 typealias ClassEntity = ClassScheduleItem

@@ -32,12 +32,12 @@ class ExportScheduleBottomSheet : BottomSheetDialogFragment() {
 
         // Ordered starting with Saturday as First Day of the Week
         val dayChips = listOf(
-            Pair(binding.chipSat, "Saturday" to 7),
-            Pair(binding.chipSun, "Sunday" to 1),
-            Pair(binding.chipMon, "Monday" to 2),
-            Pair(binding.chipTue, "Tuesday" to 3),
-            Pair(binding.chipWed, "Wednesday" to 4),
-            Pair(binding.chipThu, "Thursday" to 5)
+            Pair(binding.chipSat, "Saturday"),
+            Pair(binding.chipSun, "Sunday"),
+            Pair(binding.chipMon, "Monday"),
+            Pair(binding.chipTue, "Tuesday"),
+            Pair(binding.chipWed, "Wednesday"),
+            Pair(binding.chipThu, "Thursday")
         )
 
         fun refreshThumbnail() {
@@ -48,8 +48,8 @@ class ExportScheduleBottomSheet : BottomSheetDialogFragment() {
                 return
             }
             val exportMap = linkedMapOf<String, List<ClassEntity>>()
-            for ((dayName, dayInt) in selectedDays) {
-                exportMap[dayName] = db.getClasses(profileId, dayInt)
+            for (dayName in selectedDays) {
+                exportMap[dayName] = db.getClassesByDayName(profileId, dayName)
             }
             val bmp = ScheduleExportHelper.generateWeeklyScheduleBitmap(requireContext(), exportMap)
             currentGeneratedBitmap = bmp
@@ -57,8 +57,8 @@ class ExportScheduleBottomSheet : BottomSheetDialogFragment() {
         }
 
         fun applyAutoSelection() {
-            dayChips.forEach { (chip, dayInfo) ->
-                val classCount = db.getClasses(profileId, dayInfo.second).size
+            dayChips.forEach { (chip, dayName) ->
+                val classCount = db.getClassesByDayName(profileId, dayName).size
                 chip.isChecked = classCount > 0
             }
             refreshThumbnail()

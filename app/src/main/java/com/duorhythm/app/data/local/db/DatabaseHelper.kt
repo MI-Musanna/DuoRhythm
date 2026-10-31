@@ -648,6 +648,22 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.execSQL("DELETE FROM classes WHERE subject_name LIKE '%Advanced Algorithms%' OR teacher LIKE '%David Miller%'")
             db.execSQL("DELETE FROM attendance WHERE subject_name LIKE '%Advanced Algorithms%'")
             db.execSQL("DELETE FROM student_subjects WHERE name LIKE '%Advanced Algorithms%'")
+
+            // Day of week normalization and Saturday duplicate ghost records purge
+            db.execSQL("UPDATE classes SET day_of_week = 1 WHERE day_name = 'Sunday' OR day_name = 'Sun'")
+            db.execSQL("UPDATE classes SET day_of_week = 2 WHERE day_name = 'Monday' OR day_name = 'Mon'")
+            db.execSQL("UPDATE classes SET day_of_week = 3 WHERE day_name = 'Tuesday' OR day_name = 'Tue'")
+            db.execSQL("UPDATE classes SET day_of_week = 4 WHERE day_name = 'Wednesday' OR day_name = 'Wed'")
+            db.execSQL("UPDATE classes SET day_of_week = 5 WHERE day_name = 'Thursday' OR day_name = 'Thu'")
+            db.execSQL("UPDATE classes SET day_of_week = 6 WHERE day_name = 'Friday' OR day_name = 'Fri'")
+            db.execSQL("UPDATE classes SET day_of_week = 7 WHERE day_name = 'Saturday' OR day_name = 'Sat'")
+
+            db.execSQL("""
+                DELETE FROM classes 
+                WHERE (day_name = 'Saturday' OR day_of_week = 7) 
+                  AND subject_name IN ('Physics 2', 'Application Development Using Python')
+                  AND room = '904'
+            """.trimIndent())
         } catch (_: Exception) {}
     }
 
@@ -2134,6 +2150,52 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val direct = getScheduleForDay(dayOfWeek, profileId)
         if (direct.isNotEmpty()) return direct
         return emptyList()
+    }
+
+    fun getClassesByDayName(profileId: Long = getActiveProfileId(), targetDayName: String): List<ClassEntity> {
+        val list = mutableListOf<ClassEntity>()
+        val db = this.readableDatabase
+        val query = """
+            SELECT * FROM classes 
+            WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
+              AND LOWER(day_name) = LOWER(?)
+            ORDER BY start_time ASC
+        """.trimIndent()
+        
+        var cursor: Cursor? = null
+        try {
+            cursor = db.rawQuery(query, arrayOf(profileId.toString(), targetDayName))
+            val idIdx = cursor.getColumnIndexSafe("id")
+            val subNameIdx = cursor.getColumnIndexSafe("subject_name")
+            val teacherIdx = cursor.getColumnIndexSafe("teacher_name").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("teacher")
+            val roomIdx = cursor.getColumnIndexSafe("room")
+            val startIdx = cursor.getColumnIndexSafe("start_time")
+            val endIdx = cursor.getColumnIndexSafe("end_time")
+            val dayNameIdx = cursor.getColumnIndexSafe("day_name")
+            val dayOfWeekIdx = cursor.getColumnIndexSafe("day_of_week")
+
+            while (cursor.moveToNext()) {
+                list.add(
+                    ClassEntity(
+                        id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
+                        profileId = profileId,
+                        subjectName = if (subNameIdx != -1) cursor.getString(subNameIdx) else "",
+                        teacher = if (teacherIdx != -1) cursor.getString(teacherIdx) else "",
+                        teacherName = if (teacherIdx != -1) cursor.getString(teacherIdx) else "",
+                        room = if (roomIdx != -1) cursor.getString(roomIdx) else "",
+                        startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
+                        endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
+                        dayName = if (dayNameIdx != -1) cursor.getString(dayNameIdx) else targetDayName,
+                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else 1
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_CLASS", "Error reading classes for $targetDayName", e)
+        } finally {
+            cursor?.close()
+        }
+        return list
     }
 
     fun getAssessments(profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
