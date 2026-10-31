@@ -17,7 +17,9 @@ data class AssessmentEntity(
     val teacher: String = "",
     val status: String = "PENDING",
     val attachmentUri: String? = null,
-    val attachmentName: String? = null
+    val attachmentName: String? = null,
+    val category: String = type,
+    val instructor: String? = teacher
 ) {
     fun toSubjectWorkItem(): SubjectWorkItem {
         return SubjectWorkItem(

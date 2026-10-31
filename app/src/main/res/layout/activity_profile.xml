@@ -319,13 +319,7 @@
                         app:strokeColor="@color/card_stroke_bright"
                         app:strokeWidth="1dp" />
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="14dp"
-                        android:background="@color/card_stroke" />
-
-                    <!-- Remember Email Checkbox -->
+                    <!-- Remember Email Checkbox (Hidden) -->
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbRememberEmail"
                         android:layout_width="match_parent"
@@ -333,6 +327,7 @@
                         android:text="Remember email when switching to this profile"
                         android:textColor="@color/text_primary"
                         android:textSize="13sp"
+                        android:visibility="gone"
                         app:buttonTint="@color/primary" />
 
                     <View

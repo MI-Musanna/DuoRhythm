@@ -11,11 +11,15 @@ object ProfileManager {
     const val KEY_ACTIVE_PROFILE_ID = "active_profile_id"
     const val KEY_ONBOARDING_COMPLETED = "is_onboarding_completed"
 
+    @Volatile
+    private var cachedActiveProfileId: Long? = null
+
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
     fun getActiveProfileId(context: Context? = null): Long {
+        cachedActiveProfileId?.let { return it }
         val ctx = context ?: try { com.duorhythm.app.LifeSyncApp.instance } catch (_: Throwable) { null }
         if (ctx == null) return 1L
         val id = try {
@@ -29,11 +33,21 @@ object ProfileManager {
         } catch (_: Throwable) {
             1L
         }
-        return if (id <= 0L) 1L else id
+        val resolvedId = if (id <= 0L) 1L else id
+        cachedActiveProfileId = resolvedId
+        return resolvedId
+    }
+
+    fun switchProfile(context: Context, newSlot: Int) {
+        val slotLong = newSlot.toLong()
+        cachedActiveProfileId = slotLong
+        getPrefs(context).edit().putLong(KEY_ACTIVE_PROFILE_ID, slotLong).apply()
     }
 
     fun setActiveProfileId(context: Context, id: Long) {
-        getPrefs(context).edit().putLong(KEY_ACTIVE_PROFILE_ID, id).apply()
+        val resolvedId = if (id <= 0L) 1L else id
+        cachedActiveProfileId = resolvedId
+        getPrefs(context).edit().putLong(KEY_ACTIVE_PROFILE_ID, resolvedId).apply()
     }
 
     fun isOnboardingCompleted(context: Context): Boolean {

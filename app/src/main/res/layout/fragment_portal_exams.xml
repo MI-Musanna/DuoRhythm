@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutSegmentExamsRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Unified Exams & Assessments Hub Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Exams &amp; Assessments Hub"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvAssessmentsCountBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#220284C7"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="0 Scheduled"
+            android:textColor="#38BDF8"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddAssessment"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="10dp"
+            android:text="+ SCHEDULE ASSESSMENT"
+            android:textColor="#38BDF8"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Assessment Search Bar -->
+    <LinearLayout
+        android:id="@+id/layoutExamSearch"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/bg_search_input"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_search"
+            app:tint="#94A3B8" />
+
+        <EditText
+            android:id="@+id/etExamSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Search exam title, course, syllabus, room..."
+            android:imeOptions="actionDone"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingHorizontal="10dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#64748B"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/btnClearExamSearch"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_close"
+            android:visibility="gone"
+            app:tint="#94A3B8" />
+    </LinearLayout>
+
+    <!-- Filter Chips -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/cgAssessmentFilters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleLine="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFilterAll"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="All" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFilterFinals"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Finals" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFilterMidterms"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Midterms" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFilterQuizzes"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Quizzes / CT" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFilterLab"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lab Exams" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFilterViva"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Viva / Pres" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <!-- Unified Assessments RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvUnifiedAssessments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:nestedScrollingEnabled="false"
+        tools:listitem="@layout/item_subject_work" />
+
+    <!-- Empty state for assessments -->
+    <TextView
+        android:id="@+id/tvEmptyAssessments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_glass_squircle_action"
+        android:padding="14dp"
+        android:text="No upcoming exams or assessments scheduled. Tap + SCHEDULE ASSESSMENT to add one!"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+</LinearLayout>

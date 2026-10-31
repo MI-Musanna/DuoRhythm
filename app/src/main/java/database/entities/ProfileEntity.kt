@@ -15,4 +15,6 @@ data class ProfileEntity(
     val semester: String,
     val avatarUri: String? = null,
     val rememberEmail: Boolean = false
-)
+) {
+    val password: String get() = passwordHash
+}

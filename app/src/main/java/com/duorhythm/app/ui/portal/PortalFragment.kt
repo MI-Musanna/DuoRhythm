@@ -16,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.MainActivity
@@ -32,6 +33,7 @@ import com.duorhythm.app.databinding.DialogAddQuizBinding
 import com.duorhythm.app.databinding.DialogAddWorkOrderBinding
 import com.duorhythm.app.databinding.FragmentPortalBinding
 import com.duorhythm.app.util.CountryUtils
+import database.entities.AssessmentEntity
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -49,9 +51,9 @@ class PortalFragment : Fragment() {
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var studentSubjectsAdapter: StudentSubjectsAdapter
     private lateinit var workOrdersAdapter: WorkOrdersAdapter
-    private lateinit var unifiedAssessmentsAdapter: SubjectItemsAdapter
+    private lateinit var unifiedAssessmentsAdapter: AssessmentAdapter
     val coursesAdapter: StudentSubjectsAdapter get() = studentSubjectsAdapter
-    val assessmentAdapter: SubjectItemsAdapter get() = unifiedAssessmentsAdapter
+    val assessmentAdapter: AssessmentAdapter get() = unifiedAssessmentsAdapter
     private var selectedAssessmentFilter = "ALL"
     private lateinit var studentContactsAdapter: com.duorhythm.app.ui.tools.ContactsAdapter
     private lateinit var workContactsAdapter: com.duorhythm.app.ui.tools.ContactsAdapter
@@ -223,28 +225,42 @@ class PortalFragment : Fragment() {
             }
         )
         // Unified Assessments
-        unifiedAssessmentsAdapter = SubjectItemsAdapter(
+        unifiedAssessmentsAdapter = AssessmentAdapter(
             emptyList(),
-            onToggleStatus = { item, nextStatus ->
-                dbHelper.updateSubjectWorkItemStatus(item.id, nextStatus)
+            onToggleStatus = { entity, nextStatus ->
+                dbHelper.updateSubjectWorkItemStatus(entity.id, nextStatus)
                 loadStudentData()
             },
-            onDeleteClick = { item ->
+            onDeleteClick = { entity ->
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Assessment")
-                    .setMessage("Remove '${item.title}'?")
+                    .setMessage("Remove '${entity.title}'?")
                     .setPositiveButton("Delete") { _, _ ->
-                        dbHelper.deleteSubjectWorkItem(item.id)
-                        com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(requireContext(), item.id)
+                        dbHelper.deleteSubjectWorkItem(entity.id)
+                        com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(requireContext(), entity.id)
                         loadStudentData()
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
             },
-            onItemClick = { item ->
-                showEditExamDialog(item)
+            onItemClick = { entity ->
+                showEditExamDialog(entity.toSubjectWorkItem())
             }
         )
+        unifiedAssessmentsAdapter.onFilterApplied = { filtered ->
+            if (filtered.isEmpty()) {
+                binding.rvUnifiedAssessments.visibility = View.GONE
+                binding.tvEmptyAssessments.visibility = View.VISIBLE
+                binding.tvEmptyAssessments.text = if (unifiedAssessmentsAdapter.masterItemCount == 0) {
+                    "No upcoming exams or assessments scheduled. Tap + SCHEDULE ASSESSMENT to add one!"
+                } else {
+                    "No assessments found matching filter."
+                }
+            } else {
+                binding.rvUnifiedAssessments.visibility = View.VISIBLE
+                binding.tvEmptyAssessments.visibility = View.GONE
+            }
+        }
         binding.rvUnifiedAssessments.layoutManager = LinearLayoutManager(requireContext())
         binding.rvUnifiedAssessments.adapter = unifiedAssessmentsAdapter
 
@@ -355,7 +371,19 @@ class PortalFragment : Fragment() {
             showAddExamDialog(defType)
         }
 
-        binding.cgAssessmentFilters.setOnCheckedChangeListener { _, checkedId ->
+        binding.etExamSearch.doAfterTextChanged { text ->
+            val query = text?.toString().orEmpty()
+            binding.btnClearExamSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
+            assessmentAdapter.updateSearchQuery(query)
+        }
+
+        binding.btnClearExamSearch.setOnClickListener {
+            binding.etExamSearch.text?.clear()
+        }
+
+        binding.cgAssessmentFilters.setOnCheckedChangeListener { group, checkedId ->
+            val selectedChip = group.findViewById<com.google.android.material.chip.Chip>(checkedId)
+            val selectedChipText = selectedChip?.text?.toString() ?: "All"
             selectedAssessmentFilter = when (checkedId) {
                 R.id.chipFilterFinals -> "FINALS"
                 R.id.chipFilterMidterms -> "MIDTERMS"
@@ -364,7 +392,7 @@ class PortalFragment : Fragment() {
                 R.id.chipFilterViva -> "VIVA"
                 else -> "ALL"
             }
-            loadStudentData()
+            assessmentAdapter.updateCategoryFilter(selectedChipText)
         }
 
         binding.toggleStudentDirectoryTab.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -592,35 +620,17 @@ class PortalFragment : Fragment() {
         }
 
         // Load Unified Exams & Assessments
-        val allExams = dbHelper.getAllExams().distinctBy { it.first.id }.map { it.first }
-        val filteredList = when (selectedAssessmentFilter) {
-            "FINALS" -> allExams.filter { it.examType.contains("Final", ignoreCase = true) || it.examType == "SEMESTER_FINAL" }
-            "MIDTERMS" -> allExams.filter { it.examType.contains("Midterm", ignoreCase = true) || it.examType == "MIDTERM" }
-            "QUIZZES" -> allExams.filter {
-                it.examType.contains("Quiz", ignoreCase = true) ||
-                it.examType.contains("CT", ignoreCase = true) ||
-                it.examType.contains("Class Test", ignoreCase = true) ||
-                it.examType == "CLASS_TEST_QUIZ"
-            }
-            "LAB" -> allExams.filter { it.examType.contains("Lab", ignoreCase = true) || it.examType.contains("Practical", ignoreCase = true) }
-            "VIVA" -> allExams.filter { it.examType.contains("Viva", ignoreCase = true) || it.examType.contains("Presentation", ignoreCase = true) }
-            else -> allExams
+        val allExamsPairs = dbHelper.getAllExams().distinctBy { it.first.id }
+        val allAssessmentEntities = allExamsPairs.map { pair ->
+            AssessmentEntity.fromSubjectWorkItem(
+                item = pair.first,
+                subjectName = pair.second.name,
+                courseCode = pair.second.code,
+                teacher = pair.second.teacher
+            )
         }
-        assessmentAdapter.submitList(if (filteredList != null) ArrayList(filteredList) else null)
-        unifiedAssessmentsAdapter.updateList(filteredList)
-        binding.tvAssessmentsCountBadge.text = "${allExams.size} Scheduled"
-        if (filteredList.isEmpty()) {
-            binding.rvUnifiedAssessments.visibility = View.GONE
-            binding.tvEmptyAssessments.visibility = View.VISIBLE
-            binding.tvEmptyAssessments.text = if (allExams.isEmpty()) {
-                "No upcoming exams or assessments scheduled. Tap + SCHEDULE ASSESSMENT to add one!"
-            } else {
-                "No assessments found matching filter."
-            }
-        } else {
-            binding.rvUnifiedAssessments.visibility = View.VISIBLE
-            binding.tvEmptyAssessments.visibility = View.GONE
-        }
+        assessmentAdapter.setMasterData(allAssessmentEntities)
+        binding.tvAssessmentsCountBadge.text = "${allAssessmentEntities.size} Scheduled"
 
         loadStudentContacts()
     }

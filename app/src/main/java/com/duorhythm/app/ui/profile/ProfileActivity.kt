@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -116,20 +117,18 @@ class ProfileActivity : AppCompatActivity() {
         if (profile != null) {
             binding.chipActiveSlot.text = "Slot ${profile.slotNumber} Active"
             binding.tvProfileName.text = profile.name.ifBlank { "Scholar" }
-            binding.tvProfileEmail.text = profile.email.ifBlank { "No email registered" }
+            if (profile.email.isNotBlank()) {
+                binding.tvProfileEmail.visibility = View.VISIBLE
+                binding.tvProfileEmail.text = profile.email
+            } else {
+                binding.tvProfileEmail.visibility = View.GONE
+            }
 
             binding.tvProfileInstitution.text = profile.institution.ifBlank { "Not Configured" }
             binding.tvProfileDepartment.text = profile.department.ifBlank { "Not Configured" }
             binding.tvProfileSemester.text = profile.semester.ifBlank { "Not Configured" }
 
-            // Checkbox: Remember email
-            binding.cbRememberEmail.setOnCheckedChangeListener(null)
-            binding.cbRememberEmail.isChecked = profile.rememberEmail
-            binding.cbRememberEmail.setOnCheckedChangeListener { _, isChecked ->
-                val updated = profile.copy(rememberEmail = isChecked)
-                dbHelper.profileDao.updateProfile(updated)
-                currentProfile = updated
-            }
+            binding.cbRememberEmail.visibility = View.GONE
 
             // Avatar
             binding.ivProfileAvatar.setImageDrawable(null)

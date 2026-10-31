@@ -152,50 +152,33 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         if (isDestructive) {
             dialogBinding.tvLoginTitle.text = "Confirm Identity"
             dialogBinding.tvLoginSubtitle.text = "Enter password to delete Workspace Slot ${profile.slotNumber}"
+            dialogBinding.btnLoginSubmit.text = "VERIFY & DELETE"
         } else {
-            dialogBinding.tvLoginSubtitle.text = "Authenticating for ${profile.name} (Slot ${profile.slotNumber})"
+            dialogBinding.tvLoginTitle.text = "Verify Credentials"
+            dialogBinding.tvLoginSubtitle.text = "Authenticating for ${profile.name}"
+            dialogBinding.btnLoginSubmit.text = "VERIFY & SWITCH"
         }
 
-        if (profile.rememberEmail) {
-            dialogBinding.etLoginEmail.setText(profile.email)
-            dialogBinding.etLoginEmail.isEnabled = false
-            dialogBinding.layoutLoginEmail.alpha = 0.7f
-            dialogBinding.cbRememberEmail.isChecked = true
-            dialogBinding.etLoginPassword.requestFocus()
-        } else {
-            dialogBinding.etLoginEmail.setText("")
-            dialogBinding.etLoginEmail.isEnabled = true
-            dialogBinding.layoutLoginEmail.alpha = 1.0f
-            dialogBinding.cbRememberEmail.isChecked = false
-            dialogBinding.etLoginEmail.requestFocus()
-        }
+        dialogBinding.etLoginPassword.requestFocus()
 
         dialogBinding.btnLoginCancel.setOnClickListener {
             dialog.dismiss()
         }
 
         dialogBinding.btnLoginSubmit.setOnClickListener {
-            val email = dialogBinding.etLoginEmail.text?.toString()?.trim() ?: ""
-            val password = dialogBinding.etLoginPassword.text?.toString() ?: ""
+            val enteredPassword = dialogBinding.etLoginPassword.text?.toString().orEmpty()
 
-            if (password.isBlank()) {
-                Toast.makeText(act, "Please enter your password", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+            if (profile.passwordHash.isNotBlank()) {
+                if (enteredPassword.isBlank()) {
+                    Toast.makeText(act, "Please enter your password", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
 
-            if (!profile.rememberEmail && !email.equals(profile.email.trim(), ignoreCase = true)) {
-                Toast.makeText(act, "Email address does not match", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val enteredHash = ProfileManager.hashPassword(password)
-            if (enteredHash != profile.passwordHash) {
-                Toast.makeText(act, "Incorrect password", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (dialogBinding.cbRememberEmail.isChecked != profile.rememberEmail) {
-                dbHelper.profileDao.updateProfile(profile.copy(rememberEmail = dialogBinding.cbRememberEmail.isChecked))
+                val enteredHash = ProfileManager.hashPassword(enteredPassword)
+                if (enteredPassword != profile.password && enteredHash != profile.passwordHash) {
+                    Toast.makeText(act, "Incorrect password", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
             }
 
             dialog.dismiss()
@@ -336,12 +319,15 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
             val newDept = dialogBinding.etEditDepartment.text?.toString()?.trim() ?: ""
             val newSem = dialogBinding.etEditSemester.text?.toString()?.trim() ?: ""
+            val newPass = dialogBinding.etEditPassword.text?.toString().orEmpty()
+            val newHash = if (newPass.isNotBlank()) ProfileManager.hashPassword(newPass) else profile.passwordHash
 
             val updated = profile.copy(
                 name = newName,
                 department = newDept,
                 semester = newSem,
-                avatarUri = selectedAvatarUri
+                avatarUri = selectedAvatarUri,
+                passwordHash = newHash
             )
 
             dbHelper.profileDao.updateProfile(updated)
@@ -457,23 +443,15 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
         dialogBinding.btnCreateSubmit.setOnClickListener {
             val name = dialogBinding.etCreateName.text?.toString()?.trim() ?: ""
-            val email = dialogBinding.etCreateEmail.text?.toString()?.trim() ?: ""
-            val password = dialogBinding.etCreatePassword.text?.toString() ?: ""
+            val email = ""
+            val password = dialogBinding.etCreatePassword.text?.toString().orEmpty()
             val institution = dialogBinding.etCreateInstitution.text?.toString()?.trim() ?: ""
             val department = dialogBinding.etCreateDepartment.text?.toString()?.trim() ?: ""
             val semester = dialogBinding.etCreateSemester.text?.toString()?.trim() ?: ""
-            val rememberEmail = dialogBinding.cbCreateRememberEmail.isChecked
+            val rememberEmail = false
 
             if (name.isBlank()) {
                 Toast.makeText(act, "Please enter your full name", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (email.isBlank() || !email.contains("@")) {
-                Toast.makeText(act, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (password.isBlank()) {
-                Toast.makeText(act, "Please create a password", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -481,7 +459,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                 slotNumber = slotNumber,
                 name = name,
                 email = email,
-                passwordHash = ProfileManager.hashPassword(password),
+                passwordHash = if (password.isNotBlank()) ProfileManager.hashPassword(password) else "",
                 institution = institution,
                 department = department,
                 semester = semester,
@@ -552,7 +530,12 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                     itemBinding.cardProfileSlot.strokeWidth = if (item.isActive) 4 else 2
 
                     itemBinding.tvProfileName.text = profile.name.ifBlank { "Profile ${item.slotNumber}" }
-                    itemBinding.tvProfileEmail.text = profile.email.ifBlank { "No email set" }
+                    if (profile.email.isNotBlank()) {
+                        itemBinding.tvProfileEmail.visibility = View.VISIBLE
+                        itemBinding.tvProfileEmail.text = profile.email
+                    } else {
+                        itemBinding.tvProfileEmail.visibility = View.GONE
+                    }
 
                     val meta = listOf(profile.department, profile.semester, profile.institution)
                         .filter { it.isNotBlank() }

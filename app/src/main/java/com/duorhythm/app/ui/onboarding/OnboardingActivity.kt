@@ -223,22 +223,10 @@ class OnboardingActivity : AppCompatActivity() {
     private fun validateProfileForm(): Boolean {
         val b = profileBinding ?: return true
         val name = b.etOnboardingName.text?.toString()?.trim() ?: ""
-        val email = b.etOnboardingEmail.text?.toString()?.trim() ?: ""
-        val password = b.etOnboardingPassword.text?.toString() ?: ""
 
         if (name.isBlank()) {
             Toast.makeText(this, "Please enter your full name", Toast.LENGTH_SHORT).show()
             b.etOnboardingName.requestFocus()
-            return false
-        }
-        if (email.isBlank() || !email.contains("@")) {
-            Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
-            b.etOnboardingEmail.requestFocus()
-            return false
-        }
-        if (password.isBlank()) {
-            Toast.makeText(this, "Please create a password for Profile 1", Toast.LENGTH_SHORT).show()
-            b.etOnboardingPassword.requestFocus()
             return false
         }
         return true
@@ -247,12 +235,12 @@ class OnboardingActivity : AppCompatActivity() {
     private fun saveProfile1Data(): Long {
         val b = profileBinding ?: return 1L
         val name = b.etOnboardingName.text?.toString()?.trim() ?: "Scholar"
-        val email = b.etOnboardingEmail.text?.toString()?.trim() ?: "student@duorhythm.app"
-        val password = b.etOnboardingPassword.text?.toString() ?: "1234"
+        val email = ""
+        val password = b.etOnboardingPassword.text?.toString().orEmpty()
         val inst = b.etOnboardingInstitution.text?.toString()?.trim() ?: ""
         val dept = b.etOnboardingDepartment.text?.toString()?.trim() ?: ""
         val sem = b.etOnboardingSemester.text?.toString()?.trim() ?: "1st"
-        val remember = b.cbOnboardingRememberEmail.isChecked
+        val remember = false
 
         val existingSlot1 = dbHelper.profileDao.getProfileBySlot(1)
         val profile = ProfileEntity(
@@ -260,7 +248,7 @@ class OnboardingActivity : AppCompatActivity() {
             slotNumber = 1,
             name = name,
             email = email,
-            passwordHash = ProfileManager.hashPassword(password),
+            passwordHash = if (password.isNotBlank()) ProfileManager.hashPassword(password) else "",
             institution = inst,
             department = dept,
             semester = sem,
