@@ -21,6 +21,9 @@ data class AssessmentEntity(
     val category: String = type,
     val instructor: String? = teacher
 ) {
+    val dueDate: String get() = date
+    val dueTime: String get() = time
+
     fun toSubjectWorkItem(): SubjectWorkItem {
         return SubjectWorkItem(
             id = id,

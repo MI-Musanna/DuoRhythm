@@ -138,6 +138,7 @@ data class ClassScheduleItem(
 }
 
 typealias ClassEntity = ClassScheduleItem
+typealias AssessmentEntity = database.entities.AssessmentEntity
 
 data class SubjectAttendanceItem(
     val id: Long = 0,

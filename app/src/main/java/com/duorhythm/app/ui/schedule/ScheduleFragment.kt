@@ -168,9 +168,7 @@ class ScheduleFragment : Fragment() {
 
     private fun setupListeners() {
         binding.btnExportSchedule.setOnClickListener {
-            val dayName = getSelectedDayName()
-            val classes = scheduleViewModel.currentDayClasses.value.orEmpty()
-            ScheduleExportHelper.exportDayScheduleAsImage(requireContext(), dayName, classes)
+            ExportScheduleDialog().show(parentFragmentManager, "ExportScheduleDialog")
         }
 
         binding.btnJumpToToday.setOnClickListener {

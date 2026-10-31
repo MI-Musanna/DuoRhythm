@@ -2136,6 +2136,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return emptyList()
     }
 
+    fun getAssessments(profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
+        return assessmentDao.getAssessmentsByProfile(profileId)
+    }
+
     fun insertClassSchedule(item: ClassScheduleItem): Long {
         val db = writableDatabase
         val pId = if (item.profileId > 0) item.profileId else getActiveProfileId()

@@ -381,6 +381,10 @@ class PortalFragment : Fragment() {
             showAddExamDialog(defType)
         }
 
+        binding.btnExportExams.setOnClickListener {
+            ExportExamsDialog().show(parentFragmentManager, "ExportExamsDialog")
+        }
+
         binding.etExamSearch.doAfterTextChanged { text ->
             val query = text?.toString().orEmpty()
             binding.btnClearExamSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
@@ -641,6 +645,9 @@ class PortalFragment : Fragment() {
         }
         assessmentAdapter.setMasterData(allAssessmentEntities)
         binding.tvAssessmentsCountBadge.text = "${allAssessmentEntities.size} Scheduled"
+        context?.let { ctx ->
+            com.duorhythm.app.widget.ExamCountdownWidget.pushUpdate(ctx)
+        }
 
         loadStudentContacts()
     }
