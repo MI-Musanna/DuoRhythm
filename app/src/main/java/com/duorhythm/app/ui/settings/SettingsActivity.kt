@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.duorhythm.app.R
@@ -50,6 +51,49 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+data class SettingSearchItem(
+    val title: String,
+    val subtitle: String,
+    val targetView: View,
+    val parentCard: View,
+    val parentContentLayout: View,
+    val parentChevron: ImageView
+)
+
+val ActivitySettingsBinding.cardPreferencesGeneralHeader: View get() = headerPreferencesGeneral
+val ActivitySettingsBinding.layoutPreferencesGeneralContent: View get() = bodyPreferencesGeneral
+val ActivitySettingsBinding.ivChevronGeneral: ImageView get() = ivChevronPreferencesGeneral
+
+val ActivitySettingsBinding.cardAcademicAutomationsHeader: View get() = headerAcademicAutomations
+val ActivitySettingsBinding.layoutAcademicAutomationsContent: View get() = bodyAcademicAutomations
+val ActivitySettingsBinding.ivChevronAcademic: ImageView get() = ivChevronAcademicAutomations
+
+val ActivitySettingsBinding.cardFinanceAutomationsHeader: View get() = headerFinanceAutomations
+val ActivitySettingsBinding.layoutFinanceAutomationsContent: View get() = bodyFinanceAutomations
+val ActivitySettingsBinding.ivChevronFinance: ImageView get() = ivChevronFinanceAutomations
+
+val ActivitySettingsBinding.cardWorkPortalHeader: View get() = headerWorkPortal
+val ActivitySettingsBinding.layoutWorkPortalContent: View get() = bodyWorkPortal
+val ActivitySettingsBinding.ivChevronWork: ImageView get() = ivChevronWorkPortal
+
+val ActivitySettingsBinding.cardSecurityBiometricsHeader: View get() = headerSecurityBiometrics
+val ActivitySettingsBinding.layoutSecurityBiometricsContent: View get() = bodySecurityBiometrics
+val ActivitySettingsBinding.ivChevronSecurity: ImageView get() = ivChevronSecurityBiometrics
+
+val ActivitySettingsBinding.cardBackupRestoreHeader: View get() = headerAccordionBackup
+val ActivitySettingsBinding.layoutBackupRestoreContent: View get() = bodyAccordionBackup
+
+val ActivitySettingsBinding.cardStorageResetHeader: View get() = headerAccordionDataSlate
+val ActivitySettingsBinding.layoutStorageResetContent: View get() = bodyAccordionDataSlate
+val ActivitySettingsBinding.ivChevronStorage: ImageView get() = ivChevronDataSlate
+
+val ActivitySettingsBinding.cardAboutDeveloperHeader: View get() = headerAccordionAbout
+val ActivitySettingsBinding.layoutAboutDeveloperContent: View get() = bodyAccordionAbout
+
+val ActivitySettingsBinding.rowFirstDayOfWeek: View get() = itemStartOfWeek
+val ActivitySettingsBinding.rowRunningBalance: View get() = rowShowRunningBalance
+val ActivitySettingsBinding.rowAutoSms: View get() = rowAutoSmsDetection
+
 val ActivitySettingsBinding.tvStartOfWeekValue: TextView get() = tvFirstDayOfWeekSubtitle
 val ActivitySettingsBinding.switchAutoTrackAttendance: SwitchMaterial get() = switchAutoLinkAttendance
 val ActivitySettingsBinding.switchClassReminders: SwitchMaterial get() = switchClassAlarms
@@ -73,6 +117,8 @@ class SettingsActivity : AppCompatActivity() {
     private var isHydratingUI = false
     private var devClickCount = 0
     private var devFirstClickTime = 0L
+
+    private val searchableItems = mutableListOf<SettingSearchItem>()
 
     private var selectedSlots: List<Int> = listOf(1, 2, 3)
 
@@ -134,6 +180,7 @@ class SettingsActivity : AppCompatActivity() {
             setupPreferencesSection()
             setupAutoBackup()
             setupListeners()
+            setupSearch()
             syncSwitchStates()
             refreshLeadTimesUI()
             updateBackupUI()
@@ -195,15 +242,104 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupAccordions() {
-        setupAccordion(binding.headerPreferencesGeneral, binding.bodyPreferencesGeneral, binding.ivChevronPreferencesGeneral, defaultExpanded = true)
-        setupAccordion(binding.headerAcademicAutomations, binding.bodyAcademicAutomations, binding.ivChevronAcademicAutomations, defaultExpanded = true)
-        setupAccordion(binding.headerFinanceAutomations, binding.bodyFinanceAutomations, binding.ivChevronFinanceAutomations, defaultExpanded = false)
-        setupAccordion(binding.headerWorkPortal, binding.bodyWorkPortal, binding.ivChevronWorkPortal, defaultExpanded = false)
-        setupAccordion(binding.headerSecurityBiometrics, binding.bodySecurityBiometrics, binding.ivChevronSecurityBiometrics, defaultExpanded = false)
+        setupAccordion(binding.cardPreferencesGeneralHeader, binding.layoutPreferencesGeneralContent, binding.ivChevronGeneral, defaultExpanded = false)
+        setupAccordion(binding.cardAcademicAutomationsHeader, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic, defaultExpanded = false)
+        setupAccordion(binding.cardFinanceAutomationsHeader, binding.layoutFinanceAutomationsContent, binding.ivChevronFinance, defaultExpanded = false)
+        setupAccordion(binding.cardWorkPortalHeader, binding.layoutWorkPortalContent, binding.ivChevronWork, defaultExpanded = false)
+        setupAccordion(binding.cardSecurityBiometricsHeader, binding.layoutSecurityBiometricsContent, binding.ivChevronSecurity, defaultExpanded = false)
+        setupAccordion(binding.cardBackupRestoreHeader, binding.layoutBackupRestoreContent, binding.ivChevronBackup, defaultExpanded = false)
+        setupAccordion(binding.cardStorageResetHeader, binding.layoutStorageResetContent, binding.ivChevronStorage, defaultExpanded = false)
+        setupAccordion(binding.cardAboutDeveloperHeader, binding.layoutAboutDeveloperContent, binding.ivChevronAbout, defaultExpanded = false)
+    }
 
-        setupAccordion(binding.headerAccordionBackup, binding.bodyAccordionBackup, binding.ivChevronBackup, defaultExpanded = false)
-        setupAccordion(binding.headerAccordionDataSlate, binding.bodyAccordionDataSlate, binding.ivChevronDataSlate, defaultExpanded = false)
-        setupAccordion(binding.headerAccordionAbout, binding.bodyAccordionAbout, binding.ivChevronAbout, defaultExpanded = false)
+    fun indexSettings() {
+        searchableItems.clear()
+        // Preferences / General
+        searchableItems.add(SettingSearchItem("First Day of the Week", "Saturday start calendar configuration", binding.rowFirstDayOfWeek, binding.cardPreferencesGeneral, binding.layoutPreferencesGeneralContent, binding.ivChevronGeneral))
+        searchableItems.add(SettingSearchItem("Smart Daily Briefings", "Configurable morning agenda & evening recap alarms", binding.rowDailyBriefings, binding.cardPreferencesGeneral, binding.layoutPreferencesGeneralContent, binding.ivChevronGeneral))
+
+        // Academic & Schedule
+        searchableItems.add(SettingSearchItem("Auto-link Attendance to Courses", "Automatically add newly created subjects to timetable", binding.rowAutoLinkAttendance, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+        searchableItems.add(SettingSearchItem("Class & Exam Alarms", "System alarm reminders before scheduled lectures", binding.rowClassAlarms, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+        searchableItems.add(SettingSearchItem("Class Reminder Lead Time", "Custom minutes before lecture", binding.rowClassLeadTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+        searchableItems.add(SettingSearchItem("Auto-Silent During Classes (DND)", "Silences ringer during scheduled lectures", binding.rowClassDnd, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+
+        // Financial Ledger
+        searchableItems.add(SettingSearchItem("Show Running Balance", "Display remaining balance underneath transactions", binding.rowRunningBalance, binding.cardFinanceAutomations, binding.layoutFinanceAutomationsContent, binding.ivChevronFinance))
+        searchableItems.add(SettingSearchItem("Subscription Renewal Alerts", "Notify 2 days before recurring payments", binding.rowSubscriptionAlerts, binding.cardFinanceAutomations, binding.layoutFinanceAutomationsContent, binding.ivChevronFinance))
+        searchableItems.add(SettingSearchItem("Auto SMS & Notification Expense Detection", "1-Tap logging prompts for bKash, Nagad, bank", binding.rowAutoSms, binding.cardFinanceAutomations, binding.layoutFinanceAutomationsContent, binding.ivChevronFinance))
+
+        // Work Portal
+        searchableItems.add(SettingSearchItem("Work Portal Module", "Enable freelance and business client tracking", binding.rowWorkPortal, binding.cardWorkPortal, binding.layoutWorkPortalContent, binding.ivChevronWork))
+        searchableItems.add(SettingSearchItem("Client Deadline Alerts", "Custom hours lead alert", binding.rowClientLeadTime, binding.cardWorkPortal, binding.layoutWorkPortalContent, binding.ivChevronWork))
+
+        // Security
+        searchableItems.add(SettingSearchItem("Money Tracker & Wallet Lock", "Require biometric or device PIN to access financial data", binding.rowWalletBiometric, binding.cardSecurityBiometrics, binding.layoutSecurityBiometricsContent, binding.ivChevronSecurity))
+        searchableItems.add(SettingSearchItem("Workspace Profile Switching Auth", "Biometric verification on profile switch", binding.rowProfileAuth, binding.cardSecurityBiometrics, binding.layoutSecurityBiometricsContent, binding.ivChevronSecurity))
+    }
+
+    private fun setupSearch() {
+        indexSettings()
+
+        binding.etSettingsSearch.doAfterTextChanged { text ->
+            val query = text?.toString()?.trim()?.lowercase().orEmpty()
+            binding.btnClearSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
+
+            if (query.isEmpty()) {
+                // Reset state: show all cards, keep all content layouts collapsed
+                val allCards = listOf(
+                    Pair(binding.cardPreferencesGeneral, binding.layoutPreferencesGeneralContent),
+                    Pair(binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent),
+                    Pair(binding.cardFinanceAutomations, binding.layoutFinanceAutomationsContent),
+                    Pair(binding.cardWorkPortal, binding.layoutWorkPortalContent),
+                    Pair(binding.cardSecurityBiometrics, binding.layoutSecurityBiometricsContent)
+                )
+                allCards.forEach { (card, content) ->
+                    card.visibility = View.VISIBLE
+                    content.visibility = View.GONE
+                }
+                listOf(
+                    binding.ivChevronGeneral,
+                    binding.ivChevronAcademic,
+                    binding.ivChevronFinance,
+                    binding.ivChevronWork,
+                    binding.ivChevronSecurity
+                ).forEach {
+                    it.rotation = 0f
+                }
+                searchableItems.forEach { it.targetView.visibility = View.VISIBLE }
+                binding.rowClientLeadTime.visibility = if (dbHelper.isWorkPortalEnabled()) View.VISIBLE else View.GONE
+                listOf(binding.cardBackupRestore, binding.cardStorageReset, binding.cardAboutDeveloper).forEach {
+                    it.visibility = View.VISIBLE
+                }
+                return@doAfterTextChanged
+            }
+
+            // Group matched items by parent card
+            val activeMatchingCards = mutableSetOf<View>()
+            searchableItems.forEach { item ->
+                val matches = item.title.lowercase().contains(query) || item.subtitle.lowercase().contains(query)
+                item.targetView.visibility = if (matches) View.VISIBLE else View.GONE
+                if (matches) {
+                    activeMatchingCards.add(item.parentCard)
+                    item.parentContentLayout.visibility = View.VISIBLE
+                    item.parentChevron.rotation = 180f
+                }
+            }
+
+            // Hide cards that have zero matching rows; keep cards with matches visible
+            val allCategories = searchableItems.map { it.parentCard }.distinct()
+            allCategories.forEach { card ->
+                card.visibility = if (activeMatchingCards.contains(card)) View.VISIBLE else View.GONE
+            }
+            listOf(binding.cardBackupRestore, binding.cardStorageReset, binding.cardAboutDeveloper).forEach {
+                it.visibility = View.GONE
+            }
+        }
+
+        binding.btnClearSearch.setOnClickListener {
+            binding.etSettingsSearch.text?.clear()
+        }
     }
 
     private fun setupPreferencesSection() {
