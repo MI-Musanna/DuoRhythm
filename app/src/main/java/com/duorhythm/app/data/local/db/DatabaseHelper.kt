@@ -666,7 +666,6 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             """.trimIndent())
         } catch (_: Exception) {}
 
-        // Auto-Repair Database: Refund ৳2000 to Cash & Delete False Transaction
         ensureColumnExists(db, "transactions", "account_id", "INTEGER DEFAULT 0")
         try {
             db.execSQL("UPDATE transactions SET account_id = bucket_id WHERE (account_id IS NULL OR account_id = 0) AND bucket_id > 0")
@@ -682,50 +681,6 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             """.trimIndent())
             db.execSQL("INSERT OR REPLACE INTO accounts (id, profile_id, name, balance) SELECT id, profile_id, name, balance FROM wallet_buckets")
         } catch (_: Exception) {}
-
-        try {
-            // 1. Check if the false renewal transaction exists
-            var cursor = db.rawQuery(
-                "SELECT id, amount, account_id FROM transactions WHERE title LIKE '%DPI Monthly Fee%' AND date = '2026-10-31'",
-                null
-            )
-            if (!cursor.moveToFirst()) {
-                cursor.close()
-                cursor = db.rawQuery(
-                    "SELECT id, amount, account_id FROM transactions WHERE title LIKE '%DPI%' AND date = '2026-10-31'",
-                    null
-                )
-            }
-            if (cursor.moveToFirst()) {
-                val transId = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
-                val amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount"))
-                val accountId = cursor.getLong(cursor.getColumnIndexOrThrow("account_id"))
-                cursor.close()
-
-                // 2. Delete the rogue transaction record
-                db.execSQL("DELETE FROM transactions WHERE id = ?", arrayOf(transId))
-
-                // 3. Re-credit the balance back to Cash account
-                db.execSQL("UPDATE accounts SET balance = balance + ? WHERE id = ? OR name = 'Cash'", arrayOf(amount, accountId))
-                try {
-                    db.execSQL("UPDATE wallet_buckets SET balance = balance + ? WHERE id = ? OR name = 'Cash' OR name LIKE '%Cash%'", arrayOf(amount, accountId))
-                } catch (_: Exception) {}
-                Log.d("DUO_REPAIR", "Successfully refunded ৳$amount to Cash and deleted transaction #$transId")
-            } else {
-                cursor.close()
-            }
-
-            // 4. Set DPI subscription strictly to External / Third-party and lock for upcoming Nov 1-5 window
-            db.execSQL("""
-                UPDATE subscriptions 
-                SET linked_account_id = NULL,
-                    last_paid_month_year = '2026-10',
-                    next_renewal_date = '2026-11-01'
-                WHERE name LIKE '%DPI%'
-            """.trimIndent())
-        } catch (e: Exception) {
-            Log.e("DUO_REPAIR", "Failed to repair accidental deduction", e)
-        }
     }
 
     private fun ensureColumnExists(db: SQLiteDatabase, tableName: String, columnName: String, columnDef: String) {
