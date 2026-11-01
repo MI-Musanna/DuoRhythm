@@ -5,96 +5,87 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget_glass_oled"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="10dp">
 
-    <!-- Top Bar: Live OS TextClock & Interactive Refresh Hitbox -->
-    <LinearLayout
+    <!-- Top Bar: Refresh Button (Right aligned) & Centered Clock Container -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content">
 
-        <!-- Live Clock & Date Container -->
+        <!-- Centered Live Clock & Alarm Launch Touchpad -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:id="@+id/layoutClockTouchpad"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <TextClock
-                android:id="@+id/tcWidgetClock"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:format12Hour="h:mm"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:gravity="bottom"
+                android:orientation="horizontal">
 
-            <TextClock
-                android:id="@+id/tcWidgetAmPm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:format12Hour="a"
-                android:textColor="#00E5FF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                <TextClock
+                    android:id="@+id/tcWidgetClock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:format12Hour="h:mm"
+                    android:textColor="#FFFFFF"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
 
-            <FrameLayout
-                android:layout_width="1dp"
-                android:layout_height="14dp"
-                android:layout_marginHorizontal="8dp"
-                android:background="#334155" />
+                <TextClock
+                    android:id="@+id/tcWidgetAmPm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:format12Hour="a"
+                    android:textColor="#00E5FF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <TextClock
                 android:id="@+id/tcWidgetDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:format12Hour="EEE, MMM d"
+                android:layout_marginTop="-2dp"
+                android:format12Hour="EEEE, MMMM d"
                 android:textColor="#94A3B8"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Right Side: DuoRhythm Pill & Refresh Button -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_widget_pill_badge"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="2dp"
-            android:text="DUORHYTHM"
-            android:textColor="#38BDF8"
-            android:textSize="8sp"
-            android:textStyle="bold" />
-
+        <!-- Right Side: Dedicated Refresh Hitbox -->
         <FrameLayout
             android:id="@+id/btnWidgetRefreshHitbox"
-            android:layout_width="32dp"
-            android:layout_height="28dp"
-            android:layout_marginStart="6dp">
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true">
 
             <ImageView
                 android:id="@+id/ivWidgetRefreshIcon"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
                 android:layout_gravity="center"
                 android:contentDescription="Refresh"
                 android:src="@drawable/ic_refresh" />
 
             <ProgressBar
                 android:id="@+id/pbWidgetLoading"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
                 android:layout_gravity="center"
                 android:indeterminate="true"
                 android:indeterminateTint="#00E5FF"
                 android:visibility="gone" />
         </FrameLayout>
-    </LinearLayout>
+    </RelativeLayout>
 
-    <!-- Main Content Container: Fluid Adaptive Grid -->
+    <!-- Main Content Container: Fluid Grid -->
     <LinearLayout
         android:id="@+id/layoutMainGrid"
         android:layout_width="match_parent"
@@ -104,7 +95,7 @@
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <!-- Column 1: Classes Section (Anti-Blend Protected Cards) -->
+        <!-- Column 1: Classes Section -->
         <LinearLayout
             android:id="@+id/layoutScheduleSection"
             android:layout_width="0dp"
@@ -126,9 +117,11 @@
             <LinearLayout
                 android:id="@+id/rowClass1"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:layout_height="0dp"
+                android:layout_marginBottom="4dp"
+                android:layout_weight="1"
                 android:background="@drawable/bg_widget_item_class"
+                android:gravity="center_vertical"
                 android:orientation="vertical"
                 android:padding="6dp">
 
@@ -171,7 +164,7 @@
                     android:id="@+id/tvClass1Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
@@ -183,7 +176,7 @@
                     android:id="@+id/tvClass1Time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="2dp"
                     android:textColor="#94A3B8"
                     android:textSize="9sp" />
             </LinearLayout>
@@ -192,9 +185,10 @@
             <LinearLayout
                 android:id="@+id/rowClass2"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:background="@drawable/bg_widget_item_class"
+                android:gravity="center_vertical"
                 android:orientation="vertical"
                 android:padding="6dp">
 
@@ -237,7 +231,7 @@
                     android:id="@+id/tvClass2Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
@@ -249,7 +243,7 @@
                     android:id="@+id/tvClass2Time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="2dp"
                     android:textColor="#94A3B8"
                     android:textSize="9sp" />
             </LinearLayout>
@@ -266,12 +260,15 @@
                 android:visibility="gone" />
         </LinearLayout>
 
+        <!-- Vertical Divider Line (Cyan Slate Accent) -->
         <FrameLayout
-            android:id="@+id/layoutColumnGap"
-            android:layout_width="8dp"
-            android:layout_height="match_parent" />
+            android:id="@+id/vSectionDivider"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="8dp"
+            android:background="#2E38BDF8" />
 
-        <!-- Column 2: Exams Section (Anti-Blend Protected Cards) -->
+        <!-- Column 2: Exams Section -->
         <LinearLayout
             android:id="@+id/layoutExamSection"
             android:layout_width="0dp"
@@ -293,9 +290,11 @@
             <LinearLayout
                 android:id="@+id/rowExam1"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:layout_height="0dp"
+                android:layout_marginBottom="4dp"
+                android:layout_weight="1"
                 android:background="@drawable/bg_widget_item_exam"
+                android:gravity="center_vertical"
                 android:orientation="vertical"
                 android:padding="6dp">
 
@@ -337,7 +336,7 @@
                     android:id="@+id/tvExam1Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
@@ -349,7 +348,7 @@
                     android:id="@+id/tvExam1Time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="2dp"
                     android:textColor="#94A3B8"
                     android:textSize="9sp" />
             </LinearLayout>
@@ -358,9 +357,10 @@
             <LinearLayout
                 android:id="@+id/rowExam2"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:background="@drawable/bg_widget_item_exam"
+                android:gravity="center_vertical"
                 android:orientation="vertical"
                 android:padding="6dp">
 
@@ -402,7 +402,7 @@
                     android:id="@+id/tvExam2Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
@@ -414,7 +414,7 @@
                     android:id="@+id/tvExam2Time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="2dp"
                     android:textColor="#94A3B8"
                     android:textSize="9sp" />
             </LinearLayout>
@@ -430,30 +430,5 @@
                 android:textSize="10sp"
                 android:visibility="gone" />
         </LinearLayout>
-    </LinearLayout>
-
-    <!-- Bottom Glance Bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="• Tap card to launch schedule portal"
-            android:textColor="#475569"
-            android:textSize="9sp" />
-
-        <TextView
-            android:id="@+id/tvWidgetStatusNote"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Live Synced"
-            android:textColor="#334155"
-            android:textSize="9sp" />
     </LinearLayout>
 </LinearLayout>

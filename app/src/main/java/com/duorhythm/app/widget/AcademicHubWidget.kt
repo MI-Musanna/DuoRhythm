@@ -88,6 +88,16 @@ class AcademicHubWidget : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.btnWidgetRefreshHitbox, piRefresh)
 
+                // System Alarm Launch PendingIntent
+                val alarmIntent = Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                val piAlarm = PendingIntent.getActivity(
+                    context, 601, alarmIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.layoutClockTouchpad, piAlarm)
+
                 val cal = Calendar.getInstance()
                 val currentHour = cal.get(Calendar.HOUR_OF_DAY)
                 val isEveningTransition = currentHour >= transitionHour
@@ -146,15 +156,15 @@ class AcademicHubWidget : AppWidgetProvider() {
                 // Adaptive Grid
                 if (!hasExams && hasClasses) {
                     views.setViewVisibility(R.id.layoutExamSection, View.GONE)
-                    views.setViewVisibility(R.id.layoutColumnGap, View.GONE)
+                    views.setViewVisibility(R.id.vSectionDivider, View.GONE)
                     views.setViewVisibility(R.id.layoutScheduleSection, View.VISIBLE)
                 } else if (!hasClasses && hasExams) {
                     views.setViewVisibility(R.id.layoutScheduleSection, View.GONE)
-                    views.setViewVisibility(R.id.layoutColumnGap, View.GONE)
+                    views.setViewVisibility(R.id.vSectionDivider, View.GONE)
                     views.setViewVisibility(R.id.layoutExamSection, View.VISIBLE)
                 } else {
                     views.setViewVisibility(R.id.layoutScheduleSection, View.VISIBLE)
-                    views.setViewVisibility(R.id.layoutColumnGap, View.VISIBLE)
+                    views.setViewVisibility(R.id.vSectionDivider, View.VISIBLE)
                     views.setViewVisibility(R.id.layoutExamSection, View.VISIBLE)
                 }
 
