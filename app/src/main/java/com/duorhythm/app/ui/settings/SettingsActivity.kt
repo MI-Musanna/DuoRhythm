@@ -352,6 +352,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.itemStartOfWeek.setOnClickListener {
             showStartOfWeekDialog()
         }
+        binding.rowWidgetSettings?.setOnClickListener {
+            startActivity(Intent(this, com.duorhythm.app.ui.widget.WidgetConfigActivity::class.java))
+        }
         binding.rowAutoLinkAttendance.setOnClickListener {
             binding.switchAutoLinkAttendance.toggle()
         }

@@ -3,52 +3,67 @@
     android:id="@+id/layoutWidgetRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_card_dark_elevated"
+    android:background="@drawable/bg_widget_glass_oled"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="12dp">
 
-    <!-- Header: Clean Brand Title, Sync Time, and Enlarged 42dp Refresh Hitbox -->
+    <!-- Header: DuoRhythm Pill & Refresh Hitbox -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="32dp"
+        android:layout_height="28dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="DUORHYTHM • ACADEMIC HUB"
+            android:background="@drawable/bg_widget_pill_badge"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:text="DUORHYTHM"
             android:textColor="#00E5FF"
-            android:textSize="11sp"
+            android:textSize="9sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="• ACADEMIC HUB"
+            android:textColor="#64748B"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/tvWidgetSyncTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="6dp"
             android:textColor="#64748B"
-            android:textSize="10sp" />
+            android:textSize="9sp" />
 
-        <!-- Large 42x42dp Clickable Container to Prevent Miss-Touch -->
         <FrameLayout
             android:id="@+id/btnWidgetRefreshHitbox"
-            android:layout_width="42dp"
-            android:layout_height="32dp">
+            android:layout_width="36dp"
+            android:layout_height="28dp">
 
             <ImageView
                 android:id="@+id/ivWidgetRefreshIcon"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
                 android:layout_gravity="center"
-                android:contentDescription="Refresh Widget"
+                android:contentDescription="Refresh"
                 android:src="@drawable/ic_refresh" />
 
             <ProgressBar
                 android:id="@+id/pbWidgetLoading"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
                 android:layout_gravity="center"
                 android:indeterminate="true"
                 android:indeterminateTint="#00E5FF"
@@ -56,42 +71,43 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- Main Content Container: Fluid Adaptive Grid -->
+    <!-- Main Content Columns -->
     <LinearLayout
         android:id="@+id/layoutMainGrid"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
         android:layout_weight="1"
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <!-- Column 1: Classes Section (Collapsible / Expandable) -->
+        <!-- Column 1: Classes Section -->
         <LinearLayout
             android:id="@+id/layoutScheduleSection"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/bg_card_dark"
-            android:orientation="vertical"
-            android:padding="8dp">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvClassHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TODAY • CLASSES"
+                android:layout_marginBottom="4dp"
+                android:text="TODAY • LECTURES"
                 android:textColor="#38BDF8"
-                android:textSize="9sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Class Item 1 -->
+            <!-- Class Card 1 -->
             <LinearLayout
                 android:id="@+id/rowClass1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_widget_item_class"
+                android:orientation="vertical"
+                android:padding="8dp">
 
                 <TextView
                     android:id="@+id/tvClass1Title"
@@ -103,23 +119,46 @@
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvClass1Details"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvClass1Time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
+                        android:textColor="#94A3B8"
+                        android:textSize="9sp" />
+
+                    <TextView
+                        android:id="@+id/tvClass1Room"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
+                        android:textColor="#38BDF8"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
-            <!-- Class Item 2 -->
+            <!-- Class Card 2 -->
             <LinearLayout
                 android:id="@+id/rowClass2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_widget_item_class"
+                android:orientation="vertical"
+                android:padding="8dp">
 
                 <TextView
                     android:id="@+id/tvClass2Title"
@@ -131,59 +170,81 @@
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvClass2Details"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvClass2Time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
+                        android:textColor="#94A3B8"
+                        android:textSize="9sp" />
+
+                    <TextView
+                        android:id="@+id/tvClass2Room"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
+                        android:textColor="#38BDF8"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
             <TextView
                 android:id="@+id/tvNoClasses"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/bg_widget_item_class"
                 android:gravity="center"
-                android:text="No lectures scheduled"
+                android:text="No upcoming lectures"
                 android:textColor="#64748B"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- Dynamic Gap between Columns -->
         <FrameLayout
             android:id="@+id/layoutColumnGap"
             android:layout_width="8dp"
             android:layout_height="match_parent" />
 
-        <!-- Column 2: Exams Section (Collapsible / Expandable) -->
+        <!-- Column 2: Exams Section -->
         <LinearLayout
             android:id="@+id/layoutExamSection"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/bg_card_dark"
-            android:orientation="vertical"
-            android:padding="8dp">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvExamHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
                 android:text="UPCOMING EXAMS"
                 android:textColor="#F59E0B"
-                android:textSize="9sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Exam Item 1 -->
+            <!-- Exam Card 1 -->
             <LinearLayout
                 android:id="@+id/rowExam1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_widget_item_exam"
+                android:orientation="vertical"
+                android:padding="8dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -206,28 +267,54 @@
                         android:id="@+id/tvExam1Badge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
                         android:textColor="#F59E0B"
                         android:textSize="9sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvExam1Details"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvExam1Time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
+                        android:textColor="#94A3B8"
+                        android:textSize="9sp" />
+
+                    <TextView
+                        android:id="@+id/tvExam1Room"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
+                        android:textColor="#F59E0B"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
-            <!-- Exam Item 2 -->
+            <!-- Exam Card 2 -->
             <LinearLayout
                 android:id="@+id/rowExam2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_widget_item_exam"
+                android:orientation="vertical"
+                android:padding="8dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -250,30 +337,80 @@
                         android:id="@+id/tvExam2Badge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
                         android:textColor="#F59E0B"
                         android:textSize="9sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvExam2Details"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvExam2Time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
+                        android:textColor="#94A3B8"
+                        android:textSize="9sp" />
+
+                    <TextView
+                        android:id="@+id/tvExam2Room"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/bg_widget_pill_badge"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="1dp"
+                        android:textColor="#F59E0B"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
             <TextView
                 android:id="@+id/tvNoExams"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/bg_widget_item_exam"
                 android:gravity="center"
-                android:text="All clear! No exams"
+                android:text="All clear! No pending exams"
                 android:textColor="#64748B"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:visibility="gone" />
         </LinearLayout>
+    </LinearLayout>
+
+    <!-- Bottom Glance Bar: Eliminates the empty void seamlessly -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="• Tap column to inspect detailed schedule"
+            android:textColor="#475569"
+            android:textSize="9sp" />
+
+        <TextView
+            android:id="@+id/tvWidgetStatusNote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Active Profile"
+            android:textColor="#334155"
+            android:textSize="9sp" />
     </LinearLayout>
 </LinearLayout>

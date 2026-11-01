@@ -33,7 +33,6 @@ class AcademicHubWidget : AppWidgetProvider() {
             val thisWidget = ComponentName(context, AcademicHubWidget::class.java)
             val allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
 
-            // Step 1: Immediately show loading spinner on all widgets
             for (id in allWidgetIds) {
                 val loadingViews = RemoteViews(context.packageName, R.layout.widget_academic_hub)
                 loadingViews.setViewVisibility(R.id.ivWidgetRefreshIcon, View.GONE)
@@ -41,7 +40,6 @@ class AcademicHubWidget : AppWidgetProvider() {
                 appWidgetManager.partiallyUpdateAppWidget(id, loadingViews)
             }
 
-            // Step 2: Coroutine async reload & instant refresh
             CoroutineScope(Dispatchers.IO).launch {
                 delay(400)
                 withContext(Dispatchers.Main) {
@@ -66,15 +64,17 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val db = DatabaseHelper.getInstance(context)
                 val profileId = ProfileManager.getActiveProfileId(context)
 
-                // Reset Refresh Spinner
+                val prefs = context.getSharedPreferences("widget_academic_prefs", Context.MODE_PRIVATE)
+                val transitionHour = prefs.getInt("transition_hour", 17)
+                val showRoom = prefs.getBoolean("show_room", true)
+                val compactMode = prefs.getBoolean("compact_mode", false)
+
                 views.setViewVisibility(R.id.pbWidgetLoading, View.GONE)
                 views.setViewVisibility(R.id.ivWidgetRefreshIcon, View.VISIBLE)
 
-                // Sync Time
                 val timeFormat = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
                 views.setTextViewText(R.id.tvWidgetSyncTime, timeFormat.format(Date()))
 
-                // Large Hitbox Refresh PendingIntent
                 val refreshIntent = Intent(context, AcademicHubWidget::class.java).apply {
                     action = ACTION_MANUAL_REFRESH
                 }
@@ -84,12 +84,9 @@ class AcademicHubWidget : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.btnWidgetRefreshHitbox, piRefresh)
 
-                // AUTO CLOCK TRANSITION ENGINE:
-                // Rule: If current time < 17:00 (5 PM), focus on TODAY.
-                // If >= 17:00, classes for today are finished -> Automatically transition to TOMORROW!
                 val cal = Calendar.getInstance()
                 val currentHour = cal.get(Calendar.HOUR_OF_DAY)
-                val isEveningTransition = currentHour >= 17
+                val isEveningTransition = currentHour >= transitionHour
 
                 val evalCal = if (isEveningTransition) {
                     (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
@@ -100,11 +97,9 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val evalDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(evalCal.time)
                 val evalDayOfWeek = evalCal.get(Calendar.DAY_OF_WEEK)
 
-                // Retrieve Classes using bulletproof method
                 var classList = db.getClassesForDay(profileId, evalDayOfWeek, evalDayName)
                 var displayDayLabel = if (isEveningTransition) "TOMORROW • ${evalDayName.uppercase()}" else "TODAY • ${evalDayName.uppercase()}"
 
-                // If target day has 0 classes, search next active day
                 if (classList.isEmpty()) {
                     val searchCal = evalCal.clone() as Calendar
                     for (i in 1..6) {
@@ -120,7 +115,6 @@ class AcademicHubWidget : AppWidgetProvider() {
                     }
                 }
 
-                // Retrieve Assessments
                 val allExams = db.getAssessments(profileId)
                     .filter { it.status.uppercase() != "COMPLETED" }
                     .sortedBy { it.dueDate + " " + it.dueTime }
@@ -128,38 +122,39 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val hasClasses = classList.isNotEmpty()
                 val hasExams = allExams.isNotEmpty()
 
-                // FLUID ADAPTIVE GRID ENGINE:
+                // Adaptive Grid
                 if (!hasExams && hasClasses) {
-                    // No exams: Classes expand to 100% full width
                     views.setViewVisibility(R.id.layoutExamSection, View.GONE)
                     views.setViewVisibility(R.id.layoutColumnGap, View.GONE)
                     views.setViewVisibility(R.id.layoutScheduleSection, View.VISIBLE)
                 } else if (!hasClasses && hasExams) {
-                    // No classes: Exams expand to 100% full width
                     views.setViewVisibility(R.id.layoutScheduleSection, View.GONE)
                     views.setViewVisibility(R.id.layoutColumnGap, View.GONE)
                     views.setViewVisibility(R.id.layoutExamSection, View.VISIBLE)
                 } else {
-                    // Both present or both empty: Balanced 50/50 Split Grid
                     views.setViewVisibility(R.id.layoutScheduleSection, View.VISIBLE)
                     views.setViewVisibility(R.id.layoutColumnGap, View.VISIBLE)
                     views.setViewVisibility(R.id.layoutExamSection, View.VISIBLE)
                 }
 
-                // Populate Classes
+                // Bind Classes
                 views.setTextViewText(R.id.tvClassHeader, displayDayLabel)
                 if (hasClasses) {
                     views.setViewVisibility(R.id.tvNoClasses, View.GONE)
                     val c1 = classList[0]
                     views.setViewVisibility(R.id.rowClass1, View.VISIBLE)
                     views.setTextViewText(R.id.tvClass1Title, c1.subjectName)
-                    views.setTextViewText(R.id.tvClass1Details, "${c1.startTime} - ${c1.endTime} • R:${c1.room}")
+                    views.setTextViewText(R.id.tvClass1Time, "${c1.startTime} - ${c1.endTime}")
+                    views.setViewVisibility(R.id.tvClass1Room, if (showRoom && c1.room.isNotBlank()) View.VISIBLE else View.GONE)
+                    views.setTextViewText(R.id.tvClass1Room, "R:${c1.room}")
 
-                    if (classList.size > 1) {
+                    if (classList.size > 1 && !compactMode) {
                         val c2 = classList[1]
                         views.setViewVisibility(R.id.rowClass2, View.VISIBLE)
                         views.setTextViewText(R.id.tvClass2Title, c2.subjectName)
-                        views.setTextViewText(R.id.tvClass2Details, "${c2.startTime} - ${c2.endTime} • R:${c2.room}")
+                        views.setTextViewText(R.id.tvClass2Time, "${c2.startTime} - ${c2.endTime}")
+                        views.setViewVisibility(R.id.tvClass2Room, if (showRoom && c2.room.isNotBlank()) View.VISIBLE else View.GONE)
+                        views.setTextViewText(R.id.tvClass2Room, "R:${c2.room}")
                     } else {
                         views.setViewVisibility(R.id.rowClass2, View.GONE)
                     }
@@ -169,21 +164,25 @@ class AcademicHubWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.tvNoClasses, View.VISIBLE)
                 }
 
-                // Populate Exams
+                // Bind Exams
                 if (hasExams) {
                     views.setViewVisibility(R.id.tvNoExams, View.GONE)
                     val e1 = allExams[0]
                     views.setViewVisibility(R.id.rowExam1, View.VISIBLE)
                     views.setTextViewText(R.id.tvExam1Title, e1.title)
                     views.setTextViewText(R.id.tvExam1Badge, getCountdownBadge(e1.dueDate))
-                    views.setTextViewText(R.id.tvExam1Details, "${e1.dueTime} • Room: ${e1.room ?: "TBA"}")
+                    views.setTextViewText(R.id.tvExam1Time, e1.dueTime)
+                    views.setViewVisibility(R.id.tvExam1Room, if (showRoom && !e1.room.isNullOrBlank()) View.VISIBLE else View.GONE)
+                    views.setTextViewText(R.id.tvExam1Room, "R:${e1.room}")
 
-                    if (allExams.size > 1) {
+                    if (allExams.size > 1 && !compactMode) {
                         val e2 = allExams[1]
                         views.setViewVisibility(R.id.rowExam2, View.VISIBLE)
                         views.setTextViewText(R.id.tvExam2Title, e2.title)
                         views.setTextViewText(R.id.tvExam2Badge, getCountdownBadge(e2.dueDate))
-                        views.setTextViewText(R.id.tvExam2Details, "${e2.dueTime} • Room: ${e2.room ?: "TBA"}")
+                        views.setTextViewText(R.id.tvExam2Time, e2.dueTime)
+                        views.setViewVisibility(R.id.tvExam2Room, if (showRoom && !e2.room.isNullOrBlank()) View.VISIBLE else View.GONE)
+                        views.setTextViewText(R.id.tvExam2Room, "R:${e2.room}")
                     } else {
                         views.setViewVisibility(R.id.rowExam2, View.GONE)
                     }
@@ -193,7 +192,7 @@ class AcademicHubWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.tvNoExams, View.VISIBLE)
                 }
 
-                // Deep Linking Intents
+                // Deep Links
                 val scheduleIntent = Intent(context, MainActivity::class.java).apply {
                     action = "ACTION_OPEN_TAB"
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

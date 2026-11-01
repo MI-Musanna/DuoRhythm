@@ -25,6 +25,8 @@
         <item name="editTextStyle">@style/DuoRhythmEditText</item>
     </style>
 
+    <style name="Theme.DuoRhythm" parent="Theme.LifeSync" />
+
     <!-- Universal UTF-8 & Multilingual/Bengali-friendly Typography -->
     <style name="DuoRhythmTextView" parent="android:Widget.TextView">
         <item name="android:lineSpacingExtra">2dp</item>
