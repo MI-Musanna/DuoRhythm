@@ -152,6 +152,16 @@
                         android:text="Ultra-Compact Single Row Mode"
                         android:textColor="#E2E8F0"
                         app:useMaterialThemeColors="true" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchTransparentBg"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:checked="false"
+                        android:text="Transparent Frame (Cards Floating Style)"
+                        android:textColor="#E2E8F0"
+                        app:useMaterialThemeColors="true" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

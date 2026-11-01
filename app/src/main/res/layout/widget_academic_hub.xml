@@ -5,52 +5,75 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget_glass_oled"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="12dp">
 
-    <!-- Header: DuoRhythm Pill & Refresh Hitbox -->
+    <!-- Top Bar: Live OS TextClock & Interactive Refresh Hitbox -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="26dp"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <!-- Live Clock & Date Container -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextClock
+                android:id="@+id/tcWidgetClock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:format12Hour="h:mm"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextClock
+                android:id="@+id/tcWidgetAmPm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:format12Hour="a"
+                android:textColor="#00E5FF"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <FrameLayout
+                android:layout_width="1dp"
+                android:layout_height="14dp"
+                android:layout_marginHorizontal="8dp"
+                android:background="#334155" />
+
+            <TextClock
+                android:id="@+id/tcWidgetDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:format12Hour="EEE, MMM d"
+                android:textColor="#94A3B8"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Right Side: DuoRhythm Pill & Refresh Button -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_widget_pill_badge"
-            android:paddingHorizontal="7dp"
+            android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
             android:text="DUORHYTHM"
-            android:textColor="#00E5FF"
-            android:textSize="9sp"
+            android:textColor="#38BDF8"
+            android:textSize="8sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="• ACADEMIC HUB"
-            android:textColor="#64748B"
-            android:textSize="9sp"
-            android:textStyle="bold" />
-
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <TextView
-            android:id="@+id/tvWidgetSyncTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
-            android:textColor="#64748B"
-            android:textSize="9sp" />
 
         <FrameLayout
             android:id="@+id/btnWidgetRefreshHitbox"
             android:layout_width="32dp"
-            android:layout_height="26dp">
+            android:layout_height="28dp"
+            android:layout_marginStart="6dp">
 
             <ImageView
                 android:id="@+id/ivWidgetRefreshIcon"
@@ -71,17 +94,17 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- Main Content Container -->
+    <!-- Main Content Container: Fluid Adaptive Grid -->
     <LinearLayout
         android:id="@+id/layoutMainGrid"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
         android:layout_weight="1"
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <!-- Column 1: Classes Section -->
+        <!-- Column 1: Classes Section (Anti-Blend Protected Cards) -->
         <LinearLayout
             android:id="@+id/layoutScheduleSection"
             android:layout_width="0dp"
@@ -99,7 +122,7 @@
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Class Card 1: 3-Tier Layout -->
+            <!-- Class Card 1 -->
             <LinearLayout
                 android:id="@+id/rowClass1"
                 android:layout_width="match_parent"
@@ -109,7 +132,6 @@
                 android:orientation="vertical"
                 android:padding="6dp">
 
-                <!-- Tier 1: Badges Row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -145,7 +167,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Tier 2: Uncut Multi-Line Title -->
                 <TextView
                     android:id="@+id/tvClass1Title"
                     android:layout_width="match_parent"
@@ -158,7 +179,6 @@
                     android:textSize="11sp"
                     android:textStyle="bold" />
 
-                <!-- Tier 3: Time Row -->
                 <TextView
                     android:id="@+id/tvClass1Time"
                     android:layout_width="wrap_content"
@@ -168,7 +188,7 @@
                     android:textSize="9sp" />
             </LinearLayout>
 
-            <!-- Class Card 2: 3-Tier Layout -->
+            <!-- Class Card 2 -->
             <LinearLayout
                 android:id="@+id/rowClass2"
                 android:layout_width="match_parent"
@@ -178,7 +198,6 @@
                 android:orientation="vertical"
                 android:padding="6dp">
 
-                <!-- Tier 1: Badges Row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -214,7 +233,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Tier 2: Uncut Multi-Line Title -->
                 <TextView
                     android:id="@+id/tvClass2Title"
                     android:layout_width="match_parent"
@@ -227,7 +245,6 @@
                     android:textSize="11sp"
                     android:textStyle="bold" />
 
-                <!-- Tier 3: Time Row -->
                 <TextView
                     android:id="@+id/tvClass2Time"
                     android:layout_width="wrap_content"
@@ -254,7 +271,7 @@
             android:layout_width="8dp"
             android:layout_height="match_parent" />
 
-        <!-- Column 2: Exams Section -->
+        <!-- Column 2: Exams Section (Anti-Blend Protected Cards) -->
         <LinearLayout
             android:id="@+id/layoutExamSection"
             android:layout_width="0dp"
@@ -272,7 +289,7 @@
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Exam Card 1: 3-Tier Layout -->
+            <!-- Exam Card 1 -->
             <LinearLayout
                 android:id="@+id/rowExam1"
                 android:layout_width="match_parent"
@@ -337,7 +354,7 @@
                     android:textSize="9sp" />
             </LinearLayout>
 
-            <!-- Exam Card 2: 3-Tier Layout -->
+            <!-- Exam Card 2 -->
             <LinearLayout
                 android:id="@+id/rowExam2"
                 android:layout_width="match_parent"
@@ -419,7 +436,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="4dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -427,7 +444,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="• Tap column to inspect detailed schedule"
+            android:text="• Tap card to launch schedule portal"
             android:textColor="#475569"
             android:textSize="9sp" />
 
@@ -435,7 +452,7 @@
             android:id="@+id/tvWidgetStatusNote"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Active Profile"
+            android:text="Live Synced"
             android:textColor="#334155"
             android:textSize="9sp" />
     </LinearLayout>

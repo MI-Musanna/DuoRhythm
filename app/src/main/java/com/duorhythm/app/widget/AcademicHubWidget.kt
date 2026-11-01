@@ -68,12 +68,16 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val transitionHour = prefs.getInt("transition_hour", 17)
                 val showRoom = prefs.getBoolean("show_room", true)
                 val compactMode = prefs.getBoolean("compact_mode", false)
+                val isTransparentBg = prefs.getBoolean("transparent_bg", false)
+
+                if (isTransparentBg) {
+                    views.setInt(R.id.layoutWidgetRoot, "setBackgroundResource", android.R.color.transparent)
+                } else {
+                    views.setInt(R.id.layoutWidgetRoot, "setBackgroundResource", R.drawable.bg_widget_glass_oled)
+                }
 
                 views.setViewVisibility(R.id.pbWidgetLoading, View.GONE)
                 views.setViewVisibility(R.id.ivWidgetRefreshIcon, View.VISIBLE)
-
-                val timeFormat = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
-                views.setTextViewText(R.id.tvWidgetSyncTime, timeFormat.format(Date()))
 
                 val refreshIntent = Intent(context, AcademicHubWidget::class.java).apply {
                     action = ACTION_MANUAL_REFRESH

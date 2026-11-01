@@ -41,6 +41,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 
         binding.switchShowRoomBadge.isChecked = prefs.getBoolean("show_room", true)
         binding.switchCompactMode.isChecked = prefs.getBoolean("compact_mode", false)
+        binding.switchTransparentBg.isChecked = prefs.getBoolean("transparent_bg", false)
 
         binding.btnBackConfig.setOnClickListener { finish() }
 
@@ -55,6 +56,7 @@ class WidgetConfigActivity : AppCompatActivity() {
                 .putInt("transition_hour", selectedHour)
                 .putBoolean("show_room", binding.switchShowRoomBadge.isChecked)
                 .putBoolean("compact_mode", binding.switchCompactMode.isChecked)
+                .putBoolean("transparent_bg", binding.switchTransparentBg.isChecked)
                 .apply()
 
             // Push refresh to homescreen widget
