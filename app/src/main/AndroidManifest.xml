@@ -286,6 +286,14 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".receiver.ClassBoundaryAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_CLASS_BOUNDARY_UPDATE" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

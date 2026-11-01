@@ -1,16 +1,20 @@
 package com.duorhythm.app.widget
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.data.model.ClassEntity
+import com.duorhythm.app.receiver.ClassBoundaryAlarmReceiver
 import com.duorhythm.app.ui.main.MainActivity
 import com.duorhythm.app.util.ProfileManager
 import kotlinx.coroutines.CoroutineScope
@@ -41,7 +45,7 @@ class AcademicHubWidget : AppWidgetProvider() {
             }
 
             CoroutineScope(Dispatchers.IO).launch {
-                delay(400)
+                delay(350)
                 withContext(Dispatchers.Main) {
                     pushUpdate(context)
                 }
@@ -58,11 +62,58 @@ class AcademicHubWidget : AppWidgetProvider() {
     companion object {
         const val ACTION_MANUAL_REFRESH = "com.duorhythm.app.widget.ACTION_MANUAL_REFRESH"
 
+        fun parseTimeToMinutes(timeStr: String): Int {
+            return try {
+                val regex = Regex("""(\d{1,2})[:.](\d{2})\s*([AaPp][Mm])?""")
+                val match = regex.find(timeStr.trim()) ?: return -1
+                var hour = match.groupValues[1].toIntOrNull() ?: return -1
+                val minute = match.groupValues[2].toIntOrNull() ?: 0
+                val ampm = match.groupValues[3].uppercase(Locale.US)
+
+                if (ampm == "PM" && hour < 12) hour += 12
+                if (ampm == "AM" && hour == 12) hour = 0
+                hour * 60 + minute
+            } catch (e: Exception) {
+                -1
+            }
+        }
+
+        private fun scheduleExactClassBoundaryAlarm(context: Context, triggerMinuteOfDay: Int) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+            val nowCal = Calendar.getInstance()
+            val targetCal = nowCal.clone() as Calendar
+            targetCal.set(Calendar.HOUR_OF_DAY, triggerMinuteOfDay / 60)
+            targetCal.set(Calendar.MINUTE, triggerMinuteOfDay % 60)
+            targetCal.set(Calendar.SECOND, 0)
+            targetCal.set(Calendar.MILLISECOND, 0)
+
+            if (targetCal.timeInMillis > nowCal.timeInMillis) {
+                val intent = Intent(context, ClassBoundaryAlarmReceiver::class.java).apply {
+                    action = "com.duorhythm.app.ACTION_CLASS_BOUNDARY_UPDATE"
+                }
+                val pi = PendingIntent.getBroadcast(
+                    context,
+                    triggerMinuteOfDay + 5000,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pi)
+                    } else {
+                        alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pi)
+                    }
+                } catch (_: SecurityException) {
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pi)
+                }
+            }
+        }
+
         fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             try {
                 val views = RemoteViews(context.packageName, R.layout.widget_academic_hub)
                 val db = DatabaseHelper.getInstance(context)
-                val profileId = ProfileManager.getActiveProfileId(context)
+                val profileId = ProfileManager.getActiveProfileId()
 
                 val prefs = context.getSharedPreferences("widget_academic_prefs", Context.MODE_PRIVATE)
                 val transitionHour = prefs.getInt("transition_hour", 17)
@@ -70,54 +121,37 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val compactMode = prefs.getBoolean("compact_mode", false)
                 val isTransparentBg = prefs.getBoolean("transparent_bg", false)
 
+                // Background Toggle
                 if (isTransparentBg) {
                     views.setInt(R.id.layoutWidgetRoot, "setBackgroundResource", android.R.color.transparent)
                 } else {
                     views.setInt(R.id.layoutWidgetRoot, "setBackgroundResource", R.drawable.bg_widget_glass_oled)
                 }
 
+                // Reset Loading State
                 views.setViewVisibility(R.id.pbWidgetLoading, View.GONE)
                 views.setViewVisibility(R.id.ivWidgetRefreshIcon, View.VISIBLE)
 
-                val refreshIntent = Intent(context, AcademicHubWidget::class.java).apply {
-                    action = ACTION_MANUAL_REFRESH
-                }
-                val piRefresh = PendingIntent.getBroadcast(
-                    context, 501, refreshIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                views.setOnClickPendingIntent(R.id.btnWidgetRefreshHitbox, piRefresh)
-
-                // System Alarm Launch PendingIntent
+                // Alarm Clock PendingIntent
                 val alarmIntent = Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
-                val piAlarm = PendingIntent.getActivity(
-                    context, 601, alarmIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                views.setOnClickPendingIntent(
+                    R.id.layoutClockTouchpad,
+                    PendingIntent.getActivity(context, 601, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 )
-                views.setOnClickPendingIntent(R.id.layoutClockTouchpad, piAlarm)
+
+                // Hitbox Refresh PendingIntent
+                val refreshIntent = Intent(context, AcademicHubWidget::class.java).apply { action = ACTION_MANUAL_REFRESH }
+                views.setOnClickPendingIntent(
+                    R.id.btnWidgetRefreshHitbox,
+                    PendingIntent.getBroadcast(context, 501, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                )
 
                 val cal = Calendar.getInstance()
                 val currentHour = cal.get(Calendar.HOUR_OF_DAY)
+                val nowMinutes = currentHour * 60 + cal.get(Calendar.MINUTE)
                 val isEveningTransition = currentHour >= transitionHour
-                val nowTimeMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
-
-                fun parseTimeToMinutes(timeStr: String): Int {
-                    return try {
-                        val clean = timeStr.trim().uppercase()
-                        val isPm = clean.endsWith("PM")
-                        val isAm = clean.endsWith("AM")
-                        val parts = clean.replace("AM", "").replace("PM", "").trim().split(":")
-                        var h = parts[0].toInt()
-                        val m = if (parts.size > 1) parts[1].toInt() else 0
-                        if (isPm && h < 12) h += 12
-                        if (isAm && h == 12) h = 0
-                        h * 60 + m
-                    } catch (e: Exception) {
-                        -1
-                    }
-                }
 
                 val evalCal = if (isEveningTransition) {
                     (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
@@ -137,9 +171,9 @@ class AcademicHubWidget : AppWidgetProvider() {
                         searchCal.add(Calendar.DAY_OF_YEAR, 1)
                         val nextName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(searchCal.time)
                         val nextDayOfWeek = searchCal.get(Calendar.DAY_OF_WEEK)
-                        val candidateClasses = db.getClassesForDay(profileId, nextDayOfWeek, nextName)
-                        if (candidateClasses.isNotEmpty()) {
-                            classList = candidateClasses
+                        val candidate = db.getClassesForDay(profileId, nextDayOfWeek, nextName)
+                        if (candidate.isNotEmpty()) {
+                            classList = candidate
                             displayDayLabel = "NEXT: ${nextName.uppercase()}"
                             break
                         }
@@ -153,25 +187,25 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val hasClasses = classList.isNotEmpty()
                 val hasExams = allExams.isNotEmpty()
 
-                // Adaptive Grid
-                if (!hasExams && hasClasses) {
-                    views.setViewVisibility(R.id.layoutExamSection, View.GONE)
-                    views.setViewVisibility(R.id.vSectionDivider, View.GONE)
-                    views.setViewVisibility(R.id.layoutScheduleSection, View.VISIBLE)
-                } else if (!hasClasses && hasExams) {
-                    views.setViewVisibility(R.id.layoutScheduleSection, View.GONE)
-                    views.setViewVisibility(R.id.vSectionDivider, View.GONE)
-                    views.setViewVisibility(R.id.layoutExamSection, View.VISIBLE)
-                } else {
-                    views.setViewVisibility(R.id.layoutScheduleSection, View.VISIBLE)
-                    views.setViewVisibility(R.id.vSectionDivider, View.VISIBLE)
-                    views.setViewVisibility(R.id.layoutExamSection, View.VISIBLE)
-                }
+                // Divider Visibility
+                views.setViewVisibility(R.id.vSectionDivider, if (hasClasses && hasExams) View.VISIBLE else View.GONE)
+                views.setViewVisibility(R.id.layoutScheduleSection, if (hasClasses || !hasExams) View.VISIBLE else View.GONE)
+                views.setViewVisibility(R.id.layoutExamSection, if (hasExams || !hasClasses) View.VISIBLE else View.GONE)
 
-                // Bind Classes
+                // Bind Classes with Active Class Border Logic
                 views.setTextViewText(R.id.tvClassHeader, displayDayLabel)
                 if (hasClasses) {
                     views.setViewVisibility(R.id.tvNoClasses, View.GONE)
+
+                    // Schedule Boundary Alarms for today's classes
+                    if (!isEveningTransition) {
+                        for (cls in classList) {
+                            val st = parseTimeToMinutes(cls.startTime)
+                            val et = parseTimeToMinutes(cls.endTime)
+                            if (st != -1) scheduleExactClassBoundaryAlarm(context, st)
+                            if (et != -1) scheduleExactClassBoundaryAlarm(context, et)
+                        }
+                    }
 
                     // Class 1
                     val c1 = classList[0]
@@ -183,10 +217,9 @@ class AcademicHubWidget : AppWidgetProvider() {
 
                     val c1Start = parseTimeToMinutes(c1.startTime)
                     val c1End = parseTimeToMinutes(c1.endTime)
-                    val isC1InProgress = !isEveningTransition && c1Start != -1 && c1End != -1 && nowTimeMinutes in c1Start..c1End
-                    val isC1Next = if (!isEveningTransition && c1End != -1 && nowTimeMinutes < c1Start) true else (!isEveningTransition && c1Start == -1)
+                    val isC1InProgress = !isEveningTransition && c1Start != -1 && c1End != -1 && nowMinutes in c1Start..c1End
+                    val isC1Next = !isEveningTransition && c1Start != -1 && nowMinutes < c1Start
 
-                    // Apply Active Highlighter or Standard Frame
                     if (isC1InProgress) {
                         views.setInt(R.id.rowClass1, "setBackgroundResource", R.drawable.bg_widget_item_class_active)
                         views.setTextViewText(R.id.tvClass1Badge, "● IN PROGRESS")
@@ -208,8 +241,8 @@ class AcademicHubWidget : AppWidgetProvider() {
 
                         val c2Start = parseTimeToMinutes(c2.startTime)
                         val c2End = parseTimeToMinutes(c2.endTime)
-                        val isC2InProgress = !isEveningTransition && c2Start != -1 && c2End != -1 && nowTimeMinutes in c2Start..c2End
-                        val isC2Next = !isC1InProgress && !isC1Next && c2End != -1 && nowTimeMinutes < c2Start
+                        val isC2InProgress = !isEveningTransition && c2Start != -1 && c2End != -1 && nowMinutes in c2Start..c2End
+                        val isC2Next = !isC1InProgress && !isC1Next && c2Start != -1 && nowMinutes < c2Start
 
                         if (isC2InProgress) {
                             views.setInt(R.id.rowClass2, "setBackgroundResource", R.drawable.bg_widget_item_class_active)
@@ -263,22 +296,20 @@ class AcademicHubWidget : AppWidgetProvider() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                     putExtra("EXTRA_DEEP_LINK_DESTINATION", "DESTINATION_SCHEDULE")
                 }
-                val piSchedule = PendingIntent.getActivity(
-                    context, 201, scheduleIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                views.setOnClickPendingIntent(
+                    R.id.layoutScheduleSection,
+                    PendingIntent.getActivity(context, 201, scheduleIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 )
-                views.setOnClickPendingIntent(R.id.layoutScheduleSection, piSchedule)
 
                 val examIntent = Intent(context, MainActivity::class.java).apply {
                     action = "ACTION_OPEN_TAB"
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                     putExtra("EXTRA_DEEP_LINK_DESTINATION", "DESTINATION_PORTAL_EXAMS")
                 }
-                val piExam = PendingIntent.getActivity(
-                    context, 202, examIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                views.setOnClickPendingIntent(
+                    R.id.layoutExamSection,
+                    PendingIntent.getActivity(context, 202, examIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 )
-                views.setOnClickPendingIntent(R.id.layoutExamSection, piExam)
 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             } catch (e: Exception) {
