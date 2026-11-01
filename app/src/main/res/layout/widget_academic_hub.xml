@@ -5,50 +5,71 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_card_dark_elevated"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="8dp">
 
-    <!-- Header with Quick Refresh & Spinner -->
+    <!-- Header: Compact Bar with Arrow Navigation and Spinner -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="24dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <!-- Tab Switcher (Left Arrow, Title, Right Arrow) -->
+        <ImageView
+            android:id="@+id/btnWidgetPrevTab"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="Previous Tab"
+            android:padding="2dp"
+            android:src="@drawable/ic_chevron_left" />
+
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/tvWidgetTabTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="DUORHYTHM • ACADEMIC HUB"
+            android:paddingHorizontal="4dp"
+            android:text="OVERVIEW"
             android:textColor="#00E5FF"
             android:textSize="10sp"
             android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnWidgetNextTab"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="Next Tab"
+            android:padding="2dp"
+            android:src="@drawable/ic_chevron_right" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/tvWidgetSyncTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="6dp"
             android:textColor="#64748B"
-            android:textSize="10sp" />
+            android:textSize="9sp" />
 
-        <!-- Refresh Container: Button & Spinning Loader -->
         <FrameLayout
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_gravity="center_vertical">
+            android:layout_width="18dp"
+            android:layout_height="18dp">
 
             <ImageView
                 android:id="@+id/btnWidgetRefresh"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
                 android:layout_gravity="center"
-                android:contentDescription="Quick Refresh"
+                android:contentDescription="Refresh"
                 android:src="@drawable/ic_refresh" />
 
             <ProgressBar
                 android:id="@+id/pbWidgetLoading"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
                 android:layout_gravity="center"
                 android:indeterminate="true"
                 android:indeterminateTint="#00E5FF"
@@ -56,218 +77,356 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- Main Content Container -->
+    <!-- TAB 1: SPLIT OVERVIEW CONTAINER (With Fluid Adaptive Grid) -->
     <LinearLayout
+        android:id="@+id/containerTabOverview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:layout_weight="1"
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <!-- Left Deep Link Container: Lectures -->
+        <!-- Split Classes Column -->
         <LinearLayout
-            android:id="@+id/layoutScheduleSection"
+            android:id="@+id/layoutOverviewClasses"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/bg_card_dark"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="6dp">
 
             <TextView
-                android:id="@+id/tvNextClassHeader"
+                android:id="@+id/tvOverviewClassHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="NEXT CLASSES"
+                android:text="CLASSES"
                 android:textColor="#38BDF8"
                 android:textSize="9sp"
                 android:textStyle="bold" />
 
-            <LinearLayout
-                android:id="@+id/rowClass1"
+            <TextView
+                android:id="@+id/tvOverviewC1Title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvClass1Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvClass1Details"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/rowClass2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvClass2Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvClass2Details"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
-            </LinearLayout>
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvNoClasses"
+                android:id="@+id/tvOverviewC1Details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#94A3B8"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/tvOverviewC2Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvOverviewC2Details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#94A3B8"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/tvOverviewNoClasses"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="No upcoming classes"
+                android:text="No classes"
                 android:textColor="#64748B"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- Divider -->
+        <!-- Dynamic Gap -->
         <FrameLayout
-            android:layout_width="8dp"
+            android:id="@+id/gapOverview"
+            android:layout_width="6dp"
             android:layout_height="match_parent" />
 
-        <!-- Right Deep Link Container: Assessments -->
+        <!-- Split Exams Column -->
         <LinearLayout
-            android:id="@+id/layoutExamSection"
+            android:id="@+id/layoutOverviewExams"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/bg_card_dark"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="6dp">
 
             <TextView
-                android:id="@+id/tvNextExamHeader"
+                android:id="@+id/tvOverviewExamHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="UPCOMING EXAMS"
+                android:text="EXAMS"
                 android:textColor="#F59E0B"
                 android:textSize="9sp"
                 android:textStyle="bold" />
 
-            <LinearLayout
-                android:id="@+id/rowExam1"
+            <TextView
+                android:id="@+id/tvOverviewE1Title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvExam1Title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="#FFFFFF"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvExam1Badge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="#F59E0B"
-                        android:textSize="9sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvExam1Details"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/rowExam2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvExam2Title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="#FFFFFF"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvExam2Badge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="#F59E0B"
-                        android:textSize="9sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvExam2Details"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
-            </LinearLayout>
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvNoExams"
+                android:id="@+id/tvOverviewE1Details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#94A3B8"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/tvOverviewE2Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvOverviewE2Details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#94A3B8"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/tvOverviewNoExams"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="All clear! No exams"
+                android:text="No exams scheduled"
                 android:textColor="#64748B"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:visibility="gone" />
         </LinearLayout>
+    </LinearLayout>
+
+    <!-- TAB 2: FULL TIMETABLE CONTAINER (100% Width) -->
+    <LinearLayout
+        android:id="@+id/containerTabClasses"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_card_dark"
+        android:orientation="vertical"
+        android:padding="6dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvFullClassesDayHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#38BDF8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/rowFullClass1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvFullC1Time"
+                android:layout_width="72dp"
+                android:layout_height="wrap_content"
+                android:textColor="#94A3B8"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/tvFullC1Title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvFullC1Room"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#38BDF8"
+                android:textSize="9sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/rowFullClass2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvFullC2Time"
+                android:layout_width="72dp"
+                android:layout_height="wrap_content"
+                android:textColor="#94A3B8"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/tvFullC2Title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvFullC2Room"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#38BDF8"
+                android:textSize="9sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvFullClassesEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="No lectures scheduled for this day"
+            android:textColor="#64748B"
+            android:textSize="11sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- TAB 3: FULL EXAMS CONTAINER (100% Width) -->
+    <LinearLayout
+        android:id="@+id/containerTabExams"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_card_dark"
+        android:orientation="vertical"
+        android:padding="6dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="UPCOMING ASSESSMENTS &amp; EXAMS"
+            android:textColor="#F59E0B"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/rowFullExam1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvFullE1Title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvFullE1Badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#F59E0B"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvFullE1Details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#94A3B8"
+            android:textSize="9sp" />
+
+        <LinearLayout
+            android:id="@+id/rowFullExam2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvFullE2Title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvFullE2Badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#F59E0B"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvFullE2Details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#94A3B8"
+            android:textSize="9sp" />
+
+        <TextView
+            android:id="@+id/tvFullExamsEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="All clear! No assessments scheduled"
+            android:textColor="#64748B"
+            android:textSize="11sp"
+            android:visibility="gone" />
     </LinearLayout>
 </LinearLayout>

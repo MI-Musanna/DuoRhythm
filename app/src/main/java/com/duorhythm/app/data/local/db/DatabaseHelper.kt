@@ -658,6 +658,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.execSQL("UPDATE classes SET day_of_week = 6 WHERE day_name = 'Friday' OR day_name = 'Fri'")
             db.execSQL("UPDATE classes SET day_of_week = 7 WHERE day_name = 'Saturday' OR day_name = 'Sat'")
 
+            // Backfill any NULL or empty day_name records based on day_of_week
+            db.execSQL("UPDATE classes SET day_name = 'Sunday' WHERE (day_of_week = 1 OR day_of_week = 7) AND (day_name IS NULL OR day_name = '' OR day_name = 'Sun')")
+            db.execSQL("UPDATE classes SET day_name = 'Monday' WHERE day_of_week = 2 AND (day_name IS NULL OR day_name = '' OR day_name = 'Mon')")
+            db.execSQL("UPDATE classes SET day_name = 'Tuesday' WHERE day_of_week = 3 AND (day_name IS NULL OR day_name = '' OR day_name = 'Tue')")
+            db.execSQL("UPDATE classes SET day_name = 'Wednesday' WHERE day_of_week = 4 AND (day_name IS NULL OR day_name = '' OR day_name = 'Wed')")
+            db.execSQL("UPDATE classes SET day_name = 'Thursday' WHERE day_of_week = 5 AND (day_name IS NULL OR day_name = '' OR day_name = 'Thu')")
+            db.execSQL("UPDATE classes SET day_name = 'Friday' WHERE day_of_week = 6 AND (day_name IS NULL OR day_name = '' OR day_name = 'Fri')")
+            db.execSQL("UPDATE classes SET day_name = 'Saturday' WHERE day_of_week = 7 AND (day_name IS NULL OR day_name = '' OR day_name = 'Sat')")
+
             db.execSQL("""
                 DELETE FROM classes 
                 WHERE (day_name = 'Saturday' OR day_of_week = 7) 
@@ -2216,16 +2225,28 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun getClassesByDayName(profileId: Long = getActiveProfileId(), targetDayName: String): List<ClassEntity> {
         val list = mutableListOf<ClassEntity>()
         val db = this.readableDatabase
+
+        val dayInt = when (targetDayName.trim().lowercase()) {
+            "sunday", "sun" -> 1
+            "monday", "mon" -> 2
+            "tuesday", "tue" -> 3
+            "wednesday", "wed" -> 4
+            "thursday", "thu" -> 5
+            "friday", "fri" -> 6
+            "saturday", "sat" -> 7
+            else -> 1
+        }
+
         val query = """
             SELECT * FROM classes 
             WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
-              AND LOWER(day_name) = LOWER(?)
+              AND (day_of_week = ? OR LOWER(day_name) = LOWER(?) OR day_name LIKE ?)
             ORDER BY start_time ASC
         """.trimIndent()
-        
+
         var cursor: Cursor? = null
         try {
-            cursor = db.rawQuery(query, arrayOf(profileId.toString(), targetDayName))
+            cursor = db.rawQuery(query, arrayOf(profileId.toString(), dayInt.toString(), targetDayName, "%$targetDayName%"))
             val idIdx = cursor.getColumnIndexSafe("id")
             val subNameIdx = cursor.getColumnIndexSafe("subject_name")
             val teacherIdx = cursor.getColumnIndexSafe("teacher_name").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("teacher")
@@ -2236,18 +2257,19 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val dayOfWeekIdx = cursor.getColumnIndexSafe("day_of_week")
 
             while (cursor.moveToNext()) {
+                val tName = if (teacherIdx != -1) cursor.getString(teacherIdx) else ""
                 list.add(
                     ClassEntity(
                         id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
                         profileId = profileId,
                         subjectName = if (subNameIdx != -1) cursor.getString(subNameIdx) else "",
-                        teacher = if (teacherIdx != -1) cursor.getString(teacherIdx) else "",
-                        teacherName = if (teacherIdx != -1) cursor.getString(teacherIdx) else "",
+                        teacher = tName,
+                        teacherName = tName,
                         room = if (roomIdx != -1) cursor.getString(roomIdx) else "",
                         startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
                         endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
-                        dayName = if (dayNameIdx != -1) cursor.getString(dayNameIdx) else targetDayName,
-                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else 1
+                        dayName = if (dayNameIdx != -1 && !cursor.getString(dayNameIdx).isNullOrEmpty()) cursor.getString(dayNameIdx) else targetDayName,
+                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else dayInt
                     )
                 )
             }
