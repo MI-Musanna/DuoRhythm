@@ -172,7 +172,7 @@ class AcademicHubWidget : AppWidgetProvider() {
                 views.setTextViewText(R.id.tvClassHeader, displayDayLabel)
                 if (hasClasses) {
                     views.setViewVisibility(R.id.tvNoClasses, View.GONE)
-                    
+
                     // Class 1
                     val c1 = classList[0]
                     views.setViewVisibility(R.id.rowClass1, View.VISIBLE)
@@ -183,15 +183,18 @@ class AcademicHubWidget : AppWidgetProvider() {
 
                     val c1Start = parseTimeToMinutes(c1.startTime)
                     val c1End = parseTimeToMinutes(c1.endTime)
-                    val isC1Next = if (!isEveningTransition && c1End != -1 && nowTimeMinutes <= c1End) true else (!isEveningTransition && c1Start == -1)
-                    
-                    views.setViewVisibility(R.id.tvClass1Badge, View.VISIBLE)
-                    if (!isEveningTransition && nowTimeMinutes in c1Start..c1End) {
-                        views.setTextViewText(R.id.tvClass1Badge, "IN PROGRESS")
-                        views.setTextColor(R.id.tvClass1Badge, android.graphics.Color.parseColor("#10B981"))
-                    } else {
-                        views.setTextViewText(R.id.tvClass1Badge, if (isC1Next) "NEXT UP" else "SCHEDULED")
+                    val isC1InProgress = !isEveningTransition && c1Start != -1 && c1End != -1 && nowTimeMinutes in c1Start..c1End
+                    val isC1Next = if (!isEveningTransition && c1End != -1 && nowTimeMinutes < c1Start) true else (!isEveningTransition && c1Start == -1)
+
+                    // Apply Active Highlighter or Standard Frame
+                    if (isC1InProgress) {
+                        views.setInt(R.id.rowClass1, "setBackgroundResource", R.drawable.bg_widget_item_class_active)
+                        views.setTextViewText(R.id.tvClass1Badge, "● IN PROGRESS")
                         views.setTextColor(R.id.tvClass1Badge, android.graphics.Color.parseColor("#00E5FF"))
+                    } else {
+                        views.setInt(R.id.rowClass1, "setBackgroundResource", R.drawable.bg_widget_item_class)
+                        views.setTextViewText(R.id.tvClass1Badge, if (isC1Next) "NEXT UP" else "SCHEDULED")
+                        views.setTextColor(R.id.tvClass1Badge, if (isC1Next) android.graphics.Color.parseColor("#00E5FF") else android.graphics.Color.parseColor("#94A3B8"))
                     }
 
                     // Class 2
@@ -205,14 +208,17 @@ class AcademicHubWidget : AppWidgetProvider() {
 
                         val c2Start = parseTimeToMinutes(c2.startTime)
                         val c2End = parseTimeToMinutes(c2.endTime)
-                        views.setViewVisibility(R.id.tvClass2Badge, View.VISIBLE)
-                        if (!isEveningTransition && nowTimeMinutes in c2Start..c2End) {
-                            views.setTextViewText(R.id.tvClass2Badge, "IN PROGRESS")
-                            views.setTextColor(R.id.tvClass2Badge, android.graphics.Color.parseColor("#10B981"))
+                        val isC2InProgress = !isEveningTransition && c2Start != -1 && c2End != -1 && nowTimeMinutes in c2Start..c2End
+                        val isC2Next = !isC1InProgress && !isC1Next && c2End != -1 && nowTimeMinutes < c2Start
+
+                        if (isC2InProgress) {
+                            views.setInt(R.id.rowClass2, "setBackgroundResource", R.drawable.bg_widget_item_class_active)
+                            views.setTextViewText(R.id.tvClass2Badge, "● IN PROGRESS")
+                            views.setTextColor(R.id.tvClass2Badge, android.graphics.Color.parseColor("#00E5FF"))
                         } else {
-                            val isC2Next = !isC1Next && c2End != -1 && nowTimeMinutes <= c2End
+                            views.setInt(R.id.rowClass2, "setBackgroundResource", R.drawable.bg_widget_item_class)
                             views.setTextViewText(R.id.tvClass2Badge, if (isC2Next) "NEXT UP" else "UPCOMING")
-                            views.setTextColor(R.id.tvClass2Badge, android.graphics.Color.parseColor("#94A3B8"))
+                            views.setTextColor(R.id.tvClass2Badge, if (isC2Next) android.graphics.Color.parseColor("#00E5FF") else android.graphics.Color.parseColor("#94A3B8"))
                         }
                     } else {
                         views.setViewVisibility(R.id.rowClass2, View.GONE)

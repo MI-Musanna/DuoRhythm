@@ -5,9 +5,9 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget_glass_oled"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="12dp">
 
-    <!-- Top Bar: Refresh Button (Right aligned) & Centered Clock Container -->
+    <!-- Top Bar: Prominent 36sp Central Clock & Hitbox Refresh -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -33,7 +33,7 @@
                     android:layout_height="wrap_content"
                     android:format12Hour="h:mm"
                     android:textColor="#FFFFFF"
-                    android:textSize="26sp"
+                    android:textSize="36sp"
                     android:textStyle="bold" />
 
                 <TextClock
@@ -43,7 +43,7 @@
                     android:layout_marginStart="4dp"
                     android:format12Hour="a"
                     android:textColor="#00E5FF"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -51,14 +51,14 @@
                 android:id="@+id/tcWidgetDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="-2dp"
+                android:layout_marginTop="-4dp"
                 android:format12Hour="EEEE, MMMM d"
                 android:textColor="#94A3B8"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Right Side: Dedicated Refresh Hitbox -->
+        <!-- Right Side: Clean Hitbox Refresh Button -->
         <FrameLayout
             android:id="@+id/btnWidgetRefreshHitbox"
             android:layout_width="36dp"
@@ -68,16 +68,16 @@
 
             <ImageView
                 android:id="@+id/ivWidgetRefreshIcon"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:layout_gravity="center"
                 android:contentDescription="Refresh"
                 android:src="@drawable/ic_refresh" />
 
             <ProgressBar
                 android:id="@+id/pbWidgetLoading"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:layout_gravity="center"
                 android:indeterminate="true"
                 android:indeterminateTint="#00E5FF"
@@ -85,13 +85,12 @@
         </FrameLayout>
     </RelativeLayout>
 
-    <!-- Main Content Container: Fluid Grid -->
+    <!-- Main Content Container: Minimal Slim Cards -->
     <LinearLayout
         android:id="@+id/layoutMainGrid"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_weight="1"
         android:baselineAligned="false"
         android:orientation="horizontal">
 
@@ -99,7 +98,7 @@
         <LinearLayout
             android:id="@+id/layoutScheduleSection"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -113,17 +112,16 @@
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Class Card 1 -->
+            <!-- Class Card 1 (Minimal wrap_content) -->
             <LinearLayout
                 android:id="@+id/rowClass1"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginBottom="4dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
                 android:background="@drawable/bg_widget_item_class"
-                android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="7dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -164,7 +162,7 @@
                     android:id="@+id/tvClass1Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
@@ -176,21 +174,21 @@
                     android:id="@+id/tvClass1Time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:textColor="#94A3B8"
                     android:textSize="9sp" />
             </LinearLayout>
 
-            <!-- Class Card 2 -->
+            <!-- Class Card 2 (Minimal wrap_content) -->
             <LinearLayout
                 android:id="@+id/rowClass2"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
                 android:background="@drawable/bg_widget_item_class"
-                android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="7dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -231,7 +229,7 @@
                     android:id="@+id/tvClass2Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
@@ -243,7 +241,7 @@
                     android:id="@+id/tvClass2Time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:textColor="#94A3B8"
                     android:textSize="9sp" />
             </LinearLayout>
@@ -251,7 +249,7 @@
             <TextView
                 android:id="@+id/tvNoClasses"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="90dp"
                 android:background="@drawable/bg_widget_item_class"
                 android:gravity="center"
                 android:text="No upcoming lectures"
@@ -260,7 +258,7 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- Vertical Divider Line (Cyan Slate Accent) -->
+        <!-- Vertical Divider Line -->
         <FrameLayout
             android:id="@+id/vSectionDivider"
             android:layout_width="1dp"
@@ -272,7 +270,7 @@
         <LinearLayout
             android:id="@+id/layoutExamSection"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -286,17 +284,16 @@
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Exam Card 1 -->
+            <!-- Exam Card 1 (Minimal wrap_content) -->
             <LinearLayout
                 android:id="@+id/rowExam1"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginBottom="4dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
                 android:background="@drawable/bg_widget_item_exam"
-                android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="7dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -336,7 +333,7 @@
                     android:id="@+id/tvExam1Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
@@ -348,21 +345,21 @@
                     android:id="@+id/tvExam1Time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:textColor="#94A3B8"
                     android:textSize="9sp" />
             </LinearLayout>
 
-            <!-- Exam Card 2 -->
+            <!-- Exam Card 2 (Minimal wrap_content) -->
             <LinearLayout
                 android:id="@+id/rowExam2"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
                 android:background="@drawable/bg_widget_item_exam"
-                android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="6dp">
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="7dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -402,7 +399,7 @@
                     android:id="@+id/tvExam2Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
@@ -414,7 +411,7 @@
                     android:id="@+id/tvExam2Time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:textColor="#94A3B8"
                     android:textSize="9sp" />
             </LinearLayout>
@@ -422,7 +419,7 @@
             <TextView
                 android:id="@+id/tvNoExams"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="90dp"
                 android:background="@drawable/bg_widget_item_exam"
                 android:gravity="center"
                 android:text="All clear! No pending exams"
