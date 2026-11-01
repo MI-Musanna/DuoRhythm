@@ -171,10 +171,10 @@ class AcademicHubWidget : AppWidgetProvider() {
                     cal
                 }
 
+                val evalDayOfWeek = evalCal.get(Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon, 3=Tue, 4=Wed...
                 val evalDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(evalCal.time)
 
-                // Query strictly by day name
-                var classList = db.getClassesByStrictDay(profileId, evalDayName)
+                var classList = db.getClassesForDay(profileId, evalDayOfWeek, evalDayName)
                 var displayDayLabel = if (isEveningTransition) "TOMORROW • ${evalDayName.uppercase()}" else "TODAY • ${evalDayName.uppercase()}"
 
                 // Forward search next active day if evaluated day has no classes
@@ -182,8 +182,9 @@ class AcademicHubWidget : AppWidgetProvider() {
                     val searchCal = evalCal.clone() as Calendar
                     for (i in 1..6) {
                         searchCal.add(Calendar.DAY_OF_YEAR, 1)
+                        val nextDow = searchCal.get(Calendar.DAY_OF_WEEK)
                         val nextName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(searchCal.time)
-                        val candidate = db.getClassesByStrictDay(profileId, nextName)
+                        val candidate = db.getClassesForDay(profileId, nextDow, nextName)
                         if (candidate.isNotEmpty()) {
                             classList = candidate
                             displayDayLabel = "NEXT: ${nextName.uppercase()}"
