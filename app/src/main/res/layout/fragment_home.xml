@@ -168,20 +168,18 @@
             </LinearLayout>
         </eightbitlab.com.blurview.BlurView>
 
-        <!-- Student Next Up Schedule Container with Arrows -->
+        <!-- Student Next Up Schedule Container -->
         <LinearLayout
-            android:id="@+id/layoutStudentScheduleContainer"
+            android:id="@+id/layoutNextUpSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="150dp"
+            android:layout_marginTop="16dp"
             android:orientation="vertical">
 
-            <!-- Section Title: Next Up with Carousel Navigation Arrows -->
+            <!-- Next Up Header with Navigation Arrows -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -190,90 +188,61 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Next Up"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <ImageButton
-                    android:id="@+id/btnPrevClass"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/bg_header_action_button"
-                    android:contentDescription="Previous Class"
+                <ImageView
+                    android:id="@+id/btnNextUpPrev"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:background="@drawable/bg_circle_button_dark"
+                    android:contentDescription="Previous"
                     android:padding="6dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_chevron_left"
-                    app:tint="#00E5FF" />
+                    android:src="@drawable/ic_chevron_left" />
 
-                <ImageButton
-                    android:id="@+id/btnNextClass"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_header_action_button"
-                    android:contentDescription="Next Class"
+                <ImageView
+                    android:id="@+id/btnNextUpNext"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_circle_button_dark"
+                    android:contentDescription="Next"
                     android:padding="6dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_chevron_right"
-                    app:tint="#00E5FF" />
+                    android:src="@drawable/ic_chevron_right" />
             </LinearLayout>
 
-            <!-- 2. Next Up Hub: Dynamic Daily Class Carousel -->
+            <!-- Carousel ViewPager2 Container -->
             <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/vpDailyScheduleCarousel"
+                android:id="@+id/viewPagerNextUp"
                 android:layout_width="match_parent"
-                android:layout_height="124dp"
-                android:clipToPadding="false"
-                android:clipChildren="false"
-                android:overScrollMode="never" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" />
 
-            <!-- Dynamic Pill Indicator for Carousel Position -->
-            <LinearLayout
-                android:id="@+id/layoutCarouselIndicator"
+            <!-- Clean Page Dots Indicator -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/dotsIndicatorNextUp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="12dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:orientation="horizontal" />
-
-            <!-- Student Next-Up Schedule Card Support -->
-            <FrameLayout
-                android:id="@+id/cardNextUpSchedule"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/tvNextUpSubject"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    android:id="@+id/tvNextUpTimeRoom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    android:id="@+id/chipNextUpStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    android:id="@+id/chipNextUpType"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    android:id="@+id/tvNextUpCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </FrameLayout>
+                android:layout_marginTop="6dp"
+                android:background="@android:color/transparent"
+                app:tabBackground="@drawable/selector_tab_dots"
+                app:tabGravity="center"
+                app:tabIndicatorHeight="0dp"
+                app:tabMaxWidth="12dp"
+                app:tabRippleColor="@null" />
 
             <TextView
                 android:id="@+id/tvNoClassesScheduled"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_card_dark"
+                android:gravity="center"
+                android:text="All clear • Timetable on track"
+                android:textColor="#64748B"
+                android:textSize="13sp"
                 android:visibility="gone" />
         </LinearLayout>
 

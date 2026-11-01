@@ -40,6 +40,7 @@ import android.widget.ImageView
 import com.duorhythm.app.data.local.pref.AppPreferences
 import com.duorhythm.app.ui.profile.ProfileActivity
 import com.duorhythm.app.ui.profile.ProfileSwitcherDialog
+import com.google.android.material.tabs.TabLayoutMediator
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -52,7 +53,6 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var quickNotesAdapter: QuickNotesAdapter
-    private lateinit var carouselAdapter: DailyScheduleCarouselAdapter
     private lateinit var homeViewModel: HomeViewModel
     private var currentWorkOrderIndex = 0
     private var activeWorkOrders = listOf<com.duorhythm.app.data.model.WorkOrder>()
@@ -96,32 +96,7 @@ class HomeFragment : Fragment() {
                 homeViewModel = HomeViewModel(requireActivity().application)
             }
 
-            carouselAdapter = DailyScheduleCarouselAdapter(
-                emptyList(),
-                onItemClick = {
-                    (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
-                },
-                onScheduleActionClick = {
-                    (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
-                }
-            )
-            binding.vpDailyScheduleCarousel.adapter = carouselAdapter
-            binding.vpDailyScheduleCarousel.isUserInputEnabled = false
-            binding.btnPrevClass.setOnClickListener {
-                val current = binding.vpDailyScheduleCarousel.currentItem
-                if (current > 0) binding.vpDailyScheduleCarousel.setCurrentItem(current - 1, true)
-            }
-            binding.btnNextClass.setOnClickListener {
-                val current = binding.vpDailyScheduleCarousel.currentItem
-                val total = binding.vpDailyScheduleCarousel.adapter?.itemCount ?: 0
-                if (current < total - 1) binding.vpDailyScheduleCarousel.setCurrentItem(current + 1, true)
-            }
-            binding.vpDailyScheduleCarousel.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                override fun onPageSelected(position: Int) {
-                    super.onPageSelected(position)
-                    updateCarouselIndicator(position, carouselAdapter.itemCount)
-                }
-            })
+            setupNextUpCarousel()
 
             quickNotesAdapter = QuickNotesAdapter(
                 emptyList(),
@@ -272,7 +247,7 @@ class HomeFragment : Fragment() {
                 android.transition.AutoTransition().apply { duration = 180 }
             )
             val persona = if (isStudent) PersonaMode.STUDENT else PersonaMode.WORK
-            binding.layoutStudentScheduleContainer.crossfade(isStudent)
+            binding.layoutNextUpSection.crossfade(isStudent)
             binding.layoutWorkMilestonesContainer.crossfade(!isStudent)
             binding.layoutStudentOverview.crossfade(isStudent)
             binding.layoutWorkOverview.crossfade(!isStudent)
@@ -433,34 +408,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun updateCarouselIndicator(activePosition: Int, totalCount: Int) {
-        if (_binding == null) return
-        val ctx = context ?: return
-        val container = binding.layoutCarouselIndicator
-        container.removeAllViews()
-        if (totalCount <= 1) {
-            container.visibility = View.GONE
-            return
-        }
-        container.visibility = View.VISIBLE
-        val density = ctx.resources.displayMetrics.density
-        for (i in 0 until totalCount) {
-            val pill = View(ctx).apply {
-                val isSelected = (i == activePosition)
-                val width = if (isSelected) (18 * density).toInt() else (6 * density).toInt()
-                val height = (5 * density).toInt()
-                val lp = LinearLayout.LayoutParams(width, height).apply {
-                    marginStart = (3 * density).toInt()
-                    marginEnd = (3 * density).toInt()
-                }
-                layoutParams = lp
-                val bgRes = if (isSelected) R.drawable.bg_rounded_accent_pill else R.drawable.bg_chip_unselected
-                setBackgroundResource(bgRes)
-            }
-            container.addView(pill)
-        }
-    }
-
     private fun isBangladeshLocale(): Boolean {
         val loc = Locale.getDefault()
         val tz = java.util.TimeZone.getDefault().id
@@ -542,16 +489,7 @@ class HomeFragment : Fragment() {
 
             // 3. Dynamic Daily Class Carousel with Smart Landing Selection
             try {
-                val todayClasses = homeViewModel.getDailyScheduleCarouselItems()
-                carouselAdapter.updateItems(todayClasses)
-                val activeIndex = homeViewModel.resolveActiveScheduleIndex(todayClasses)
-                updateCarouselIndicator(activeIndex, todayClasses.size)
-
-                binding.vpDailyScheduleCarousel.post {
-                    if (_binding != null && activeIndex in 0 until carouselAdapter.itemCount) {
-                        binding.vpDailyScheduleCarousel.setCurrentItem(activeIndex, false)
-                    }
-                }
+                loadNextUpSchedule()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
@@ -589,19 +527,36 @@ class HomeFragment : Fragment() {
 
             // 4. Quick Notes & Scratchpad
             loadDashboardNotes()
-
-            // 5. Next-Up Evening Rollover Class
-            try {
-                loadNextUpClass()
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    private fun loadNextUpClass() {
+    private fun setupNextUpCarousel() {
+        if (_binding == null) return
+        binding.viewPagerNextUp.adapter = NextUpCardAdapter(
+            onScheduleClick = {
+                // Navigate to Timetable tab (index 3)
+                (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
+            }
+        )
+
+        // Connect dots indicator
+        TabLayoutMediator(binding.dotsIndicatorNextUp, binding.viewPagerNextUp) { _, _ -> }.attach()
+
+        binding.btnNextUpPrev.setOnClickListener {
+            val current = binding.viewPagerNextUp.currentItem
+            if (current > 0) binding.viewPagerNextUp.setCurrentItem(current - 1, true)
+        }
+
+        binding.btnNextUpNext.setOnClickListener {
+            val adapter = binding.viewPagerNextUp.adapter ?: return@setOnClickListener
+            val current = binding.viewPagerNextUp.currentItem
+            if (current < adapter.itemCount - 1) binding.viewPagerNextUp.setCurrentItem(current + 1, true)
+        }
+    }
+
+    private fun loadNextUpSchedule() {
         if (_binding == null || !isAdded) return
         val db = DatabaseHelper.getInstance(requireContext())
         val profileId = ProfileManager.getActiveProfileId()
@@ -639,23 +594,36 @@ class HomeFragment : Fragment() {
         val todayIso = calendarToIso(cal)
         val todayClasses = db.getClassesForIsoDay(profileId, todayIso)
 
-        // Find if any class today is currently ongoing or yet to begin
-        val activeTodayClass = todayClasses.firstOrNull { cls ->
+        // Check if any class today is ongoing or yet to end
+        val remainingTodayClasses = todayClasses.filter { cls ->
             val endMin = parseTimeToMinutes(cls.endTime)
             endMin == -1 || nowMinutes < endMin
         }
 
-        if (activeTodayClass != null) {
-            // Today still has classes remaining
-            bindClassToNextUpCard(activeTodayClass, isTomorrow = false, totalCount = todayClasses.size)
+        val adapter = binding.viewPagerNextUp.adapter as? NextUpCardAdapter
+
+        if (remainingTodayClasses.isNotEmpty() && currentHour < 17) {
+            // Daytime: Today still has pending classes
+            binding.viewPagerNextUp.visibility = View.VISIBLE
+            binding.dotsIndicatorNextUp.visibility = View.VISIBLE
+            binding.tvNoClassesScheduled.visibility = View.GONE
+
+            adapter?.submitClasses(todayClasses, isTomorrow = false, dayLabel = "Today", nowMinutes = nowMinutes)
+
+            // Automatically snap carousel to the first upcoming/active class
+            val firstActiveIndex = todayClasses.indexOfFirst { cls ->
+                val endMin = parseTimeToMinutes(cls.endTime)
+                endMin == -1 || nowMinutes < endMin
+            }.coerceAtLeast(0)
+
+            binding.viewPagerNextUp.setCurrentItem(firstActiveIndex, false)
         } else {
-            // All classes today are finished (or today had none) -> Look ahead to tomorrow!
+            // Evening Rollover (Past 5 PM or all today classes finished) -> Query Tomorrow!
             val tomorrowCal = (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
             val tomorrowIso = calendarToIso(tomorrowCal)
             var targetClasses = db.getClassesForIsoDay(profileId, tomorrowIso)
             var targetDayName = "Tomorrow"
 
-            // Search next active day if tomorrow is empty
             if (targetClasses.isEmpty()) {
                 val searchCal = tomorrowCal.clone() as Calendar
                 for (i in 1..6) {
@@ -671,30 +639,18 @@ class HomeFragment : Fragment() {
             }
 
             if (targetClasses.isNotEmpty()) {
-                bindClassToNextUpCard(targetClasses[0], isTomorrow = true, totalCount = targetClasses.size, dayLabel = targetDayName)
+                binding.viewPagerNextUp.visibility = View.VISIBLE
+                binding.dotsIndicatorNextUp.visibility = if (targetClasses.size > 1) View.VISIBLE else View.GONE
+                binding.tvNoClassesScheduled.visibility = View.GONE
+
+                // Submit Monday's 3 classes to adapter and strictly reset to position 0 (Physics 2)
+                adapter?.submitClasses(targetClasses, isTomorrow = true, dayLabel = targetDayName, nowMinutes = -1)
+                binding.viewPagerNextUp.setCurrentItem(0, false)
             } else {
-                binding.cardNextUpSchedule.visibility = View.GONE
+                binding.viewPagerNextUp.visibility = View.GONE
+                binding.dotsIndicatorNextUp.visibility = View.GONE
                 binding.tvNoClassesScheduled.visibility = View.VISIBLE
             }
-        }
-    }
-
-    private fun bindClassToNextUpCard(cls: ClassEntity, isTomorrow: Boolean, totalCount: Int, dayLabel: String = "Tomorrow") {
-        if (_binding == null) return
-        binding.cardNextUpSchedule.visibility = View.VISIBLE
-        binding.tvNoClassesScheduled.visibility = View.GONE
-
-        binding.tvNextUpSubject.text = cls.subjectName
-        binding.tvNextUpTimeRoom.text = "${cls.startTime} - ${cls.endTime} • Room ${cls.room} • $dayLabel"
-
-        if (isTomorrow) {
-            binding.chipNextUpStatus.text = "NEXT UP"
-            binding.chipNextUpType.text = "LECTURE"
-            binding.tvNextUpCount.text = "1 of $totalCount"
-        } else {
-            binding.chipNextUpStatus.text = "TODAY"
-            binding.chipNextUpType.text = "LECTURE"
-            binding.tvNextUpCount.text = "1 of $totalCount"
         }
     }
 

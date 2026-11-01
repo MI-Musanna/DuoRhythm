@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardNextUpRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card_dark"
+    android:clickable="true"
+    android:focusable="true"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp">
+
+    <!-- Squircle Icon Capsule -->
+    <FrameLayout
+        android:id="@+id/ivScheduleIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_icon_badge_cyan"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivScheduleIconInner"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:contentDescription="Class Schedule"
+            android:src="@drawable/ic_schedule"
+            app:tint="#00E5FF" />
+    </FrameLayout>
+
+    <!-- Status Badge (e.g. NEXT UP / UPCOMING / SCHEDULED) -->
+    <TextView
+        android:id="@+id/chipStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/bg_badge_timetable"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="3dp"
+        android:text="NEXT UP"
+        android:textColor="#00E5FF"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/ivScheduleIcon"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Subject Title -->
+    <TextView
+        android:id="@+id/tvSubjectTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:breakStrategy="simple"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/layoutPagingOrActions"
+        app:layout_constraintStart_toEndOf="@id/ivScheduleIcon"
+        app:layout_constraintTop_toBottomOf="@id/chipStatus"
+        tools:text="Physics 2" />
+
+    <!-- Time & Room Details -->
+    <TextView
+        android:id="@+id/tvTimeRoom"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#94A3B8"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@id/layoutPagingOrActions"
+        app:layout_constraintStart_toEndOf="@id/ivScheduleIcon"
+        app:layout_constraintTop_toBottomOf="@id/tvSubjectTitle"
+        tools:text="08:45 AM - 10:15 AM • Room 805 • Tomorrow" />
+
+    <!-- End Container: Go Schedule Action & Position Count Badge -->
+    <LinearLayout
+        android:id="@+id/layoutPagingOrActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="end|center_vertical"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/btnGoSchedule"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_action_pill_cyan"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="Schedule →"
+            android:textColor="#00E5FF"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCountBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#64748B"
+            android:textSize="10sp"
+            tools:text="1 of 3" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
