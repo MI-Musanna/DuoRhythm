@@ -649,30 +649,44 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.execSQL("DELETE FROM attendance WHERE subject_name LIKE '%Advanced Algorithms%'")
             db.execSQL("DELETE FROM student_subjects WHERE name LIKE '%Advanced Algorithms%'")
 
-            // Day of week normalization and Saturday duplicate ghost records purge
-            db.execSQL("UPDATE classes SET day_of_week = 1 WHERE day_name = 'Sunday' OR day_name = 'Sun'")
-            db.execSQL("UPDATE classes SET day_of_week = 2 WHERE day_name = 'Monday' OR day_name = 'Mon'")
-            db.execSQL("UPDATE classes SET day_of_week = 3 WHERE day_name = 'Tuesday' OR day_name = 'Tue'")
-            db.execSQL("UPDATE classes SET day_of_week = 4 WHERE day_name = 'Wednesday' OR day_name = 'Wed'")
-            db.execSQL("UPDATE classes SET day_of_week = 5 WHERE day_name = 'Thursday' OR day_name = 'Thu'")
-            db.execSQL("UPDATE classes SET day_of_week = 6 WHERE day_name = 'Friday' OR day_name = 'Fri'")
-            db.execSQL("UPDATE classes SET day_of_week = 7 WHERE day_name = 'Saturday' OR day_name = 'Sat'")
+        try {
+            // 1. Correct Monday (ISO 1) Classes
+            db.execSQL("UPDATE classes SET day_of_week = 1, day_name = 'Monday' WHERE subject_name = 'Physics 2' AND (start_time LIKE '08:45%' OR start_time LIKE '8:45%')")
+            db.execSQL("UPDATE classes SET day_of_week = 1, day_name = 'Monday' WHERE subject_name LIKE 'Mathematics 3%' AND room = '805'")
+            db.execSQL("UPDATE classes SET day_of_week = 1, day_name = 'Monday' WHERE subject_name LIKE 'Digital Electronics 1%'")
 
-            // Backfill any NULL or empty day_name records based on day_of_week
-            db.execSQL("UPDATE classes SET day_name = 'Sunday' WHERE (day_of_week = 1 OR day_of_week = 7) AND (day_name IS NULL OR day_name = '' OR day_name = 'Sun')")
-            db.execSQL("UPDATE classes SET day_name = 'Monday' WHERE day_of_week = 2 AND (day_name IS NULL OR day_name = '' OR day_name = 'Mon')")
-            db.execSQL("UPDATE classes SET day_name = 'Tuesday' WHERE day_of_week = 3 AND (day_name IS NULL OR day_name = '' OR day_name = 'Tue')")
-            db.execSQL("UPDATE classes SET day_name = 'Wednesday' WHERE day_of_week = 4 AND (day_name IS NULL OR day_name = '' OR day_name = 'Wed')")
-            db.execSQL("UPDATE classes SET day_name = 'Thursday' WHERE day_of_week = 5 AND (day_name IS NULL OR day_name = '' OR day_name = 'Thu')")
-            db.execSQL("UPDATE classes SET day_name = 'Friday' WHERE day_of_week = 6 AND (day_name IS NULL OR day_name = '' OR day_name = 'Fri')")
-            db.execSQL("UPDATE classes SET day_name = 'Saturday' WHERE day_of_week = 7 AND (day_name IS NULL OR day_name = '' OR day_name = 'Sat')")
+            // 2. Correct Tuesday (ISO 2) Classes
+            db.execSQL("UPDATE classes SET day_of_week = 2, day_name = 'Tuesday' WHERE subject_name LIKE 'Computer Graphics Design%'")
+            db.execSQL("UPDATE classes SET day_of_week = 2, day_name = 'Tuesday' WHERE subject_name = 'Physics 2' AND room = '502' AND (start_time LIKE '01:40%' OR start_time LIKE '1:40%')")
+            db.execSQL("UPDATE classes SET day_of_week = 2, day_name = 'Tuesday' WHERE subject_name LIKE 'IT Support Services%' AND room = '203'")
+
+            // 3. Correct Wednesday (ISO 3) Classes
+            db.execSQL("UPDATE classes SET day_of_week = 3, day_name = 'Wednesday' WHERE subject_name LIKE 'Application Development Using Python%' AND (start_time LIKE '08:45%' OR start_time LIKE '8:45%')")
+            db.execSQL("UPDATE classes SET day_of_week = 3, day_name = 'Wednesday' WHERE subject_name LIKE 'Mathematics 3%' AND room = '904'")
+            db.execSQL("UPDATE classes SET day_of_week = 3, day_name = 'Wednesday' WHERE subject_name LIKE 'IT Support Services%' AND room = '805'")
+
+            // 4. Correct Sunday (ISO 7) Classes
+            db.execSQL("UPDATE classes SET day_of_week = 7, day_name = 'Sunday' WHERE subject_name = 'Physics 2' AND room = '904'")
+            db.execSQL("UPDATE classes SET day_of_week = 7, day_name = 'Sunday' WHERE subject_name LIKE 'Application Development Using Python%' AND room = '904'")
+
+            // General fallback sync
+            db.execSQL("UPDATE classes SET day_name = 'Monday' WHERE day_of_week = 1 AND (day_name IS NULL OR day_name != 'Monday')")
+            db.execSQL("UPDATE classes SET day_name = 'Tuesday' WHERE day_of_week = 2 AND (day_name IS NULL OR day_name != 'Tuesday')")
+            db.execSQL("UPDATE classes SET day_name = 'Wednesday' WHERE day_of_week = 3 AND (day_name IS NULL OR day_name != 'Wednesday')")
+            db.execSQL("UPDATE classes SET day_name = 'Thursday' WHERE day_of_week = 4 AND (day_name IS NULL OR day_name != 'Thursday')")
+            db.execSQL("UPDATE classes SET day_name = 'Friday' WHERE day_of_week = 5 AND (day_name IS NULL OR day_name != 'Friday')")
+            db.execSQL("UPDATE classes SET day_name = 'Saturday' WHERE day_of_week = 6 AND (day_name IS NULL OR day_name != 'Saturday')")
+            db.execSQL("UPDATE classes SET day_name = 'Sunday' WHERE day_of_week = 7 AND (day_name IS NULL OR day_name != 'Sunday')")
 
             db.execSQL("""
                 DELETE FROM classes 
-                WHERE (day_name = 'Saturday' OR day_of_week = 7) 
+                WHERE (day_name = 'Saturday' OR day_of_week = 6) 
                   AND subject_name IN ('Physics 2', 'Application Development Using Python')
                   AND room = '904'
             """.trimIndent())
+        } catch (e: Exception) {
+            Log.e("DUO_DB", "Error sanitizing class ISO days", e)
+        }
         } catch (_: Exception) {}
 
         ensureColumnExists(db, "transactions", "account_id", "INTEGER DEFAULT 0")
@@ -2327,6 +2341,53 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
         } catch (e: Exception) {
             Log.e("DUO_DB_CLASS", "Error reading classes", e)
+        } finally {
+            cursor?.close()
+        }
+        return list
+    }
+
+    fun getClassesForIsoDay(profileId: Long, isoDayOfWeek: Int, dayName: String): List<ClassEntity> {
+        val list = mutableListOf<ClassEntity>()
+        val db = this.readableDatabase
+        val query = """
+            SELECT * FROM classes 
+            WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
+              AND (day_of_week = ? OR LOWER(day_name) = LOWER(?))
+            ORDER BY start_time ASC
+        """.trimIndent()
+
+        var cursor: Cursor? = null
+        try {
+            cursor = db.rawQuery(query, arrayOf(profileId.toString(), isoDayOfWeek.toString(), dayName))
+            val idIdx = cursor.getColumnIndex("id")
+            val subNameIdx = cursor.getColumnIndex("subject_name")
+            val teacherIdx = cursor.getColumnIndex("teacher_name").takeIf { it != -1 } ?: cursor.getColumnIndex("teacher")
+            val roomIdx = cursor.getColumnIndex("room")
+            val startIdx = cursor.getColumnIndex("start_time")
+            val endIdx = cursor.getColumnIndex("end_time")
+            val dayNameIdx = cursor.getColumnIndex("day_name")
+            val dayOfWeekIdx = cursor.getColumnIndex("day_of_week")
+
+            while (cursor.moveToNext()) {
+                val tName = if (teacherIdx != -1) cursor.getString(teacherIdx) else ""
+                list.add(
+                    ClassEntity(
+                        id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
+                        profileId = profileId,
+                        subjectName = if (subNameIdx != -1) cursor.getString(subNameIdx) else "",
+                        teacher = tName,
+                        teacherName = tName,
+                        room = if (roomIdx != -1) cursor.getString(roomIdx) else "",
+                        startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
+                        endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
+                        dayName = if (dayNameIdx != -1) cursor.getString(dayNameIdx) else dayName,
+                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else isoDayOfWeek
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB", "Error querying classes for ISO day $isoDayOfWeek ($dayName)", e)
         } finally {
             cursor?.close()
         }
