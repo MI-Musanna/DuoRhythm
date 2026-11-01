@@ -651,42 +651,42 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } catch (_: Exception) {}
 
         try {
-            // 1. Map Sunday Classes (Day 1)
+            // 1. Map Monday Classes (ISO 1)
             db.execSQL("""
                 UPDATE classes 
-                SET day_of_week = 1, day_name = 'Sunday' 
-                WHERE (subject_name = 'Physics 2' AND room = '904')
-                   OR (subject_name LIKE '%Python%' AND (start_time LIKE '%3:00%' OR start_time LIKE '%03:00%'))
-            """.trimIndent())
-
-            // 2. Map Monday Classes (Day 2)
-            db.execSQL("""
-                UPDATE classes 
-                SET day_of_week = 2, day_name = 'Monday' 
+                SET day_of_week = 1, day_name = 'Monday' 
                 WHERE (subject_name = 'Physics 2' AND (start_time LIKE '%8:45%' OR start_time LIKE '%08:45%'))
-                   OR (subject_name LIKE 'Mathematics 3%' AND (start_time LIKE '%10:15%'))
-                   OR (subject_name LIKE 'Digital Electronics 1%' AND (start_time LIKE '%11:45%'))
+                   OR (subject_name LIKE 'Mathematics 3%' AND (start_time LIKE '%10:15%' OR room = '805'))
+                   OR (subject_name LIKE 'Digital Electronics 1%')
             """.trimIndent())
 
-            // 3. Map Tuesday Classes (Day 3)
+            // 2. Map Tuesday Classes (ISO 2)
             db.execSQL("""
                 UPDATE classes 
-                SET day_of_week = 3, day_name = 'Tuesday' 
+                SET day_of_week = 2, day_name = 'Tuesday' 
                 WHERE (subject_name = 'Physics 2' AND (start_time LIKE '%1:40%' OR start_time LIKE '%01:40%') AND room = '502')
                    OR (subject_name LIKE 'Computer Graphics Design%')
                    OR (subject_name LIKE 'IT Support Services%' AND room = '203')
             """.trimIndent())
 
-            // 4. Map Wednesday Classes (Day 4)
+            // 3. Map Wednesday Classes (ISO 3)
             db.execSQL("""
                 UPDATE classes 
-                SET day_of_week = 4, day_name = 'Wednesday' 
-                WHERE (subject_name LIKE '%Python%' AND (start_time LIKE '%8:45%' OR start_time LIKE '%08:45%'))
+                SET day_of_week = 3, day_name = 'Wednesday' 
+                WHERE (subject_name LIKE '%Python%' AND (start_time LIKE '%8:45%' OR start_time LIKE '%08:45%' OR room = '704'))
                    OR (subject_name LIKE 'Mathematics 3%' AND room = '904')
                    OR (subject_name LIKE 'IT Support Services%' AND room = '805')
             """.trimIndent())
 
-            Log.d("DUO_DB", "Direct timetable mapping sync completed successfully.")
+            // 4. Map Sunday Classes (ISO 7)
+            db.execSQL("""
+                UPDATE classes 
+                SET day_of_week = 7, day_name = 'Sunday' 
+                WHERE (subject_name = 'Physics 2' AND room = '904')
+                   OR (subject_name LIKE '%Python%' AND (start_time LIKE '%3:00%' OR start_time LIKE '%03:00%' OR room = '904'))
+            """.trimIndent())
+
+            Log.d("DUO_DB", "Direct timetable ISO mapping sync completed successfully.")
         } catch (e: Exception) {
             Log.e("DUO_DB", "Error restoring timetable mapping", e)
         }
@@ -2306,39 +2306,39 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             db.beginTransaction()
 
-            // 1. Map Sunday Classes (Day 1)
+            // 1. Map Monday Classes (ISO 1)
             db.execSQL("""
                 UPDATE classes 
-                SET day_of_week = 1, day_name = 'Sunday' 
-                WHERE (subject_name = 'Physics 2' AND room = '904')
-                   OR (subject_name LIKE '%Python%' AND (start_time LIKE '%3:00%' OR start_time LIKE '%03:00%'))
-            """.trimIndent())
-
-            // 2. Map Monday Classes (Day 2)
-            db.execSQL("""
-                UPDATE classes 
-                SET day_of_week = 2, day_name = 'Monday' 
+                SET day_of_week = 1, day_name = 'Monday' 
                 WHERE (subject_name = 'Physics 2' AND (start_time LIKE '%8:45%' OR start_time LIKE '%08:45%'))
-                   OR (subject_name LIKE 'Mathematics 3%' AND (start_time LIKE '%10:15%'))
-                   OR (subject_name LIKE 'Digital Electronics 1%' AND (start_time LIKE '%11:45%'))
+                   OR (subject_name LIKE 'Mathematics 3%' AND (start_time LIKE '%10:15%' OR room = '805'))
+                   OR (subject_name LIKE 'Digital Electronics 1%')
             """.trimIndent())
 
-            // 3. Map Tuesday Classes (Day 3)
+            // 2. Map Tuesday Classes (ISO 2)
             db.execSQL("""
                 UPDATE classes 
-                SET day_of_week = 3, day_name = 'Tuesday' 
+                SET day_of_week = 2, day_name = 'Tuesday' 
                 WHERE (subject_name = 'Physics 2' AND (start_time LIKE '%1:40%' OR start_time LIKE '%01:40%') AND room = '502')
                    OR (subject_name LIKE 'Computer Graphics Design%')
                    OR (subject_name LIKE 'IT Support Services%' AND room = '203')
             """.trimIndent())
 
-            // 4. Map Wednesday Classes (Day 4)
+            // 3. Map Wednesday Classes (ISO 3)
             db.execSQL("""
                 UPDATE classes 
-                SET day_of_week = 4, day_name = 'Wednesday' 
-                WHERE (subject_name LIKE '%Python%' AND (start_time LIKE '%8:45%' OR start_time LIKE '%08:45%'))
+                SET day_of_week = 3, day_name = 'Wednesday' 
+                WHERE (subject_name LIKE '%Python%' AND (start_time LIKE '%8:45%' OR start_time LIKE '%08:45%' OR room = '704'))
                    OR (subject_name LIKE 'Mathematics 3%' AND room = '904')
                    OR (subject_name LIKE 'IT Support Services%' AND room = '805')
+            """.trimIndent())
+
+            // 4. Map Sunday Classes (ISO 7)
+            db.execSQL("""
+                UPDATE classes 
+                SET day_of_week = 7, day_name = 'Sunday' 
+                WHERE (subject_name = 'Physics 2' AND room = '904')
+                   OR (subject_name LIKE '%Python%' AND (start_time LIKE '%3:00%' OR start_time LIKE '%03:00%' OR room = '904'))
             """.trimIndent())
 
             db.setTransactionSuccessful()
@@ -2459,26 +2459,31 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
-    fun getClassesForIsoDay(profileId: Long, isoDayOfWeek: Int, dayName: String): List<ClassEntity> {
+    fun getClassesForIsoDay(isoDayOfWeek: Int): List<ClassEntity> =
+        getClassesForIsoDay(getActiveProfileId(), isoDayOfWeek)
+
+    fun getClassesForIsoDay(profileId: Long, isoDayOfWeek: Int): List<ClassEntity> {
+        syncDayMappingDirectly()
         val list = mutableListOf<ClassEntity>()
         val db = this.readableDatabase
+
+        // Direct ISO matching: Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6, Sunday=7
         val query = """
             SELECT * FROM classes 
             WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
-              AND (day_of_week = ? OR LOWER(day_name) = LOWER(?))
+              AND day_of_week = ?
             ORDER BY start_time ASC
         """.trimIndent()
 
         var cursor: Cursor? = null
         try {
-            cursor = db.rawQuery(query, arrayOf(profileId.toString(), isoDayOfWeek.toString(), dayName))
+            cursor = db.rawQuery(query, arrayOf(profileId.toString(), isoDayOfWeek.toString()))
             val idIdx = cursor.getColumnIndex("id")
             val subNameIdx = cursor.getColumnIndex("subject_name")
             val teacherIdx = cursor.getColumnIndex("teacher_name").takeIf { it != -1 } ?: cursor.getColumnIndex("teacher")
             val roomIdx = cursor.getColumnIndex("room")
             val startIdx = cursor.getColumnIndex("start_time")
             val endIdx = cursor.getColumnIndex("end_time")
-            val dayNameIdx = cursor.getColumnIndex("day_name")
             val dayOfWeekIdx = cursor.getColumnIndex("day_of_week")
 
             while (cursor.moveToNext()) {
@@ -2493,18 +2498,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         room = if (roomIdx != -1) cursor.getString(roomIdx) else "",
                         startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
                         endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
-                        dayName = if (dayNameIdx != -1) cursor.getString(dayNameIdx) else dayName,
                         dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else isoDayOfWeek
                     )
                 )
             }
         } catch (e: Exception) {
-            Log.e("DUO_DB", "Error querying classes for ISO day $isoDayOfWeek ($dayName)", e)
+            Log.e("DUO_DB", "Error reading classes for ISO day: $isoDayOfWeek", e)
         } finally {
             cursor?.close()
         }
         return list
     }
+
+    fun getClassesForIsoDay(profileId: Long, isoDayOfWeek: Int, dayName: String): List<ClassEntity> =
+        getClassesForIsoDay(profileId, isoDayOfWeek)
 
     fun getAssessments(profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
         return assessmentDao.getAssessmentsByProfile(profileId)

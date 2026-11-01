@@ -171,10 +171,24 @@ class AcademicHubWidget : AppWidgetProvider() {
                     cal
                 }
 
-                val evalDayOfWeek = evalCal.get(Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon, 3=Tue, 4=Wed...
+                fun calendarToIso(c: Calendar): Int {
+                    return when (c.get(Calendar.DAY_OF_WEEK)) {
+                        Calendar.MONDAY -> 1
+                        Calendar.TUESDAY -> 2
+                        Calendar.WEDNESDAY -> 3
+                        Calendar.THURSDAY -> 4
+                        Calendar.FRIDAY -> 5
+                        Calendar.SATURDAY -> 6
+                        Calendar.SUNDAY -> 7
+                        else -> 1
+                    }
+                }
+
+                val evalIsoDay = calendarToIso(evalCal)
                 val evalDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(evalCal.time)
 
-                var classList = db.getClassesForDay(profileId, evalDayOfWeek, evalDayName)
+                // Query Monday using strict ISO integer (Monday = 1)
+                var classList = db.getClassesForIsoDay(profileId, evalIsoDay)
                 var displayDayLabel = if (isEveningTransition) "TOMORROW • ${evalDayName.uppercase()}" else "TODAY • ${evalDayName.uppercase()}"
 
                 // Forward search next active day if evaluated day has no classes
@@ -182,9 +196,9 @@ class AcademicHubWidget : AppWidgetProvider() {
                     val searchCal = evalCal.clone() as Calendar
                     for (i in 1..6) {
                         searchCal.add(Calendar.DAY_OF_YEAR, 1)
-                        val nextDow = searchCal.get(Calendar.DAY_OF_WEEK)
+                        val nextIso = calendarToIso(searchCal)
                         val nextName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(searchCal.time)
-                        val candidate = db.getClassesForDay(profileId, nextDow, nextName)
+                        val candidate = db.getClassesForIsoDay(profileId, nextIso)
                         if (candidate.isNotEmpty()) {
                             classList = candidate
                             displayDayLabel = "NEXT: ${nextName.uppercase()}"

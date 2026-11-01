@@ -14,6 +14,7 @@ import com.duorhythm.app.MainActivity
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
+import com.duorhythm.app.data.model.ClassEntity
 import com.duorhythm.app.data.model.ClassStatus
 import com.duorhythm.app.data.model.CarouselClassItem
 import com.duorhythm.app.databinding.FragmentHomeBinding
@@ -588,8 +589,112 @@ class HomeFragment : Fragment() {
 
             // 4. Quick Notes & Scratchpad
             loadDashboardNotes()
+
+            // 5. Next-Up Evening Rollover Class
+            try {
+                loadNextUpClass()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun loadNextUpClass() {
+        if (_binding == null || !isAdded) return
+        val db = DatabaseHelper.getInstance(requireContext())
+        val profileId = ProfileManager.getActiveProfileId()
+
+        val cal = Calendar.getInstance()
+        val currentHour = cal.get(Calendar.HOUR_OF_DAY)
+        val nowMinutes = currentHour * 60 + cal.get(Calendar.MINUTE)
+
+        fun calendarToIso(c: Calendar): Int {
+            return when (c.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> 1
+                Calendar.TUESDAY -> 2
+                Calendar.WEDNESDAY -> 3
+                Calendar.THURSDAY -> 4
+                Calendar.FRIDAY -> 5
+                Calendar.SATURDAY -> 6
+                Calendar.SUNDAY -> 7
+                else -> 1
+            }
+        }
+
+        fun parseTimeToMinutes(timeStr: String): Int {
+            return try {
+                val regex = Regex("""(\d{1,2})[:.](\d{2})\s*([AaPp][Mm])?""")
+                val match = regex.find(timeStr.trim()) ?: return -1
+                var hour = match.groupValues[1].toIntOrNull() ?: return -1
+                val minute = match.groupValues[2].toIntOrNull() ?: 0
+                val ampm = match.groupValues[3].uppercase(Locale.US)
+                if (ampm == "PM" && hour < 12) hour += 12
+                if (ampm == "AM" && hour == 12) hour = 0
+                hour * 60 + minute
+            } catch (_: Exception) { -1 }
+        }
+
+        val todayIso = calendarToIso(cal)
+        val todayClasses = db.getClassesForIsoDay(profileId, todayIso)
+
+        // Find if any class today is currently ongoing or yet to begin
+        val activeTodayClass = todayClasses.firstOrNull { cls ->
+            val endMin = parseTimeToMinutes(cls.endTime)
+            endMin == -1 || nowMinutes < endMin
+        }
+
+        if (activeTodayClass != null) {
+            // Today still has classes remaining
+            bindClassToNextUpCard(activeTodayClass, isTomorrow = false, totalCount = todayClasses.size)
+        } else {
+            // All classes today are finished (or today had none) -> Look ahead to tomorrow!
+            val tomorrowCal = (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
+            val tomorrowIso = calendarToIso(tomorrowCal)
+            var targetClasses = db.getClassesForIsoDay(profileId, tomorrowIso)
+            var targetDayName = "Tomorrow"
+
+            // Search next active day if tomorrow is empty
+            if (targetClasses.isEmpty()) {
+                val searchCal = tomorrowCal.clone() as Calendar
+                for (i in 1..6) {
+                    searchCal.add(Calendar.DAY_OF_YEAR, 1)
+                    val iso = calendarToIso(searchCal)
+                    val candidate = db.getClassesForIsoDay(profileId, iso)
+                    if (candidate.isNotEmpty()) {
+                        targetClasses = candidate
+                        targetDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(searchCal.time)
+                        break
+                    }
+                }
+            }
+
+            if (targetClasses.isNotEmpty()) {
+                bindClassToNextUpCard(targetClasses[0], isTomorrow = true, totalCount = targetClasses.size, dayLabel = targetDayName)
+            } else {
+                binding.cardNextUpSchedule.visibility = View.GONE
+                binding.tvNoClassesScheduled.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun bindClassToNextUpCard(cls: ClassEntity, isTomorrow: Boolean, totalCount: Int, dayLabel: String = "Tomorrow") {
+        if (_binding == null) return
+        binding.cardNextUpSchedule.visibility = View.VISIBLE
+        binding.tvNoClassesScheduled.visibility = View.GONE
+
+        binding.tvNextUpSubject.text = cls.subjectName
+        binding.tvNextUpTimeRoom.text = "${cls.startTime} - ${cls.endTime} • Room ${cls.room} • $dayLabel"
+
+        if (isTomorrow) {
+            binding.chipNextUpStatus.text = "NEXT UP"
+            binding.chipNextUpType.text = "LECTURE"
+            binding.tvNextUpCount.text = "1 of $totalCount"
+        } else {
+            binding.chipNextUpStatus.text = "TODAY"
+            binding.chipNextUpType.text = "LECTURE"
+            binding.tvNextUpCount.text = "1 of $totalCount"
         }
     }
 
