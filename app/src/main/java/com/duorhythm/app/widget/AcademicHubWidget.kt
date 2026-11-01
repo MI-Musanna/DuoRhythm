@@ -87,6 +87,23 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val cal = Calendar.getInstance()
                 val currentHour = cal.get(Calendar.HOUR_OF_DAY)
                 val isEveningTransition = currentHour >= transitionHour
+                val nowTimeMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+
+                fun parseTimeToMinutes(timeStr: String): Int {
+                    return try {
+                        val clean = timeStr.trim().uppercase()
+                        val isPm = clean.endsWith("PM")
+                        val isAm = clean.endsWith("AM")
+                        val parts = clean.replace("AM", "").replace("PM", "").trim().split(":")
+                        var h = parts[0].toInt()
+                        val m = if (parts.size > 1) parts[1].toInt() else 0
+                        if (isPm && h < 12) h += 12
+                        if (isAm && h == 12) h = 0
+                        h * 60 + m
+                    } catch (e: Exception) {
+                        -1
+                    }
+                }
 
                 val evalCal = if (isEveningTransition) {
                     (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
@@ -141,6 +158,8 @@ class AcademicHubWidget : AppWidgetProvider() {
                 views.setTextViewText(R.id.tvClassHeader, displayDayLabel)
                 if (hasClasses) {
                     views.setViewVisibility(R.id.tvNoClasses, View.GONE)
+                    
+                    // Class 1
                     val c1 = classList[0]
                     views.setViewVisibility(R.id.rowClass1, View.VISIBLE)
                     views.setTextViewText(R.id.tvClass1Title, c1.subjectName)
@@ -148,6 +167,20 @@ class AcademicHubWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.tvClass1Room, if (showRoom && c1.room.isNotBlank()) View.VISIBLE else View.GONE)
                     views.setTextViewText(R.id.tvClass1Room, "R:${c1.room}")
 
+                    val c1Start = parseTimeToMinutes(c1.startTime)
+                    val c1End = parseTimeToMinutes(c1.endTime)
+                    val isC1Next = if (!isEveningTransition && c1End != -1 && nowTimeMinutes <= c1End) true else (!isEveningTransition && c1Start == -1)
+                    
+                    views.setViewVisibility(R.id.tvClass1Badge, View.VISIBLE)
+                    if (!isEveningTransition && nowTimeMinutes in c1Start..c1End) {
+                        views.setTextViewText(R.id.tvClass1Badge, "IN PROGRESS")
+                        views.setTextColor(R.id.tvClass1Badge, android.graphics.Color.parseColor("#10B981"))
+                    } else {
+                        views.setTextViewText(R.id.tvClass1Badge, if (isC1Next) "NEXT UP" else "SCHEDULED")
+                        views.setTextColor(R.id.tvClass1Badge, android.graphics.Color.parseColor("#00E5FF"))
+                    }
+
+                    // Class 2
                     if (classList.size > 1 && !compactMode) {
                         val c2 = classList[1]
                         views.setViewVisibility(R.id.rowClass2, View.VISIBLE)
@@ -155,6 +188,18 @@ class AcademicHubWidget : AppWidgetProvider() {
                         views.setTextViewText(R.id.tvClass2Time, "${c2.startTime} - ${c2.endTime}")
                         views.setViewVisibility(R.id.tvClass2Room, if (showRoom && c2.room.isNotBlank()) View.VISIBLE else View.GONE)
                         views.setTextViewText(R.id.tvClass2Room, "R:${c2.room}")
+
+                        val c2Start = parseTimeToMinutes(c2.startTime)
+                        val c2End = parseTimeToMinutes(c2.endTime)
+                        views.setViewVisibility(R.id.tvClass2Badge, View.VISIBLE)
+                        if (!isEveningTransition && nowTimeMinutes in c2Start..c2End) {
+                            views.setTextViewText(R.id.tvClass2Badge, "IN PROGRESS")
+                            views.setTextColor(R.id.tvClass2Badge, android.graphics.Color.parseColor("#10B981"))
+                        } else {
+                            val isC2Next = !isC1Next && c2End != -1 && nowTimeMinutes <= c2End
+                            views.setTextViewText(R.id.tvClass2Badge, if (isC2Next) "NEXT UP" else "UPCOMING")
+                            views.setTextColor(R.id.tvClass2Badge, android.graphics.Color.parseColor("#94A3B8"))
+                        }
                     } else {
                         views.setViewVisibility(R.id.rowClass2, View.GONE)
                     }

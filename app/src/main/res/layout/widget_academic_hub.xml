@@ -5,12 +5,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget_glass_oled"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="10dp">
 
     <!-- Header: DuoRhythm Pill & Refresh Hitbox -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="28dp"
+        android:layout_height="26dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -18,8 +18,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_widget_pill_badge"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="3dp"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="2dp"
             android:text="DUORHYTHM"
             android:textColor="#00E5FF"
             android:textSize="9sp"
@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="5dp"
             android:text="• ACADEMIC HUB"
             android:textColor="#64748B"
             android:textSize="9sp"
@@ -49,8 +49,8 @@
 
         <FrameLayout
             android:id="@+id/btnWidgetRefreshHitbox"
-            android:layout_width="36dp"
-            android:layout_height="28dp">
+            android:layout_width="32dp"
+            android:layout_height="26dp">
 
             <ImageView
                 android:id="@+id/ivWidgetRefreshIcon"
@@ -71,12 +71,12 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- Main Content Columns -->
+    <!-- Main Content Container -->
     <LinearLayout
         android:id="@+id/layoutMainGrid"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:layout_weight="1"
         android:baselineAligned="false"
         android:orientation="horizontal">
@@ -99,106 +99,142 @@
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Class Card 1 -->
+            <!-- Class Card 1: 3-Tier Layout -->
             <LinearLayout
                 android:id="@+id/rowClass1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="5dp"
                 android:background="@drawable/bg_widget_item_class"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:padding="6dp">
 
-                <TextView
-                    android:id="@+id/tvClass1Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
+                <!-- Tier 1: Badges Row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/tvClass1Time"
+                        android:id="@+id/tvClass1Badge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1dp"
-                        android:textColor="#94A3B8"
-                        android:textSize="9sp" />
+                        android:text="NEXT UP"
+                        android:textColor="#00E5FF"
+                        android:textSize="8sp"
+                        android:textStyle="bold" />
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
 
                     <TextView
                         android:id="@+id/tvClass1Room"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1dp"
                         android:textColor="#38BDF8"
-                        android:textSize="9sp"
+                        android:textSize="8sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
+                <!-- Tier 2: Uncut Multi-Line Title -->
+                <TextView
+                    android:id="@+id/tvClass1Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:lineSpacingExtra="1dp"
+                    android:maxLines="2"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <!-- Tier 3: Time Row -->
+                <TextView
+                    android:id="@+id/tvClass1Time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textColor="#94A3B8"
+                    android:textSize="9sp" />
             </LinearLayout>
 
-            <!-- Class Card 2 -->
+            <!-- Class Card 2: 3-Tier Layout -->
             <LinearLayout
                 android:id="@+id/rowClass2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="5dp"
                 android:background="@drawable/bg_widget_item_class"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:padding="6dp">
 
-                <TextView
-                    android:id="@+id/tvClass2Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
+                <!-- Tier 1: Badges Row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/tvClass2Time"
+                        android:id="@+id/tvClass2Badge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1dp"
-                        android:textColor="#94A3B8"
-                        android:textSize="9sp" />
+                        android:text="UPCOMING"
+                        android:textColor="#64748B"
+                        android:textSize="8sp"
+                        android:textStyle="bold" />
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
 
                     <TextView
                         android:id="@+id/tvClass2Room"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1dp"
                         android:textColor="#38BDF8"
-                        android:textSize="9sp"
+                        android:textSize="8sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
+                <!-- Tier 2: Uncut Multi-Line Title -->
+                <TextView
+                    android:id="@+id/tvClass2Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:lineSpacingExtra="1dp"
+                    android:maxLines="2"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <!-- Tier 3: Time Row -->
+                <TextView
+                    android:id="@+id/tvClass2Time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textColor="#94A3B8"
+                    android:textSize="9sp" />
             </LinearLayout>
 
             <TextView
@@ -236,32 +272,21 @@
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
-            <!-- Exam Card 1 -->
+            <!-- Exam Card 1: 3-Tier Layout -->
             <LinearLayout
                 android:id="@+id/rowExam1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="5dp"
                 android:background="@drawable/bg_widget_item_exam"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:padding="6dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvExam1Title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="#FFFFFF"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvExam1Badge"
@@ -271,67 +296,62 @@
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1dp"
                         android:textColor="#F59E0B"
-                        android:textSize="9sp"
+                        android:textSize="8sp"
                         android:textStyle="bold" />
-                </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvExam1Time"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_widget_pill_badge"
-                        android:paddingHorizontal="5dp"
-                        android:paddingVertical="1dp"
-                        android:textColor="#94A3B8"
-                        android:textSize="9sp" />
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
 
                     <TextView
                         android:id="@+id/tvExam1Room"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1dp"
                         android:textColor="#F59E0B"
-                        android:textSize="9sp"
+                        android:textSize="8sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvExam1Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:lineSpacingExtra="1dp"
+                    android:maxLines="2"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvExam1Time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textColor="#94A3B8"
+                    android:textSize="9sp" />
             </LinearLayout>
 
-            <!-- Exam Card 2 -->
+            <!-- Exam Card 2: 3-Tier Layout -->
             <LinearLayout
                 android:id="@+id/rowExam2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="5dp"
                 android:background="@drawable/bg_widget_item_exam"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:padding="6dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvExam2Title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="#FFFFFF"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvExam2Badge"
@@ -341,39 +361,45 @@
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1dp"
                         android:textColor="#F59E0B"
-                        android:textSize="9sp"
+                        android:textSize="8sp"
                         android:textStyle="bold" />
-                </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvExam2Time"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_widget_pill_badge"
-                        android:paddingHorizontal="5dp"
-                        android:paddingVertical="1dp"
-                        android:textColor="#94A3B8"
-                        android:textSize="9sp" />
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
 
                     <TextView
                         android:id="@+id/tvExam2Room"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1dp"
                         android:textColor="#F59E0B"
-                        android:textSize="9sp"
+                        android:textSize="8sp"
                         android:textStyle="bold" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvExam2Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:lineSpacingExtra="1dp"
+                    android:maxLines="2"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvExam2Time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textColor="#94A3B8"
+                    android:textSize="9sp" />
             </LinearLayout>
 
             <TextView
@@ -389,7 +415,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Bottom Glance Bar: Eliminates the empty void seamlessly -->
+    <!-- Bottom Glance Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

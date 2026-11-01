@@ -245,6 +245,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- Daily Briefing & Subscription Exact Alarm Receiver -->
+        <receiver
+            android:name=".receiver.DailyBriefingAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_DAILY_BRIEFING" />
+            </intent-filter>
+        </receiver>
+
         <!-- Timezone & System Clock Change Safeguard Receiver -->
         <receiver
             android:name=".receiver.TimezoneChangeReceiver"
