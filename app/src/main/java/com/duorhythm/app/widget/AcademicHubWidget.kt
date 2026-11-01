@@ -172,20 +172,18 @@ class AcademicHubWidget : AppWidgetProvider() {
                 }
 
                 val evalDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(evalCal.time)
-                val evalIsoDayOfWeek = calendarDayToIso(evalCal.get(Calendar.DAY_OF_WEEK))
 
-                // Correct ISO Day Query
-                var classList = db.getClassesForIsoDay(profileId, evalIsoDayOfWeek, evalDayName)
+                // Query strictly by day name
+                var classList = db.getClassesByStrictDay(profileId, evalDayName)
                 var displayDayLabel = if (isEveningTransition) "TOMORROW • ${evalDayName.uppercase()}" else "TODAY • ${evalDayName.uppercase()}"
 
-                // Search next active ISO day if evaluated day has 0 classes
+                // Forward search next active day if evaluated day has no classes
                 if (classList.isEmpty()) {
                     val searchCal = evalCal.clone() as Calendar
                     for (i in 1..6) {
                         searchCal.add(Calendar.DAY_OF_YEAR, 1)
                         val nextName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(searchCal.time)
-                        val nextIsoDay = calendarDayToIso(searchCal.get(Calendar.DAY_OF_WEEK))
-                        val candidate = db.getClassesForIsoDay(profileId, nextIsoDay, nextName)
+                        val candidate = db.getClassesByStrictDay(profileId, nextName)
                         if (candidate.isNotEmpty()) {
                             classList = candidate
                             displayDayLabel = "NEXT: ${nextName.uppercase()}"
@@ -201,9 +199,10 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val hasClasses = classList.isNotEmpty()
                 val hasExams = allExams.isNotEmpty()
 
-                views.setViewVisibility(R.id.vSectionDivider, if (hasClasses && hasExams) View.VISIBLE else View.GONE)
-                views.setViewVisibility(R.id.layoutScheduleSection, if (hasClasses || !hasExams) View.VISIBLE else View.GONE)
-                views.setViewVisibility(R.id.layoutExamSection, if (hasExams || !hasClasses) View.VISIBLE else View.GONE)
+                // UI Layout Protection: NEVER collapse the schedule section entirely into thin air
+                views.setViewVisibility(R.id.layoutScheduleSection, View.VISIBLE)
+                views.setViewVisibility(R.id.layoutExamSection, View.VISIBLE)
+                views.setViewVisibility(R.id.vSectionDivider, View.VISIBLE)
 
                 // Bind Classes
                 views.setTextViewText(R.id.tvClassHeader, displayDayLabel)
