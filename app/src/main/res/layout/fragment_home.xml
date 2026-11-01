@@ -212,38 +212,38 @@
                     android:src="@drawable/ic_chevron_right" />
             </LinearLayout>
 
-            <!-- Carousel ViewPager2 Container -->
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/viewPagerNextUp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp" />
+    <!-- Carousel ViewPager2 with Fixed Height -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerNextUp"
+        android:layout_width="match_parent"
+        android:layout_height="126dp"
+        android:layout_marginTop="8dp" />
 
-            <!-- Clean Page Dots Indicator -->
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/dotsIndicatorNextUp"
-                android:layout_width="wrap_content"
-                android:layout_height="12dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="6dp"
-                android:background="@android:color/transparent"
-                app:tabBackground="@drawable/selector_tab_dots"
-                app:tabGravity="center"
-                app:tabIndicatorHeight="0dp"
-                app:tabMaxWidth="12dp"
-                app:tabRippleColor="@null" />
+    <!-- Clean Page Dots Indicator -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/dotsIndicatorNextUp"
+        android:layout_width="wrap_content"
+        android:layout_height="12dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="6dp"
+        android:background="@android:color/transparent"
+        app:tabBackground="@drawable/selector_tab_dots"
+        app:tabGravity="center"
+        app:tabIndicatorHeight="0dp"
+        app:tabMaxWidth="12dp"
+        app:tabRippleColor="@null" />
 
-            <TextView
-                android:id="@+id/tvNoClassesScheduled"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_card_dark"
-                android:gravity="center"
-                android:text="All clear • Timetable on track"
-                android:textColor="#64748B"
-                android:textSize="13sp"
-                android:visibility="gone" />
+    <TextView
+        android:id="@+id/tvNoClassesScheduled"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_card_dark"
+        android:gravity="center"
+        android:text="All clear • Timetable on track"
+        android:textColor="#64748B"
+        android:textSize="13sp"
+        android:visibility="gone" />
         </LinearLayout>
 
         <!-- Work Milestones & Deliverables Container -->

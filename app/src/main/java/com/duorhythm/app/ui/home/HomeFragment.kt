@@ -97,6 +97,7 @@ class HomeFragment : Fragment() {
             }
 
             setupNextUpCarousel()
+            loadNextUpSchedule()
 
             quickNotesAdapter = QuickNotesAdapter(
                 emptyList(),
@@ -127,6 +128,7 @@ class HomeFragment : Fragment() {
             try {
                 loadUserProfile()
                 loadDashboardData()
+                loadNextUpSchedule()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
@@ -536,12 +538,13 @@ class HomeFragment : Fragment() {
         if (_binding == null) return
         binding.viewPagerNextUp.adapter = NextUpCardAdapter(
             onScheduleClick = {
-                // Navigate to Timetable tab (index 3)
                 (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
+                    ?: (activity as? com.duorhythm.app.ui.main.MainActivity)?.let { main ->
+                        main.findViewById<androidx.viewpager2.widget.ViewPager2>(com.duorhythm.app.R.id.mainViewPager)?.setCurrentItem(3, false)
+                    }
             }
         )
 
-        // Connect dots indicator
         TabLayoutMediator(binding.dotsIndicatorNextUp, binding.viewPagerNextUp) { _, _ -> }.attach()
 
         binding.btnNextUpPrev.setOnClickListener {
@@ -594,7 +597,6 @@ class HomeFragment : Fragment() {
         val todayIso = calendarToIso(cal)
         val todayClasses = db.getClassesForIsoDay(profileId, todayIso)
 
-        // Check if any class today is ongoing or yet to end
         val remainingTodayClasses = todayClasses.filter { cls ->
             val endMin = parseTimeToMinutes(cls.endTime)
             endMin == -1 || nowMinutes < endMin
@@ -603,22 +605,21 @@ class HomeFragment : Fragment() {
         val adapter = binding.viewPagerNextUp.adapter as? NextUpCardAdapter
 
         if (remainingTodayClasses.isNotEmpty() && currentHour < 17) {
-            // Daytime: Today still has pending classes
+            // Today has upcoming/ongoing classes
             binding.viewPagerNextUp.visibility = View.VISIBLE
-            binding.dotsIndicatorNextUp.visibility = View.VISIBLE
+            binding.dotsIndicatorNextUp.visibility = if (todayClasses.size > 1) View.VISIBLE else View.GONE
             binding.tvNoClassesScheduled.visibility = View.GONE
 
-            adapter?.submitClasses(todayClasses, isTomorrow = false, dayLabel = "Today", nowMinutes = nowMinutes)
+            adapter?.submitClasses(todayClasses, isTomorrow = false, dayLabel = "Today")
 
-            // Automatically snap carousel to the first upcoming/active class
-            val firstActiveIndex = todayClasses.indexOfFirst { cls ->
+            val activeIndex = todayClasses.indexOfFirst { cls ->
                 val endMin = parseTimeToMinutes(cls.endTime)
                 endMin == -1 || nowMinutes < endMin
             }.coerceAtLeast(0)
 
-            binding.viewPagerNextUp.setCurrentItem(firstActiveIndex, false)
+            binding.viewPagerNextUp.setCurrentItem(activeIndex, false)
         } else {
-            // Evening Rollover (Past 5 PM or all today classes finished) -> Query Tomorrow!
+            // Evening Rollover (Past 5 PM or today's classes ended) -> Load Monday!
             val tomorrowCal = (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
             val tomorrowIso = calendarToIso(tomorrowCal)
             var targetClasses = db.getClassesForIsoDay(profileId, tomorrowIso)
@@ -643,8 +644,8 @@ class HomeFragment : Fragment() {
                 binding.dotsIndicatorNextUp.visibility = if (targetClasses.size > 1) View.VISIBLE else View.GONE
                 binding.tvNoClassesScheduled.visibility = View.GONE
 
-                // Submit Monday's 3 classes to adapter and strictly reset to position 0 (Physics 2)
-                adapter?.submitClasses(targetClasses, isTomorrow = true, dayLabel = targetDayName, nowMinutes = -1)
+                // Submit Monday classes and snap to position 0
+                adapter?.submitClasses(targetClasses, isTomorrow = true, dayLabel = targetDayName)
                 binding.viewPagerNextUp.setCurrentItem(0, false)
             } else {
                 binding.viewPagerNextUp.visibility = View.GONE
