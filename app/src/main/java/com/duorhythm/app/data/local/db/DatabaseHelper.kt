@@ -2281,6 +2281,58 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
+    fun getClassesForDay(profileId: Long = getActiveProfileId(), targetDayOfWeek: Int, targetDayName: String): List<ClassEntity> {
+        val list = mutableListOf<ClassEntity>()
+        val db = this.readableDatabase
+        val query = "SELECT * FROM classes WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY start_time ASC"
+        var cursor: Cursor? = null
+        try {
+            cursor = db.rawQuery(query, arrayOf(profileId.toString()))
+            val idIdx = cursor.getColumnIndexSafe("id")
+            val subNameIdx = cursor.getColumnIndexSafe("subject_name")
+            val teacherIdx = cursor.getColumnIndexSafe("teacher_name").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("teacher")
+            val roomIdx = cursor.getColumnIndexSafe("room")
+            val startIdx = cursor.getColumnIndexSafe("start_time")
+            val endIdx = cursor.getColumnIndexSafe("end_time")
+            val dayNameIdx = cursor.getColumnIndexSafe("day_name")
+            val dayOfWeekIdx = cursor.getColumnIndexSafe("day_of_week")
+
+            while (cursor.moveToNext()) {
+                val dName = if (dayNameIdx != -1) cursor.getString(dayNameIdx).orEmpty() else ""
+                val dWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else -1
+
+                // Bulletproof matching: Day name match OR Day of week integer match
+                val isMatch = when {
+                    dName.isNotBlank() -> dName.equals(targetDayName, ignoreCase = true) || dName.startsWith(targetDayName.take(3), ignoreCase = true)
+                    else -> dWeek == targetDayOfWeek || (targetDayOfWeek == 1 && dWeek == 7)
+                }
+
+                if (isMatch) {
+                    val tName = if (teacherIdx != -1) cursor.getString(teacherIdx) else ""
+                    list.add(
+                        ClassEntity(
+                            id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
+                            profileId = profileId,
+                            subjectName = if (subNameIdx != -1) cursor.getString(subNameIdx) else "",
+                            teacher = tName,
+                            teacherName = tName,
+                            room = if (roomIdx != -1) cursor.getString(roomIdx) else "",
+                            startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
+                            endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
+                            dayName = if (dName.isNotBlank()) dName else targetDayName,
+                            dayOfWeek = if (dWeek != -1) dWeek else targetDayOfWeek
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB_CLASS", "Error reading classes", e)
+        } finally {
+            cursor?.close()
+        }
+        return list
+    }
+
     fun getAssessments(profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
         return assessmentDao.getAssessmentsByProfile(profileId)
     }
