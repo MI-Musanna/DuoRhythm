@@ -4,9 +4,10 @@
     android:minHeight="110dp"
     android:targetCellWidth="4"
     android:targetCellHeight="2"
+    android:maxResizeHeight="145dp"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/widget_academic_hub"
     android:configure="com.duorhythm.app.ui.widget.WidgetConfigActivity"
     android:widgetFeatures="reconfigurable|configuration_optional"
-    android:resizeMode="horizontal|vertical"
+    android:resizeMode="horizontal"
     android:widgetCategory="home_screen" />
