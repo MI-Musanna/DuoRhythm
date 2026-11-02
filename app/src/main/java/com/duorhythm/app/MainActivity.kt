@@ -567,7 +567,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun openProductivitySuite() {
-        openTools()
+        startActivity(Intent(this, com.duorhythm.app.ui.focus.FocusSuiteActivity::class.java))
     }
 
     fun closeTools() {

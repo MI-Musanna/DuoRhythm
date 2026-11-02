@@ -6,13 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
-import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.duorhythm.app.R
 import com.duorhythm.app.data.model.ClassScheduleItem
 import com.duorhythm.app.data.model.StudentSubject
@@ -71,19 +71,11 @@ class ScheduleFragment : Fragment() {
                 try {
                     val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                     val density = resources.displayMetrics.density
-                    val baseBottomMargin = (96 * density).toInt()
-                    val sideMargin = (20 * density).toInt()
-                    val basePaddingBottom = (120 * density).toInt()
-
-                    (binding.fabAddClass.layoutParams as? CoordinatorLayout.LayoutParams)?.let { lp ->
-                        lp.bottomMargin = baseBottomMargin + systemBars.bottom
-                        lp.rightMargin = sideMargin
-                        binding.fabAddClass.layoutParams = lp
-                    }
-                    binding.scrollSchedule.setPadding(
-                        binding.scrollSchedule.paddingLeft,
-                        binding.scrollSchedule.paddingTop,
-                        binding.scrollSchedule.paddingRight,
+                    val basePaddingBottom = (80 * density).toInt()
+                    binding.rvClasses.setPadding(
+                        binding.rvClasses.paddingLeft,
+                        binding.rvClasses.paddingTop,
+                        binding.rvClasses.paddingRight,
                         basePaddingBottom + systemBars.bottom
                     )
                 } catch (e: Exception) {
@@ -146,22 +138,27 @@ class ScheduleFragment : Fragment() {
                 showEditClassDialog(item)
             }
         )
-        binding.rvDayClasses.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvDayClasses.adapter = classesAdapter
-        AnimationUtils.applySlideUpLayoutAnimation(binding.rvDayClasses)
-    }
+        binding.rvClasses.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvClasses.adapter = classesAdapter
+        AnimationUtils.applySlideUpLayoutAnimation(binding.rvClasses)
 
-    private fun getChipForDay(day: Int): com.google.android.material.chip.Chip {
-        return when (day) {
-            1 -> binding.chipMon
-            2 -> binding.chipTue
-            3 -> binding.chipWed
-            4 -> binding.chipThu
-            5 -> binding.chipFri
-            6 -> binding.chipSat
-            7 -> binding.chipSun
-            else -> binding.chipMon
-        }
+        val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val fromPos = viewHolder.bindingAdapterPosition
+                val toPos = target.bindingAdapterPosition
+                (binding.rvClasses.adapter as? ScheduleAdapter)?.onItemMove(fromPos, toPos)
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+        })
+        itemTouchHelper.attachToRecyclerView(binding.rvClasses)
     }
 
     private fun getSelectedDayName(): String = TimetableUtils.getDayFullName(selectedDay)
@@ -171,32 +168,13 @@ class ScheduleFragment : Fragment() {
             ExportScheduleBottomSheet().show(childFragmentManager, "EXPORT_SCHEDULE_SHEET")
         }
 
-        binding.btnJumpToToday.setOnClickListener {
-            val nowCal = java.util.Calendar.getInstance()
-            val todayDbDay = TimetableUtils.calendarDayToDbDay(nowCal.get(java.util.Calendar.DAY_OF_WEEK))
-            selectedDay = todayDbDay
-            val chip = getChipForDay(todayDbDay)
-            binding.chipGroupDays.check(chip.id)
-            loadClasses()
-            Toast.makeText(requireContext(), "Switched to Today's schedule", Toast.LENGTH_SHORT).show()
-        }
-
         binding.btnAddClass.setOnClickListener {
-            showAddClassDialog()
-        }
-        binding.fabAddClass.setOnClickListener {
-            showAddClassDialog()
-        }
-        binding.btnEmptyAddClass.setOnClickListener {
             showAddClassDialog()
         }
 
         AnimationUtils.attachTactileFeedback(
             binding.btnAddClass,
-            binding.btnExportSchedule,
-            binding.fabAddClass,
-            binding.btnEmptyAddClass,
-            binding.btnJumpToToday
+            binding.btnExportSchedule
         )
     }
 
@@ -205,38 +183,48 @@ class ScheduleFragment : Fragment() {
         try {
             val startOfWeek = CalendarUtils.getFirstDayOfWeekConstant(requireContext())
             val weekDays = TimetableUtils.getWeekDays(startOfWeek)
+            binding.layoutDaysStrip.removeAllViews()
 
-            binding.chipGroupDays.setOnCheckedChangeListener(null)
-            binding.chipGroupDays.removeAllViews()
+            val density = resources.displayMetrics.density
+            val padH = (14 * density).toInt()
+            val padV = (8 * density).toInt()
+            val marginH = (4 * density).toInt()
 
             for (dayInfo in weekDays) {
-                val chip = getChipForDay(dayInfo.dbDay)
-                (chip.parent as? android.view.ViewGroup)?.removeView(chip)
-                chip.text = "${dayInfo.shortName} ${dayInfo.dayOfMonth}"
-                binding.chipGroupDays.addView(chip)
-            }
+                val isSelected = dayInfo.dbDay == selectedDay
+                val dayView = android.widget.TextView(requireContext()).apply {
+                    text = "${dayInfo.shortName} ${dayInfo.dayOfMonth}"
+                    textSize = 12f
+                    gravity = android.view.Gravity.CENTER
+                    setPadding(padH, padV, padH, padV)
+                    val lp = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                        (36 * density).toInt()
+                    ).apply {
+                        setMargins(marginH, 0, marginH, 0)
+                    }
+                    layoutParams = lp
 
-            // Restore listener
-            binding.chipGroupDays.setOnCheckedChangeListener { _, checkedId ->
-                val newDay = when (checkedId) {
-                    R.id.chipMon -> 1
-                    R.id.chipTue -> 2
-                    R.id.chipWed -> 3
-                    R.id.chipThu -> 4
-                    R.id.chipFri -> 5
-                    R.id.chipSat -> 6
-                    R.id.chipSun -> 7
-                    else -> selectedDay
-                }
-                if (newDay != selectedDay) {
-                    selectedDay = newDay
-                    loadClasses()
-                }
-            }
+                    if (isSelected) {
+                        setBackgroundResource(R.drawable.bg_pill_blue)
+                        setTextColor(android.graphics.Color.WHITE)
+                        typeface = android.graphics.Typeface.DEFAULT_BOLD
+                    } else {
+                        setBackgroundResource(R.drawable.bg_pill_dark)
+                        setTextColor(android.graphics.Color.parseColor("#94A3B8"))
+                        typeface = android.graphics.Typeface.DEFAULT
+                    }
 
-            // Ensure the active selected day chip is checked
-            val activeChip = getChipForDay(selectedDay)
-            binding.chipGroupDays.check(activeChip.id)
+                    setOnClickListener {
+                        if (selectedDay != dayInfo.dbDay) {
+                            selectedDay = dayInfo.dbDay
+                            setupCalendarDateStrip()
+                            loadClasses()
+                        }
+                    }
+                }
+                binding.layoutDaysStrip.addView(dayView)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -259,15 +247,14 @@ class ScheduleFragment : Fragment() {
 
         val dayName = TimetableUtils.getDayFullName(selectedDay)
         val count = classes.size
-        binding.tvScheduleDaySummary.text = "$dayName: $count Class${if (count != 1) "es" else ""} Scheduled"
-        binding.tvScheduleSubtitle.text = "$dayName agenda"
+        binding.tvDaySummary.text = "$dayName • $count ${if (count == 1) "Class" else "Classes"}"
 
         if (classes.isEmpty()) {
-            binding.rvDayClasses.visibility = View.GONE
-            binding.layoutEmptyClasses.visibility = View.VISIBLE
+            binding.rvClasses.visibility = View.GONE
+            binding.tvEmptySchedule.visibility = View.VISIBLE
         } else {
-            binding.rvDayClasses.visibility = View.VISIBLE
-            binding.layoutEmptyClasses.visibility = View.GONE
+            binding.rvClasses.visibility = View.VISIBLE
+            binding.tvEmptySchedule.visibility = View.GONE
         }
     }
 
@@ -412,4 +399,3 @@ class ScheduleFragment : Fragment() {
 }
 
 typealias TimetableFragment = ScheduleFragment
-

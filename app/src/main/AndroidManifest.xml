@@ -55,6 +55,11 @@
             android:exported="true" />
 
         <activity
+            android:name=".ui.focus.FocusSuiteActivity"
+            android:theme="@style/Theme.DuoRhythm"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.portal.StudentSubjectDetailActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity"

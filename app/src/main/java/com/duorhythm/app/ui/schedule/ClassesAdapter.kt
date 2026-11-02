@@ -18,10 +18,27 @@ class ClassesAdapter(
     private val onItemClick: ((ClassScheduleItem) -> Unit)? = null
 ) : RecyclerView.Adapter<ClassesAdapter.ClassViewHolder>() {
 
+    val classesList = classes.toMutableList()
+
     fun updateList(newClasses: List<ClassScheduleItem>, dayOfWeek: Int) {
         classes = newClasses
+        classesList.clear()
+        classesList.addAll(newClasses)
         selectedDayOfWeek = dayOfWeek
         notifyDataSetChanged()
+    }
+
+    fun onItemMove(fromPosition: Int, toPosition: Int) {
+        if (fromPosition < toPosition) {
+            for (i in fromPosition until toPosition) {
+                java.util.Collections.swap(classesList, i, i + 1)
+            }
+        } else {
+            for (i in fromPosition downTo toPosition + 1) {
+                java.util.Collections.swap(classesList, i, i - 1)
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClassViewHolder {
@@ -30,11 +47,11 @@ class ClassesAdapter(
     }
 
     override fun onBindViewHolder(holder: ClassViewHolder, position: Int) {
-        holder.bind(classes[position])
+        holder.bind(classesList[position])
         AnimationUtils.animateItemEntry(holder.itemView, position)
     }
 
-    override fun getItemCount(): Int = classes.size
+    override fun getItemCount(): Int = classesList.size
 
     inner class ClassViewHolder(private val binding: ItemClassScheduleBinding) :
         RecyclerView.ViewHolder(binding.root) {

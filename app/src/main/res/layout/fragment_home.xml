@@ -18,155 +18,82 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- 1. Header: Minimal Avatar Pill + "Welcome back" + Compact Mode Switch Capsule -->
-        <eightbitlab.com.blurview.BlurView
-            android:id="@+id/blurHeader"
+        <!-- Replace Top Header Layout in fragment_home.xml -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_glass_specular_edge"
-            android:clipToOutline="true"
-            android:clipToPadding="true"
-            android:clipChildren="true"
-            android:outlineProvider="background"
-            android:elevation="0dp"
-            app:blurOverlayColor="@color/blur_overlay">
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/ivUserProfile"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_circle_button_dark"
+                android:contentDescription="Profile"
+                android:src="@drawable/ic_profile_placeholder" />
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="18dp">
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <!-- Header Top Row -->
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvWelcomeUser"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
 
-                    <!-- Stylish User Profile Avatar Badge (Replaces duplicate app icon) -->
-                    <FrameLayout
-                        android:id="@+id/containerHomeAvatar"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:background="@drawable/bg_avatar_circle"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <ImageView
-                            android:id="@+id/ivUserAvatar"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
-                            android:layout_gravity="center"
-                            android:scaleType="centerCrop"
-                            android:padding="8dp"
-                            android:src="@drawable/ic_person"
-                            app:tint="@color/neon_cyan"
-                            android:contentDescription="User Profile" />
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:id="@+id/layoutUserInfo"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_marginEnd="12dp"
-                        android:layout_weight="1"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:orientation="vertical">
-
-                        <!-- Top Label -->
-                        <TextView
-                            android:id="@+id/tvHomeGreeting"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="Welcome back,"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
-
-                        <!-- User Name Label -->
-                        <TextView
-                            android:id="@+id/tvUserName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Scholar"
-                            tools:text="Scholar"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-
-                        <!-- Date Label -->
-                        <TextView
-                            android:id="@+id/tvHomeLiveDate"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Wednesday, October 14"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Enclosed Unified Student/Work Pill -->
-                    <FrameLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_toggle_container"
-                        android:clipToPadding="true"
-                        android:clipChildren="true"
-                        android:padding="4dp">
-
-                        <com.google.android.material.button.MaterialButtonToggleGroup
-                            android:id="@+id/toggleHomeProfile"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            app:checkedButton="@id/btnHomeProfileStudent"
-                            app:singleSelection="true">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnHomeProfileStudent"
-                                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:minHeight="32dp"
-                                android:insetTop="0dp"
-                                android:insetBottom="0dp"
-                                android:paddingHorizontal="14dp"
-                                android:paddingVertical="0dp"
-                                android:text="Student"
-                                android:textColor="@color/white"
-                                android:textSize="11sp"
-                                android:textStyle="bold"
-                                app:backgroundTint="#0284C7"
-                                app:strokeWidth="0dp"
-                                app:cornerRadius="16dp" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnHomeProfileWork"
-                                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:minHeight="32dp"
-                                android:insetTop="0dp"
-                                android:insetBottom="0dp"
-                                android:paddingHorizontal="14dp"
-                                android:paddingVertical="0dp"
-                                android:text="Work"
-                                android:textColor="#475569"
-                                android:textSize="11sp"
-                                android:textStyle="bold"
-                                app:backgroundTint="@android:color/transparent"
-                                app:strokeWidth="0dp"
-                                app:cornerRadius="16dp" />
-                        </com.google.android.material.button.MaterialButtonToggleGroup>
-                    </FrameLayout>
-                </LinearLayout>
-
+                <TextView
+                    android:id="@+id/tvCurrentDateHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="#94A3B8"
+                    android:textSize="12sp" />
             </LinearLayout>
-        </eightbitlab.com.blurview.BlurView>
+
+            <LinearLayout
+                android:id="@+id/toggleStudentWork"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_pill_dark"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <TextView
+                    android:id="@+id/btnStudentMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:background="@drawable/bg_pill_blue"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:text="STUDENT"
+                    android:textColor="#FFFFFF"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnWorkMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:text="WORK"
+                    android:textColor="#64748B"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
 
         <!-- Student Next Up Schedule Container -->
         <LinearLayout
@@ -1213,7 +1140,7 @@
 
                 <!-- Action 4: Suite -->
                 <LinearLayout
-                    android:id="@+id/toolHomeBackup"
+                    android:id="@+id/btnQuickSuite"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"

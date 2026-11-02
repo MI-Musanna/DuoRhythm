@@ -2190,7 +2190,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } catch (e: Exception) {
             Log.e("DUO_DB_READ", "Failed reading schedule for day $dayOfWeek, profile $profileId", e)
         }
-        return list
+        return list.sortedBy { parseTimeToMinutesInternal(it.startTime) }
     }
 
     fun getAllClasses(profileId: Long = getActiveProfileId()): List<ClassScheduleItem> {
@@ -2294,7 +2294,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } finally {
             cursor?.close()
         }
-        return list
+        return list.sortedBy { parseTimeToMinutesInternal(it.startTime) }
     }
 
     @Volatile
@@ -2405,7 +2405,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } finally {
             cursor?.close()
         }
-        return list
+        return list.sortedBy { parseTimeToMinutesInternal(it.startTime) }
     }
 
     fun getClassesByStrictDay(targetDayName: String): List<ClassEntity> =
@@ -2456,7 +2456,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } finally {
             cursor?.close()
         }
-        return list
+        return list.sortedBy { parseTimeToMinutesInternal(it.startTime) }
+    }
+
+    fun parseTimeToMinutesInternal(timeStr: String): Int {
+        return try {
+            val regex = Regex("""(\d{1,2})[:.](\d{2})\s*([AaPp][Mm])?""")
+            val match = regex.find(timeStr.trim()) ?: return 0
+            var hour = match.groupValues[1].toIntOrNull() ?: 0
+            val minute = match.groupValues[2].toIntOrNull() ?: 0
+            val ampm = match.groupValues[3].uppercase(java.util.Locale.US)
+            if (ampm == "PM" && hour < 12) hour += 12
+            if (ampm == "AM" && hour == 12) hour = 0
+            hour * 60 + minute
+        } catch (_: Exception) { 0 }
     }
 
     fun getClassesForIsoDay(isoDayOfWeek: Int): List<ClassEntity> =
@@ -2507,7 +2520,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } finally {
             cursor?.close()
         }
-        return list
+        return list.sortedBy { parseTimeToMinutesInternal(it.startTime) }
     }
 
     fun getClassesForIsoDay(profileId: Long, isoDayOfWeek: Int, dayName: String): List<ClassEntity> =

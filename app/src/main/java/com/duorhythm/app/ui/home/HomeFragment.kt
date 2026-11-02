@@ -27,6 +27,7 @@ import com.duorhythm.app.ui.common.ColorSliderView
 import com.duorhythm.app.ui.tools.AmbientSoundDialog
 import com.duorhythm.app.ui.tools.PercentageCalcDialog
 import com.duorhythm.app.ui.tools.PomodoroDialog
+import com.duorhythm.app.ui.focus.FocusSuiteActivity
 import com.duorhythm.app.data.model.PersonaMode
 import com.duorhythm.app.util.crossfade
 import com.duorhythm.app.ui.wallet.WalletDataSyncManager
@@ -152,7 +153,6 @@ class HomeFragment : Fragment() {
             val rootView = activity?.window?.decorView?.findViewById<ViewGroup>(android.R.id.content)
                 ?: (binding.root as? ViewGroup)
             if (rootView != null) {
-                BlurUtil.setupBlur(binding.blurHeader, rootView)
                 BlurUtil.setupBlur(binding.cardHomeWallet, rootView)
                 BlurUtil.setupBlur(binding.cardHomeTasks, rootView)
                 BlurUtil.setupBlur(binding.cardHomeQuickNotes, rootView)
@@ -173,45 +173,41 @@ class HomeFragment : Fragment() {
             val savedName = profilePrefs.getString(com.duorhythm.app.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.trim()
                 ?: profilePrefs.getString("user_display_name", null)?.trim()
             val profileName = if (!savedName.isNullOrEmpty()) savedName else "Scholar"
-            binding.tvHomeGreeting.text = "Welcome back,"
-            binding.tvUserName.text = profileName
-            binding.tvUserName.visibility = View.VISIBLE
+            binding.tvWelcomeUser.text = "Welcome back, $profileName"
 
             val activeId = ProfileManager.getActiveProfileId(context)
             val activeProfile = dbHelper.profileDao.getProfileById(activeId)
 
-            binding.ivUserAvatar.setImageDrawable(null)
-            binding.ivUserAvatar.setImageBitmap(null)
+            binding.ivUserProfile.setImageDrawable(null)
+            binding.ivUserProfile.setImageBitmap(null)
 
             val avatarUriString = activeProfile?.avatarUri
             if (!avatarUriString.isNullOrBlank()) {
                 try {
-                    binding.ivUserAvatar.setPadding(0, 0, 0, 0)
-                    binding.ivUserAvatar.imageTintList = null
-                    binding.ivUserAvatar.setImageURI(android.net.Uri.parse(avatarUriString))
+                    binding.ivUserProfile.setPadding(0, 0, 0, 0)
+                    binding.ivUserProfile.imageTintList = null
+                    binding.ivUserProfile.setImageURI(android.net.Uri.parse(avatarUriString))
                 } catch (e: Exception) {
                     val density = resources.displayMetrics.density
                     val pad8 = (8 * density).toInt()
-                    binding.ivUserAvatar.setPadding(pad8, pad8, pad8, pad8)
-                    binding.ivUserAvatar.setImageResource(R.drawable.ic_default_profile)
-                    binding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                    binding.ivUserProfile.setPadding(pad8, pad8, pad8, pad8)
+                    binding.ivUserProfile.setImageResource(R.drawable.ic_profile_placeholder)
+                    binding.ivUserProfile.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
                 }
             } else {
                 val density = resources.displayMetrics.density
                 val pad8 = (8 * density).toInt()
-                binding.ivUserAvatar.setPadding(pad8, pad8, pad8, pad8)
-                binding.ivUserAvatar.setImageResource(R.drawable.ic_default_profile)
-                binding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                binding.ivUserProfile.setPadding(pad8, pad8, pad8, pad8)
+                binding.ivUserProfile.setImageResource(R.drawable.ic_profile_placeholder)
+                binding.ivUserProfile.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
             }
 
             val openProfile = View.OnClickListener {
                 val intent = Intent(requireContext(), ProfileActivity::class.java)
                 startActivity(intent)
             }
-            binding.ivUserAvatar.setOnClickListener(openProfile)
-            binding.containerHomeAvatar.setOnClickListener(openProfile)
-            binding.layoutUserInfo.setOnClickListener(openProfile)
-            binding.tvUserName.setOnClickListener(openProfile)
+            binding.ivUserProfile.setOnClickListener(openProfile)
+            binding.tvWelcomeUser.setOnClickListener(openProfile)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -220,22 +216,18 @@ class HomeFragment : Fragment() {
     private fun setupGreetingAndDate() {
         try {
             val dateFormat = SimpleDateFormat("EEEE, MMMM d", Locale.US)
-            binding.tvHomeLiveDate.text = dateFormat.format(Date())
+            binding.tvCurrentDateHeader.text = dateFormat.format(Date())
 
             val workPortalEnabled = dbHelper.isWorkPortalEnabled()
             val mainActivity = activity as? MainActivity
             val isStudent = !workPortalEnabled || (mainActivity?.isStudentProfile() ?: true)
 
             if (!workPortalEnabled) {
-                binding.toggleHomeProfile.visibility = View.GONE
+                binding.toggleStudentWork.visibility = View.GONE
             } else {
-                binding.toggleHomeProfile.visibility = View.VISIBLE
+                binding.toggleStudentWork.visibility = View.VISIBLE
             }
 
-            val targetId = if (isStudent) R.id.btnHomeProfileStudent else R.id.btnHomeProfileWork
-            if (binding.toggleHomeProfile.checkedButtonId != targetId) {
-                binding.toggleHomeProfile.check(targetId)
-            }
             updateToggleStyle(isStudent)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -248,7 +240,6 @@ class HomeFragment : Fragment() {
                 binding.rootLayout,
                 android.transition.AutoTransition().apply { duration = 180 }
             )
-            val persona = if (isStudent) PersonaMode.STUDENT else PersonaMode.WORK
             binding.layoutNextUpSection.crossfade(isStudent)
             binding.layoutWorkMilestonesContainer.crossfade(!isStudent)
             binding.layoutStudentOverview.crossfade(isStudent)
@@ -256,20 +247,11 @@ class HomeFragment : Fragment() {
             binding.cardStudyPortal.crossfade(isStudent)
             binding.cardWorkPortal.crossfade(!isStudent)
 
-            val cyanColor = ColorStateList.valueOf(Color.parseColor("#0284C7"))
-            val emeraldColor = ColorStateList.valueOf(Color.parseColor("#10B981"))
-            val transparentColor = ColorStateList.valueOf(Color.TRANSPARENT)
-
             if (isStudent) {
-                binding.btnHomeProfileStudent.backgroundTintList = cyanColor
-                binding.btnHomeProfileStudent.strokeWidth = 0
-                binding.btnHomeProfileStudent.setTextColor(Color.WHITE)
-                binding.btnHomeProfileStudent.elevation = 0f
-
-                binding.btnHomeProfileWork.backgroundTintList = transparentColor
-                binding.btnHomeProfileWork.strokeWidth = 0
-                binding.btnHomeProfileWork.setTextColor(Color.parseColor("#475569"))
-                binding.btnHomeProfileWork.elevation = 0f
+                binding.btnStudentMode.setBackgroundResource(R.drawable.bg_pill_blue)
+                binding.btnStudentMode.setTextColor(Color.WHITE)
+                binding.btnWorkMode.background = null
+                binding.btnWorkMode.setTextColor(Color.parseColor("#64748B"))
 
                 // Sync Portal Shortcut Card to Student Mode
                 binding.badgeHomePortal.setBackgroundResource(R.drawable.bg_squircle_portal_student)
@@ -277,15 +259,10 @@ class HomeFragment : Fragment() {
                 binding.btnHomePortalAction.setBackgroundResource(R.drawable.bg_portal_pill_student)
                 binding.btnHomePortalAction.setTextColor(Color.parseColor("#38BDF8"))
             } else {
-                binding.btnHomeProfileStudent.backgroundTintList = transparentColor
-                binding.btnHomeProfileStudent.strokeWidth = 0
-                binding.btnHomeProfileStudent.setTextColor(Color.parseColor("#475569"))
-                binding.btnHomeProfileStudent.elevation = 0f
-
-                binding.btnHomeProfileWork.backgroundTintList = emeraldColor
-                binding.btnHomeProfileWork.strokeWidth = 0
-                binding.btnHomeProfileWork.setTextColor(Color.WHITE)
-                binding.btnHomeProfileWork.elevation = 0f
+                binding.btnStudentMode.background = null
+                binding.btnStudentMode.setTextColor(Color.parseColor("#64748B"))
+                binding.btnWorkMode.setBackgroundResource(R.drawable.bg_pill_blue)
+                binding.btnWorkMode.setTextColor(Color.WHITE)
 
                 // Sync Portal Shortcut Card to Work Mode
                 binding.badgeHomePortal.setBackgroundResource(R.drawable.bg_squircle_portal_work)
@@ -302,13 +279,16 @@ class HomeFragment : Fragment() {
         try {
             val mainActivity = activity as? MainActivity
 
-            binding.toggleHomeProfile.addOnButtonCheckedListener { _, checkedId, isChecked ->
-                if (isChecked) {
-                    val isStudent = checkedId == R.id.btnHomeProfileStudent
-                    mainActivity?.setStudentProfile(isStudent)
-                    updateToggleStyle(isStudent)
-                    loadDashboardData()
-                }
+            binding.btnStudentMode.setOnClickListener {
+                mainActivity?.setStudentProfile(true)
+                updateToggleStyle(true)
+                loadDashboardData()
+            }
+
+            binding.btnWorkMode.setOnClickListener {
+                mainActivity?.setStudentProfile(false)
+                updateToggleStyle(false)
+                loadDashboardData()
             }
 
             binding.cardHomeWallet.setOnClickListener {
@@ -373,8 +353,8 @@ class HomeFragment : Fragment() {
                 PercentageCalcDialog(requireContext()).show()
             }
 
-            binding.toolHomeBackup.setOnClickListener {
-                mainActivity?.openTools()
+            binding.btnQuickSuite.setOnClickListener {
+                startActivity(Intent(requireContext(), FocusSuiteActivity::class.java))
             }
 
             binding.btnHomeOpenTools.setOnClickListener {
@@ -402,8 +382,10 @@ class HomeFragment : Fragment() {
                 binding.toolHomePomodoro,
                 binding.toolHomeMusic,
                 binding.toolHomeCalc,
-                binding.toolHomeBackup,
-                binding.containerHomeAvatar
+                binding.btnQuickSuite,
+                binding.ivUserProfile,
+                binding.btnStudentMode,
+                binding.btnWorkMode
             )
         } catch (e: Exception) {
             e.printStackTrace()
@@ -501,15 +483,11 @@ class HomeFragment : Fragment() {
             val isStudent = !workPortalEnabled || ((activity as? MainActivity)?.isStudentProfile() ?: true)
 
             if (!workPortalEnabled) {
-                binding.toggleHomeProfile.visibility = View.GONE
+                binding.toggleStudentWork.visibility = View.GONE
             } else {
-                binding.toggleHomeProfile.visibility = View.VISIBLE
+                binding.toggleStudentWork.visibility = View.VISIBLE
             }
 
-            val targetId = if (isStudent) R.id.btnHomeProfileStudent else R.id.btnHomeProfileWork
-            if (binding.toggleHomeProfile.checkedButtonId != targetId) {
-                binding.toggleHomeProfile.check(targetId)
-            }
             updateToggleStyle(isStudent)
 
             if (isStudent) {
