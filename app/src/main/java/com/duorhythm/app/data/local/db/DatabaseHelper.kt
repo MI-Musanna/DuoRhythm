@@ -4373,6 +4373,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.update("subject_work_items", cv, "id = ?", arrayOf(id.toString()))
     }
 
+    fun updateAssessmentStatus(id: Long, status: String) {
+        updateSubjectWorkItemStatus(id, status)
+    }
+
     fun updateSubjectWorkItem(item: SubjectWorkItem): Int {
         val db = writableDatabase
         val cv = ContentValues().apply {

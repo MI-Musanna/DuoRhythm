@@ -308,6 +308,8 @@ class MainActivity : AppCompatActivity() {
         binding.mainViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
+                // If navigation enters a dedicated full-screen overlay or modal, hide bottom bar
+                binding.bottomNav.visibility = View.VISIBLE
                 onTabPageSelected(position)
             }
         })
@@ -554,6 +556,7 @@ class MainActivity : AppCompatActivity() {
 
     fun openTools() {
         isToolsActive = true
+        binding.bottomNav.visibility = View.GONE
         binding.toolsContainer.visibility = View.VISIBLE
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
@@ -563,9 +566,14 @@ class MainActivity : AppCompatActivity() {
         updateHeaderSuiteVisuals(true)
     }
 
+    fun openProductivitySuite() {
+        openTools()
+    }
+
     fun closeTools() {
         if (!isToolsActive) return
         isToolsActive = false
+        binding.bottomNav.visibility = View.VISIBLE
         supportFragmentManager.findFragmentByTag("tools")?.let {
             supportFragmentManager.beginTransaction()
                 .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)

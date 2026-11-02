@@ -262,7 +262,8 @@ class PortalFragment : Fragment() {
         unifiedAssessmentsAdapter = AssessmentAdapter(
             emptyList(),
             onToggleStatus = { entity, nextStatus ->
-                dbHelper.updateSubjectWorkItemStatus(entity.id, nextStatus)
+                dbHelper.updateAssessmentStatus(entity.id, nextStatus)
+                com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(requireContext())
                 loadStudentData()
             },
             onDeleteClick = { entity ->
@@ -272,6 +273,7 @@ class PortalFragment : Fragment() {
                     .setPositiveButton("Delete") { _, _ ->
                         dbHelper.deleteSubjectWorkItem(entity.id)
                         com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(requireContext(), entity.id)
+                        com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(requireContext())
                         loadStudentData()
                     }
                     .setNegativeButton("Cancel", null)
@@ -414,7 +416,7 @@ class PortalFragment : Fragment() {
             showEditInstitutionDialog()
         }
 
-        binding.btnAddAssessment.setOnClickListener {
+        binding.btnScheduleAssessment.setOnClickListener {
             val defType = when (selectedAssessmentFilter) {
                 "FINALS" -> "SEMESTER_FINAL"
                 "MIDTERMS" -> "MIDTERM"
@@ -426,7 +428,7 @@ class PortalFragment : Fragment() {
             showAddExamDialog(defType)
         }
 
-        binding.btnExportExams.setOnClickListener {
+        binding.btnExportAssessments.setOnClickListener {
             ExportExamsBottomSheet().show(childFragmentManager, "EXPORT_EXAMS_SHEET")
         }
 
@@ -693,9 +695,10 @@ class PortalFragment : Fragment() {
             )
         }
         assessmentAdapter.setMasterData(allAssessmentEntities)
-        binding.tvAssessmentsCountBadge.text = "${allAssessmentEntities.size} Scheduled"
+        binding.tvScheduledCountBadge.text = "${allAssessmentEntities.size} Scheduled"
         context?.let { ctx ->
             com.duorhythm.app.widget.ExamCountdownWidget.pushUpdate(ctx)
+            com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(ctx)
         }
 
         loadStudentContacts()

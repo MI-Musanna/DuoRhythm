@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.util.Log
 import android.view.View
@@ -61,7 +62,6 @@ class AcademicHubWidget : AppWidgetProvider() {
     companion object {
         const val ACTION_MANUAL_REFRESH = "com.duorhythm.app.widget.ACTION_MANUAL_REFRESH"
 
-        // Converts Java Calendar Day (Sunday=1, Monday=2..Saturday=7) to ISO-8601 (Monday=1..Sunday=7)
         fun calendarDayToIso(calDay: Int): Int {
             return when (calDay) {
                 Calendar.MONDAY -> 1
@@ -91,13 +91,13 @@ class AcademicHubWidget : AppWidgetProvider() {
             }
         }
 
-        private fun scheduleExactClassBoundaryAlarm(context: Context, triggerMinuteOfDay: Int) {
+        private fun scheduleExactBoundaryAlarm(context: Context, triggerMinuteOfDay: Int) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
             val nowCal = Calendar.getInstance()
             val targetCal = nowCal.clone() as Calendar
             targetCal.set(Calendar.HOUR_OF_DAY, triggerMinuteOfDay / 60)
             targetCal.set(Calendar.MINUTE, triggerMinuteOfDay % 60)
-            targetCal.set(Calendar.SECOND, 1) // 1 second past boundary to guarantee status transition
+            targetCal.set(Calendar.SECOND, 1)
             targetCal.set(Calendar.MILLISECOND, 0)
 
             if (targetCal.timeInMillis > nowCal.timeInMillis) {
@@ -106,7 +106,7 @@ class AcademicHubWidget : AppWidgetProvider() {
                 }
                 val pi = PendingIntent.getBroadcast(
                     context,
-                    triggerMinuteOfDay + 7000,
+                    triggerMinuteOfDay + 8000,
                     intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
@@ -134,7 +134,6 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val compactMode = prefs.getBoolean("compact_mode", false)
                 val isTransparentBg = prefs.getBoolean("transparent_bg", false)
 
-                // Background
                 if (isTransparentBg) {
                     views.setInt(R.id.layoutWidgetRoot, "setBackgroundResource", android.R.color.transparent)
                 } else {
@@ -163,40 +162,39 @@ class AcademicHubWidget : AppWidgetProvider() {
                 val cal = Calendar.getInstance()
                 val currentHour = cal.get(Calendar.HOUR_OF_DAY)
                 val nowMinutes = currentHour * 60 + cal.get(Calendar.MINUTE)
-                val isEveningTransition = currentHour >= transitionHour
+                val todayIso = calendarDayToIso(cal.get(Calendar.DAY_OF_WEEK))
 
-                val evalCal = if (isEveningTransition) {
+                // 1. DYNAMIC TIME-SHIFT CLASS PRUNING LOGIC:
+                val rawTodayClasses = db.getClassesForIsoDay(profileId, todayIso)
+                val activeOrFutureTodayClasses = rawTodayClasses.filter { cls ->
+                    val endMin = parseTimeToMinutes(cls.endTime)
+                    endMin == -1 || nowMinutes < endMin // Drop classes that have completely finished
+                }
+
+                val isEveningRollover = currentHour >= transitionHour || (rawTodayClasses.isNotEmpty() && activeOrFutureTodayClasses.isEmpty())
+
+                val displayCal = if (isEveningRollover) {
                     (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
                 } else {
                     cal
                 }
 
-                fun calendarToIso(c: Calendar): Int {
-                    return when (c.get(Calendar.DAY_OF_WEEK)) {
-                        Calendar.MONDAY -> 1
-                        Calendar.TUESDAY -> 2
-                        Calendar.WEDNESDAY -> 3
-                        Calendar.THURSDAY -> 4
-                        Calendar.FRIDAY -> 5
-                        Calendar.SATURDAY -> 6
-                        Calendar.SUNDAY -> 7
-                        else -> 1
-                    }
+                val displayIso = calendarDayToIso(displayCal.get(Calendar.DAY_OF_WEEK))
+                val displayDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(displayCal.time)
+
+                var classList = if (isEveningRollover) {
+                    db.getClassesForIsoDay(profileId, displayIso)
+                } else {
+                    activeOrFutureTodayClasses
                 }
 
-                val evalIsoDay = calendarToIso(evalCal)
-                val evalDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(evalCal.time)
+                var displayDayLabel = if (isEveningRollover) "TOMORROW • ${displayDayName.uppercase()}" else "TODAY • ${displayDayName.uppercase()}"
 
-                // Query Monday using strict ISO integer (Monday = 1)
-                var classList = db.getClassesForIsoDay(profileId, evalIsoDay)
-                var displayDayLabel = if (isEveningTransition) "TOMORROW • ${evalDayName.uppercase()}" else "TODAY • ${evalDayName.uppercase()}"
-
-                // Forward search next active day if evaluated day has no classes
-                if (classList.isEmpty()) {
-                    val searchCal = evalCal.clone() as Calendar
+                if (classList.isEmpty() && isEveningRollover) {
+                    val searchCal = displayCal.clone() as Calendar
                     for (i in 1..6) {
                         searchCal.add(Calendar.DAY_OF_YEAR, 1)
-                        val nextIso = calendarToIso(searchCal)
+                        val nextIso = calendarDayToIso(searchCal.get(Calendar.DAY_OF_WEEK))
                         val nextName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(searchCal.time)
                         val candidate = db.getClassesForIsoDay(profileId, nextIso)
                         if (candidate.isNotEmpty()) {
@@ -207,32 +205,33 @@ class AcademicHubWidget : AppWidgetProvider() {
                     }
                 }
 
+                // Schedule boundary alarms for today's classes
+                if (!isEveningRollover) {
+                    for (cls in rawTodayClasses) {
+                        val st = parseTimeToMinutes(cls.startTime)
+                        val et = parseTimeToMinutes(cls.endTime)
+                        if (st != -1) scheduleExactBoundaryAlarm(context, st)
+                        if (et != -1) scheduleExactBoundaryAlarm(context, et)
+                    }
+                }
+
+                // 2. EXAM PARSING & STATUS FILTER FIX:
+                // Strict check: Drop completed / done exams
                 val allExams = db.getAssessments(profileId)
-                    .filter { it.status.uppercase() != "COMPLETED" }
+                    .filter { it.status.uppercase() !in listOf("COMPLETED", "DONE", "FINISHED") }
                     .sortedBy { it.dueDate + " " + it.dueTime }
 
                 val hasClasses = classList.isNotEmpty()
                 val hasExams = allExams.isNotEmpty()
 
-                // UI Layout Protection: NEVER collapse the schedule section entirely into thin air
                 views.setViewVisibility(R.id.layoutScheduleSection, View.VISIBLE)
                 views.setViewVisibility(R.id.layoutExamSection, View.VISIBLE)
                 views.setViewVisibility(R.id.vSectionDivider, View.VISIBLE)
 
-                // Bind Classes
+                // BIND CLASSES
                 views.setTextViewText(R.id.tvClassHeader, displayDayLabel)
                 if (hasClasses) {
                     views.setViewVisibility(R.id.tvNoClasses, View.GONE)
-
-                    // Schedule Exact Alarms for Today's Boundaries (Start & End)
-                    if (!isEveningTransition) {
-                        for (cls in classList) {
-                            val st = parseTimeToMinutes(cls.startTime)
-                            val et = parseTimeToMinutes(cls.endTime)
-                            if (st != -1) scheduleExactClassBoundaryAlarm(context, st)
-                            if (et != -1) scheduleExactClassBoundaryAlarm(context, et)
-                        }
-                    }
 
                     // Class 1
                     val c1 = classList[0]
@@ -244,18 +243,16 @@ class AcademicHubWidget : AppWidgetProvider() {
 
                     val c1Start = parseTimeToMinutes(c1.startTime)
                     val c1End = parseTimeToMinutes(c1.endTime)
-                    // Strict "until" condition: Class ENDS at c1End, border MUST clear when nowMinutes >= c1End
-                    val isC1InProgress = !isEveningTransition && c1Start != -1 && c1End != -1 && nowMinutes in c1Start until c1End
-                    val isC1Next = !isEveningTransition && c1Start != -1 && nowMinutes < c1Start
+                    val isC1InProgress = !isEveningRollover && c1Start != -1 && c1End != -1 && nowMinutes in c1Start until c1End
 
                     if (isC1InProgress) {
                         views.setInt(R.id.rowClass1, "setBackgroundResource", R.drawable.bg_widget_item_class_active)
                         views.setTextViewText(R.id.tvClass1Badge, "● IN PROGRESS")
-                        views.setTextColor(R.id.tvClass1Badge, android.graphics.Color.parseColor("#00E5FF"))
+                        views.setTextColor(R.id.tvClass1Badge, Color.parseColor("#00E5FF"))
                     } else {
                         views.setInt(R.id.rowClass1, "setBackgroundResource", R.drawable.bg_widget_item_class)
-                        views.setTextViewText(R.id.tvClass1Badge, if (isC1Next) "NEXT UP" else "SCHEDULED")
-                        views.setTextColor(R.id.tvClass1Badge, if (isC1Next) android.graphics.Color.parseColor("#00E5FF") else android.graphics.Color.parseColor("#94A3B8"))
+                        views.setTextViewText(R.id.tvClass1Badge, if (!isEveningRollover) "NEXT UP" else "SCHEDULED")
+                        views.setTextColor(R.id.tvClass1Badge, Color.parseColor("#00E5FF"))
                     }
 
                     // Class 2
@@ -269,18 +266,16 @@ class AcademicHubWidget : AppWidgetProvider() {
 
                         val c2Start = parseTimeToMinutes(c2.startTime)
                         val c2End = parseTimeToMinutes(c2.endTime)
-                        // Strict "until" condition: Class ENDS at c2End, border MUST clear when nowMinutes >= c2End
-                        val isC2InProgress = !isEveningTransition && c2Start != -1 && c2End != -1 && nowMinutes in c2Start until c2End
-                        val isC2Next = !isC1InProgress && !isC1Next && c2Start != -1 && nowMinutes < c2Start
+                        val isC2InProgress = !isEveningRollover && c2Start != -1 && c2End != -1 && nowMinutes in c2Start until c2End
 
                         if (isC2InProgress) {
                             views.setInt(R.id.rowClass2, "setBackgroundResource", R.drawable.bg_widget_item_class_active)
                             views.setTextViewText(R.id.tvClass2Badge, "● IN PROGRESS")
-                            views.setTextColor(R.id.tvClass2Badge, android.graphics.Color.parseColor("#00E5FF"))
+                            views.setTextColor(R.id.tvClass2Badge, Color.parseColor("#00E5FF"))
                         } else {
                             views.setInt(R.id.rowClass2, "setBackgroundResource", R.drawable.bg_widget_item_class)
-                            views.setTextViewText(R.id.tvClass2Badge, if (isC2Next) "NEXT UP" else "UPCOMING")
-                            views.setTextColor(R.id.tvClass2Badge, if (isC2Next) android.graphics.Color.parseColor("#00E5FF") else android.graphics.Color.parseColor("#94A3B8"))
+                            views.setTextViewText(R.id.tvClass2Badge, "UPCOMING")
+                            views.setTextColor(R.id.tvClass2Badge, Color.parseColor("#94A3B8"))
                         }
                     } else {
                         views.setViewVisibility(R.id.rowClass2, View.GONE)
@@ -289,27 +284,68 @@ class AcademicHubWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.rowClass1, View.GONE)
                     views.setViewVisibility(R.id.rowClass2, View.GONE)
                     views.setViewVisibility(R.id.tvNoClasses, View.VISIBLE)
+                    views.setTextViewText(R.id.tvNoClasses, if (isEveningRollover) "No upcoming lectures" else "All lectures finished today")
                 }
 
-                // Bind Exams
+                // BIND EXAMS WITH DYNAMIC GLOW & SCHEDULE BOUNDARIES
+                val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                 if (hasExams) {
                     views.setViewVisibility(R.id.tvNoExams, View.GONE)
+
+                    // Exam 1
                     val e1 = allExams[0]
                     views.setViewVisibility(R.id.rowExam1, View.VISIBLE)
                     views.setTextViewText(R.id.tvExam1Title, e1.title)
-                    views.setTextViewText(R.id.tvExam1Badge, getCountdownBadge(e1.dueDate))
                     views.setTextViewText(R.id.tvExam1Time, e1.dueTime)
                     views.setViewVisibility(R.id.tvExam1Room, if (showRoom && !e1.room.isNullOrBlank()) View.VISIBLE else View.GONE)
                     views.setTextViewText(R.id.tvExam1Room, "R:${e1.room}")
 
+                    val e1Start = parseTimeToMinutes(e1.dueTime)
+                    val isE1Today = e1.dueDate == todayDateStr
+                    val isE1InProgress = isE1Today && e1Start != -1 && nowMinutes in e1Start until (e1Start + 90)
+
+                    if (isE1InProgress) {
+                        views.setInt(R.id.rowExam1, "setBackgroundResource", R.drawable.bg_widget_item_exam_active)
+                        views.setTextViewText(R.id.tvExam1Badge, "● IN PROGRESS")
+                        views.setTextColor(R.id.tvExam1Badge, Color.parseColor("#F59E0B"))
+                    } else {
+                        views.setInt(R.id.rowExam1, "setBackgroundResource", R.drawable.bg_widget_item_exam)
+                        views.setTextViewText(R.id.tvExam1Badge, getCountdownBadge(e1.dueDate))
+                        views.setTextColor(R.id.tvExam1Badge, Color.parseColor("#F59E0B"))
+                    }
+
+                    if (isE1Today && e1Start != -1) {
+                        scheduleExactBoundaryAlarm(context, e1Start)
+                        scheduleExactBoundaryAlarm(context, e1Start + 90)
+                    }
+
+                    // Exam 2
                     if (allExams.size > 1 && !compactMode) {
                         val e2 = allExams[1]
                         views.setViewVisibility(R.id.rowExam2, View.VISIBLE)
                         views.setTextViewText(R.id.tvExam2Title, e2.title)
-                        views.setTextViewText(R.id.tvExam2Badge, getCountdownBadge(e2.dueDate))
                         views.setTextViewText(R.id.tvExam2Time, e2.dueTime)
                         views.setViewVisibility(R.id.tvExam2Room, if (showRoom && !e2.room.isNullOrBlank()) View.VISIBLE else View.GONE)
                         views.setTextViewText(R.id.tvExam2Room, "R:${e2.room}")
+
+                        val e2Start = parseTimeToMinutes(e2.dueTime)
+                        val isE2Today = e2.dueDate == todayDateStr
+                        val isE2InProgress = isE2Today && e2Start != -1 && nowMinutes in e2Start until (e2Start + 90)
+
+                        if (isE2InProgress) {
+                            views.setInt(R.id.rowExam2, "setBackgroundResource", R.drawable.bg_widget_item_exam_active)
+                            views.setTextViewText(R.id.tvExam2Badge, "● IN PROGRESS")
+                            views.setTextColor(R.id.tvExam2Badge, Color.parseColor("#F59E0B"))
+                        } else {
+                            views.setInt(R.id.rowExam2, "setBackgroundResource", R.drawable.bg_widget_item_exam)
+                            views.setTextViewText(R.id.tvExam2Badge, getCountdownBadge(e2.dueDate))
+                            views.setTextColor(R.id.tvExam2Badge, Color.parseColor("#F59E0B"))
+                        }
+
+                        if (isE2Today && e2Start != -1) {
+                            scheduleExactBoundaryAlarm(context, e2Start)
+                            scheduleExactBoundaryAlarm(context, e2Start + 90)
+                        }
                     } else {
                         views.setViewVisibility(R.id.rowExam2, View.GONE)
                     }
@@ -319,7 +355,7 @@ class AcademicHubWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.tvNoExams, View.VISIBLE)
                 }
 
-                // Deep Links
+                // Deep links
                 val scheduleIntent = Intent(context, MainActivity::class.java).apply {
                     action = "ACTION_OPEN_TAB"
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

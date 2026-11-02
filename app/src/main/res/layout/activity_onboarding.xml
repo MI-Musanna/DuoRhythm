@@ -159,13 +159,14 @@
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etUserName"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="e.g. Mahdi Islam (min 2 characters)"
+                        android:layout_height="50dp"
+                        android:hint="Enter your name"
+                        android:text=""
                         android:imeOptions="actionNext"
                         android:inputType="textPersonName"
                         android:padding="12dp"
-                        android:textColor="@color/text_primary"
-                        android:textColorHint="@color/text_secondary"
+                        android:textColor="#FFFFFF"
+                        android:textColorHint="#64748B"
                         android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 

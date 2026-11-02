@@ -609,67 +609,58 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <!-- Unified Exams & Assessments Hub Header -->
+                <!-- Replace the header layout containing "Exams & Assessments Hub" with this flexible layout -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="8dp">
 
                     <TextView
+                        android:id="@+id/tvExamsHubHeader"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="2"
                         android:text="Exams &amp; Assessments Hub"
-                        android:textColor="@color/text_primary"
-                        android:textSize="17sp"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/tvAssessmentsCountBadge"
+                        android:id="@+id/tvScheduledCountBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="#220284C7"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="3dp"
-                        android:text="0 Scheduled"
-                        android:textColor="#38BDF8"
-                        android:textSize="11sp"
+                        android:textColor="#00E5FF"
+                        android:textSize="10sp"
                         android:textStyle="bold" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddAssessment"
+                        android:id="@+id/btnScheduleAssessment"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="36dp"
-                        android:layout_marginStart="8dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:minWidth="0dp"
-                        android:paddingHorizontal="10dp"
-                        android:text="+ SCHEDULE ASSESSMENT"
+                        android:paddingHorizontal="6dp"
+                        android:text="+ SCHEDULE"
                         android:textColor="#38BDF8"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
+                        android:textSize="11sp" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnExportExams"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="4dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:minWidth="0dp"
-                        android:paddingHorizontal="8dp"
-                        android:text="EXPORT"
-                        android:textColor="#F59E0B"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        app:icon="@drawable/ic_photo"
-                        app:iconTint="#F59E0B"
-                        app:iconSize="14dp" />
+                    <ImageView
+                        android:id="@+id/btnExportAssessments"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Export"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_export" />
                 </LinearLayout>
 
                 <!-- Assessment Search Bar -->

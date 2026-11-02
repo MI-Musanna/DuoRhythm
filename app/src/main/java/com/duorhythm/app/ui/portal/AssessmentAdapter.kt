@@ -207,6 +207,7 @@ class AssessmentAdapter(
             binding.btnToggleComplete.setOnClickListener {
                 val nextStatus = if (status == "DONE") "PENDING" else "DONE"
                 onToggleStatus?.invoke(item, nextStatus)
+                com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(context)
             }
 
             binding.root.setOnClickListener {

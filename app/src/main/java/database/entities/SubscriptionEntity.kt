@@ -18,6 +18,8 @@ data class SubscriptionEntity(
     @ColumnInfo(name = "linkedAccountId") val linkedAccountId: Long? = null, // NULL = "None / External (Father / Third-Party - No Wallet Deduction)"
     @ColumnInfo(name = "lastPaidMonthYear") val lastPaidMonthYear: String? = null // e.g. "2026-10"
 ) {
+    val title: String get() = name
+
     @Ignore
     var accountName: String = ""
 }
