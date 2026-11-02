@@ -284,6 +284,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun applyWorkspaceColorTheme(isWorkMode: Boolean) {
+        setAppWorkspaceMode(isWorkMode)
+    }
+
     fun setStudentProfile(student: Boolean) {
         setAppWorkspaceMode(!student)
     }

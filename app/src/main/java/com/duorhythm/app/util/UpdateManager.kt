@@ -5,13 +5,21 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.duorhythm.app.BuildConfig
+import com.duorhythm.app.R
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -109,6 +117,8 @@ object UpdateManager {
                     withContext(Dispatchers.Main) {
                         if (onResult != null) {
                             onResult(latestStable, latestBeta)
+                        } else if (isManualCheck) {
+                            showModernDualChannelDialog(context, latestStable, latestBeta)
                         } else {
                             // Restrict auto-prompt to official stable releases only (never auto-prompt beta)
                             handleAutoPrompt(context, latestStable)
@@ -156,6 +166,78 @@ object UpdateManager {
         }
     }
 
+    fun showModernDualChannelDialog(context: Context, stable: ReleaseInfo?, beta: ReleaseInfo?) {
+        val dialog = BottomSheetDialog(context)
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_updater, null)
+        dialog.setContentView(view)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        val currentVersion = BuildConfig.VERSION_NAME
+
+        // Bind Stable
+        val tvStable = view.findViewById<TextView>(R.id.tvStableVersion)
+        val btnStable = view.findViewById<MaterialButton>(R.id.btnInstallStable)
+        if (stable != null) {
+            tvStable.text = "${stable.tagName} • Verified Stable"
+            if (currentVersion == stable.tagName) {
+                btnStable.text = "Installed"
+                btnStable.isEnabled = false
+            } else {
+                btnStable.text = "Install"
+                btnStable.setOnClickListener {
+                    downloadAndInstallApk(context, stable.downloadUrl, "${stable.tagName}.apk")
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        // Bind Beta
+        val tvBeta = view.findViewById<TextView>(R.id.tvBetaVersion)
+        val badgeBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
+        if (beta != null) {
+            tvBeta.text = "${beta.tagName} • Latest Preview"
+            if (currentVersion == beta.tagName) {
+                badgeBeta.text = "INSTALLED"
+            } else {
+                badgeBeta.text = "UPDATE"
+                badgeBeta.setOnClickListener {
+                    downloadAndInstallApk(context, beta.downloadUrl, "${beta.tagName}.apk")
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        view.findViewById<View>(R.id.btnCloseUpdateDialog).setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    fun showResultOrientedWhatsNew(context: Context) {
+        val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
+        val lastSeenVer = prefs.getString("last_seen_version", "")
+        val currentVer = BuildConfig.VERSION_NAME
+
+        if (lastSeenVer != currentVer) {
+            prefs.edit().putString("last_seen_version", currentVer).apply()
+
+            val dialog = BottomSheetDialog(context)
+            val view = LayoutInflater.from(context).inflate(R.layout.dialog_whats_new, null)
+            dialog.setContentView(view)
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+            view.findViewById<TextView>(R.id.tvWhatsNewTitle).text = "What's New in $currentVer ✨"
+            view.findViewById<TextView>(R.id.tvWhatsNewBody).text = """
+                🎯 Pure In-Use Categories: Export sheets now only show categories you actually use.
+                ✨ Smooth Round Indicators: No more square boxes when touching carousel dots.
+                🌿 Emerald Work Mode: Work workspace now seamlessly transforms into pure Emerald Green.
+                ⚡ Dedicated Releases Engine: Switch between Stable and Beta tracks in one click.
+                🎧 Binaural Focus Waves: Pure tone frequencies (Alpha/Beta/Theta/Gamma) engineered for deep studying.
+            """.trimIndent()
+
+            view.findViewById<View>(R.id.btnDismissWhatsNew).setOnClickListener { dialog.dismiss() }
+            dialog.show()
+        }
+    }
+
     fun downloadAndInstallApk(context: Context, apkUrl: String, fileName: String) {
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val request = DownloadManager.Request(Uri.parse(apkUrl))
@@ -195,17 +277,6 @@ object UpdateManager {
     }
 
     fun showWhatsNewIfUpdated(context: Context) {
-        val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
-        val lastSeenVer = prefs.getString("last_seen_version", "") ?: ""
-        val currentVer = BuildConfig.VERSION_NAME
-
-        if (cleanVersion(lastSeenVer) != cleanVersion(currentVer)) {
-            prefs.edit().putString("last_seen_version", cleanVersion(currentVer)).apply()
-            AlertDialog.Builder(context)
-                .setTitle("What's New in v$currentVer ✨")
-                .setMessage("• Binaural Beats Audio for deep concentration.\n• Dual-channel GitHub updater.\n• Dynamic custom assessment categories.\n• Streamlined minimal Home dashboard.\n• 100% synchronized timetable & export pipeline.")
-                .setPositiveButton("Get Started", null)
-                .show()
-        }
+        showResultOrientedWhatsNew(context)
     }
 }

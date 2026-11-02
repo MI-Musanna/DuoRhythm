@@ -98,7 +98,7 @@ class ScheduleAssessmentDialog(
         var selectedCategory = targetType
         fun populateCategoryChips() {
             binding.chipGroupAssessmentCategory.removeAllViews()
-            val categories = dbHelper.getCustomAssessmentCategories(profileId)
+            val categories = dbHelper.getAssessmentCategories(profileId)
             for (cat in categories) {
                 val chip = com.google.android.material.chip.Chip(context).apply {
                     text = cat
@@ -114,7 +114,7 @@ class ScheduleAssessmentDialog(
                             .setTitle("Delete Category")
                             .setMessage("Delete '$cat' from assessment categories?")
                             .setPositiveButton("Delete") { _, _ ->
-                                dbHelper.deleteCustomAssessmentCategory(cat)
+                                dbHelper.deleteAssessmentCategory(profileId, cat)
                                 populateCategoryChips()
                             }
                             .setNegativeButton("Cancel", null)
@@ -125,13 +125,13 @@ class ScheduleAssessmentDialog(
                 binding.chipGroupAssessmentCategory.addView(chip)
             }
 
-            // Persistent "+ New" chip
+            // Persistent "+ Add" chip
             val newChip = com.google.android.material.chip.Chip(context).apply {
-                text = "+ New"
+                text = "+ Add"
                 isCheckable = false
                 setOnClickListener {
                     val input = android.widget.EditText(context).apply {
-                        hint = "Category Name (e.g. Lab Exam)"
+                        hint = "Category Name (e.g. Lab Report)"
                     }
                     androidx.appcompat.app.AlertDialog.Builder(context)
                         .setTitle("New Assessment Category")
@@ -139,7 +139,7 @@ class ScheduleAssessmentDialog(
                         .setPositiveButton("Add") { _, _ ->
                             val text = input.text.toString().trim()
                             if (text.isNotEmpty()) {
-                                dbHelper.addCustomAssessmentCategory(text)
+                                dbHelper.addAssessmentCategory(profileId, text)
                                 selectedCategory = text
                                 populateCategoryChips()
                             }

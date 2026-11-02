@@ -2532,56 +2532,77 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return assessmentDao.getAssessmentsByProfile(profileId)
     }
 
-    fun getCustomAssessmentCategories(profileId: Long = getActiveProfileId()): List<String> {
+    fun getAssessmentCategories(profileId: Long = getActiveProfileId()): List<String> {
+        ensureAssessmentCategoriesTable()
         val list = mutableListOf<String>()
         try {
-            val db = writableDatabase
-            db.execSQL("""
-                CREATE TABLE IF NOT EXISTS assessment_categories (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    profile_id INTEGER DEFAULT 0,
-                    category_name TEXT NOT NULL UNIQUE
-                )
-            """.trimIndent())
-            db.execSQL("INSERT OR IGNORE INTO assessment_categories (category_name) VALUES ('CT/Quiz'), ('Class Test'), ('Assignment'), ('Lab Exam'), ('Viva'), ('Finals')")
-
-            val cursor = db.rawQuery("SELECT category_name FROM assessment_categories ORDER BY category_name ASC", null)
+            val cursor = readableDatabase.rawQuery(
+                "SELECT COALESCE(NULLIF(category_name, ''), name) FROM assessment_categories WHERE (profile_id = ? OR profile_id = 0) AND (category_name != '' OR name != '') ORDER BY id ASC",
+                arrayOf(profileId.toString())
+            )
             cursor.use {
-                while (it.moveToNext()) list.add(it.getString(0))
+                while (it.moveToNext()) {
+                    val cat = it.getString(0)
+                    if (!cat.isNullOrBlank() && !list.contains(cat)) {
+                        list.add(cat)
+                    }
+                }
+            }
+            if (list.isEmpty()) {
+                val defaults = listOf("Class Test", "Assignment", "Lab Report", "Quiz")
+                list.addAll(defaults)
+                for (item in defaults) {
+                    writableDatabase.execSQL(
+                        "INSERT OR IGNORE INTO assessment_categories (profile_id, category_name, name) VALUES (?, ?, ?)",
+                        arrayOf(profileId, item, item)
+                    )
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            list.addAll(listOf("Assignment", "Class Test", "CT/Quiz", "Finals", "Lab Exam", "Viva"))
+            list.addAll(listOf("Class Test", "Assignment", "Lab Report", "Quiz"))
         }
         return list
     }
 
-    fun addCustomAssessmentCategory(name: String) {
+    fun addAssessmentCategory(profileId: Long = getActiveProfileId(), name: String) {
+        ensureAssessmentCategoriesTable()
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return
         try {
-            val db = writableDatabase
-            db.execSQL("""
-                CREATE TABLE IF NOT EXISTS assessment_categories (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    profile_id INTEGER DEFAULT 0,
-                    category_name TEXT NOT NULL UNIQUE
-                )
-            """.trimIndent())
-            db.execSQL("INSERT OR IGNORE INTO assessment_categories (category_name) VALUES (?)", arrayOf(trimmed))
+            writableDatabase.execSQL(
+                "INSERT OR IGNORE INTO assessment_categories (profile_id, category_name, name) VALUES (?, ?, ?)",
+                arrayOf(profileId, trimmed, trimmed)
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    fun deleteCustomAssessmentCategory(name: String) {
+    fun deleteAssessmentCategory(profileId: Long = getActiveProfileId(), name: String) {
+        ensureAssessmentCategoriesTable()
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return
         try {
-            writableDatabase.execSQL("DELETE FROM assessment_categories WHERE category_name = ?", arrayOf(trimmed))
+            writableDatabase.execSQL(
+                "DELETE FROM assessment_categories WHERE (profile_id = ? OR profile_id = 0) AND (category_name = ? OR name = ?)",
+                arrayOf(profileId, trimmed, trimmed)
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    fun getCustomAssessmentCategories(profileId: Long = getActiveProfileId()): List<String> {
+        return getAssessmentCategories(profileId)
+    }
+
+    fun addCustomAssessmentCategory(name: String) {
+        addAssessmentCategory(getActiveProfileId(), name)
+    }
+
+    fun deleteCustomAssessmentCategory(name: String) {
+        deleteAssessmentCategory(getActiveProfileId(), name)
     }
 
     fun insertClassSchedule(item: ClassScheduleItem): Long {
@@ -3295,12 +3316,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             """CREATE TABLE IF NOT EXISTS assessment_categories (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 profile_id INTEGER DEFAULT 1,
-                name TEXT NOT NULL,
+                name TEXT NOT NULL DEFAULT '',
+                category_name TEXT NOT NULL DEFAULT '',
                 is_default INTEGER DEFAULT 0,
                 color_hex TEXT DEFAULT '#8B5CF6'
             )"""
         )
         ensureColumnExists(db, "assessment_categories", "color_hex", "TEXT DEFAULT '#8B5CF6'")
+        ensureColumnExists(db, "assessment_categories", "category_name", "TEXT NOT NULL DEFAULT ''")
+        ensureColumnExists(db, "assessment_categories", "name", "TEXT NOT NULL DEFAULT ''")
     }
 
     fun ensureSubscriptionsTable() {

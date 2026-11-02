@@ -429,7 +429,7 @@ class PortalFragment : Fragment() {
         }
 
         binding.btnExportAssessments.setOnClickListener {
-            ExportExamsBottomSheet().show(childFragmentManager, "EXPORT_EXAMS_SHEET")
+            ExportAssessmentsBottomSheet().show(childFragmentManager, "EXPORT_ASSESSMENTS_SHEET")
         }
 
         binding.etExamSearch.doAfterTextChanged { text ->

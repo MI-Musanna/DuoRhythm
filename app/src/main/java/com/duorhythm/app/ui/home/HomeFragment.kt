@@ -261,7 +261,7 @@ class HomeFragment : Fragment() {
             } else {
                 binding.btnStudentMode.background = null
                 binding.btnStudentMode.setTextColor(Color.parseColor("#64748B"))
-                binding.btnWorkMode.setBackgroundResource(R.drawable.bg_pill_blue)
+                binding.btnWorkMode.setBackgroundResource(R.drawable.bg_pill_work_active)
                 binding.btnWorkMode.setTextColor(Color.WHITE)
 
                 // Sync Portal Shortcut Card to Work Mode
@@ -286,12 +286,14 @@ class HomeFragment : Fragment() {
             val mainActivity = activity as? MainActivity
 
             binding.btnStudentMode.setOnClickListener {
+                mainActivity?.applyWorkspaceColorTheme(false)
                 mainActivity?.setStudentProfile(true)
                 updateToggleStyle(true)
                 loadDashboardData()
             }
 
             binding.btnWorkMode.setOnClickListener {
+                mainActivity?.applyWorkspaceColorTheme(true)
                 mainActivity?.setStudentProfile(false)
                 updateToggleStyle(false)
                 loadDashboardData()
@@ -525,6 +527,7 @@ class HomeFragment : Fragment() {
         )
 
         TabLayoutMediator(binding.dotsIndicatorNextUp, binding.viewPagerNextUp) { _, _ -> }.attach()
+        binding.dotsIndicatorNextUp.setOnTouchListener { _, _ -> true }
 
         binding.btnNextUpPrev.setOnClickListener {
             val current = binding.viewPagerNextUp.currentItem

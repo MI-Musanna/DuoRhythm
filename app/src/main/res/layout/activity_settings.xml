@@ -1988,35 +1988,6 @@
                                             android:text="Independent Software Developer &amp; Systems Enthusiast"
                                             android:textColor="@color/settings_panel_text_muted"
                                             android:textSize="12sp" />
-
-                                        <TextView
-                                            android:id="@+id/tvAppVersion"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="3dp"
-                                            android:text="DuoRhythm v1.0.2-beta"
-                                            android:textColor="@color/settings_panel_text_muted"
-                                            android:textSize="11sp" />
-
-                                        <com.google.android.material.button.MaterialButton
-                                            android:id="@+id/btnCheckUpdates"
-                                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="32dp"
-                                            android:layout_marginTop="6dp"
-                                            android:insetTop="0dp"
-                                            android:insetBottom="0dp"
-                                            android:paddingHorizontal="10dp"
-                                            android:paddingVertical="0dp"
-                                            android:text="Check for Updates"
-                                            android:textColor="#38BDF8"
-                                            android:textSize="11sp"
-                                            app:icon="@drawable/ic_bolt"
-                                            app:iconSize="14dp"
-                                            app:iconTint="#38BDF8"
-                                            app:strokeColor="#38BDF8"
-                                            app:strokeWidth="1dp"
-                                            app:cornerRadius="8dp" />
                                     </LinearLayout>
                                 </LinearLayout>
 
@@ -2403,6 +2374,104 @@
                         </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 9. APP & SYSTEM ENGINE CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSystemUpdates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_update_sparkle"
+                            app:tint="#00E5FF" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="App &amp; System Engine"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvAppVersion"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="DuoRhythm v1.0.3"
+                                android:textColor="@color/settings_panel_text_muted"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/badgeUpdateEngine"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_widget_pill_badge"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="DUAL TRACK"
+                            android:textColor="#00E5FF"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Check GitHub releases for official verified stable builds and bleeding-edge beta previews."
+                        android:textColor="@color/settings_panel_text_muted"
+                        android:textSize="12sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCheckUpdates"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="12dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="Check for Updates"
+                        android:textColor="#00E5FF"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="10dp"
+                        app:icon="@drawable/ic_sync"
+                        app:iconGravity="textStart"
+                        app:iconSize="16dp"
+                        app:iconTint="#00E5FF"
+                        app:strokeColor="#00E5FF"
+                        app:strokeWidth="1.2dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
