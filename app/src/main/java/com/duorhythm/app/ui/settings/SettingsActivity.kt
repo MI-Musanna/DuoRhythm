@@ -855,12 +855,14 @@ class SettingsActivity : AppCompatActivity() {
                 val targets = mutableListOf<com.duorhythm.app.util.UpdateManager.ReleaseInfo>()
 
                 if (stable != null) {
-                    val status = if (stable.tagName == currentVer) " (Current)" else ""
+                    val isCurrent = com.duorhythm.app.util.UpdateManager.cleanVersion(stable.tagName) == com.duorhythm.app.util.UpdateManager.cleanVersion(currentVer)
+                    val status = if (isCurrent) " (Current)" else ""
                     options.add("Stable: ${stable.tagName}$status")
                     targets.add(stable)
                 }
                 if (beta != null) {
-                    val status = if (beta.tagName == currentVer) " (Current)" else ""
+                    val isCurrent = com.duorhythm.app.util.UpdateManager.cleanVersion(beta.tagName) == com.duorhythm.app.util.UpdateManager.cleanVersion(currentVer)
+                    val status = if (isCurrent) " (Current)" else ""
                     options.add("Beta / Preview: ${beta.tagName}$status")
                     targets.add(beta)
                 }

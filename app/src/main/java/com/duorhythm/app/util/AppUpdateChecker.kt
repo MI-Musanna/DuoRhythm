@@ -34,9 +34,9 @@ object AppUpdateChecker {
     fun getAppVersion(context: Context): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            pInfo.versionName ?: "1.0.1-beta"
+            pInfo.versionName ?: "1.0.2-beta"
         } catch (_: Exception) {
-            "1.0.1-beta"
+            "1.0.2-beta"
         }
     }
 

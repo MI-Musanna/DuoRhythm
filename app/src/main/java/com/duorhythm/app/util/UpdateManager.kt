@@ -32,6 +32,42 @@ object UpdateManager {
         val bodyText: String
     )
 
+    fun cleanVersion(ver: String): String {
+        return ver.trim().removePrefix("v").removePrefix("V").lowercase()
+    }
+
+    /**
+     * Strictly verifies whether remoteTag represents a higher semantic release version
+     * than the locally running version, stripping any 'v' or 'V' prefix.
+     */
+    fun isRemoteVersionNewer(remoteTag: String, currentVersion: String): Boolean {
+        val cleanRemote = cleanVersion(remoteTag)
+        val cleanCurrent = cleanVersion(currentVersion)
+
+        if (cleanRemote.isBlank() || cleanCurrent.isBlank()) return false
+        if (cleanRemote == cleanCurrent) return false
+
+        // Extract base digits x.y.z
+        val remoteParts = cleanRemote.split("-")[0].split(".").mapNotNull { it.toIntOrNull() }
+        val currentParts = cleanCurrent.split("-")[0].split(".").mapNotNull { it.toIntOrNull() }
+
+        val maxLen = maxOf(remoteParts.size, currentParts.size)
+        for (i in 0 until maxLen) {
+            val r = remoteParts.getOrElse(i) { 0 }
+            val c = currentParts.getOrElse(i) { 0 }
+            if (r > c) return true
+            if (r < c) return false
+        }
+
+        // If numeric parts are identical, a release without suffix (e.g. 1.0.2) is newer than pre-release (1.0.2-beta)
+        val remoteHasPre = cleanRemote.contains("-")
+        val currentHasPre = cleanCurrent.contains("-")
+        if (!remoteHasPre && currentHasPre) return true
+        if (remoteHasPre && !currentHasPre) return false
+
+        return cleanRemote > cleanCurrent
+    }
+
     fun checkForUpdates(context: Context, isManualCheck: Boolean, onResult: ((ReleaseInfo?, ReleaseInfo?) -> Unit)? = null) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -74,7 +110,8 @@ object UpdateManager {
                         if (onResult != null) {
                             onResult(latestStable, latestBeta)
                         } else {
-                            handleAutoPrompt(context, latestStable ?: latestBeta)
+                            // Restrict auto-prompt to official stable releases only (never auto-prompt beta)
+                            handleAutoPrompt(context, latestStable)
                         }
                     }
                 } else {
@@ -103,14 +140,16 @@ object UpdateManager {
     }
 
     private fun handleAutoPrompt(context: Context, stable: ReleaseInfo?) {
-        if (stable == null) return
+        if (stable == null || stable.isPrerelease) return
         val currentVer = BuildConfig.VERSION_NAME
-        if (stable.tagName != currentVer && !currentVer.contains("dev")) {
+
+        // Only prompt if stable release is strictly newer than current version and not running dev build
+        if (isRemoteVersionNewer(stable.tagName, currentVer) && !cleanVersion(currentVer).contains("dev")) {
             AlertDialog.Builder(context)
                 .setTitle("🚀 New Update Available: ${stable.tagName}")
-                .setMessage("A verified release of DuoRhythm is ready.\n\nHighlights:\n${stable.bodyText.take(180)}...")
+                .setMessage("A verified stable release of DuoRhythm is ready.\n\nHighlights:\n${stable.bodyText.take(180)}...")
                 .setPositiveButton("Update Now") { _, _ ->
-                    downloadAndInstallApk(context, stable.downloadUrl, "${stable.tagName}.apk")
+                    downloadAndInstallApk(context, stable.downloadUrl, "${cleanVersion(stable.tagName)}.apk")
                 }
                 .setNegativeButton("Later", null)
                 .show()
@@ -157,13 +196,13 @@ object UpdateManager {
 
     fun showWhatsNewIfUpdated(context: Context) {
         val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
-        val lastSeenVer = prefs.getString("last_seen_version", "")
+        val lastSeenVer = prefs.getString("last_seen_version", "") ?: ""
         val currentVer = BuildConfig.VERSION_NAME
 
-        if (lastSeenVer != currentVer) {
-            prefs.edit().putString("last_seen_version", currentVer).apply()
+        if (cleanVersion(lastSeenVer) != cleanVersion(currentVer)) {
+            prefs.edit().putString("last_seen_version", cleanVersion(currentVer)).apply()
             AlertDialog.Builder(context)
-                .setTitle("What's New in $currentVer ✨")
+                .setTitle("What's New in v$currentVer ✨")
                 .setMessage("• Binaural Beats Audio for deep concentration.\n• Dual-channel GitHub updater.\n• Dynamic custom assessment categories.\n• Streamlined minimal Home dashboard.\n• 100% synchronized timetable & export pipeline.")
                 .setPositiveButton("Get Started", null)
                 .show()

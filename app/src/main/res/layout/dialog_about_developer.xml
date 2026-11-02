@@ -66,7 +66,7 @@
                         android:background="@drawable/bg_cyber_badge_status"
                         android:paddingHorizontal="7dp"
                         android:paddingVertical="2dp"
-                        android:text="v1.0.1-beta"
+                        android:text="v1.0.2-beta"
                         android:textColor="@color/text_secondary"
                         android:textSize="10sp" />
                 </LinearLayout>

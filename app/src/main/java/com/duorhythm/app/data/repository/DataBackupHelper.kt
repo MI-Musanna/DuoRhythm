@@ -67,7 +67,7 @@ object DataBackupHelper {
         }
         root.put("selected_slots", slotsArray)
         root.put("include_attachments", includeAttachments)
-        root.put("version", "1.0.1-beta")
+        root.put("version", "1.0.2-beta")
         root.put("exported_at", System.currentTimeMillis())
 
         val prefs = ctx.getSharedPreferences(com.duorhythm.app.data.local.pref.AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)

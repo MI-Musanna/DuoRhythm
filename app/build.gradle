@@ -9,10 +9,11 @@ android {
 
     defaultConfig {
         applicationId "com.duorhythm.app"
-        minSdk 26
-        targetSdk 35
-        versionCode 4
+        minSdk 24
+        targetSdk 34
+        versionCode 3
         versionName "1.0.2-beta"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables.useSupportLibrary = true
     }
