@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Active Circle (7dp x 7dp) -->
     <item android:state_selected="true">
-        <shape android:shape="rectangle">
-            <size android:width="16dp" android:height="5dp" />
-            <corners android:radius="3dp" />
+        <shape android:shape="oval">
+            <size android:width="7dp" android:height="7dp" />
             <solid android:color="#00E5FF" />
         </shape>
     </item>
+    <!-- Inactive Circle (5dp x 5dp) -->
     <item>
         <shape android:shape="oval">
             <size android:width="5dp" android:height="5dp" />

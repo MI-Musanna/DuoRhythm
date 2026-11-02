@@ -26,6 +26,21 @@ class ExportAssessmentsBottomSheet : BottomSheetDialogFragment() {
     private var currentGeneratedBitmap: Bitmap? = null
     private val selectedCategories = mutableSetOf<String>()
 
+    override fun getTheme(): Int = com.duorhythm.app.R.style.CustomBottomSheetDialog
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): android.app.Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState) as com.google.android.material.bottomsheet.BottomSheetDialog
+        dialog.setOnShowListener { dialogInterface ->
+            val bottomSheetDialog = dialogInterface as com.google.android.material.bottomsheet.BottomSheetDialog
+            val bottomSheet = bottomSheetDialog.findViewById<android.widget.FrameLayout>(
+                com.google.android.material.R.id.design_bottom_sheet
+            )
+            bottomSheet?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            bottomSheet?.background = null
+        }
+        return dialog
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = BottomSheetExportAssessmentsBinding.inflate(inflater, container, false)
         return binding.root

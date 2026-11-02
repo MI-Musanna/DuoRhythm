@@ -167,10 +167,16 @@ object UpdateManager {
     }
 
     fun showModernDualChannelDialog(context: Context, stable: ReleaseInfo?, beta: ReleaseInfo?) {
-        val dialog = BottomSheetDialog(context)
+        val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_updater, null)
         dialog.setContentView(view)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        dialog.setOnShowListener {
+            val bottomSheet = dialog.findViewById<android.widget.FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+            bottomSheet?.setBackgroundColor(Color.TRANSPARENT)
+            bottomSheet?.background = null
+        }
 
         val currentVersion = BuildConfig.VERSION_NAME
 
@@ -219,18 +225,24 @@ object UpdateManager {
         if (lastSeenVer != currentVer) {
             prefs.edit().putString("last_seen_version", currentVer).apply()
 
-            val dialog = BottomSheetDialog(context)
+            val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
             val view = LayoutInflater.from(context).inflate(R.layout.dialog_whats_new, null)
             dialog.setContentView(view)
             dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
+            dialog.setOnShowListener {
+                val bottomSheet = dialog.findViewById<android.widget.FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+                bottomSheet?.setBackgroundColor(Color.TRANSPARENT)
+                bottomSheet?.background = null
+            }
+
             view.findViewById<TextView>(R.id.tvWhatsNewTitle).text = "What's New in $currentVer ✨"
             view.findViewById<TextView>(R.id.tvWhatsNewBody).text = """
-                🎯 Pure In-Use Categories: Export sheets now only show categories you actually use.
-                ✨ Smooth Round Indicators: No more square boxes when touching carousel dots.
-                🌿 Emerald Work Mode: Work workspace now seamlessly transforms into pure Emerald Green.
-                ⚡ Dedicated Releases Engine: Switch between Stable and Beta tracks in one click.
-                🎧 Binaural Focus Waves: Pure tone frequencies (Alpha/Beta/Theta/Gamma) engineered for deep studying.
+                🎯 Pure In-Use Categories: Export sheets only show active categories.
+                ✨ Circular Dots: Perfectly calibrated rounded indicator dots.
+                🌿 Emerald Mode: Full palette transformation in Work Workspace.
+                🎧 Scientific Binaural Beats: Real Alpha/Beta/Theta/Gamma audio tracks.
+                📦 Dynamic Category Engine: Add custom categories inside courses and exams.
             """.trimIndent()
 
             view.findViewById<View>(R.id.btnDismissWhatsNew).setOnClickListener { dialog.dismiss() }

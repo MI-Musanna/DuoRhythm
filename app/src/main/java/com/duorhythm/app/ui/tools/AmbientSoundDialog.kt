@@ -2,24 +2,56 @@ package com.duorhythm.app.ui.tools
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.Toast
-import com.duorhythm.app.R
 import com.duorhythm.app.audio.AmbientSoundPlayer
 import com.duorhythm.app.databinding.DialogAmbientSoundBinding
+import com.duorhythm.app.util.AnimationUtils
 
 class AmbientSoundDialog(private val context: Context) {
+
+    private val soundOptions = listOf(
+        Pair("Alpha Waves (10 Hz)", "Deep flow, relaxed focus & memory retention"),
+        Pair("Beta Waves (20 Hz)", "High concentration, problem solving & coding"),
+        Pair("Theta Waves (6 Hz)", "Creative insight, intuition & consolidation"),
+        Pair("Gamma Waves (40 Hz)", "Peak cognitive processing & fast information recall"),
+        Pair("Cozy Brown Noise", "Deep waterfall, zero high-pitch hiss")
+    )
+
+    fun setupBinauralRadioGroup(radioGroup: RadioGroup) {
+        radioGroup.removeAllViews()
+        soundOptions.forEachIndexed { index, (title, desc) ->
+            val radioButton = RadioButton(radioGroup.context).apply {
+                id = index + 100
+                text = "$title\n$desc"
+                textSize = 13f
+                setTextColor(Color.WHITE)
+                buttonTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+                setPadding(16, 16, 16, 16)
+            }
+            radioGroup.addView(radioButton)
+        }
+        radioGroup.check(100) // Default to Alpha Waves
+    }
 
     fun show() {
         val binding = DialogAmbientSoundBinding.inflate(LayoutInflater.from(context))
 
+        setupBinauralRadioGroup(binding.rgSoundModes)
+
+        // Select currently active mode if playing
         when (AmbientSoundPlayer.currentMode) {
-            AmbientSoundPlayer.SoundMode.OCEAN_WAVES -> binding.rbWavesSound.isChecked = true
-            AmbientSoundPlayer.SoundMode.ZEN_BOWL -> binding.rbZenBowl.isChecked = true
-            AmbientSoundPlayer.SoundMode.ALPHA_FOCUS_PAD -> binding.rbAlphaPad.isChecked = true
-            AmbientSoundPlayer.SoundMode.DEEP_BROWN_NOISE -> binding.rbBrownNoise.isChecked = true
-            else -> binding.rbRainSound.isChecked = true
+            AmbientSoundPlayer.SoundMode.BETA_WAVES -> binding.rgSoundModes.check(101)
+            AmbientSoundPlayer.SoundMode.THETA_WAVES -> binding.rgSoundModes.check(102)
+            AmbientSoundPlayer.SoundMode.GAMMA_WAVES -> binding.rgSoundModes.check(103)
+            AmbientSoundPlayer.SoundMode.DEEP_BROWN_NOISE -> binding.rgSoundModes.check(104)
+            else -> binding.rgSoundModes.check(100)
         }
 
         binding.sbVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -30,27 +62,19 @@ class AmbientSoundDialog(private val context: Context) {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        fun getSelectedMode(): AmbientSoundPlayer.SoundMode {
+        fun getSelectedMode(): Pair<AmbientSoundPlayer.SoundMode, String> {
             return when (binding.rgSoundModes.checkedRadioButtonId) {
-                R.id.rbWavesSound -> AmbientSoundPlayer.SoundMode.OCEAN_WAVES
-                R.id.rbZenBowl -> AmbientSoundPlayer.SoundMode.ZEN_BOWL
-                R.id.rbAlphaPad -> AmbientSoundPlayer.SoundMode.ALPHA_FOCUS_PAD
-                R.id.rbBrownNoise -> AmbientSoundPlayer.SoundMode.DEEP_BROWN_NOISE
-                else -> AmbientSoundPlayer.SoundMode.RAIN
+                101 -> Pair(AmbientSoundPlayer.SoundMode.BETA_WAVES, "Beta Waves (20 Hz)")
+                102 -> Pair(AmbientSoundPlayer.SoundMode.THETA_WAVES, "Theta Waves (6 Hz)")
+                103 -> Pair(AmbientSoundPlayer.SoundMode.GAMMA_WAVES, "Gamma Waves (40 Hz)")
+                104 -> Pair(AmbientSoundPlayer.SoundMode.DEEP_BROWN_NOISE, "Cozy Brown Noise")
+                else -> Pair(AmbientSoundPlayer.SoundMode.ALPHA_WAVES, "Alpha Waves (10 Hz)")
             }
         }
 
         binding.btnToggleSoundPlay.setOnClickListener {
-            val mode = getSelectedMode()
+            val (mode, name) = getSelectedMode()
             AmbientSoundPlayer.play(mode)
-            val name = when (mode) {
-                AmbientSoundPlayer.SoundMode.RAIN -> "Gentle Rain & Stream"
-                AmbientSoundPlayer.SoundMode.OCEAN_WAVES -> "Ocean Night Waves"
-                AmbientSoundPlayer.SoundMode.ZEN_BOWL -> "Tibetan Singing Bowl Chimes"
-                AmbientSoundPlayer.SoundMode.ALPHA_FOCUS_PAD -> "Deep Alpha Focus Pad (10Hz)"
-                AmbientSoundPlayer.SoundMode.DEEP_BROWN_NOISE -> "Cozy Brown Noise (Waterfall)"
-                AmbientSoundPlayer.SoundMode.OFF -> "Off"
-            }
             Toast.makeText(context, "Playing $name (Studio Procedural DSP)", Toast.LENGTH_SHORT).show()
         }
 
@@ -62,9 +86,9 @@ class AmbientSoundDialog(private val context: Context) {
         val dialog = AlertDialog.Builder(context)
             .setView(binding.root)
             .create()
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
-        com.duorhythm.app.util.AnimationUtils.applyDialogAnimation(dialog)
-        com.duorhythm.app.util.AnimationUtils.attachTactileFeedback(binding.btnToggleSoundPlay, binding.btnStopSound)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        AnimationUtils.applyDialogAnimation(dialog)
+        AnimationUtils.attachTactileFeedback(binding.btnToggleSoundPlay, binding.btnStopSound)
         dialog.show()
     }
 }

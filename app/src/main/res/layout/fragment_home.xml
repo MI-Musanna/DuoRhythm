@@ -159,7 +159,7 @@
         app:tabBackground="@drawable/selector_carousel_dots_clean"
         app:tabGravity="center"
         app:tabIndicatorHeight="0dp"
-        app:tabMaxWidth="14dp"
+        app:tabMaxWidth="12dp"
         app:tabRippleColor="@null"
         app:tabUnboundedRipple="false" />
 

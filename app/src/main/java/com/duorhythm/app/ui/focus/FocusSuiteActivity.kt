@@ -125,4 +125,30 @@ class FocusSuiteActivity : AppCompatActivity() {
         super.onDestroy()
         stopBinauralBeats()
     }
+
+    companion object {
+        val soundOptions = listOf(
+            Pair("Alpha Waves (10 Hz)", "Deep flow, relaxed focus & memory retention"),
+            Pair("Beta Waves (20 Hz)", "High concentration, problem solving & coding"),
+            Pair("Theta Waves (6 Hz)", "Creative insight, intuition & consolidation"),
+            Pair("Gamma Waves (40 Hz)", "Peak cognitive processing & fast information recall"),
+            Pair("Cozy Brown Noise", "Deep waterfall, zero high-pitch hiss")
+        )
+
+        fun setupBinauralRadioGroup(radioGroup: android.widget.RadioGroup) {
+            radioGroup.removeAllViews()
+            soundOptions.forEachIndexed { index, (title, desc) ->
+                val radioButton = android.widget.RadioButton(radioGroup.context).apply {
+                    id = index + 100
+                    text = "$title\n$desc"
+                    textSize = 13f
+                    setTextColor(android.graphics.Color.WHITE)
+                    buttonTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#00E5FF"))
+                    setPadding(16, 16, 16, 16)
+                }
+                radioGroup.addView(radioButton)
+            }
+            radioGroup.check(100) // Default to Alpha Waves
+        }
+    }
 }

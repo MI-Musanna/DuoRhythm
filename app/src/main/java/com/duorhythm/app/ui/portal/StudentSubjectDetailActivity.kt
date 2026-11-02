@@ -521,21 +521,80 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         activeDialogBinding = dialogBinding
         pendingAttachmentPath = ""
 
-        val types = listOf("HOMEWORK", "PRACTICAL", "EXAM", "ASSIGNMENT")
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, types)
-        dialogBinding.spItemType.adapter = spinnerAdapter
+        var selectedCourseCategory = "Assignment"
+        fun loadDynamicCategories(courseId: Long) {
+            val profileId = com.duorhythm.app.util.ProfileManager.getActiveProfileId()
+            val categories = dbHelper.getAssessmentCategories(profileId).toMutableList()
 
-        val examTypes = listOf("SEMESTER_FINAL", "MIDTERM", "CLASS_TEST_QUIZ")
-        val examTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("Semester Final", "Midterm Exam", "Class Test / Quiz"))
-        dialogBinding.spExamType.adapter = examTypeAdapter
+            dialogBinding.chipGroupCourseCategories.removeAllViews()
 
-        dialogBinding.spItemType.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val isExam = types[position] == "EXAM"
-                dialogBinding.layoutExamTypeContainer.visibility = if (isExam) View.VISIBLE else View.GONE
+            for (cat in categories) {
+                val chip = com.google.android.material.chip.Chip(this).apply {
+                    text = cat
+                    isCheckable = true
+                    chipStrokeWidth = 2f
+                    chipStrokeColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1F2F4D"))
+                    setChipBackgroundColorResource(android.R.color.transparent)
+                    setTextColor(android.graphics.Color.WHITE)
+                    checkedIconTint = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#00E5FF"))
+                    setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) selectedCourseCategory = cat
+                    }
+                    setOnLongClickListener {
+                        AlertDialog.Builder(this@StudentSubjectDetailActivity)
+                            .setTitle("Delete Category")
+                            .setMessage("Do you want to delete '$cat'?")
+                            .setPositiveButton("Delete") { _, _ ->
+                                dbHelper.deleteAssessmentCategory(profileId, cat)
+                                loadDynamicCategories(courseId)
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                        true
+                    }
+                }
+                dialogBinding.chipGroupCourseCategories.addView(chip)
             }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+
+            val addChip = com.google.android.material.chip.Chip(this).apply {
+                text = "+ Add"
+                chipStrokeWidth = 2f
+                chipStrokeColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#00E5FF"))
+                setTextColor(android.graphics.Color.parseColor("#00E5FF"))
+                setChipBackgroundColorResource(android.R.color.transparent)
+                setOnClickListener {
+                    val input = android.widget.EditText(this@StudentSubjectDetailActivity).apply {
+                        hint = "Category name (e.g. Lab Viva, Project)"
+                        setTextColor(android.graphics.Color.WHITE)
+                    }
+                    val frame = android.widget.FrameLayout(this@StudentSubjectDetailActivity).apply {
+                        setPadding(50, 20, 50, 0)
+                        addView(input)
+                    }
+                    AlertDialog.Builder(this@StudentSubjectDetailActivity)
+                        .setTitle("New Category")
+                        .setView(frame)
+                        .setPositiveButton("Create") { _, _ ->
+                            val newName = input.text.toString().trim()
+                            if (newName.isNotBlank()) {
+                                dbHelper.addAssessmentCategory(profileId, newName)
+                                selectedCourseCategory = newName
+                                loadDynamicCategories(courseId)
+                            }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            }
+            dialogBinding.chipGroupCourseCategories.addView(addChip)
+
+            if (dialogBinding.chipGroupCourseCategories.childCount > 1) {
+                val first = dialogBinding.chipGroupCourseCategories.getChildAt(0) as? com.google.android.material.chip.Chip
+                first?.isChecked = true
+                selectedCourseCategory = first?.text?.toString() ?: "Assignment"
+            }
         }
+        loadDynamicCategories(subjectId)
 
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         dialogBinding.etItemStartDate.setText(today)
@@ -574,8 +633,10 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             val startDate = dialogBinding.etItemStartDate.text?.toString()?.trim().orEmpty()
             val endDate = dialogBinding.etItemEndDate.text?.toString()?.trim().orEmpty()
             val score = dialogBinding.etItemScore.text?.toString()?.trim().orEmpty()
-            val itemType = types[dialogBinding.spItemType.selectedItemPosition]
-            val examType = if (itemType == "EXAM") examTypes[dialogBinding.spExamType.selectedItemPosition] else ""
+            val itemType = if (selectedCourseCategory.contains("Exam", ignoreCase = true) ||
+                selectedCourseCategory.contains("Test", ignoreCase = true) ||
+                selectedCourseCategory.contains("Quiz", ignoreCase = true)) "EXAM" else "HOMEWORK"
+            val examType = selectedCourseCategory
 
             if (title.isEmpty()) {
                 Toast.makeText(this, "Title is required", Toast.LENGTH_SHORT).show()

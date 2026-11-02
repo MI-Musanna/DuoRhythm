@@ -12,11 +12,15 @@ object AmbientSoundPlayer {
 
     enum class SoundMode {
         OFF,
+        ALPHA_WAVES,
+        BETA_WAVES,
+        THETA_WAVES,
+        GAMMA_WAVES,
+        DEEP_BROWN_NOISE,
         RAIN,
         OCEAN_WAVES,
         ZEN_BOWL,
-        ALPHA_FOCUS_PAD,
-        DEEP_BROWN_NOISE
+        ALPHA_FOCUS_PAD
     }
 
     private var audioTrack: AudioTrack? = null
@@ -102,109 +106,53 @@ object AmbientSoundPlayer {
 
             while (isPlaying) {
                 when (currentMode) {
-                    SoundMode.RAIN -> {
-                        // Gentle Rain & Stream: Low-pass filtered pink noise with soft drops and gust swell
-                        for (i in shortBuffer.indices) {
-                            val white = random.nextDouble() * 2.0 - 1.0
-                            rainLp1 += 0.07 * (white - rainLp1)
-                            rainLp2 += 0.07 * (rainLp1 - rainLp2)
-                            val baseRumble = rainLp2 * 14000.0
-
-                            // Slow gentle breeze modulation (~0.12 Hz)
-                            val gust = 0.72 + 0.28 * sin(twoPi * 0.12 * (sampleIndex.toDouble() / sampleRate))
-
-                            // Organic randomized raindrops
-                            if (rainDropTimer <= 0) {
-                                if (random.nextDouble() < 0.0006) {
-                                    dropAmp = 0.25 + random.nextDouble() * 0.35
-                                    dropFreq = 700.0 + random.nextDouble() * 900.0
-                                    dropPhase = 0.0
-                                    rainDropTimer = 1200 + random.nextInt(3500)
-                                }
-                            } else {
-                                rainDropTimer--
-                            }
-
-                            var dropSample = 0.0
-                            if (dropAmp > 0.002) {
-                                dropSample = sin(dropPhase) * dropAmp * 12000.0
-                                dropPhase += twoPi * dropFreq / sampleRate
-                                dropAmp *= 0.9991 // Smooth exponential decay
-                            }
-
-                            val out = (baseRumble * gust + dropSample).toInt().coerceIn(-32767, 32767)
-                            shortBuffer[i] = out.toShort()
-                            sampleIndex++
-                        }
-                    }
-
-                    SoundMode.OCEAN_WAVES -> {
-                        // Ocean Waves: Rhythmic tidal surge (~7.2s swell period) with dynamic cutoff sweep
-                        val swellPeriodSamples = (sampleRate * 7.2)
-                        for (i in shortBuffer.indices) {
-                            val swellPhase = (sampleIndex % swellPeriodSamples.toLong()) / swellPeriodSamples
-                            // Raised cosine swell from 0.0 to 1.0
-                            val swell = 0.5 - 0.5 * cos(twoPi * swellPhase)
-
-                            val white = random.nextDouble() * 2.0 - 1.0
-                            // Cutoff opens slightly when cresting, closes to deep rumble in trough
-                            val cutoff = 0.012 + 0.038 * (swell * swell)
-                            oceanLp += cutoff * (white - oceanLp)
-                            oceanBrown += 0.008 * (white - oceanBrown)
-
-                            val surf = (oceanLp * 0.75 + oceanBrown * 0.25) * (0.25 + 0.75 * swell) * 19000.0
-                            shortBuffer[i] = surf.toInt().coerceIn(-32767, 32767).toShort()
-                            sampleIndex++
-                        }
-                    }
-
-                    SoundMode.ZEN_BOWL -> {
-                        // Tibetan Singing Bowl: 5.5s repeating chime cycle with resonant harmonics & soft background drone
-                        val cycleSamples = (sampleRate * 5.5).toLong()
-                        for (i in shortBuffer.indices) {
-                            val cyclePos = (sampleIndex % cycleSamples)
-                            val t = cyclePos.toDouble() / sampleRate
-
-                            // Attack ramp over first 20ms to prevent click
-                            val attack = (t / 0.02).coerceIn(0.0, 1.0)
-                            // Resonant frequencies: fundamental ~216Hz, overtone ~596Hz, high shimmer ~1166Hz
-                            val f1 = 216.0
-                            val f1Detune = 217.2 // Beating shimmer
-                            val f2 = 596.0
-                            val f3 = 1166.0
-
-                            val env1 = exp(-0.6 * t) * attack
-                            val env2 = exp(-1.4 * t) * attack
-                            val env3 = exp(-2.8 * t) * attack
-
-                            val tone1 = sin(twoPi * f1 * t) * 0.55 + sin(twoPi * f1Detune * t) * 0.45
-                            val tone2 = sin(twoPi * f2 * t) * 0.35
-                            val tone3 = sin(twoPi * f3 * t) * 0.15
-
-                            // Continuous meditative background hum
-                            val bgDrone = sin(twoPi * f1 * (sampleIndex.toDouble() / sampleRate)) * 0.12
-
-                            val chime = (tone1 * env1 + tone2 * env2 + tone3 * env3 + bgDrone) * 16000.0
-                            shortBuffer[i] = chime.toInt().coerceIn(-32767, 32767).toShort()
-                            sampleIndex++
-                        }
-                    }
-
-                    SoundMode.ALPHA_FOCUS_PAD -> {
-                        // Deep Alpha Focus Pad: Warm 108Hz drone pad with soothing 10Hz alpha pulsation
+                    SoundMode.ALPHA_WAVES, SoundMode.ALPHA_FOCUS_PAD -> {
+                        // Deep Alpha Focus Pad (10 Hz): 210Hz fundamental with 10Hz entrainment & subtle harmonic warmth
                         for (i in shortBuffer.indices) {
                             val t = sampleIndex.toDouble() / sampleRate
-                            val root = sin(twoPi * 108.0 * t) // A2 root
-                            val fifth = sin(twoPi * 162.0 * t) * 0.45 // E3 fifth
-                            val octave = sin(twoPi * 216.0 * t) * 0.25 // A3 octave
+                            val root = sin(twoPi * 210.0 * t)
+                            val overtone = sin(twoPi * 420.0 * t) * 0.25
+                            val alphaMod = 0.75 + 0.25 * sin(twoPi * 10.0 * t)
+                            val pad = (root + overtone) * alphaMod * 14000.0
+                            shortBuffer[i] = pad.toInt().coerceIn(-32767, 32767).toShort()
+                            sampleIndex++
+                        }
+                    }
 
-                            // 10 Hz Alpha wave rhythmic entrainment
-                            val alphaMod = 0.78 + 0.22 * sin(twoPi * 10.0 * t)
+                    SoundMode.BETA_WAVES -> {
+                        // Beta Waves (20 Hz): 250Hz fundamental with 20Hz focus pulsation
+                        for (i in shortBuffer.indices) {
+                            val t = sampleIndex.toDouble() / sampleRate
+                            val root = sin(twoPi * 250.0 * t)
+                            val overtone = sin(twoPi * 500.0 * t) * 0.20
+                            val betaMod = 0.72 + 0.28 * sin(twoPi * 20.0 * t)
+                            val pad = (root + overtone) * betaMod * 14000.0
+                            shortBuffer[i] = pad.toInt().coerceIn(-32767, 32767).toShort()
+                            sampleIndex++
+                        }
+                    }
 
-                            // Very slow chorus movement (0.07 Hz)
-                            val chorus = 0.85 + 0.15 * sin(twoPi * 0.07 * t)
+                    SoundMode.THETA_WAVES -> {
+                        // Theta Waves (6 Hz): 180Hz fundamental with 6Hz deep relaxation pulse
+                        for (i in shortBuffer.indices) {
+                            val t = sampleIndex.toDouble() / sampleRate
+                            val root = sin(twoPi * 180.0 * t)
+                            val sub = sin(twoPi * 90.0 * t) * 0.35
+                            val thetaMod = 0.78 + 0.22 * sin(twoPi * 6.0 * t)
+                            val pad = (root + sub) * thetaMod * 14000.0
+                            shortBuffer[i] = pad.toInt().coerceIn(-32767, 32767).toShort()
+                            sampleIndex++
+                        }
+                    }
 
-                            val pad = (root + fifth + octave) * alphaMod * chorus * 11000.0
+                    SoundMode.GAMMA_WAVES -> {
+                        // Gamma Waves (40 Hz): 300Hz fundamental with 40Hz peak cognitive frequency
+                        for (i in shortBuffer.indices) {
+                            val t = sampleIndex.toDouble() / sampleRate
+                            val root = sin(twoPi * 300.0 * t)
+                            val overtone = sin(twoPi * 600.0 * t) * 0.18
+                            val gammaMod = 0.70 + 0.30 * sin(twoPi * 40.0 * t)
+                            val pad = (root + overtone) * gammaMod * 14000.0
                             shortBuffer[i] = pad.toInt().coerceIn(-32767, 32767).toShort()
                             sampleIndex++
                         }
@@ -217,9 +165,76 @@ object AmbientSoundPlayer {
                             brownVal = (brownVal * 0.995) + white
                             brownLp1 += 0.045 * (brownVal - brownLp1)
                             brownLp2 += 0.045 * (brownLp1 - brownLp2)
-
                             val sample = (brownLp2 * 32000.0).toInt().coerceIn(-32767, 32767)
                             shortBuffer[i] = sample.toShort()
+                        }
+                    }
+
+                    SoundMode.RAIN -> {
+                        for (i in shortBuffer.indices) {
+                            val white = random.nextDouble() * 2.0 - 1.0
+                            rainLp1 += 0.07 * (white - rainLp1)
+                            rainLp2 += 0.07 * (rainLp1 - rainLp2)
+                            val baseRumble = rainLp2 * 14000.0
+                            val gust = 0.72 + 0.28 * sin(twoPi * 0.12 * (sampleIndex.toDouble() / sampleRate))
+                            if (rainDropTimer <= 0) {
+                                if (random.nextDouble() < 0.0006) {
+                                    dropAmp = 0.25 + random.nextDouble() * 0.35
+                                    dropFreq = 700.0 + random.nextDouble() * 900.0
+                                    dropPhase = 0.0
+                                    rainDropTimer = 1200 + random.nextInt(3500)
+                                }
+                            } else {
+                                rainDropTimer--
+                            }
+                            var dropSample = 0.0
+                            if (dropAmp > 0.002) {
+                                dropSample = sin(dropPhase) * dropAmp * 12000.0
+                                dropPhase += twoPi * dropFreq / sampleRate
+                                dropAmp *= 0.9991
+                            }
+                            val out = (baseRumble * gust + dropSample).toInt().coerceIn(-32767, 32767)
+                            shortBuffer[i] = out.toShort()
+                            sampleIndex++
+                        }
+                    }
+
+                    SoundMode.OCEAN_WAVES -> {
+                        val swellPeriodSamples = (sampleRate * 7.2).toLong()
+                        for (i in shortBuffer.indices) {
+                            val swellPos = (sampleIndex % swellPeriodSamples).toDouble() / swellPeriodSamples.toDouble()
+                            val swell = 0.5 - 0.5 * cos(twoPi * swellPos)
+                            val white = random.nextDouble() * 2.0 - 1.0
+                            val cutoff = 0.012 + 0.038 * (swell * swell)
+                            oceanLp += cutoff * (white - oceanLp)
+                            oceanBrown += 0.008 * (white - oceanBrown)
+                            val combined = (oceanLp * 0.75 + oceanBrown * 0.25) * (0.25 + 0.75 * swell)
+                            val surf = (combined * 19000.0).toInt().coerceIn(-32767, 32767).toShort()
+                            shortBuffer[i] = surf
+                            sampleIndex++
+                        }
+                    }
+
+                    SoundMode.ZEN_BOWL -> {
+                        val cycleSamples = (sampleRate * 5.5).toLong()
+                        for (i in shortBuffer.indices) {
+                            val cyclePos = (sampleIndex % cycleSamples)
+                            val t = cyclePos.toDouble() / sampleRate
+                            val attack = (t / 0.02).coerceIn(0.0, 1.0)
+                            val f1 = 216.0
+                            val f1Detune = 217.2
+                            val f2 = 596.0
+                            val f3 = 1166.0
+                            val env1 = exp(-0.6 * t) * attack
+                            val env2 = exp(-1.4 * t) * attack
+                            val env3 = exp(-2.8 * t) * attack
+                            val tone1 = sin(twoPi * f1 * t) * 0.55 + sin(twoPi * f1Detune * t) * 0.45
+                            val tone2 = sin(twoPi * f2 * t) * 0.35
+                            val tone3 = sin(twoPi * f3 * t) * 0.15
+                            val bgDrone = sin(twoPi * f1 * (sampleIndex.toDouble() / sampleRate)) * 0.12
+                            val chime = (tone1 * env1 + tone2 * env2 + tone3 * env3 + bgDrone) * 16000.0
+                            shortBuffer[i] = chime.toInt().coerceIn(-32767, 32767).toShort()
+                            sampleIndex++
                         }
                     }
 
