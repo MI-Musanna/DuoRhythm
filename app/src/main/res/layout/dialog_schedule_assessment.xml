@@ -41,12 +41,26 @@
             android:textSize="11sp"
             android:textStyle="bold" />
 
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupAssessmentCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacing="6dp"
+                app:singleLine="true"
+                app:singleSelection="true" />
+        </HorizontalScrollView>
+
         <Spinner
             android:id="@+id/spAssessmentType"
             android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:layout_marginTop="3dp"
-            android:background="@drawable/bg_chip_unselected" />
+            android:layout_height="0dp"
+            android:visibility="gone" />
 
         <!-- Field 2: Enrolled Course / Subject Dropdown (Auto-Fill) -->
         <com.google.android.material.textfield.TextInputLayout

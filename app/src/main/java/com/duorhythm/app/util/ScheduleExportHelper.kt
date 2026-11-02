@@ -17,6 +17,8 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.duorhythm.app.data.model.AssessmentEntity
 import com.duorhythm.app.data.model.ClassEntity
+import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.LifeSyncApp
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -26,6 +28,30 @@ object ScheduleExportHelper {
     enum class ExportImageFormat(val mimeType: String, val extension: String, val compressFormat: Bitmap.CompressFormat, val quality: Int) {
         PNG("image/png", ".png", Bitmap.CompressFormat.PNG, 100),
         JPEG("image/jpeg", ".jpg", Bitmap.CompressFormat.JPEG, 90)
+    }
+
+    fun generateAcademicTimetableBitmap(context: Context, profileId: Long): Bitmap {
+        val db = DatabaseHelper.getInstance(context)
+        val days = listOf(
+            Pair(7, "SUNDAY"),
+            Pair(1, "MONDAY"),
+            Pair(2, "TUESDAY"),
+            Pair(3, "WEDNESDAY"),
+            Pair(4, "THURSDAY")
+        )
+
+        // Ensure database records are verified before drawing
+        val scheduleData = LinkedHashMap<String, List<ClassEntity>>()
+        for (day in days) {
+            val classes = db.getClassesForIsoDay(profileId, day.first)
+            scheduleData[day.second] = classes
+        }
+
+        return renderTimetableCanvas(scheduleData)
+    }
+
+    fun renderTimetableCanvas(weeklyClasses: Map<String, List<ClassEntity>>): Bitmap {
+        return generateWeeklyScheduleBitmap(LifeSyncApp.instance, weeklyClasses)
     }
 
     fun generateWeeklyScheduleBitmap(context: Context, weeklyClasses: Map<String, List<ClassEntity>>): Bitmap {

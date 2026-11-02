@@ -152,13 +152,16 @@
         android:layout_width="wrap_content"
         android:layout_height="12dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
         android:background="@android:color/transparent"
-        app:tabBackground="@drawable/selector_tab_dots"
+        android:clickable="false"
+        android:focusable="false"
+        app:tabBackground="@drawable/selector_carousel_dots"
         app:tabGravity="center"
         app:tabIndicatorHeight="0dp"
-        app:tabMaxWidth="12dp"
-        app:tabRippleColor="@null" />
+        app:tabMaxWidth="14dp"
+        app:tabRippleColor="@null"
+        app:tabUnboundedRipple="false" />
 
     <TextView
         android:id="@+id/tvNoClassesScheduled"
@@ -1134,40 +1137,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="Calc"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <!-- Action 4: Suite -->
-                <LinearLayout
-                    android:id="@+id/btnQuickSuite"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_quick_action_dock">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_bolt"
-                            app:tint="#0D9488" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Suite"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>

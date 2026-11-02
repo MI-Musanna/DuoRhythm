@@ -85,7 +85,7 @@
                     android:background="@drawable/bg_header_action_button"
                     android:contentDescription="Focus Suite"
                     android:padding="8dp"
-                    android:src="@drawable/ic_bolt"
+                    android:src="@drawable/ic_toolbox"
                     android:tint="#00E5FF"
                     app:tint="#00E5FF" />
 

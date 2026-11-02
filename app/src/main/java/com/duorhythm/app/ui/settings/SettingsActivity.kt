@@ -847,9 +847,48 @@ class SettingsActivity : AppCompatActivity() {
             openExternalUrl("https://mitecharsenal.blogspot.com")
         }
 
-        binding.tvAppVersion.text = "DuoRhythm v${com.duorhythm.app.util.AppUpdateChecker.getAppVersion(this)}"
+        binding.tvAppVersion.text = "DuoRhythm v${com.duorhythm.app.BuildConfig.VERSION_NAME}"
         binding.btnCheckUpdates.setOnClickListener {
-            com.duorhythm.app.util.AppUpdateChecker.checkForUpdates(this, manual = true)
+            com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = true) { stable, beta ->
+                val currentVer = com.duorhythm.app.BuildConfig.VERSION_NAME
+                val options = mutableListOf<String>()
+                val targets = mutableListOf<com.duorhythm.app.util.UpdateManager.ReleaseInfo>()
+
+                if (stable != null) {
+                    val status = if (stable.tagName == currentVer) " (Current)" else ""
+                    options.add("Stable: ${stable.tagName}$status")
+                    targets.add(stable)
+                }
+                if (beta != null) {
+                    val status = if (beta.tagName == currentVer) " (Current)" else ""
+                    options.add("Beta / Preview: ${beta.tagName}$status")
+                    targets.add(beta)
+                }
+
+                if (options.isEmpty()) {
+                    androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Up to Date")
+                        .setMessage("No newer releases found. You are running DuoRhythm $currentVer.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                } else {
+                    androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Select Release Channel")
+                        .setItems(options.toTypedArray()) { _, which ->
+                            val chosen = targets[which]
+                            androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Download ${chosen.tagName}?")
+                                .setMessage(chosen.bodyText.take(250))
+                                .setPositiveButton("Download & Install") { _, _ ->
+                                    com.duorhythm.app.util.UpdateManager.downloadAndInstallApk(this, chosen.downloadUrl, "${chosen.tagName}.apk")
+                                }
+                                .setNegativeButton("Cancel", null)
+                                .show()
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            }
         }
 
         binding.rowClassLeadTime.setOnClickListener {

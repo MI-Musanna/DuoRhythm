@@ -275,6 +275,12 @@ class HomeFragment : Fragment() {
         }
     }
 
+    fun applyWorkspaceColorTheme(isWorkMode: Boolean) {
+        if (_binding != null) {
+            updateToggleStyle(!isWorkMode)
+        }
+    }
+
     private fun setupListeners() {
         try {
             val mainActivity = activity as? MainActivity
@@ -353,10 +359,6 @@ class HomeFragment : Fragment() {
                 PercentageCalcDialog(requireContext()).show()
             }
 
-            binding.btnQuickSuite.setOnClickListener {
-                startActivity(Intent(requireContext(), FocusSuiteActivity::class.java))
-            }
-
             binding.btnHomeOpenTools.setOnClickListener {
                 mainActivity?.openTools()
             }
@@ -382,7 +384,6 @@ class HomeFragment : Fragment() {
                 binding.toolHomePomodoro,
                 binding.toolHomeMusic,
                 binding.toolHomeCalc,
-                binding.btnQuickSuite,
                 binding.ivUserProfile,
                 binding.btnStudentMode,
                 binding.btnWorkMode

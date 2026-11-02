@@ -19,6 +19,14 @@ class ExportScheduleBottomSheet : BottomSheetDialogFragment() {
     private val binding get() = _binding!!
     private var currentGeneratedBitmap: Bitmap? = null
 
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.background = null
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = BottomSheetExportScheduleBinding.inflate(inflater, container, false)
         return binding.root

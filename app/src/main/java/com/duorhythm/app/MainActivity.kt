@@ -129,6 +129,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
+            com.duorhythm.app.util.UpdateManager.showWhatsNewIfUpdated(this)
+            com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = false)
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+
+        try {
             binding.root.post {
                 handleShortcutIntent(intent)
                 handleIncomingIntent(intent)
@@ -246,17 +253,39 @@ class MainActivity : AppCompatActivity() {
 
     fun isStudentProfile(): Boolean = isStudent
 
-    fun setStudentProfile(student: Boolean) {
-        if (isStudent == student) return
-        isStudent = student
+    fun setAppWorkspaceMode(isWorkMode: Boolean) {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("is_work_mode", isWorkMode).apply()
+        isStudent = !isWorkMode
+
         val currentPos = binding.mainViewPager.currentItem
         if (currentPos == MainPagerAdapter.INDEX_HOME) {
-            binding.tvAppSubtitle.text = if (student) "Personal Dashboard" else "Client & Project Hub"
+            binding.tvAppSubtitle.text = if (!isWorkMode) "Personal Dashboard" else "Client & Project Hub"
             (pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment)?.loadDashboardData()
         } else if (currentPos == MainPagerAdapter.INDEX_PORTAL) {
-            binding.tvAppSubtitle.text = if (student) "Academic Overview" else "Client & Project Hub"
-            (pagerAdapter.getFragment(MainPagerAdapter.INDEX_PORTAL) as? PortalFragment)?.setProfile(student)
+            binding.tvAppSubtitle.text = if (!isWorkMode) "Academic Overview" else "Client & Project Hub"
+            (pagerAdapter.getFragment(MainPagerAdapter.INDEX_PORTAL) as? PortalFragment)?.setProfile(!isWorkMode)
         }
+
+        val targetTab = when (binding.mainViewPager.currentItem) {
+            0 -> R.id.nav_wallet
+            1 -> R.id.nav_tasks
+            2 -> R.id.nav_home
+            3 -> R.id.nav_schedule
+            4 -> R.id.nav_portal
+            else -> R.id.nav_home
+        }
+        updateTabVisuals(selectedTabId, targetTab, animated = false)
+        selectedTabId = targetTab
+
+        // Notify fragments to refresh accent palettes
+        supportFragmentManager.fragments.forEach { fragment ->
+            (fragment as? com.duorhythm.app.ui.home.HomeFragment)?.applyWorkspaceColorTheme(isWorkMode)
+        }
+    }
+
+    fun setStudentProfile(student: Boolean) {
+        setAppWorkspaceMode(!student)
     }
 
     private fun setupWindowInsets() {
@@ -526,7 +555,7 @@ class MainActivity : AppCompatActivity() {
                 lp.weight = 0f
                 tab.container.layoutParams = lp
                 tab.container.setPadding(pad16, pad10, pad16, pad10)
-                tab.container.setBackgroundResource(R.drawable.bg_nav_active_pill)
+                tab.container.setBackgroundResource(if (isStudent) R.drawable.bg_nav_active_pill else R.drawable.bg_nav_active_pill_work)
 
                 val iconLp = tab.icon.layoutParams
                 iconLp.width = size20

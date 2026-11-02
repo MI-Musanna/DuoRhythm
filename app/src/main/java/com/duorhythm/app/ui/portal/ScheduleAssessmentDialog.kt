@@ -95,6 +95,63 @@ class ScheduleAssessmentDialog(
         val initialTypeIdx = types.indexOf(targetType).let { if (it >= 0) it else 0 }
         binding.spAssessmentType.setSelection(initialTypeIdx)
 
+        var selectedCategory = targetType
+        fun populateCategoryChips() {
+            binding.chipGroupAssessmentCategory.removeAllViews()
+            val categories = dbHelper.getCustomAssessmentCategories(profileId)
+            for (cat in categories) {
+                val chip = com.google.android.material.chip.Chip(context).apply {
+                    text = cat
+                    isCheckable = true
+                    isChecked = cat.equals(selectedCategory, ignoreCase = true)
+                    setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) {
+                            selectedCategory = cat
+                        }
+                    }
+                    setOnLongClickListener {
+                        androidx.appcompat.app.AlertDialog.Builder(context)
+                            .setTitle("Delete Category")
+                            .setMessage("Delete '$cat' from assessment categories?")
+                            .setPositiveButton("Delete") { _, _ ->
+                                dbHelper.deleteCustomAssessmentCategory(cat)
+                                populateCategoryChips()
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                        true
+                    }
+                }
+                binding.chipGroupAssessmentCategory.addView(chip)
+            }
+
+            // Persistent "+ New" chip
+            val newChip = com.google.android.material.chip.Chip(context).apply {
+                text = "+ New"
+                isCheckable = false
+                setOnClickListener {
+                    val input = android.widget.EditText(context).apply {
+                        hint = "Category Name (e.g. Lab Exam)"
+                    }
+                    androidx.appcompat.app.AlertDialog.Builder(context)
+                        .setTitle("New Assessment Category")
+                        .setView(input)
+                        .setPositiveButton("Add") { _, _ ->
+                            val text = input.text.toString().trim()
+                            if (text.isNotEmpty()) {
+                                dbHelper.addCustomAssessmentCategory(text)
+                                selectedCategory = text
+                                populateCategoryChips()
+                            }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            }
+            binding.chipGroupAssessmentCategory.addView(newChip)
+        }
+        populateCategoryChips()
+
         binding.spAssessmentType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (types[position] == "⚙️ Manage Categories...") {
@@ -376,7 +433,7 @@ class ScheduleAssessmentDialog(
             val room = binding.etAssessmentRoom.text?.toString()?.trim() ?: ""
             val teacher = binding.etAssessmentTeacher.text?.toString()?.trim() ?: ""
             val syllabus = binding.etAssessmentSyllabus.text?.toString()?.trim() ?: ""
-            val chosenType = binding.spAssessmentType.selectedItem?.toString() ?: "Semester Final Exam"
+            val chosenType = if (selectedCategory.isNotBlank()) selectedCategory else (binding.spAssessmentType.selectedItem?.toString() ?: "Semester Final Exam")
 
             if (title.isBlank()) {
                 binding.tilAssessmentTitle.error = "Assessment title is required"

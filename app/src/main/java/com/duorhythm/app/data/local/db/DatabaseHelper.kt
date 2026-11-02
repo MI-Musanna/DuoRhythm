@@ -2239,19 +2239,21 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     }
 
     fun getClassesByDayName(profileId: Long = getActiveProfileId(), targetDayName: String): List<ClassEntity> {
-        val list = mutableListOf<ClassEntity>()
-        val db = this.readableDatabase
-
-        val dayInt = when (targetDayName.trim().lowercase()) {
-            "sunday", "sun" -> 1
-            "monday", "mon" -> 2
-            "tuesday", "tue" -> 3
-            "wednesday", "wed" -> 4
-            "thursday", "thu" -> 5
-            "friday", "fri" -> 6
-            "saturday", "sat" -> 7
+        val isoDay = when (targetDayName.trim().lowercase()) {
+            "monday", "mon" -> 1
+            "tuesday", "tue" -> 2
+            "wednesday", "wed" -> 3
+            "thursday", "thu" -> 4
+            "friday", "fri" -> 5
+            "saturday", "sat" -> 6
+            "sunday", "sun" -> 7
             else -> 1
         }
+        val isoClasses = getClassesForIsoDay(profileId, isoDay)
+        if (isoClasses.isNotEmpty()) return isoClasses
+
+        val list = mutableListOf<ClassEntity>()
+        val db = this.readableDatabase
 
         val query = """
             SELECT * FROM classes 
@@ -2262,7 +2264,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
         var cursor: Cursor? = null
         try {
-            cursor = db.rawQuery(query, arrayOf(profileId.toString(), dayInt.toString(), targetDayName, "%$targetDayName%"))
+            cursor = db.rawQuery(query, arrayOf(profileId.toString(), isoDay.toString(), targetDayName, "%$targetDayName%"))
             val idIdx = cursor.getColumnIndexSafe("id")
             val subNameIdx = cursor.getColumnIndexSafe("subject_name")
             val teacherIdx = cursor.getColumnIndexSafe("teacher_name").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("teacher")
@@ -2285,7 +2287,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
                         endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
                         dayName = if (dayNameIdx != -1 && !cursor.getString(dayNameIdx).isNullOrEmpty()) cursor.getString(dayNameIdx) else targetDayName,
-                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else dayInt
+                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else isoDay
                     )
                 )
             }
@@ -2528,6 +2530,58 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun getAssessments(profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
         return assessmentDao.getAssessmentsByProfile(profileId)
+    }
+
+    fun getCustomAssessmentCategories(profileId: Long = getActiveProfileId()): List<String> {
+        val list = mutableListOf<String>()
+        try {
+            val db = writableDatabase
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS assessment_categories (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    profile_id INTEGER DEFAULT 0,
+                    category_name TEXT NOT NULL UNIQUE
+                )
+            """.trimIndent())
+            db.execSQL("INSERT OR IGNORE INTO assessment_categories (category_name) VALUES ('CT/Quiz'), ('Class Test'), ('Assignment'), ('Lab Exam'), ('Viva'), ('Finals')")
+
+            val cursor = db.rawQuery("SELECT category_name FROM assessment_categories ORDER BY category_name ASC", null)
+            cursor.use {
+                while (it.moveToNext()) list.add(it.getString(0))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            list.addAll(listOf("Assignment", "Class Test", "CT/Quiz", "Finals", "Lab Exam", "Viva"))
+        }
+        return list
+    }
+
+    fun addCustomAssessmentCategory(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
+        try {
+            val db = writableDatabase
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS assessment_categories (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    profile_id INTEGER DEFAULT 0,
+                    category_name TEXT NOT NULL UNIQUE
+                )
+            """.trimIndent())
+            db.execSQL("INSERT OR IGNORE INTO assessment_categories (category_name) VALUES (?)", arrayOf(trimmed))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun deleteCustomAssessmentCategory(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
+        try {
+            writableDatabase.execSQL("DELETE FROM assessment_categories WHERE category_name = ?", arrayOf(trimmed))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun insertClassSchedule(item: ClassScheduleItem): Long {
