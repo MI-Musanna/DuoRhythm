@@ -45,7 +45,7 @@
     </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilItemTitle"
+        android:id="@+id/tilTitle"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
         android:hint="Title">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etItemTitle"
+            android:id="@+id/etTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
@@ -61,7 +61,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilItemDescription"
+        android:id="@+id/tilDescription"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -69,7 +69,7 @@
         android:hint="Description / Notes">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etItemDescription"
+            android:id="@+id/etDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
@@ -83,7 +83,7 @@
         android:orientation="horizontal">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilItemStartDate"
+            android:id="@+id/tilStartDate"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -92,7 +92,7 @@
             android:hint="Start Date">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etItemStartDate"
+                android:id="@+id/etStartDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnSurface"
@@ -100,7 +100,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilItemEndDate"
+            android:id="@+id/tilDueDate"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -109,7 +109,7 @@
             android:hint="End / Due Date">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etItemEndDate"
+                android:id="@+id/etDueDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnSurface"
@@ -118,7 +118,7 @@
     </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilItemScore"
+        android:id="@+id/tilScore"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -126,48 +126,15 @@
         android:hint="Marks / Score (Optional, e.g. 95/100)">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etItemScore"
+            android:id="@+id/etScore"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurface"
             android:textColorHint="?android:attr/textColorSecondary" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Attach file / image button -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPickAttachment"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:text="Attach File / Image"
-            app:icon="@drawable/ic_attach_file"
-            app:iconSize="16dp"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/tvAttachmentPreview"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:ellipsize="middle"
-            android:singleLine="true"
-            android:text="No file selected"
-            android:textColor="@color/text_muted"
-            android:textSize="12sp" />
-    </LinearLayout>
-
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSaveSubjectItem"
+        android:id="@+id/btnSaveItem"
         android:layout_width="match_parent"
         android:layout_height="46dp"
         android:layout_marginTop="16dp"

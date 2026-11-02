@@ -1,20 +1,20 @@
 package com.duorhythm.app.ui.courses
 
 import android.app.DatePickerDialog
+import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
-import com.duorhythm.app.data.model.SubjectWorkItem
 import com.duorhythm.app.databinding.DialogAddHomeworkBinding
 import com.duorhythm.app.util.ProfileManager
 import com.google.android.material.chip.Chip
@@ -27,9 +27,18 @@ class AddHomeworkDialogFragment : DialogFragment() {
 
     private var _binding: DialogAddHomeworkBinding? = null
     private val binding get() = _binding!!
+    private var selectedCategory: String = ""
     private var courseId: Long = 0L
-    private var selectedCategory: String = "Assignment"
     private var onSavedListener: (() -> Unit)? = null
+
+    companion object {
+        fun newInstance(courseId: Long, onSaved: (() -> Unit)? = null): AddHomeworkDialogFragment {
+            return AddHomeworkDialogFragment().apply {
+                arguments = Bundle().apply { putLong("ARG_COURSE_ID", courseId) }
+                this.onSavedListener = onSaved
+            }
+        }
+    }
 
     fun setCourseId(id: Long) {
         this.courseId = id
@@ -39,24 +48,22 @@ class AddHomeworkDialogFragment : DialogFragment() {
         this.onSavedListener = listener
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        courseId = arguments?.getLong("ARG_COURSE_ID", 0L) ?: courseId
+        setStyle(STYLE_NO_TITLE, R.style.CustomDialogTheme)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogAddHomeworkBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-    override fun onStart() {
-        super.onStart()
-        dialog?.window?.apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setLayout((resources.displayMetrics.widthPixels * 0.92).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        binding.etItemStartDate.setText(today)
-        binding.etItemEndDate.setText(today)
+        if (binding.etStartDate.text.isNullOrBlank()) binding.etStartDate.setText(today)
+        if (binding.etDueDate.text.isNullOrBlank()) binding.etDueDate.setText(today)
 
         val pickDateListener = View.OnClickListener { v ->
             val calendar = Calendar.getInstance()
@@ -73,137 +80,230 @@ class AddHomeworkDialogFragment : DialogFragment() {
                 calendar.get(Calendar.DAY_OF_MONTH)
             ).show()
         }
-        binding.etItemStartDate.setOnClickListener(pickDateListener)
-        binding.etItemEndDate.setOnClickListener(pickDateListener)
+        binding.etStartDate.setOnClickListener(pickDateListener)
+        binding.etDueDate.setOnClickListener(pickDateListener)
 
-        loadDynamicCategories(courseId)
+        loadDynamicCategories()
 
-        binding.btnSaveSubjectItem.setOnClickListener {
-            val title = binding.etItemTitle.text?.toString()?.trim().orEmpty()
-            val desc = binding.etItemDescription.text?.toString()?.trim().orEmpty()
-            val startDate = binding.etItemStartDate.text?.toString()?.trim().orEmpty()
-            val endDate = binding.etItemEndDate.text?.toString()?.trim().orEmpty()
-            val score = binding.etItemScore.text?.toString()?.trim().orEmpty()
-
-            if (title.isEmpty()) {
-                binding.tilItemTitle.error = "Title is required"
-                return@setOnClickListener
-            }
-            binding.tilItemTitle.error = null
-
-            val itemType = if (selectedCategory.contains("Exam", ignoreCase = true) ||
-                selectedCategory.contains("Test", ignoreCase = true) ||
-                selectedCategory.contains("Quiz", ignoreCase = true)) "EXAM" else "HOMEWORK"
-
-            val item = SubjectWorkItem(
-                subjectId = courseId,
-                itemType = itemType,
-                title = title,
-                description = desc,
-                startDate = startDate,
-                endDate = endDate,
-                scoreOrMarks = score,
-                status = "PENDING",
-                examType = selectedCategory
-            )
-
-            val db = DatabaseHelper.getInstance(requireContext())
-            db.insertSubjectWorkItem(item)
-
-            Toast.makeText(requireContext(), "$selectedCategory added to section!", Toast.LENGTH_SHORT).show()
-            dismiss()
-            onSavedListener?.invoke()
+        binding.btnSaveItem.setOnClickListener {
+            saveAssessmentEntry()
         }
     }
 
-    private fun loadDynamicCategories(courseId: Long) {
-        val db = DatabaseHelper.getInstance(requireContext())
+    private fun loadDynamicCategories() {
+        val context = requireContext()
+        val db = DatabaseHelper.getInstance(context)
         val profileId = ProfileManager.getActiveProfileId()
         val categories = db.getAssessmentCategories(profileId).toMutableList()
 
         binding.chipGroupCourseCategories.removeAllViews()
 
         for (cat in categories) {
-            val chip = Chip(requireContext()).apply {
+            val chip = Chip(context).apply {
                 text = cat
                 isCheckable = true
+                isChecked = (cat == selectedCategory)
                 chipStrokeWidth = 2f
-                chipStrokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#1F2F4D"))
+                chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (cat == selectedCategory) "#00E5FF" else "#1F2F4D"))
                 setChipBackgroundColorResource(android.R.color.transparent)
                 setTextColor(Color.WHITE)
-                checkedIconTint = android.content.res.ColorStateList.valueOf(Color.parseColor("#00E5FF"))
-                setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) selectedCategory = cat
+                checkedIconTint = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+
+                // Single tap selects category
+                setOnClickListener {
+                    selectedCategory = cat
+                    loadDynamicCategories()
                 }
+
+                // Long press opens explicit Action Menu: Edit or Delete
                 setOnLongClickListener {
-                    // Allow deleting custom category
-                    AlertDialog.Builder(requireContext())
-                        .setTitle("Delete Category")
-                        .setMessage("Do you want to delete '$cat'?")
-                        .setPositiveButton("Delete") { _, _ ->
-                            db.deleteAssessmentCategory(profileId, cat)
-                            loadDynamicCategories(courseId)
-                        }
-                        .setNegativeButton("Cancel", null)
-                        .show()
+                    showCategoryActionDialog(cat)
                     true
                 }
             }
             binding.chipGroupCourseCategories.addView(chip)
         }
 
-        // Add "+ Add Category" Chip
-        val addChip = Chip(requireContext()).apply {
+        // Add "+ Add" Chip
+        val addChip = Chip(context).apply {
             text = "+ Add"
+            isCheckable = false
             chipStrokeWidth = 2f
-            chipStrokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
             setTextColor(Color.parseColor("#00E5FF"))
             setChipBackgroundColorResource(android.R.color.transparent)
             setOnClickListener {
-                val input = EditText(requireContext()).apply {
-                    hint = "Category name (e.g. Lab Viva, Project)"
-                    setTextColor(Color.WHITE)
-                }
-                val frame = FrameLayout(requireContext()).apply {
-                    setPadding(50, 20, 50, 0)
-                    addView(input)
-                }
-                AlertDialog.Builder(requireContext())
-                    .setTitle("New Category")
-                    .setView(frame)
-                    .setPositiveButton("Create") { _, _ ->
-                        val newName = input.text.toString().trim()
-                        if (newName.isNotBlank()) {
-                            db.addAssessmentCategory(profileId, newName)
-                            selectedCategory = newName
-                            loadDynamicCategories(courseId)
-                        }
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .show()
+                showAddCategoryDialog()
             }
         }
         binding.chipGroupCourseCategories.addView(addChip)
 
-        // Select first chip by default
-        if (binding.chipGroupCourseCategories.childCount > 1) {
-            val first = binding.chipGroupCourseCategories.getChildAt(0) as? Chip
-            first?.isChecked = true
-            selectedCategory = first?.text?.toString() ?: "Assignment"
+        // Add "⚙️ Manage" Chip for 1-tap Edit/Delete access
+        val manageChip = Chip(context).apply {
+            text = "⚙️"
+            isCheckable = false
+            chipStrokeWidth = 2f
+            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#64748B"))
+            setTextColor(Color.parseColor("#94A3B8"))
+            setChipBackgroundColorResource(android.R.color.transparent)
+            setOnClickListener {
+                showManageCategoriesOverviewDialog(categories)
+            }
         }
+        binding.chipGroupCourseCategories.addView(manageChip)
+
+        // Select first item if nothing selected
+        if (selectedCategory.isBlank() && categories.isNotEmpty()) {
+            selectedCategory = categories[0]
+            (binding.chipGroupCourseCategories.getChildAt(0) as? Chip)?.isChecked = true
+        }
+    }
+
+    private fun showCategoryActionDialog(categoryName: String) {
+        val options = arrayOf("Select '$categoryName'", "✏️ Rename / Edit", "🗑️ Delete")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Manage Category: $categoryName")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        selectedCategory = categoryName
+                        loadDynamicCategories()
+                    }
+                    1 -> showEditCategoryDialog(categoryName)
+                    2 -> confirmDeleteCategory(categoryName)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showManageCategoriesOverviewDialog(categories: List<String>) {
+        if (categories.isEmpty()) {
+            Toast.makeText(requireContext(), "No custom categories found. Tap '+ Add' to create one.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val items = categories.toTypedArray()
+        AlertDialog.Builder(requireContext())
+            .setTitle("Select Category to Edit / Delete")
+            .setItems(items) { _, which ->
+                showCategoryActionDialog(items[which])
+            }
+            .setPositiveButton("+ Add New") { _, _ -> showAddCategoryDialog() }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun showAddCategoryDialog() {
+        val input = EditText(requireContext()).apply {
+            hint = "Category name (e.g. Lab Report)"
+            setTextColor(Color.WHITE)
+            setHintTextColor(Color.parseColor("#64748B"))
+        }
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 20, 50, 10)
+            addView(input)
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("New Category")
+            .setView(container)
+            .setPositiveButton("Create") { _, _ ->
+                val name = input.text.toString().trim()
+                if (name.isNotBlank()) {
+                    val db = DatabaseHelper.getInstance(requireContext())
+                    val profileId = ProfileManager.getActiveProfileId()
+                    db.addAssessmentCategory(profileId, name)
+                    selectedCategory = name
+                    loadDynamicCategories()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showEditCategoryDialog(oldName: String) {
+        val input = EditText(requireContext()).apply {
+            setText(oldName)
+            setSelection(oldName.length)
+            setTextColor(Color.WHITE)
+        }
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 20, 50, 10)
+            addView(input)
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Rename Category")
+            .setView(container)
+            .setPositiveButton("Save") { _, _ ->
+                val newName = input.text.toString().trim()
+                if (newName.isNotBlank() && newName != oldName) {
+                    val db = DatabaseHelper.getInstance(requireContext())
+                    val profileId = ProfileManager.getActiveProfileId()
+                    db.updateAssessmentCategory(profileId, oldName, newName)
+                    if (selectedCategory == oldName) selectedCategory = newName
+                    loadDynamicCategories()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun confirmDeleteCategory(categoryName: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Category")
+            .setMessage("Are you sure you want to delete '$categoryName'?")
+            .setPositiveButton("Delete") { _, _ ->
+                val db = DatabaseHelper.getInstance(requireContext())
+                val profileId = ProfileManager.getActiveProfileId()
+                db.deleteAssessmentCategory(profileId, categoryName)
+                if (selectedCategory == categoryName) selectedCategory = ""
+                loadDynamicCategories()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun saveAssessmentEntry() {
+        val title = binding.etTitle.text.toString().trim()
+        if (title.isBlank()) {
+            binding.etTitle.error = "Title required"
+            return
+        }
+        if (selectedCategory.isBlank()) {
+            Toast.makeText(requireContext(), "Please select a category", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val desc = binding.etDescription.text.toString().trim()
+        val startDate = binding.etStartDate.text.toString().trim()
+        val dueDate = binding.etDueDate.text.toString().trim()
+        val score = binding.etScore.text.toString().trim()
+
+        val db = DatabaseHelper.getInstance(requireContext())
+        val profileId = ProfileManager.getActiveProfileId()
+
+        // Insert assessment with clean category
+        db.insertAssessment(
+            profileId = profileId,
+            courseId = courseId,
+            title = title,
+            type = selectedCategory,
+            description = desc,
+            startDate = startDate,
+            dueDate = dueDate,
+            marks = score,
+            status = "PENDING"
+        )
+
+        dismiss()
+        onSavedListener?.invoke()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    companion object {
-        fun newInstance(courseId: Long, onSaved: (() -> Unit)? = null): AddHomeworkDialogFragment {
-            return AddHomeworkDialogFragment().apply {
-                setCourseId(courseId)
-                if (onSaved != null) setOnSavedListener(onSaved)
-            }
-        }
     }
 }

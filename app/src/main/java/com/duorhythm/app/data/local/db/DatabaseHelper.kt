@@ -2535,61 +2535,90 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun getAssessmentCategories(profileId: Long = getActiveProfileId()): List<String> {
         ensureAssessmentCategoriesTable()
         val list = mutableListOf<String>()
+        val db = this.readableDatabase
+        val query = "SELECT category_name FROM assessment_categories WHERE profile_id = ? OR profile_id = 0 ORDER BY id ASC"
+        var cursor: android.database.Cursor? = null
         try {
-            val cursor = readableDatabase.rawQuery(
-                "SELECT COALESCE(NULLIF(category_name, ''), name) FROM assessment_categories WHERE (profile_id = ? OR profile_id = 0) AND (category_name != '' OR name != '') ORDER BY id ASC",
-                arrayOf(profileId.toString())
-            )
-            cursor.use {
-                while (it.moveToNext()) {
-                    val cat = it.getString(0)
-                    if (!cat.isNullOrBlank() && !list.contains(cat)) {
-                        list.add(cat)
+            cursor = db.rawQuery(query, arrayOf(profileId.toString()))
+            val colIdx = cursor.getColumnIndex("category_name")
+            while (cursor.moveToNext()) {
+                if (colIdx != -1) {
+                    val value = cursor.getString(colIdx)
+                    if (!value.isNullOrBlank()) {
+                        list.add(value)
                     }
                 }
             }
-            if (list.isEmpty()) {
-                val defaults = listOf("Class Test", "Assignment", "Lab Report", "Quiz")
-                list.addAll(defaults)
-                for (item in defaults) {
-                    writableDatabase.execSQL(
-                        "INSERT OR IGNORE INTO assessment_categories (profile_id, category_name, name) VALUES (?, ?, ?)",
-                        arrayOf(profileId, item, item)
-                    )
-                }
+        } catch (e: Exception) {
+            Log.e("DUO_DB", "Error fetching assessment categories", e)
+        } finally {
+            cursor?.close()
+        }
+        return list.distinct()
+    }
+
+    fun addAssessmentCategory(profileId: Long = getActiveProfileId(), name: String): Boolean {
+        ensureAssessmentCategoriesTable()
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return false
+        val db = this.writableDatabase
+        return try {
+            val cv = ContentValues().apply {
+                put("profile_id", profileId)
+                put("category_name", trimmed)
+                put("name", trimmed)
             }
+            db.insertWithOnConflict("assessment_categories", null, cv, SQLiteDatabase.CONFLICT_IGNORE) > 0
         } catch (e: Exception) {
-            e.printStackTrace()
-            list.addAll(listOf("Class Test", "Assignment", "Lab Report", "Quiz"))
-        }
-        return list
-    }
-
-    fun addAssessmentCategory(profileId: Long = getActiveProfileId(), name: String) {
-        ensureAssessmentCategoriesTable()
-        val trimmed = name.trim()
-        if (trimmed.isEmpty()) return
-        try {
-            writableDatabase.execSQL(
-                "INSERT OR IGNORE INTO assessment_categories (profile_id, category_name, name) VALUES (?, ?, ?)",
-                arrayOf(profileId, trimmed, trimmed)
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB", "Error adding category", e)
+            false
         }
     }
 
-    fun deleteAssessmentCategory(profileId: Long = getActiveProfileId(), name: String) {
+    fun updateAssessmentCategory(profileId: Long = getActiveProfileId(), oldName: String, newName: String): Boolean {
         ensureAssessmentCategoriesTable()
-        val trimmed = name.trim()
-        if (trimmed.isEmpty()) return
-        try {
-            writableDatabase.execSQL(
-                "DELETE FROM assessment_categories WHERE (profile_id = ? OR profile_id = 0) AND (category_name = ? OR name = ?)",
-                arrayOf(profileId, trimmed, trimmed)
-            )
+        ensureAssessmentsTable()
+        val trimmed = newName.trim()
+        if (trimmed.isBlank()) return false
+        val db = this.writableDatabase
+        return try {
+            db.beginTransaction()
+            // 1. Update Category table
+            val cv = ContentValues().apply {
+                put("category_name", trimmed)
+                put("name", trimmed)
+            }
+            db.update("assessment_categories", cv, "(profile_id = ? OR profile_id = 0) AND (category_name = ? OR name = ?)", arrayOf(profileId.toString(), oldName.trim(), oldName.trim()))
+
+            // 2. Cascade rename to existing assessments
+            val cvAssess = ContentValues().apply { put("type", trimmed) }
+            try {
+                db.update("assessments", cvAssess, "(profile_id = ? OR profile_id = 0) AND type = ?", arrayOf(profileId.toString(), oldName.trim()))
+            } catch (_: Exception) {}
+
+            try {
+                val cvWork = ContentValues().apply { put("exam_type", trimmed) }
+                db.update("subject_work_items", cvWork, "(profile_id = ? OR profile_id = 0) AND exam_type = ?", arrayOf(profileId.toString(), oldName.trim()))
+            } catch (_: Exception) {}
+
+            db.setTransactionSuccessful()
+            true
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("DUO_DB", "Error updating category", e)
+            false
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun deleteAssessmentCategory(profileId: Long = getActiveProfileId(), name: String): Boolean {
+        ensureAssessmentCategoriesTable()
+        val db = this.writableDatabase
+        return try {
+            db.delete("assessment_categories", "(profile_id = ? OR profile_id = 0) AND (category_name = ? OR name = ?)", arrayOf(profileId.toString(), name.trim(), name.trim())) > 0
+        } catch (e: Exception) {
+            Log.e("DUO_DB", "Error deleting category", e)
+            false
         }
     }
 
@@ -2597,12 +2626,83 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return getAssessmentCategories(profileId)
     }
 
-    fun addCustomAssessmentCategory(name: String) {
-        addAssessmentCategory(getActiveProfileId(), name)
+    fun addCustomAssessmentCategory(name: String): Boolean {
+        return addAssessmentCategory(getActiveProfileId(), name)
     }
 
-    fun deleteCustomAssessmentCategory(name: String) {
-        deleteAssessmentCategory(getActiveProfileId(), name)
+    fun deleteCustomAssessmentCategory(name: String): Boolean {
+        return deleteAssessmentCategory(getActiveProfileId(), name)
+    }
+
+    fun ensureAssessmentsTable() {
+        val db = writableDatabase
+        db.execSQL(
+            """CREATE TABLE IF NOT EXISTS assessments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
+                course_id INTEGER NOT NULL DEFAULT 0,
+                title TEXT NOT NULL DEFAULT '',
+                type TEXT NOT NULL DEFAULT '',
+                description TEXT DEFAULT '',
+                start_date TEXT DEFAULT '',
+                due_date TEXT DEFAULT '',
+                marks TEXT DEFAULT '',
+                status TEXT DEFAULT 'PENDING'
+            )"""
+        )
+    }
+
+    fun insertAssessment(
+        profileId: Long = getActiveProfileId(),
+        courseId: Long,
+        title: String,
+        type: String,
+        description: String = "",
+        startDate: String = "",
+        dueDate: String = "",
+        marks: String = "",
+        status: String = "PENDING"
+    ): Long {
+        ensureAssessmentsTable()
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("profile_id", profileId)
+            put("course_id", courseId)
+            put("title", title)
+            put("type", type)
+            put("description", description)
+            put("start_date", startDate)
+            put("due_date", dueDate)
+            put("marks", marks)
+            put("status", status)
+        }
+        val newId = try {
+            db.insert("assessments", null, cv)
+        } catch (e: Exception) {
+            -1L
+        }
+
+        // Also sync to subject_work_items so existing screens & schedules display it
+        try {
+            val itemType = if (type.contains("Exam", ignoreCase = true) ||
+                type.contains("Test", ignoreCase = true) ||
+                type.contains("Quiz", ignoreCase = true)) "EXAM" else "HOMEWORK"
+            val workItem = com.duorhythm.app.data.model.SubjectWorkItem(
+                profileId = profileId,
+                subjectId = courseId,
+                itemType = itemType,
+                title = title,
+                description = description,
+                startDate = startDate,
+                endDate = dueDate.ifBlank { startDate },
+                scoreOrMarks = marks,
+                status = status,
+                examType = type
+            )
+            insertSubjectWorkItem(workItem)
+        } catch (_: Exception) {}
+
+        return newId
     }
 
     fun insertClassSchedule(item: ClassScheduleItem): Long {
