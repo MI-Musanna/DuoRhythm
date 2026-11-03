@@ -854,12 +854,15 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.tvCurrentVersionBadge.text = "v${com.duorhythm.app.BuildConfig.VERSION_NAME}"
         binding.cardSystemUpdateEngine.setOnClickListener {
-            com.duorhythm.app.util.UpdateManager.showResultOrientedWhatsNew(this)
+            com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this, forceManual = true)
         }
         binding.btnCheckUpdatesTop.setOnClickListener {
             com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = true) { stable, beta ->
                 com.duorhythm.app.util.UpdateManager.showModernDualChannelDialog(this, stable, beta)
             }
+        }
+        binding.btnViewWhatsNewManual.setOnClickListener {
+            com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this, forceManual = true)
         }
 
         binding.rowClassLeadTime.setOnClickListener {
@@ -897,6 +900,7 @@ class SettingsActivity : AppCompatActivity() {
             binding.btnLoadDemoData,
             binding.btnOpenAboutModal,
             binding.btnCheckUpdatesTop,
+            binding.btnViewWhatsNewManual,
             binding.cardSystemUpdateEngine,
             binding.cardAboutHub,
             binding.cardAboutGithub,

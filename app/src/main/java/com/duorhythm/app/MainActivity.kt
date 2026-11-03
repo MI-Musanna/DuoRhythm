@@ -133,7 +133,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
-            com.duorhythm.app.util.UpdateManager.showWhatsNewIfUpdated(this)
+            // 1. Instantly delete any leftover APK installers from previous updates
+            com.duorhythm.app.util.UpdateManager.cleanupDownloadedApks(this)
+
+            // 2. Show What's New if newly updated (and not suppressed by user)
+            com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this, forceManual = false)
+
+            // 3. Silent check for new Stable releases (Beta will remain silent)
             com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = false)
         } catch (t: Throwable) {
             t.printStackTrace()

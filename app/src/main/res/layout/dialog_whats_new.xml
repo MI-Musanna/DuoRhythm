@@ -5,33 +5,47 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_dialog_glass_oled"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="20dp">
 
     <TextView
         android:id="@+id/tvWhatsNewTitle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
+        android:text="What's New ✨"
+        android:textColor="#F8FAFC"
+        android:textSize="18sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tvWhatsNewBody"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:lineSpacingExtra="6dp"
-        android:textColor="#CBD5E1"
-        android:textSize="14sp" />
+        android:layout_marginTop="10dp"
+        android:lineSpacingExtra="4dp"
+        android:text="• Pure Stable Auto-Prompts: Beta builds remain silent.\n• Automatic APK Cleanup: Downloaded installers are wiped upon launch.\n• Deep Obsidian Aesthetics: 100% unified OLED dark theme.\n• Dynamic Course Filters: Clutter-free category management.\n• Streamlined Dashboard: Faster schedule navigation."
+        android:textColor="#94A3B8"
+        android:textSize="12.5sp" />
+
+    <CheckBox
+        android:id="@+id/cbDontShowAgain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:buttonTint="#00E5FF"
+        android:text="Don't show this again"
+        android:textColor="#64748B"
+        android:textSize="12sp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDismissWhatsNew"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="24dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="12dp"
         android:backgroundTint="#00E5FF"
-        android:text="Awesome!"
-        android:textColor="#0B1120"
+        android:text="AWESOME!"
+        android:textColor="#06080F"
+        android:textSize="12.5sp"
         android:textStyle="bold"
-        app:cornerRadius="12dp" />
+        app:cornerRadius="22dp" />
 </LinearLayout>

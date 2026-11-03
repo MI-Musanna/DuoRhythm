@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.CheckBox
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -40,42 +41,20 @@ object UpdateManager {
         val bodyText: String
     )
 
-    fun cleanVersion(ver: String): String {
-        return ver.trim().removePrefix("v").removePrefix("V").lowercase()
+    // 1. AUTOMATIC CLEANUP: Purges leftover .apk files from app downloads directory
+    fun cleanupDownloadedApks(context: Context) {
+        try {
+            val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return
+            val apkFiles = downloadDir.listFiles { file -> file.name.endsWith(".apk") }
+            apkFiles?.forEach { file ->
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        } catch (_: Exception) {}
     }
 
-    /**
-     * Strictly verifies whether remoteTag represents a higher semantic release version
-     * than the locally running version, stripping any 'v' or 'V' prefix.
-     */
-    fun isRemoteVersionNewer(remoteTag: String, currentVersion: String): Boolean {
-        val cleanRemote = cleanVersion(remoteTag)
-        val cleanCurrent = cleanVersion(currentVersion)
-
-        if (cleanRemote.isBlank() || cleanCurrent.isBlank()) return false
-        if (cleanRemote == cleanCurrent) return false
-
-        // Extract base digits x.y.z
-        val remoteParts = cleanRemote.split("-")[0].split(".").mapNotNull { it.toIntOrNull() }
-        val currentParts = cleanCurrent.split("-")[0].split(".").mapNotNull { it.toIntOrNull() }
-
-        val maxLen = maxOf(remoteParts.size, currentParts.size)
-        for (i in 0 until maxLen) {
-            val r = remoteParts.getOrElse(i) { 0 }
-            val c = currentParts.getOrElse(i) { 0 }
-            if (r > c) return true
-            if (r < c) return false
-        }
-
-        // If numeric parts are identical, a release without suffix (e.g. 1.0.2) is newer than pre-release (1.0.2-beta)
-        val remoteHasPre = cleanRemote.contains("-")
-        val currentHasPre = cleanCurrent.contains("-")
-        if (!remoteHasPre && currentHasPre) return true
-        if (remoteHasPre && !currentHasPre) return false
-
-        return cleanRemote > cleanCurrent
-    }
-
+    // 2. CHECK UPDATES: Strictly discriminates between Stable and Beta
     fun checkForUpdates(context: Context, isManualCheck: Boolean, onResult: ((ReleaseInfo?, ReleaseInfo?) -> Unit)? = null) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -95,7 +74,7 @@ object UpdateManager {
                     for (i in 0 until array.length()) {
                         val item = array.getJSONObject(i)
                         val tag = item.getString("tag_name")
-                        val body = item.optString("body", "Bug fixes and enhancements.")
+                        val body = item.optString("body", "Bug fixes and performance improvements.")
                         val assets = item.getJSONArray("assets")
                         var apkUrl = ""
                         for (a in 0 until assets.length()) {
@@ -107,17 +86,17 @@ object UpdateManager {
                         }
 
                         if (apkUrl.isNotEmpty()) {
-                            val isExplicitBeta = item.optBoolean("prerelease", false) ||
+                            val isBeta = item.optBoolean("prerelease", false) ||
                                     tag.contains("beta", ignoreCase = true) ||
                                     tag.contains("alpha", ignoreCase = true) ||
                                     tag.contains("rc", ignoreCase = true)
 
-                            val release = ReleaseInfo(tag, isExplicitBeta, apkUrl, body)
+                            val release = ReleaseInfo(tag, isBeta, apkUrl, body)
 
-                            if (!isExplicitBeta && latestStable == null) {
+                            if (!isBeta && latestStable == null) {
                                 latestStable = release
                             }
-                            if (isExplicitBeta && latestBeta == null) {
+                            if (isBeta && latestBeta == null) {
                                 latestBeta = release
                             }
                         }
@@ -129,18 +108,8 @@ object UpdateManager {
                         } else if (isManualCheck) {
                             showModernDualChannelDialog(context, latestStable, latestBeta)
                         } else {
-                            // Restrict auto-prompt to official stable releases only (never auto-prompt beta)
-                            handleAutoPrompt(context, latestStable)
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        if (isManualCheck) {
-                            AlertDialog.Builder(context)
-                                .setTitle("Update Check Failed")
-                                .setMessage("GitHub API response code: ${conn.responseCode}")
-                                .setPositiveButton("OK", null)
-                                .show()
+                            // AUTO PROMPT: ONLY prompt automatically if a new STABLE release exists!
+                            handleAutoStablePrompt(context, latestStable)
                         }
                     }
                 }
@@ -149,7 +118,7 @@ object UpdateManager {
                     if (isManualCheck) {
                         AlertDialog.Builder(context)
                             .setTitle("Update Check Failed")
-                            .setMessage("Network error or GitHub API rate limit: ${e.localizedMessage}")
+                            .setMessage("Network error or GitHub API limit: ${e.localizedMessage}")
                             .setPositiveButton("OK", null)
                             .show()
                     }
@@ -158,120 +127,31 @@ object UpdateManager {
         }
     }
 
-    private fun handleAutoPrompt(context: Context, stable: ReleaseInfo?) {
-        if (stable == null || stable.isPrerelease) return
+    private fun handleAutoStablePrompt(context: Context, stable: ReleaseInfo?) {
+        if (stable == null) return
         val currentVer = BuildConfig.VERSION_NAME
 
-        // Only prompt if stable release is strictly newer than current version and not running dev build
-        if (isRemoteVersionNewer(stable.tagName, currentVer) && !cleanVersion(currentVer).contains("dev")) {
-            AlertDialog.Builder(context)
-                .setTitle("🚀 New Update Available: ${stable.tagName}")
-                .setMessage("A verified stable release of DuoRhythm is ready.\n\nHighlights:\n${stable.bodyText.take(180)}...")
-                .setPositiveButton("Update Now") { _, _ ->
-                    downloadAndInstallApk(context, stable.downloadUrl, "${cleanVersion(stable.tagName)}.apk")
-                }
-                .setNegativeButton("Later", null)
-                .show()
-        }
-    }
-
-    fun showModernDualChannelDialog(context: Context, stable: ReleaseInfo?, beta: ReleaseInfo?) {
-        val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
-        val view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_updater, null)
-        dialog.setContentView(view)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-
-        dialog.setOnShowListener {
-            val bottomSheet = dialog.findViewById<android.widget.FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
-            bottomSheet?.setBackgroundColor(Color.TRANSPARENT)
-            bottomSheet?.background = null
-        }
-
-        val currentVersion = BuildConfig.VERSION_NAME
-
-        val cardStable = view.findViewById<View>(R.id.cardStableTrack)
-        val tvNoStable = view.findViewById<View>(R.id.tvNoStableBanner)
-
-        // Only show stable card if it truly exists and does NOT contain 'beta'
-        if (stable != null && !stable.tagName.contains("beta", ignoreCase = true)) {
-            cardStable.visibility = View.VISIBLE
-            tvNoStable.visibility = View.GONE
-            val tvStable = view.findViewById<TextView>(R.id.tvStableVersion)
-            val btnStable = view.findViewById<MaterialButton>(R.id.btnInstallStable)
-            tvStable.text = "${stable.tagName} • Verified Stable"
-            if (currentVersion == stable.tagName) {
-                btnStable.text = "Installed"
-                btnStable.isEnabled = false
-            } else {
-                btnStable.text = "Install"
-                btnStable.setOnClickListener {
-                    downloadAndInstallApk(context, stable.downloadUrl, "${stable.tagName}.apk")
-                    dialog.dismiss()
-                }
-            }
-        } else {
-            // Zero stable releases on GitHub -> HIDE IT COMPLETELY
-            cardStable.visibility = View.GONE
-            tvNoStable.visibility = View.VISIBLE
-        }
-
-        // Bind Beta Track
-        val cardBeta = view.findViewById<View>(R.id.cardBetaTrack)
-        val tvBeta = view.findViewById<TextView>(R.id.tvBetaVersion)
-        val badgeBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
-        if (beta != null) {
-            cardBeta.visibility = View.VISIBLE
-            tvBeta.text = "${beta.tagName} • Bleeding-Edge Preview"
-            if (currentVersion == beta.tagName) {
-                badgeBeta.text = "INSTALLED"
-            } else {
-                badgeBeta.text = "UPDATE"
-                val startBetaInstall = View.OnClickListener {
-                    downloadAndInstallApk(context, beta.downloadUrl, "${beta.tagName}.apk")
-                    dialog.dismiss()
-                }
-                cardBeta.setOnClickListener(startBetaInstall)
-                badgeBeta.setOnClickListener(startBetaInstall)
-            }
-        }
-
-        view.findViewById<View>(R.id.btnCloseUpdateDialog).setOnClickListener { dialog.dismiss() }
-        dialog.show()
-    }
-
-    fun showResultOrientedWhatsNew(context: Context, force: Boolean = true) {
-        val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
-        val lastSeenVer = prefs.getString("last_seen_version", "")
-        val currentVer = BuildConfig.VERSION_NAME
-
-        // Show when forced (e.g. from settings button) or when a new version code is detected
-        if (force || lastSeenVer != currentVer) {
-            prefs.edit().putString("last_seen_version", currentVer).apply()
-
-            val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
-            val view = android.view.LayoutInflater.from(context).inflate(R.layout.dialog_whats_new, null)
+        // If the stable version is strictly different from current and not running a dev build
+        if (stable.tagName != currentVer && !currentVer.contains("dev", ignoreCase = true)) {
+            val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
+            val view = LayoutInflater.from(context).inflate(R.layout.dialog_auto_stable_update, null)
             dialog.setContentView(view)
 
-            dialog.setOnShowListener {
-                val bottomSheet = dialog.findViewById<android.widget.FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
-                bottomSheet?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                bottomSheet?.background = null
+            dialog.findViewById<TextView>(R.id.tvAutoUpdateTitle)?.text = "🚀 New Stable Update: ${stable.tagName}"
+            dialog.findViewById<TextView>(R.id.tvAutoUpdateBody)?.text = stable.bodyText
+
+            dialog.findViewById<MaterialButton>(R.id.btnUpdateNow)?.setOnClickListener {
+                downloadAndInstallApk(context, stable.downloadUrl, "${stable.tagName}.apk")
+                dialog.dismiss()
             }
-
-            view.findViewById<android.widget.TextView>(R.id.tvWhatsNewTitle).text = "What's New in $currentVer ✨"
-            view.findViewById<android.widget.TextView>(R.id.tvWhatsNewBody).text = """
-                🎯 100% Dynamic Course Filters: Hardcoded categories completely removed. Filter chips only show categories with active items.
-                🧹 Zero Home Top-Gap: Top bar and profile section seamlessly flush with OLED deep obsidian black.
-                📝 Redesigned Scratchpad: Clean single-note card without ghost duplicate previews.
-                🔇 Sound Module Purged: Unnecessary synthesizer stripped out for high performance.
-                ⏰ Unified Morning Brief: No more duplicate 8:00 AM or 9:00 AM alarms.
-            """.trimIndent()
-
-            view.findViewById<android.view.View>(R.id.btnDismissWhatsNew).setOnClickListener { dialog.dismiss() }
+            dialog.findViewById<MaterialButton>(R.id.btnUpdateLater)?.setOnClickListener {
+                dialog.dismiss()
+            }
             dialog.show()
         }
     }
 
+    // 3. DOWNLOAD & INSTALL: Tracks installation intent
     fun downloadAndInstallApk(context: Context, apkUrl: String, fileName: String) {
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val request = DownloadManager.Request(Uri.parse(apkUrl))
@@ -282,40 +162,124 @@ object UpdateManager {
 
         val downloadId = dm.enqueue(request)
 
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(c: Context, intent: Intent) {
+                val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+                if (id == downloadId) {
+                    try {
+                        c.unregisterReceiver(this)
+                    } catch (_: Exception) {}
+                    val file = File(c.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
+                    val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        FileProvider.getUriForFile(c, "${c.packageName}.fileprovider", file)
+                    } else {
+                        Uri.fromFile(file)
+                    }
+                    val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, "application/vnd.android.package-archive")
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    }
+                    c.startActivity(installIntent)
+                }
+            }
+        }
+
         ContextCompat.registerReceiver(
             context,
-            object : BroadcastReceiver() {
-                override fun onReceive(c: Context, intent: Intent) {
-                    val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                    if (id == downloadId) {
-                        try {
-                            c.unregisterReceiver(this)
-                        } catch (_: Exception) {}
-                        val file = File(c.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
-                        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            FileProvider.getUriForFile(c, "${c.packageName}.fileprovider", file)
-                        } else {
-                            Uri.fromFile(file)
-                        }
-                        val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                            setDataAndType(uri, "application/vnd.android.package-archive")
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        }
-                        c.startActivity(installIntent)
-                    }
-                }
-            },
+            receiver,
             IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
     }
 
-    fun showWhatsNewIfUpdated(context: Context) {
+    // 4. WHAT'S NEW MODAL: With "Don't show again" Checkbox + Manual invocation
+    fun showWhatsNewDialog(context: Context, forceManual: Boolean = false) {
         val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
-        val lastSeenVer = prefs.getString("last_seen_version", "")
         val currentVer = BuildConfig.VERSION_NAME
-        if (lastSeenVer != currentVer) {
-            showResultOrientedWhatsNew(context, force = true)
+        val prefKey = "suppress_whats_new_$currentVer"
+
+        // If suppressed by user and not forced manually from Settings, return immediately
+        if (!forceManual && prefs.getBoolean(prefKey, false)) {
+            return
         }
+
+        val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_whats_new, null)
+        dialog.setContentView(view)
+
+        view.findViewById<TextView>(R.id.tvWhatsNewTitle)?.text = "What's New in $currentVer ✨"
+        val cbDontShow = view.findViewById<CheckBox>(R.id.cbDontShowAgain)
+
+        view.findViewById<MaterialButton>(R.id.btnDismissWhatsNew)?.setOnClickListener {
+            if (cbDontShow?.isChecked == true) {
+                prefs.edit().putBoolean(prefKey, true).apply()
+            }
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
+    fun showResultOrientedWhatsNew(context: Context, force: Boolean = true) {
+        showWhatsNewDialog(context, forceManual = force)
+    }
+
+    fun showWhatsNewIfUpdated(context: Context) {
+        showWhatsNewDialog(context, forceManual = false)
+    }
+
+    // 5. MANUAL RELEASE CHANNEL DIALOG (Settings Hub)
+    fun showModernDualChannelDialog(context: Context, stable: ReleaseInfo?, beta: ReleaseInfo?) {
+        val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_updater, null)
+        dialog.setContentView(view)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        val currentVersion = BuildConfig.VERSION_NAME
+        val cardStable = view.findViewById<View>(R.id.cardStableTrack)
+        val tvNoStable = view.findViewById<View>(R.id.tvNoStableBanner)
+
+        // STABLE CHANNEL: Strict check
+        if (stable != null && !stable.tagName.contains("beta", ignoreCase = true)) {
+            cardStable?.visibility = View.VISIBLE
+            tvNoStable?.visibility = View.GONE
+            val tvStable = view.findViewById<TextView>(R.id.tvStableVersion)
+            val btnStable = view.findViewById<MaterialButton>(R.id.btnInstallStable)
+            tvStable?.text = "${stable.tagName} • Verified Stable"
+            if (currentVersion == stable.tagName) {
+                btnStable?.text = "Installed"
+                btnStable?.isEnabled = false
+            } else {
+                btnStable?.text = "Install"
+                btnStable?.setOnClickListener {
+                    downloadAndInstallApk(context, stable.downloadUrl, "${stable.tagName}.apk")
+                    dialog.dismiss()
+                }
+            }
+        } else {
+            // If no stable tag exists on GitHub, hide the card completely
+            cardStable?.visibility = View.GONE
+            tvNoStable?.visibility = View.VISIBLE
+        }
+
+        // BETA / PREVIEW CHANNEL:
+        val tvBeta = view.findViewById<TextView>(R.id.tvBetaVersion)
+        val btnBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
+        if (beta != null) {
+            tvBeta?.text = "${beta.tagName} • Bleeding-Edge Preview"
+            if (currentVersion == beta.tagName) {
+                btnBeta?.text = "INSTALLED"
+            } else {
+                btnBeta?.text = "UPDATE"
+                val startBetaInstall = View.OnClickListener {
+                    downloadAndInstallApk(context, beta.downloadUrl, "${beta.tagName}.apk")
+                    dialog.dismiss()
+                }
+                btnBeta?.setOnClickListener(startBetaInstall)
+                view.findViewById<View>(R.id.cardBetaTrack)?.setOnClickListener(startBetaInstall)
+            }
+        }
+
+        view.findViewById<View>(R.id.btnCloseUpdateDialog)?.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 }
