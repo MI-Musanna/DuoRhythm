@@ -398,121 +398,100 @@
 
             <!-- 3. 2-Column Asymmetric Metric Deck: Finance + Missions -->
             <LinearLayout
-                android:id="@+id/layoutOverviewSection"
+                android:id="@+id/layoutOverviewRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="14dp"
+                android:baselineAligned="false"
                 android:orientation="horizontal">
 
-                <!-- Finance Card -->
+                <!-- Finance Glance Card -->
                 <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardFinanceOverview"
+                    android:id="@+id/cardFinanceGlance"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardBackgroundColor="#131B2E"
-                    app:cardCornerRadius="14dp"
-                    app:strokeColor="#1F2F4D"
+                    app:cardBackgroundColor="#111827"
+                    app:cardCornerRadius="16dp"
+                    app:strokeColor="#1F293D"
                     app:strokeWidth="1dp">
 
-                    <LinearLayout
+                    <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
+                        android:layout_height="match_parent"
                         android:padding="12dp">
 
                         <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <FrameLayout
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:background="@drawable/bg_badge_overview_rect">
-
-                                <ImageView
-                                    android:layout_width="15dp"
-                                    android:layout_height="15dp"
-                                    android:layout_gravity="center"
-                                    android:src="@drawable/ic_wallet"
-                                    app:tint="#00F2FE" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:text="Finance"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvHomeBalance"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="0.00"
-                            android:textColor="@color/text_primary"
-                            android:textSize="20sp"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvHomeIncomeExpenseBrief"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
-                            android:text="+0.00 / -0.00"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="10sp" />
-
-                        <!-- Electric Cyan Bezier Sparkline with Translucent Gradient Underfill -->
-                        <com.duorhythm.app.ui.home.SparklineTrendView
-                            android:id="@+id/sparklineHomeBalance"
-                            android:layout_width="match_parent"
-                            android:layout_height="24dp"
-                            android:layout_marginTop="4dp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Missions Card with Clean True Collapse -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardMissionsOverview"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardBackgroundColor="#131B2E"
-                    app:cardCornerRadius="14dp"
-                    app:strokeColor="#1F2F4D"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <!-- Mission Header Bar -->
-                        <LinearLayout
-                            android:id="@+id/btnToggleMissionsCollapse"
+                            android:id="@+id/headerFinance"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
                             <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:src="@drawable/ic_wallet"
+                                app:tint="#38BDF8" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="Ledger"
+                                android:textColor="#94A3B8"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvFinanceBalanceMain"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/headerFinance"
+                            android:layout_marginTop="8dp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvFinanceDeltaSub"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+                            android:textColor="#10B981"
+                            android:textSize="10sp" />
+                    </RelativeLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Missions Glance Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMissionsGlance"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    app:cardBackgroundColor="#111827"
+                    app:cardCornerRadius="16dp"
+                    app:strokeColor="#1F293D"
+                    app:strokeWidth="1dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="12dp">
+
+                        <LinearLayout
+                            android:id="@+id/headerMissions"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
                                 android:src="@drawable/ic_checkbox_checked"
                                 app:tint="#A855F7" />
 
@@ -522,56 +501,43 @@
                                 android:layout_marginStart="6dp"
                                 android:layout_weight="1"
                                 android:text="Missions"
-                                android:textColor="#FFFFFF"
-                                android:textSize="13sp"
+                                android:textColor="#94A3B8"
+                                android:textSize="11.5sp"
                                 android:textStyle="bold" />
 
-                            <ImageView
-                                android:id="@+id/ivMissionsChevron"
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:src="@drawable/ic_chevron_down"
-                                app:tint="#64748B" />
-                        </LinearLayout>
-
-                        <!-- Collapsible Mission Details Container -->
-                        <LinearLayout
-                            android:id="@+id/layoutMissionsExpandable"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:orientation="vertical">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
+                            <TextView
+                                android:id="@+id/badgeMissionRatio"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:id="@+id/tvMissionsCountBadge"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:background="@drawable/bg_pill_dark"
-                                    android:paddingHorizontal="6dp"
-                                    android:paddingVertical="2dp"
-                                    android:text="0/2"
-                                    android:textColor="#A855F7"
-                                    android:textSize="10sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/tvMissionsSummary"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="6dp"
-                                    android:text="2 Pending"
-                                    android:textColor="#FFFFFF"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
+                                android:background="@drawable/bg_pill_dark"
+                                android:paddingHorizontal="6dp"
+                                android:paddingVertical="2dp"
+                                android:text="0/2"
+                                android:textColor="#A855F7"
+                                android:textSize="9sp"
+                                android:textStyle="bold" />
                         </LinearLayout>
-                    </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvMissionsTitleCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/headerMissions"
+                            android:layout_marginTop="8dp"
+                            android:text="2 Active"
+                            android:textColor="#FFFFFF"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvMissionsSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+                            android:text="High priority tasks"
+                            android:textColor="#64748B"
+                            android:textSize="10sp" />
+                    </RelativeLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </LinearLayout>

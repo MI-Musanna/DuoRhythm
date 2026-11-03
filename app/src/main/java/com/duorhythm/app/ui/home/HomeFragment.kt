@@ -58,7 +58,6 @@ class HomeFragment : Fragment() {
     private var currentWorkOrderIndex = 0
     private var activeWorkOrders = listOf<com.duorhythm.app.data.model.WorkOrder>()
 
-    private var isMissionsCollapsed = false
     private var isNotesCollapsed = false
 
     fun setSectionCollapsed(viewToHide: View, chevron: ImageView, isCollapsed: Boolean, animate: Boolean) {
@@ -111,10 +110,7 @@ class HomeFragment : Fragment() {
             setupGreetingAndDate()
 
             val prefs = requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
-            isMissionsCollapsed = prefs.getBoolean("pref_missions_collapsed", false)
             isNotesCollapsed = prefs.getBoolean("pref_notes_collapsed", false)
-            binding.layoutMissionsExpandable.visibility = if (isMissionsCollapsed) View.GONE else View.VISIBLE
-            binding.ivMissionsChevron.rotation = if (isMissionsCollapsed) 180f else 0f
             setSectionCollapsed(binding.layoutNotesContent, binding.ivChevronNotes, isNotesCollapsed, animate = false)
 
             setupListeners()
@@ -298,21 +294,15 @@ class HomeFragment : Fragment() {
                 loadDashboardData()
             }
 
-            binding.cardFinanceOverview.setOnClickListener {
+            binding.cardFinanceGlance.setOnClickListener {
                 mainActivity?.selectNavTab(R.id.menu_wallet)
             }
 
-            binding.cardMissionsOverview.setOnClickListener {
+            binding.cardMissionsGlance.setOnClickListener {
                 mainActivity?.selectNavTab(R.id.menu_tasks)
             }
 
             val prefs = requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
-            binding.btnToggleMissionsCollapse.setOnClickListener {
-                isMissionsCollapsed = !isMissionsCollapsed
-                prefs.edit().putBoolean("pref_missions_collapsed", isMissionsCollapsed).apply()
-                binding.layoutMissionsExpandable.visibility = if (isMissionsCollapsed) View.GONE else View.VISIBLE
-                binding.ivMissionsChevron.animate().rotation(if (isMissionsCollapsed) 180f else 0f).setDuration(200).start()
-            }
             binding.btnToggleNotes.setOnClickListener {
                 isNotesCollapsed = !isNotesCollapsed
                 prefs.edit().putBoolean("pref_notes_collapsed", isNotesCollapsed).apply()
@@ -375,8 +365,8 @@ class HomeFragment : Fragment() {
             }
 
             AnimationUtils.attachTactileFeedback(
-                binding.cardFinanceOverview,
-                binding.cardMissionsOverview,
+                binding.cardFinanceGlance,
+                binding.cardMissionsGlance,
                 binding.cardHomePortal,
                 binding.cardWorkMilestones,
                 binding.btnPrevWorkOrder,
@@ -433,24 +423,17 @@ class HomeFragment : Fragment() {
                 maximumFractionDigits = 2
             }
 
-            // Total Net Balance: e.g. ৳22,460.00
-            binding.tvHomeBalance.text = if (totalRawBalance < 0) {
+            val formattedBalance = if (totalRawBalance < 0) {
                 "-$currentSymbol" + numberFormat.format(kotlin.math.abs(totalRawBalance))
             } else {
                 currentSymbol + numberFormat.format(totalRawBalance)
             }
+            binding.tvFinanceBalanceMain.text = formattedBalance
 
             // Monthly Income and Expense: e.g. +৳2,000.00 / -৳1,700.00
             val formattedIncome = numberFormat.format(monthlyIncome)
             val formattedExpense = numberFormat.format(monthlyExpense)
-            binding.tvHomeIncomeExpenseBrief.text = "+$currentSymbol${formattedIncome} / -$currentSymbol${formattedExpense}"
-
-            val trendData = if (totalRawBalance >= 0) {
-                floatArrayOf(0.2f, 0.35f, 0.45f, 0.38f, 0.65f, 0.58f, 0.82f, 1.0f)
-            } else {
-                floatArrayOf(0.9f, 0.78f, 0.85f, 0.62f, 0.55f, 0.4f, 0.32f, 0.18f)
-            }
-            binding.sparklineHomeBalance.setPoints(trendData)
+            binding.tvFinanceDeltaSub.text = "+$currentSymbol${formattedIncome} / -$currentSymbol${formattedExpense}"
 
             // 2. Tasks / Missions Overview
             val allTasks = dbHelper.getAllTasks("ALL")
@@ -458,9 +441,11 @@ class HomeFragment : Fragment() {
             val completedTasks = allTasks.filter { it.isCompleted }
             val pendingCount = pendingTasks.size
             val totalTasks = allTasks.size
+            val highPriorityCount = pendingTasks.count { it.priority.equals("HIGH", ignoreCase = true) }
 
-            binding.tvMissionsCountBadge.text = "${completedTasks.size}/$totalTasks"
-            binding.tvMissionsSummary.text = "$pendingCount Pending"
+            binding.badgeMissionRatio.text = "${completedTasks.size}/$totalTasks"
+            binding.tvMissionsTitleCount.text = "$pendingCount Active"
+            binding.tvMissionsSubtitle.text = if (highPriorityCount > 0) "$highPriorityCount high priority" else if (pendingCount == 0) "All tasks clear" else "Standard queue"
 
             // 3. Dynamic Daily Class Carousel with Smart Landing Selection
             try {

@@ -114,37 +114,36 @@ class FocusSuiteActivity : AppCompatActivity() {
 
             audioTrack?.play()
             val samples = ShortArray(buffSize)
-            val random = Random()
+            val random = java.util.Random()
 
-            var brownLeft = 0.0
-            var brownRight = 0.0
-            var phaseLeft = 0.0
-            var phaseRight = 0.0
-            val freqLeft = baseFreq
-            val freqRight = baseFreq + beatFreq
-            val hasTone = baseFreq > 0.0
+            var brownL = 0.0
+            var brownR = 0.0
+            var phase1 = 0.0
+            var phase2 = 0.0
+
+            // Warm ambient root chord (Gentle, low-octave meditative pad)
+            val chordRoot = if (baseFreq > 0) baseFreq else 108.0
 
             while (isPlayingAudio) {
                 for (i in 0 until buffSize / 2 step 2) {
-                    // 1. Organic Brown Noise Bed (Low-pass filtered soothing warmth)
-                    val whiteLeft = (random.nextDouble() * 2.0 - 1.0)
-                    val whiteRight = (random.nextDouble() * 2.0 - 1.0)
-                    brownLeft = (brownLeft + (0.02 * whiteLeft)) / 1.02
-                    brownRight = (brownRight + (0.02 * whiteRight)) / 1.02
+                    // 1. Organic Rain/Brown Ambient Blanket (Zero sharp hiss)
+                    val whiteL = random.nextDouble() * 2.0 - 1.0
+                    val whiteR = random.nextDouble() * 2.0 - 1.0
+                    brownL = (brownL + (0.015 * whiteL)) / 1.015
+                    brownR = (brownR + (0.015 * whiteR)) / 1.015
 
-                    // 2. Ultra-soft harmonic binaural drone (scaled way down so it's a subconscious soothing pulse)
-                    val toneL = if (hasTone) sin(phaseLeft) * 0.07 else 0.0
-                    val toneR = if (hasTone) sin(phaseRight) * 0.07 else 0.0
+                    // 2. Soft, filtered warm musical pad (Sine harmonics blended so it sounds like music, NOT a test beep)
+                    val padL = (sin(phase1) + 0.4 * sin(phase1 * 1.5) + 0.2 * sin(phase1 * 2.0)) * 0.04
+                    val padR = (sin(phase2) + 0.4 * sin(phase2 * 1.5) + 0.2 * sin(phase2 * 2.0)) * 0.04
 
-                    // 3. Combined mix attenuated for safety and zero ear fatigue
-                    val finalL = ((brownLeft * 0.4 + toneL) * masterVolume).coerceIn(-1.0, 1.0)
-                    val finalR = ((brownRight * 0.4 + toneR) * masterVolume).coerceIn(-1.0, 1.0)
+                    val finalL = ((brownL * 0.5 + padL) * masterVolume).coerceIn(-1.0, 1.0)
+                    val finalR = ((brownR * 0.5 + padR) * masterVolume).coerceIn(-1.0, 1.0)
 
                     samples[i] = (finalL * 32767).toInt().toShort()
                     samples[i + 1] = (finalR * 32767).toInt().toShort()
 
-                    phaseLeft += 2.0 * Math.PI * freqLeft / sampleRate
-                    phaseRight += 2.0 * Math.PI * freqRight / sampleRate
+                    phase1 += 2.0 * Math.PI * chordRoot / sampleRate
+                    phase2 += 2.0 * Math.PI * (chordRoot + beatFreq) / sampleRate
                 }
                 audioTrack?.write(samples, 0, samples.size)
             }

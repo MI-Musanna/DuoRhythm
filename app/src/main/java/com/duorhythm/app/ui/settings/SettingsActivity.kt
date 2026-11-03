@@ -38,6 +38,7 @@ import com.duorhythm.app.scheduler.BriefingAlarmScheduler
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import android.widget.CheckBox
 import android.widget.TextView
 import java.util.Calendar
@@ -88,6 +89,10 @@ val ActivitySettingsBinding.layoutBackupRestoreContent: View get() = bodyAccordi
 val ActivitySettingsBinding.cardStorageResetHeader: View get() = headerAccordionDataSlate
 val ActivitySettingsBinding.layoutStorageResetContent: View get() = bodyAccordionDataSlate
 val ActivitySettingsBinding.ivChevronStorage: ImageView get() = ivChevronDataSlate
+
+val ActivitySettingsBinding.btnCheckUpdates: MaterialButton get() = btnCheckUpdatesTop
+val ActivitySettingsBinding.tvAppVersion: TextView get() = tvCurrentVersionBadge
+val ActivitySettingsBinding.cardSystemUpdates: MaterialCardView get() = cardSystemUpdateEngine
 
 val ActivitySettingsBinding.cardAboutDeveloperHeader: View get() = headerAccordionAbout
 val ActivitySettingsBinding.layoutAboutDeveloperContent: View get() = bodyAccordionAbout
@@ -824,7 +829,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.tvDeveloperBio.setOnClickListener(easterEggListener)
         binding.tvDeveloperName.setOnClickListener(easterEggListener)
-        binding.tvAppVersion.setOnClickListener(easterEggListener)
+        binding.tvCurrentVersionBadge.setOnClickListener(easterEggListener)
 
         // --- 3. About Developer ---
         binding.btnOpenAboutModal.setOnClickListener {
@@ -847,8 +852,8 @@ class SettingsActivity : AppCompatActivity() {
             openExternalUrl("https://mitecharsenal.blogspot.com")
         }
 
-        binding.tvAppVersion.text = "DuoRhythm v${com.duorhythm.app.BuildConfig.VERSION_NAME}"
-        binding.btnCheckUpdates.setOnClickListener {
+        binding.tvCurrentVersionBadge.text = "v${com.duorhythm.app.BuildConfig.VERSION_NAME}"
+        binding.btnCheckUpdatesTop.setOnClickListener {
             com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = true) { stable, beta ->
                 com.duorhythm.app.util.UpdateManager.showModernDualChannelDialog(this, stable, beta)
             }
@@ -888,7 +893,8 @@ class SettingsActivity : AppCompatActivity() {
             binding.btnResetAppData,
             binding.btnLoadDemoData,
             binding.btnOpenAboutModal,
-            binding.btnCheckUpdates,
+            binding.btnCheckUpdatesTop,
+            binding.cardSystemUpdateEngine,
             binding.cardAboutHub,
             binding.cardAboutGithub,
             binding.cardAboutTelegram,
