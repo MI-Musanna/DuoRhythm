@@ -3,6 +3,9 @@ package com.duorhythm.app.ui.wallet
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.ImageButton
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.duorhythm.app.R
@@ -65,6 +68,7 @@ class TransactionsAdapter(
 
             val cardName = cardsMap[tx.cardId]?.cardName ?: "Cash / Default"
             binding.tvTxCategoryAndDate.text = "${tx.category} • ${tx.date} • $cardName"
+            binding.tvTransactionCategoryBadge.text = tx.category
 
             val convertedAmount = tx.amount
             if (tx.type == "INCOME") {
@@ -131,7 +135,12 @@ class TransactionsAdapter(
     }
 }
 
-val ItemTransactionBinding.btnDeleteTx: android.widget.ImageButton get() = btnMoreTx
+val ItemTransactionBinding.tvTxTitle: TextView get() = tvTransactionTitle
+val ItemTransactionBinding.tvTxCategoryAndDate: TextView get() = tvTransactionDate
+val ItemTransactionBinding.tvTxAmount: TextView get() = tvTransactionAmount
+val ItemTransactionBinding.ivTxBadge: ImageView get() = ivTransactionTypeIcon
+val ItemTransactionBinding.btnMoreTx: ImageButton get() = btnDeleteTransaction
+val ItemTransactionBinding.btnDeleteTx: ImageButton get() = btnDeleteTransaction
 
 typealias BucketLedgerAdapter = TransactionsAdapter
 typealias RecordsAdapter = TransactionsAdapter

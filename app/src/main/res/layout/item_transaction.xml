@@ -1,106 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="3dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/card_stroke"
-    app:cardBackgroundColor="@color/surface_card">
+    app:cardBackgroundColor="@color/surface_card_slate"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/border_glass_stroke"
+    app:strokeWidth="1dp">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="14dp">
+        android:padding="12dp">
 
-        <!-- Category Avatar Icon Squircle -->
+        <!-- Transaction Type Icon Container -->
         <FrameLayout
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@drawable/bg_glass_squircle_action">
+            android:id="@+id/layoutIconFrame"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_circle_button_dark">
 
             <ImageView
-                android:id="@+id/ivTxBadge"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:id="@+id/ivTransactionTypeIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_gravity="center"
+                android:contentDescription="Type"
                 android:src="@drawable/ic_wallet"
-                app:tint="@color/primary" />
+                app:tint="@color/accent_cyan_primary" />
         </FrameLayout>
 
-        <!-- Merchant / Title & Timestamp/Category Details -->
+        <!-- Transaction Title and Timestamp -->
         <LinearLayout
+            android:id="@+id/layoutTitleBlock"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:layout_marginStart="12dp"
-            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:layout_toEndOf="@id/layoutIconFrame"
+            android:layout_toStartOf="@id/layoutAmountBlock"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvTxTitle"
+                android:id="@+id/tvTransactionTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="Stripe Payout"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Transaction"
+                android:textColor="@color/text_primary_white"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvTxCategoryAndDate"
+                android:id="@+id/tvTransactionDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                tools:text="Salary • Today, 2:30 PM • Primary Account"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:text="Date &amp; Time"
+                android:textColor="@color/text_secondary_slate"
+                android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- Amount & Running Balance Column -->
+        <!-- Amount and Type Badge -->
         <LinearLayout
+            android:id="@+id/layoutAmountBlock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@id/btnDeleteTransaction"
             android:gravity="end"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvTxAmount"
+                android:id="@+id/tvTransactionAmount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_chip_unselected"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="5dp"
-                tools:text="+$1,250.00"
-                android:textColor="@color/income_green"
-                android:textSize="13sp"
+                android:text="৳0.00"
+                android:textColor="@color/accent_emerald_work"
+                android:textSize="14.5sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvRunningBalance"
+                android:id="@+id/tvTransactionCategoryBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="@color/text_secondary"
-                android:textSize="10sp"
-                android:visibility="gone"
-                tools:text="BDT 24,160.00" />
+                android:text="General"
+                android:textColor="@color/text_tertiary_muted"
+                android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- Options Menu (⋮) -->
+        <!-- Line 103 Fixed: Direct Concrete Color Tint (No Unresolved Theme Attributes) -->
         <ImageButton
-            android:id="@+id/btnMoreTx"
+            android:id="@+id/btnDeleteTransaction"
             android:layout_width="32dp"
             android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Record Options"
-            android:src="@drawable/ic_more_vert"
-            app:tint="?attr/colorOnSurfaceVariant" />
+            android:contentDescription="Delete"
+            android:padding="6dp"
+            android:src="@drawable/ic_trash"
+            app:tint="@color/text_secondary_slate" />
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/tvRunningBalance"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+    </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>

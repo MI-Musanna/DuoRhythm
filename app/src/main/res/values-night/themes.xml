@@ -6,6 +6,10 @@
         <item name="colorSurface">@color/surface_card_slate</item>
         <item name="colorPrimary">@color/accent_cyan_primary</item>
         <item name="colorSecondary">@color/accent_cyan_glow</item>
+        <item name="colorControlNormal">@color/text_secondary_slate</item>
+        <item name="colorControlActivated">@color/accent_cyan_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary_slate</item>
+        <item name="colorOnSurface">@color/text_primary_white</item>
         <item name="android:statusBarColor">@color/bg_root_obsidian</item>
         <item name="android:navigationBarColor">@color/bg_root_obsidian</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
