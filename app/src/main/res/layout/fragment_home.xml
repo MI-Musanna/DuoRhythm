@@ -21,23 +21,24 @@
             android:id="@+id/cardProfileHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#0D1322"
+            android:layout_marginTop="6dp"
+            app:cardBackgroundColor="@color/surface_card_slate"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
-            app:strokeColor="#18243C"
+            app:strokeColor="@color/border_glass_stroke"
             app:strokeWidth="1dp">
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:padding="12dp">
 
                 <ImageView
                     android:id="@+id/ivUserProfile"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
                     android:background="@drawable/bg_circle_button_dark"
                     android:contentDescription="Profile"
                     android:src="@drawable/ic_profile_placeholder" />
@@ -45,45 +46,41 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
                     android:layout_marginStart="12dp"
                     android:layout_marginEnd="8dp"
-                    android:layout_toEndOf="@id/ivUserProfile"
-                    android:layout_toStartOf="@id/toggleStudentWork"
+                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/tvWelcomeUser"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:text="Welcome back"
-                        android:textColor="#F8FAFC"
+                        android:text="Welcome back, Mahdi Islam Musanna"
+                        android:textColor="@color/text_primary_white"
                         android:textSize="14.5sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvCurrentDateHeader"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
+                        android:layout_marginTop="2dp"
                         android:text="Today"
-                        android:textColor="#94A3B8"
+                        android:textColor="@color/text_secondary_slate"
                         android:textSize="11sp" />
                 </LinearLayout>
 
-                <!-- Student / Work Toggle Mode Switch Pill -->
+                <!-- Symmetrical Student / Work Mode Switch Pill -->
                 <LinearLayout
                     android:id="@+id/toggleStudentWork"
                     android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
+                    android:layout_height="32dp"
                     android:background="@drawable/bg_pill_dark"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="3dp">
+                    android:paddingHorizontal="4dp">
 
                     <TextView
                         android:id="@+id/btnStudentMode"
@@ -94,7 +91,7 @@
                         android:paddingHorizontal="8dp"
                         android:text="STUDENT"
                         android:textColor="#FFFFFF"
-                        android:textSize="9sp"
+                        android:textSize="9.5sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -104,11 +101,11 @@
                         android:gravity="center"
                         android:paddingHorizontal="8dp"
                         android:text="WORK"
-                        android:textColor="#64748B"
-                        android:textSize="9sp"
+                        android:textColor="@color/text_secondary_slate"
+                        android:textSize="9.5sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-            </RelativeLayout>
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Next Up Section -->

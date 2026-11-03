@@ -1,100 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="?android:attr/colorBackground">
+    android:background="@color/bg_root_obsidian"
+    android:orientation="vertical">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarBucket"
+    <!-- Top Action Bar -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fitsSystemWindows="true"
-        android:background="?android:attr/colorBackground"
-        app:elevation="0dp">
+        android:layout_height="56dp"
+        android:background="@color/surface_card_slate"
+        android:paddingHorizontal="16dp">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbarBucket"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:paddingHorizontal="16dp"
-            android:background="?android:attr/colorBackground"
-            app:contentInsetStart="0dp"
-            app:contentInsetEnd="0dp">
+        <ImageView
+            android:id="@+id/btnBackBucketDetail"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_circle_button_dark"
+            android:contentDescription="Back"
+            android:padding="8dp"
+            android:src="@drawable/ic_chevron_left"
+            app:tint="@color/text_primary_white" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+        <TextView
+            android:id="@+id/tvBucketTitleHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="14dp"
+            android:layout_toEndOf="@id/btnBackBucketDetail"
+            android:text="Account Details"
+            android:textColor="@color/text_primary_white"
+            android:textSize="17sp"
+            android:textStyle="bold" />
 
-                <ImageButton
-                    android:id="@+id/btnBucketBack"
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:layout_marginStart="16dp"
-                    android:padding="8dp"
-                    android:background="@drawable/bg_glass_squircle_action"
-                    android:contentDescription="Back"
-                    android:src="@drawable/ic_arrow_back"
-                    android:tint="?attr/colorOnSurface"
-                    app:tint="?attr/colorOnSurface" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvBucketDetailTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Bucket Ledger"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:singleLine="true"
-                        android:ellipsize="end" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Dedicated Wallet Ledger"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageButton
-                        android:id="@+id/btnDeleteBucket"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:background="@drawable/bg_glass_squircle_action"
-                        android:contentDescription="Delete Bucket"
-                        android:src="@drawable/ic_delete"
-                        android:tint="?attr/colorOnSurface"
-                        app:tint="?attr/colorOnSurface" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.appbar.MaterialToolbar>
-    </com.google.android.material.appbar.AppBarLayout>
+        <ImageView
+            android:id="@+id/btnBucketMenuOptions"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Options"
+            android:padding="6dp"
+            android:src="@drawable/ic_more_vert"
+            app:tint="@color/text_secondary_slate" />
+    </RelativeLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingBottom="96dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -102,371 +61,230 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Hero Section: Bucket Balance & Connected Accounts -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/blurBucketHero"
+            <!-- Primary Account Balance Hero Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_virtual_card_hero"
-                android:clipToOutline="true"
-                android:elevation="0dp"
-                app:blurOverlayColor="@color/blur_overlay">
+                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/border_glass_stroke"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="18dp">
 
-                    <View
-                        android:id="@+id/viewBucketAccentTrim"
-                        android:layout_width="match_parent"
-                        android:layout_height="3dp"
-                        android:background="#06B6D4" />
+                    <TextView
+                        android:id="@+id/tvBucketCategoryLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CURRENT BALANCE"
+                        android:textColor="@color/text_secondary_slate"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
 
+                    <TextView
+                        android:id="@+id/tvBucketBalanceAmount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="৳0.00"
+                        android:textColor="@color/text_primary_white"
+                        android:textSize="30sp"
+                        android:textStyle="bold" />
+
+                    <!-- Quick Record & Transfer Buttons -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:baselineAligned="false"
-                        android:padding="16dp">
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
 
-                        <!-- Left Side (60% width): Balance, Action, Summary -->
-                        <LinearLayout
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddTransaction"
+                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="6"
-                            android:orientation="vertical">
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:backgroundTint="@color/accent_cyan_primary"
+                            android:text="+ RECORD"
+                            android:textColor="#06080F"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="20dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Bucket Net Balance"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvBucketTotalBalance"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="$0.00"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-
-                            <!-- Compact Action Button: [ ✎ Edit Balance ] -->
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnAdjustBalanceHero"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:layout_marginTop="8dp"
-                                android:insetTop="0dp"
-                                android:insetBottom="0dp"
-                                android:paddingHorizontal="10dp"
-                                android:text="✎ Edit Balance"
-                                app:icon="@drawable/ic_edit"
-                                app:iconSize="12dp"
-                                app:iconTint="@color/text_primary"
-                                android:textColor="@color/text_primary"
-                                android:textSize="11sp"
-                                android:textStyle="bold"
-                                app:cornerRadius="12dp"
-                                app:strokeColor="@color/card_stroke"
-                                app:strokeWidth="1dp" />
-
-                            <!-- Compact Summary Row: ▲ +৳Income  |  ▼ -৳Expense -->
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:id="@+id/tvBucketInflow"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="▲ +$0.00"
-                                    android:textColor="#10B981"
-                                    android:textSize="11sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginHorizontal="6dp"
-                                    android:text="|"
-                                    android:textColor="#334155"
-                                    android:textSize="11sp" />
-
-                                <TextView
-                                    android:id="@+id/tvBucketOutflow"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="▼ -$0.00"
-                                    android:textColor="#EF4444"
-                                    android:textSize="11sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <!-- Linked Payment Methods Chips -->
-                            <com.google.android.material.chip.ChipGroup
-                                android:id="@+id/chipGroupLinkedMethods"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="6dp" />
-                        </LinearLayout>
-
-                        <!-- Right Side (40% width): Interactive Mini Chart Container -->
-                        <FrameLayout
-                            android:id="@+id/containerBucketMiniChart"
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnTransferFunds"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="4"
-                            android:layout_gravity="center"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:background="?attr/selectableItemBackgroundBorderless">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:gravity="center_horizontal"
-                                android:orientation="vertical">
-
-                                <!-- Micro Toggle Button: [ 🥧 / 📊 ] -->
-                                <LinearLayout
-                                    android:id="@+id/btnToggleMiniChartMode"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="22dp"
-                                    android:layout_gravity="end"
-                                    android:background="@drawable/bg_chip_unselected"
-                                    android:clickable="true"
-                                    android:focusable="true"
-                                    android:gravity="center"
-                                    android:paddingHorizontal="6dp"
-                                    android:paddingVertical="1dp">
-
-                                    <TextView
-                                        android:id="@+id/tvMiniChartToggleIcon"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="📊 / 🥧"
-                                        android:textColor="?attr/colorOnSurfaceVariant"
-                                        android:textSize="10sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-
-                                <!-- 100dp x 100dp Chart View Area -->
-                                <FrameLayout
-                                    android:layout_width="100dp"
-                                    android:layout_height="100dp"
-                                    android:layout_marginTop="4dp">
-
-                                    <!-- Mini Pie Chart (Donut) -->
-                                    <com.github.mikephil.charting.charts.PieChart
-                                        android:id="@+id/bucketMiniPieChart"
-                                        android:layout_width="100dp"
-                                        android:layout_height="100dp"
-                                        android:layout_gravity="center" />
-
-                                    <!-- Mini Bar Chart (Dual Comparison Bars: Income vs Expense) -->
-                                    <com.github.mikephil.charting.charts.BarChart
-                                        android:id="@+id/bucketMiniBarChart"
-                                        android:layout_width="100dp"
-                                        android:layout_height="100dp"
-                                        android:layout_gravity="center"
-                                        android:visibility="gone" />
-
-                                    <!-- Empty State Subtle Dotted Ring -->
-                                    <FrameLayout
-                                        android:id="@+id/layoutMiniChartEmpty"
-                                        android:layout_width="100dp"
-                                        android:layout_height="100dp"
-                                        android:background="@drawable/bg_chart_empty_ring"
-                                        android:visibility="gone">
-
-                                        <LinearLayout
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_gravity="center"
-                                            android:gravity="center"
-                                            android:orientation="vertical">
-
-                                            <ImageView
-                                                android:layout_width="22dp"
-                                                android:layout_height="22dp"
-                                                android:src="@drawable/ic_analytics"
-                                                app:tint="#475569" />
-
-                                            <TextView
-                                                android:layout_width="wrap_content"
-                                                android:layout_height="wrap_content"
-                                                android:layout_marginTop="2dp"
-                                                android:text="No Expenses"
-                                                android:textColor="#475569"
-                                                android:textSize="9sp"
-                                                android:textStyle="bold" />
-                                        </LinearLayout>
-                                    </FrameLayout>
-                                </FrameLayout>
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="Tap for details ↗"
-                                    android:textColor="#64748B"
-                                    android:textSize="9sp" />
-                            </LinearLayout>
-                        </FrameLayout>
-
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="6dp"
+                            android:text="TRANSFER"
+                            android:textColor="@color/text_primary_white"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="20dp"
+                            app:strokeColor="@color/border_glass_stroke" />
                     </LinearLayout>
                 </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
+            </com.google.android.material.card.MaterialCardView>
 
-            <!-- Ledger History Header & Filter -->
-            <TextView
-                android:id="@+id/tvLedgerHeader"
+            <!-- Transaction History Header -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Bucket Ledger History"
-                android:textColor="?attr/colorOnSurface"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="10dp">
 
-            <!-- Horizontally scrollable filter chips (Type and Category Filters) -->
-            <HorizontalScrollView
-                android:id="@+id/hsvFilters"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:scrollbars="none"
-                android:overScrollMode="never">
-
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvHistoryHeaderLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:text="Recent Transactions"
+                    android:textColor="@color/text_primary_white"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
 
-                    <!-- Type Filter: All, Income, Expense -->
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupBucketTxFilter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:singleLine="true"
-                        app:singleSelection="true">
+                <TextView
+                    android:id="@+id/tvClearOrFilterHistory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="Filter"
+                    android:textColor="@color/accent_cyan_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipBucketAll"
-                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:text="All"
-                            app:chipBackgroundColor="@color/chip_choice_background"
-                            app:chipStrokeColor="@color/chip_choice_stroke"
-                            app:chipStrokeWidth="1dp"
-                            android:textColor="@color/chip_choice_text" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipBucketIncome"
-                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Income"
-                            app:chipBackgroundColor="@color/chip_choice_background"
-                            app:chipStrokeColor="@color/chip_choice_stroke"
-                            app:chipStrokeWidth="1dp"
-                            android:textColor="@color/chip_choice_text" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipBucketExpense"
-                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Expense"
-                            app:chipBackgroundColor="@color/chip_choice_background"
-                            app:chipStrokeColor="@color/chip_choice_stroke"
-                            app:chipStrokeWidth="1dp"
-                            android:textColor="@color/chip_choice_text" />
-                    </com.google.android.material.chip.ChipGroup>
-
-                    <!-- Divider -->
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="20dp"
-                        android:layout_marginHorizontal="8dp"
-                        android:background="@color/card_stroke" />
-
-                    <!-- Category Filter Dropdown Chip -->
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipBucketCategory"
-                        style="@style/Widget.MaterialComponents.Chip.Action"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Category ▾"
-                        app:chipIcon="@drawable/ic_filter_list"
-                        app:chipIconTint="?attr/colorOnSurfaceVariant"
-                        app:chipBackgroundColor="@color/chip_choice_background"
-                        app:chipStrokeColor="@color/chip_choice_stroke"
-                        app:chipStrokeWidth="1dp"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <!-- Dynamic Category Chips Container -->
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupCategoryFilter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        app:singleLine="true"
-                        app:singleSelection="true" />
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- Transactions List -->
+            <!-- Transactions List Container -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvBucketTransactions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:nestedScrollingEnabled="false"
-                android:layoutAnimation="@anim/layout_animation_slide_up"
-                tools:listitem="@layout/item_transaction" />
+                android:nestedScrollingEnabled="false" />
 
             <!-- Empty State -->
             <TextView
-                android:id="@+id/tvEmptyBucketTransactions"
+                android:id="@+id/tvEmptyBucketHistory"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_height="120dp"
                 android:gravity="center"
-                android:text="No transactions recorded for this bucket yet.\nTap '+ Add Record' below to record a transaction."
-                android:textColor="@color/text_muted"
+                android:text="No transactions recorded yet"
+                android:textColor="@color/text_secondary_slate"
                 android:textSize="13sp"
                 android:visibility="gone" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Floating "+ Add Record" Button Pre-Selected for this Bucket -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabAddBucketRecord"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="20dp"
-        android:text="+ Add Record"
-        android:textColor="@color/white"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        app:backgroundTint="#0284C7"
-        app:icon="@drawable/ic_add"
-        app:iconTint="@color/white" />
+    <!-- Legacy stub views for ViewBinding compatibility -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:orientation="horizontal">
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAdjustBalanceHero"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <ImageView
+            android:id="@+id/btnDeleteBucket"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupBucketTxFilter"
+            android:layout_width="0dp"
+            android:layout_height="0dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBucketAll"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBucketIncome"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBucketExpense"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <View
+            android:id="@+id/btnToggleMiniChartMode"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipBucketCategory"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupCategoryFilter"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupLinkedMethods"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <FrameLayout
+            android:id="@+id/containerBucketMiniChart"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/bucketMiniBarChart"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/bucketMiniPieChart"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <View
+            android:id="@+id/layoutMiniChartEmpty"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <TextView
+            android:id="@+id/tvMiniChartToggleIcon"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <TextView
+            android:id="@+id/tvBucketInflow"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <TextView
+            android:id="@+id/tvBucketOutflow"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <View
+            android:id="@+id/viewBucketAccentTrim"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddBucketRecord"
+            android:layout_width="0dp"
+            android:layout_height="0dp" />
+    </LinearLayout>
+</LinearLayout>

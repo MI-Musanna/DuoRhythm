@@ -36,6 +36,13 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import android.widget.ImageView
+import android.widget.TextView
+
+val ActivityWalletBucketDetailBinding.btnBucketBack: ImageView get() = btnBackBucketDetail
+val ActivityWalletBucketDetailBinding.tvBucketDetailTitle: TextView get() = tvBucketTitleHeader
+val ActivityWalletBucketDetailBinding.tvBucketTotalBalance: TextView get() = tvBucketBalanceAmount
+val ActivityWalletBucketDetailBinding.tvEmptyBucketTransactions: TextView get() = tvEmptyBucketHistory
 
 class WalletBucketDetailActivity : AppCompatActivity() {
 
@@ -144,7 +151,36 @@ class WalletBucketDetailActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.btnBackBucketDetail.setOnClickListener { finish() }
         binding.btnBucketBack.setOnClickListener { finish() }
+
+        binding.btnAddTransaction.setOnClickListener {
+            showAddTransactionDialog()
+        }
+
+        binding.btnTransferFunds.setOnClickListener {
+            showAddTransactionDialog()
+        }
+
+        binding.tvClearOrFilterHistory.setOnClickListener {
+            showCategoryFilterMenu()
+        }
+
+        binding.btnBucketMenuOptions.setOnClickListener { view ->
+            val popup = androidx.appcompat.widget.PopupMenu(this, view)
+            popup.menu.add(0, 1, 0, "Edit Account")
+            popup.menu.add(0, 2, 1, "Adjust Balance")
+            popup.menu.add(0, 3, 2, "Delete Account")
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> { showEditBucketDialog(); true }
+                    2 -> { showAdjustOrResetBalanceDialog(); true }
+                    3 -> { showDeleteBucketDialog(); true }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
 
         binding.btnAdjustBalanceHero.setOnClickListener {
             showAdjustOrResetBalanceDialog()
@@ -200,6 +236,11 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         }
 
         AnimationUtils.attachTactileFeedback(
+            binding.btnBackBucketDetail,
+            binding.btnAddTransaction,
+            binding.btnTransferFunds,
+            binding.btnBucketMenuOptions,
+            binding.tvClearOrFilterHistory,
             binding.btnBucketBack,
             binding.btnAdjustBalanceHero,
             binding.btnDeleteBucket,

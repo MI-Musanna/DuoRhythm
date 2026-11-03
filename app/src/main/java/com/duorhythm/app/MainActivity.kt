@@ -81,6 +81,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                window.statusBarColor = Color.parseColor("#0A1322")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    // Keep status bar icons light (white) on dark navy/obsidian
+                    window.decorView.systemUiVisibility = window.decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                }
+            }
             window.setBackgroundDrawableResource(R.drawable.bg_ambient_canvas)
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
