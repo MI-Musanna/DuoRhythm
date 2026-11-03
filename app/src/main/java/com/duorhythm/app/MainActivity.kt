@@ -1,6 +1,9 @@
 package com.duorhythm.app
 
 import android.Manifest
+import android.app.AlarmManager
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -99,6 +102,7 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize background managers and alarms safely without blocking activity launch
         try {
+            purgeAllLegacyAlarms()
             ReminderManager.createNotificationChannel(this)
             ReminderManager.rescheduleAll(this)
             com.duorhythm.app.scheduler.ClassAlarmScheduler.rescheduleAll(this)
@@ -230,6 +234,30 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Throwable) {
             e.printStackTrace()
         }
+    }
+
+    private fun purgeAllLegacyAlarms() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+
+        val legacyCodes = listOf(1002, 1003, 2001, 2002, 3001, 3002, 8000, 9000, 9001)
+        for (code in legacyCodes) {
+            val intent = Intent().setPackage(packageName)
+            val pi = PendingIntent.getBroadcast(
+                this,
+                code,
+                intent,
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )
+            if (pi != null) {
+                alarmManager.cancel(pi)
+                pi.cancel()
+            }
+        }
+
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(1002)
+        notificationManager.cancel(2001)
+        notificationManager.cancel(2002)
     }
 
     private fun checkNotificationPermission() {

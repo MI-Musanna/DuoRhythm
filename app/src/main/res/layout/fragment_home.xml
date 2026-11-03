@@ -7,8 +7,8 @@
     android:layout_height="match_parent"
     android:fillViewport="true"
     android:clipToPadding="false"
-    android:paddingBottom="96dp"
-    android:background="@drawable/bg_ambient_canvas">
+    android:overScrollMode="never"
+    android:background="#06080F">
 
     <LinearLayout
         android:id="@+id/rootLayout"
@@ -16,15 +16,17 @@
         android:layout_height="wrap_content"
         android:animateLayoutChanges="true"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="96dp">
 
-        <!-- Replace Top Header Layout in fragment_home.xml -->
+        <!-- Top Header Layout in fragment_home.xml -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:layout_marginTop="4dp">
 
             <ImageView
                 android:id="@+id/ivUserProfile"
@@ -948,141 +950,102 @@
             </eightbitlab.com.blurview.BlurView>
         </FrameLayout>
 
-        <!-- Section Title: Quick Actions -->
+        <!-- Quick Actions (Pure 2-Item Balanced Row: Focus Timer & Calculator) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
             android:text="Quick Actions"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
+            android:textColor="#94A3B8"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
-        <!-- Minimal Action Strip (Frosted Glass Card containing 4 compact quick tools) -->
-        <eightbitlab.com.blurview.BlurView
-            android:id="@+id/btnHomeOpenTools"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_glass_specular_edge"
-            android:clipToOutline="true"
-            android:clipToPadding="true"
-            android:clipChildren="true"
-            android:outlineProvider="background"
-            android:elevation="0dp"
-            app:blurOverlayColor="@color/blur_overlay">
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="10dp"
-                android:paddingHorizontal="6dp">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/toolHomePomodoro"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="#0D1322"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#18243C"
+                app:strokeWidth="1dp">
 
-                <!-- Action 1: Focus -->
                 <LinearLayout
-                    android:id="@+id/toolHomePomodoro"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="horizontal">
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_quick_action_dock">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_timer"
-                            app:tint="#0284C7" />
-                    </FrameLayout>
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_timer"
+                        app:tint="#F43F5E" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Focus"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:layout_marginStart="8dp"
+                        android:text="Pomodoro Timer"
+                        android:textColor="#F8FAFC"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                <!-- Action 2: Sounds -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/toolHomeCalc"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="#0D1322"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#18243C"
+                app:strokeWidth="1dp">
+
                 <LinearLayout
-                    android:id="@+id/toolHomeMusic"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="horizontal">
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_quick_action_dock">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_music"
-                            app:tint="#9333EA" />
-                    </FrameLayout>
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_calculator"
+                        app:tint="#EAB308" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Sounds"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:layout_marginStart="8dp"
+                        android:text="CGPA &amp; Marks"
+                        android:textColor="#F8FAFC"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
-                <!-- Action 3: Calc -->
-                <LinearLayout
-                    android:id="@+id/toolHomeCalc"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_quick_action_dock">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_calculate"
-                            app:tint="#D97706" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Calc"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
-                </LinearLayout>
-            </LinearLayout>
-        </eightbitlab.com.blurview.BlurView>
+        <!-- Hidden legacy views for ViewBinding compatibility -->
+        <View android:id="@+id/toolHomeMusic" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
+        <eightbitlab.com.blurview.BlurView android:id="@+id/btnHomeOpenTools" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
+        <View android:id="@+id/btnQuickFocusTimer" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
+        <View android:id="@+id/btnQuickCalculator" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

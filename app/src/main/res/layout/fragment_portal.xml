@@ -161,10 +161,10 @@
                 </com.google.android.material.button.MaterialButtonToggleGroup>
             </FrameLayout>
 
-            <!-- Sub-tab alias stubs -->
-            <View android:id="@+id/tabPortalCourses" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
-            <View android:id="@+id/tabPortalExams" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
-            <View android:id="@+id/tabPortalDirectory" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
+            <!-- Portal Sub-Navigation Tabs Stubs / Aliases -->
+            <TextView android:id="@+id/tabPortalCourses" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
+            <TextView android:id="@+id/tabPortalExams" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
+            <TextView android:id="@+id/tabPortalDirectory" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
 
             <!-- Container 1: Courses & Overview Section -->
             <LinearLayout
@@ -244,106 +244,47 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Section Header & Add Subject Button -->
-                <LinearLayout
+                <!-- Clean, Modern Section Title & Action Button -->
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="16dp">
 
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Academic Subjects"
-                            android:textColor="@color/text_primary"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Coursework • Exams • Attendance tracking"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
-                    </LinearLayout>
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:text="Enrolled Courses"
+                        android:textColor="#F8FAFC"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAddSubject"
                         style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="14dp"
-                        android:text="+ Add Subject"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
+                        android:layout_height="36dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:backgroundTint="#00E5FF"
+                        android:text="+ ADD COURSE"
+                        android:textColor="#06080F"
+                        android:textSize="11sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0284C7"
-                        app:cornerRadius="12dp" />
-                </LinearLayout>
+                        app:cornerRadius="18dp" />
+                </RelativeLayout>
 
-                <!-- 1-Line Glass Stats Bar -->
+                <!-- Hidden legacy stats stubs -->
                 <LinearLayout
                     android:id="@+id/layoutGlassStatsBar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_pill_dark"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp">
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone">
 
-                    <TextView
-                        android:id="@+id/tvStatTotalCourses"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="0 Courses"
-                        android:textColor="@color/accent_cyan_primary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="14dp"
-                        android:background="@color/border_glass_stroke" />
-
-                    <TextView
-                        android:id="@+id/tvStatPendingAssessments"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="0 Exams"
-                        android:textColor="@color/accent_amber"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="14dp"
-                        android:background="@color/border_glass_stroke" />
-
-                    <TextView
-                        android:id="@+id/tvStatAttendanceRate"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="0% Att."
-                        android:textColor="@color/accent_emerald_work"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                    <TextView android:id="@+id/tvStatTotalCourses" android:layout_width="0dp" android:layout_height="0dp" />
+                    <TextView android:id="@+id/tvStatPendingAssessments" android:layout_width="0dp" android:layout_height="0dp" />
+                    <TextView android:id="@+id/tvStatAttendanceRate" android:layout_width="0dp" android:layout_height="0dp" />
                 </LinearLayout>
 
                 <!-- Academic Overview: 2x2 Grid Tiles (Hidden Legacy Container) -->

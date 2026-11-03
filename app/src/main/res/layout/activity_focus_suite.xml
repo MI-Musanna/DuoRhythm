@@ -3,79 +3,58 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_root_obsidian"
+    android:background="#06080F"
     android:orientation="vertical">
 
-    <!-- Top Action / Header Bar -->
+    <!-- Top Action Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="12dp">
+        android:paddingHorizontal="16dp">
 
         <ImageView
             android:id="@+id/btnBackFocus"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:background="@drawable/bg_circle_button_dark"
             android:contentDescription="Back"
-            android:padding="9dp"
+            android:padding="8dp"
             android:src="@drawable/ic_chevron_left"
-            app:tint="@color/text_primary_white" />
+            app:tint="#F8FAFC" />
 
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Focus &amp; Productivity Suite"
-                android:textColor="@color/text_primary_white"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Obsidian-grade distraction-free utilities"
-                android:textColor="@color/text_secondary_slate"
-                android:textSize="12sp" />
-        </LinearLayout>
+            android:text="Focus &amp; Productivity Suite"
+            android:textColor="#F8FAFC"
+            android:textSize="17sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="24dp">
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Card 1: Pomodoro Focus Timer -->
+            <!-- 1. Pomodoro Focus Timer -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPomodoroLaunch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:layout_marginBottom="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="16dp"
-                app:strokeColor="@color/border_glass_stroke"
+                app:cardElevation="0dp"
+                app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -83,20 +62,13 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="18dp">
+                    android:padding="16dp">
 
-                    <FrameLayout
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="@drawable/bg_circle_button_dark">
-
-                        <ImageView
-                            android:layout_width="26dp"
-                            android:layout_height="26dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_timer"
-                            app:tint="@color/accent_rose" />
-                    </FrameLayout>
+                    <ImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:src="@drawable/ic_timer"
+                        app:tint="#F43F5E" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -109,38 +81,39 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Pomodoro Focus Timer"
-                            android:textColor="@color/text_primary_white"
-                            android:textSize="16sp"
+                            android:textColor="#F8FAFC"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="Interval training with 25m deep study sprints &amp; 5m recovery breaks"
-                            android:textColor="@color/text_secondary_slate"
+                            android:text="25m sprint &amp; 5m break interval loop"
+                            android:textColor="#94A3B8"
                             android:textSize="12sp" />
                     </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        app:tint="@color/text_tertiary_muted" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Launch →"
+                        android:textColor="#F43F5E"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 2: Percentage & Exam Marks Calculator -->
+            <!-- 2. Percentage & CGPA Calculator -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardCalculatorLaunch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="16dp"
-                app:strokeColor="@color/border_glass_stroke"
+                app:cardElevation="0dp"
+                app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -148,20 +121,13 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="18dp">
+                    android:padding="16dp">
 
-                    <FrameLayout
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="@drawable/bg_circle_button_dark">
-
-                        <ImageView
-                            android:layout_width="26dp"
-                            android:layout_height="26dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_calculate"
-                            app:tint="@color/accent_amber" />
-                    </FrameLayout>
+                    <ImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:src="@drawable/ic_calculator"
+                        app:tint="#EAB308" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -173,39 +139,40 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Percentage &amp; Exam Calculator"
-                            android:textColor="@color/text_primary_white"
-                            android:textSize="16sp"
+                            android:text="Percentage &amp; CGPA Calculator"
+                            android:textColor="#F8FAFC"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="Quick multi-mode calculations for exam scores, discounts &amp; mark percentages"
-                            android:textColor="@color/text_secondary_slate"
+                            android:text="Semester marks, CGPA and discount metrics"
+                            android:textColor="#94A3B8"
                             android:textSize="12sp" />
                     </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        app:tint="@color/text_tertiary_muted" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Calculate →"
+                        android:textColor="#EAB308"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 3: Zen Focus Mode & System DND -->
+            <!-- 3. DND Focus Mode -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardDndLaunch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@color/surface_card_slate"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="16dp"
-                app:strokeColor="@color/border_glass_stroke"
+                app:cardElevation="0dp"
+                app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -213,20 +180,13 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="18dp">
+                    android:padding="16dp">
 
-                    <FrameLayout
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="@drawable/bg_circle_button_dark">
-
-                        <ImageView
-                            android:layout_width="26dp"
-                            android:layout_height="26dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_shield_check"
-                            app:tint="@color/accent_purple" />
-                    </FrameLayout>
+                    <ImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:src="@drawable/ic_shield"
+                        app:tint="#10B981" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -238,28 +198,88 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Zen Mode &amp; System DND"
-                            android:textColor="@color/text_primary_white"
-                            android:textSize="16sp"
+                            android:text="DND Focus &amp; Zen Mode"
+                            android:textColor="#F8FAFC"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="Silence notifications, avoid interruptions, and lock focus"
-                            android:textColor="@color/text_secondary_slate"
+                            android:text="Mute distractions and configure system Zen rules"
+                            android:textColor="#94A3B8"
                             android:textSize="12sp" />
                     </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        app:tint="@color/text_tertiary_muted" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Configure →"
+                        android:textColor="#10B981"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- 4. Class Attendance Log -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAttendanceLaunch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="#0D1322"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#18243C"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:src="@drawable/ic_schedule"
+                        app:tint="#38BDF8" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Class Attendance Log"
+                            android:textColor="#F8FAFC"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="Calendar-synced class attendance logs"
+                            android:textColor="#94A3B8"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Open Log →"
+                        android:textColor="#38BDF8"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

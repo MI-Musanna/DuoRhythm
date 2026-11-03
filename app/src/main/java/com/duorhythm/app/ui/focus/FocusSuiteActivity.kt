@@ -43,11 +43,16 @@ class FocusSuiteActivity : AppCompatActivity() {
             }
         }
 
+        binding.cardAttendanceLaunch.setOnClickListener {
+            com.duorhythm.app.ui.tools.AttendanceCalendarBottomSheet(this).show()
+        }
+
         AnimationUtils.attachTactileFeedback(
             binding.btnBackFocus,
             binding.cardPomodoroLaunch,
             binding.cardCalculatorLaunch,
-            binding.cardDndLaunch
+            binding.cardDndLaunch,
+            binding.cardAttendanceLaunch
         )
     }
 }

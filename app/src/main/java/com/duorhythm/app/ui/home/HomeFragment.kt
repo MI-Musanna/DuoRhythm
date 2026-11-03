@@ -153,7 +153,7 @@ class HomeFragment : Fragment() {
                 BlurUtil.setupBlur(binding.cardHomeQuickNotes, rootView)
                 BlurUtil.setupBlur(binding.cardHomePortal, rootView)
                 BlurUtil.setupBlur(binding.cardHomePortalWork, rootView)
-                BlurUtil.setupBlur(binding.btnHomeOpenTools, rootView)
+                (binding.btnHomeOpenTools as? eightbitlab.com.blurview.BlurView)?.let { BlurUtil.setupBlur(it, rootView) }
             }
         } catch (e: Throwable) {
             e.printStackTrace()
