@@ -113,7 +113,8 @@ class HomeFragment : Fragment() {
             val prefs = requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
             isMissionsCollapsed = prefs.getBoolean("pref_missions_collapsed", false)
             isNotesCollapsed = prefs.getBoolean("pref_notes_collapsed", false)
-            setSectionCollapsed(binding.layoutMissionsContent, binding.ivChevronMissions, isMissionsCollapsed, animate = false)
+            binding.layoutMissionsExpandable.visibility = if (isMissionsCollapsed) View.GONE else View.VISIBLE
+            binding.ivMissionsChevron.rotation = if (isMissionsCollapsed) 180f else 0f
             setSectionCollapsed(binding.layoutNotesContent, binding.ivChevronNotes, isNotesCollapsed, animate = false)
 
             setupListeners()
@@ -153,8 +154,6 @@ class HomeFragment : Fragment() {
             val rootView = activity?.window?.decorView?.findViewById<ViewGroup>(android.R.id.content)
                 ?: (binding.root as? ViewGroup)
             if (rootView != null) {
-                BlurUtil.setupBlur(binding.cardHomeWallet, rootView)
-                BlurUtil.setupBlur(binding.cardHomeTasks, rootView)
                 BlurUtil.setupBlur(binding.cardHomeQuickNotes, rootView)
                 BlurUtil.setupBlur(binding.cardHomePortal, rootView)
                 BlurUtil.setupBlur(binding.cardHomePortalWork, rootView)
@@ -299,19 +298,20 @@ class HomeFragment : Fragment() {
                 loadDashboardData()
             }
 
-            binding.cardHomeWallet.setOnClickListener {
+            binding.cardFinanceOverview.setOnClickListener {
                 mainActivity?.selectNavTab(R.id.menu_wallet)
             }
 
-            binding.cardHomeTasks.setOnClickListener {
+            binding.cardMissionsOverview.setOnClickListener {
                 mainActivity?.selectNavTab(R.id.menu_tasks)
             }
 
             val prefs = requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
-            binding.btnToggleMissions.setOnClickListener {
+            binding.btnToggleMissionsCollapse.setOnClickListener {
                 isMissionsCollapsed = !isMissionsCollapsed
                 prefs.edit().putBoolean("pref_missions_collapsed", isMissionsCollapsed).apply()
-                setSectionCollapsed(binding.layoutMissionsContent, binding.ivChevronMissions, isMissionsCollapsed, animate = true)
+                binding.layoutMissionsExpandable.visibility = if (isMissionsCollapsed) View.GONE else View.VISIBLE
+                binding.ivMissionsChevron.animate().rotation(if (isMissionsCollapsed) 180f else 0f).setDuration(200).start()
             }
             binding.btnToggleNotes.setOnClickListener {
                 isNotesCollapsed = !isNotesCollapsed
@@ -375,8 +375,8 @@ class HomeFragment : Fragment() {
             }
 
             AnimationUtils.attachTactileFeedback(
-                binding.cardHomeWallet,
-                binding.cardHomeTasks,
+                binding.cardFinanceOverview,
+                binding.cardMissionsOverview,
                 binding.cardHomePortal,
                 binding.cardWorkMilestones,
                 binding.btnPrevWorkOrder,
@@ -456,23 +456,11 @@ class HomeFragment : Fragment() {
             val allTasks = dbHelper.getAllTasks("ALL")
             val pendingTasks = allTasks.filter { !it.isCompleted }
             val completedTasks = allTasks.filter { it.isCompleted }
-            val highPriorityCount = pendingTasks.count { it.priority.equals("HIGH", ignoreCase = true) }
             val pendingCount = pendingTasks.size
-            binding.tvHomeTasksCount.text = "$pendingCount Pending"
             val totalTasks = allTasks.size
-            val fraction = if (totalTasks > 0) completedTasks.size.toFloat() / totalTasks.toFloat() else 0f
-            binding.progressRingHomeTasks.setProgress(
-                fraction,
-                if (totalTasks == 0) "0/0" else "${completedTasks.size}/$totalTasks",
-                "DONE"
-            )
-            if (highPriorityCount > 0) {
-                binding.tvHomeTasksPriorityBrief.text = "$highPriorityCount high priority"
-            } else if (pendingCount == 0) {
-                binding.tvHomeTasksPriorityBrief.text = "All tasks clear"
-            } else {
-                binding.tvHomeTasksPriorityBrief.text = "Standard priority queue"
-            }
+
+            binding.tvMissionsCountBadge.text = "${completedTasks.size}/$totalTasks"
+            binding.tvMissionsSummary.text = "$pendingCount Pending"
 
             // 3. Dynamic Daily Class Carousel with Smart Landing Selection
             try {

@@ -2,56 +2,112 @@ package com.duorhythm.app.ui.tools
 
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.CountDownTimer
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.LayoutInflater
 import android.widget.Toast
 import com.duorhythm.app.R
-import com.duorhythm.app.databinding.DialogPomodoroBinding
+import com.duorhythm.app.databinding.DialogPomodoroTimerBinding
+import com.duorhythm.app.util.AnimationUtils
 import java.util.Locale
 
 class PomodoroDialog(private val context: Context) {
 
+    private enum class Mode(val durationMs: Long, val stateText: String) {
+        FOCUS(25 * 60 * 1000L, "Deep Flow State"),
+        SHORT_BREAK(5 * 60 * 1000L, "Short Rest & Refresh"),
+        LONG_BREAK(15 * 60 * 1000L, "Extended Recharge")
+    }
+
+    private var currentMode = Mode.FOCUS
     private var countDownTimer: CountDownTimer? = null
     private var isTimerRunning = false
-    private var timeLeftInMillis: Long = 25 * 60 * 1000L
-    private var initialTimeInMillis: Long = 25 * 60 * 1000L
+    private var timeLeftInMillis: Long = currentMode.durationMs
+    private var initialTimeInMillis: Long = currentMode.durationMs
     private var completedSessions = 0
 
     fun show() {
-        val binding = DialogPomodoroBinding.inflate(LayoutInflater.from(context))
+        val binding = DialogPomodoroTimerBinding.inflate(LayoutInflater.from(context))
         val dialog = AlertDialog.Builder(context)
             .setView(binding.root)
             .create()
 
-        com.duorhythm.app.util.AnimationUtils.applyDialogAnimation(dialog)
-        com.duorhythm.app.util.AnimationUtils.attachTactileFeedback(
-            binding.btnPomoStart,
-            binding.btnPomoReset
+        AnimationUtils.applyDialogAnimation(dialog)
+        AnimationUtils.attachTactileFeedback(
+            binding.btnStartTimer,
+            binding.btnResetTimer,
+            binding.tabFocusMode,
+            binding.tabShortBreak,
+            binding.tabLongBreak
         )
 
         fun updateTimerText() {
-            val minutes = (timeLeftInMillis / 1000) / 60
-            val seconds = (timeLeftInMillis / 1000) % 60
-            binding.tvPomoTimer.text = String.format(Locale.US, "%02d:%02d", minutes, seconds)
+            val totalSeconds = (timeLeftInMillis + 999) / 1000
+            val minutes = totalSeconds / 60
+            val seconds = totalSeconds % 60
+            binding.tvPomodoroTime.text = String.format(Locale.US, "%02d:%02d", minutes, seconds)
+        }
+
+        fun updateModePillsUI() {
+            val activeBg = R.drawable.bg_pill_blue
+            val activeColor = Color.WHITE
+            val inactiveColor = Color.parseColor("#64748B")
+
+            binding.tabFocusMode.background = if (currentMode == Mode.FOCUS) context.getDrawable(activeBg) else null
+            binding.tabFocusMode.setTextColor(if (currentMode == Mode.FOCUS) activeColor else inactiveColor)
+
+            binding.tabShortBreak.background = if (currentMode == Mode.SHORT_BREAK) context.getDrawable(activeBg) else null
+            binding.tabShortBreak.setTextColor(if (currentMode == Mode.SHORT_BREAK) activeColor else inactiveColor)
+
+            binding.tabLongBreak.background = if (currentMode == Mode.LONG_BREAK) context.getDrawable(activeBg) else null
+            binding.tabLongBreak.setTextColor(if (currentMode == Mode.LONG_BREAK) activeColor else inactiveColor)
+        }
+
+        fun selectMode(mode: Mode) {
+            countDownTimer?.cancel()
+            isTimerRunning = false
+            currentMode = mode
+            initialTimeInMillis = mode.durationMs
+            timeLeftInMillis = initialTimeInMillis
+
+            val maxSeconds = (initialTimeInMillis / 1000).toInt()
+            binding.pbPomodoroRing.max = maxSeconds
+            binding.pbPomodoroRing.progress = maxSeconds
+
+            binding.tvPomodoroState.text = mode.stateText
+            binding.btnStartTimer.text = "START"
+            updateModePillsUI()
+            updateTimerText()
         }
 
         fun startTimer() {
+            countDownTimer?.cancel()
+            val totalSeconds = (initialTimeInMillis / 1000).toInt()
+            binding.pbPomodoroRing.max = totalSeconds
+
             countDownTimer = object : CountDownTimer(timeLeftInMillis, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
                     timeLeftInMillis = millisUntilFinished
+                    binding.pbPomodoroRing.progress = ((millisUntilFinished + 999) / 1000).toInt()
                     updateTimerText()
                 }
 
                 override fun onFinish() {
                     isTimerRunning = false
-                    completedSessions++
-                    binding.tvPomoSessions.text = "Completed sessions: $completedSessions"
-                    binding.tvPomoStatus.text = "Session complete! Great work."
-                    binding.btnPomoStart.text = "Start"
+                    binding.pbPomodoroRing.progress = 0
+                    if (currentMode == Mode.FOCUS) {
+                        completedSessions++
+                        val sessionDisplay = (completedSessions % 4) + 1
+                        binding.tvSessionCounter.text = "Session $sessionDisplay of 4 • Stay locked in"
+                    }
+                    binding.tvPomodoroState.text = "Session Complete!"
+                    binding.btnStartTimer.text = "START"
+                    timeLeftInMillis = initialTimeInMillis
+                    updateTimerText()
 
-                    // Alert user with vibration
                     try {
                         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
                         vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
@@ -62,51 +118,34 @@ class PomodoroDialog(private val context: Context) {
             }.start()
 
             isTimerRunning = true
-            binding.btnPomoStart.text = "Pause"
-            binding.tvPomoStatus.text = "Focus in progress..."
+            binding.btnStartTimer.text = "PAUSE"
+            binding.tvPomodoroState.text = currentMode.stateText
         }
 
         fun pauseTimer() {
             countDownTimer?.cancel()
             isTimerRunning = false
-            binding.btnPomoStart.text = "Resume"
-            binding.tvPomoStatus.text = "Paused"
+            binding.btnStartTimer.text = "RESUME"
+            binding.tvPomodoroState.text = "Paused"
         }
 
         fun resetTimer() {
             countDownTimer?.cancel()
             isTimerRunning = false
             timeLeftInMillis = initialTimeInMillis
+            val maxSeconds = (initialTimeInMillis / 1000).toInt()
+            binding.pbPomodoroRing.max = maxSeconds
+            binding.pbPomodoroRing.progress = maxSeconds
             updateTimerText()
-            binding.btnPomoStart.text = "Start"
-            binding.tvPomoStatus.text = "Ready to focus"
+            binding.btnStartTimer.text = "START"
+            binding.tvPomodoroState.text = currentMode.stateText
         }
 
-        binding.togglePomoMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isChecked) {
-                countDownTimer?.cancel()
-                isTimerRunning = false
-                when (checkedId) {
-                    R.id.btnPomoFocus -> {
-                        initialTimeInMillis = 25 * 60 * 1000L
-                        binding.tvPomoStatus.text = "Focus Time (25m)"
-                    }
-                    R.id.btnPomoShortBreak -> {
-                        initialTimeInMillis = 5 * 60 * 1000L
-                        binding.tvPomoStatus.text = "Short Rest (5m)"
-                    }
-                    R.id.btnPomoLongBreak -> {
-                        initialTimeInMillis = 15 * 60 * 1000L
-                        binding.tvPomoStatus.text = "Long Rest (15m)"
-                    }
-                }
-                timeLeftInMillis = initialTimeInMillis
-                updateTimerText()
-                binding.btnPomoStart.text = "Start"
-            }
-        }
+        binding.tabFocusMode.setOnClickListener { selectMode(Mode.FOCUS) }
+        binding.tabShortBreak.setOnClickListener { selectMode(Mode.SHORT_BREAK) }
+        binding.tabLongBreak.setOnClickListener { selectMode(Mode.LONG_BREAK) }
 
-        binding.btnPomoStart.setOnClickListener {
+        binding.btnStartTimer.setOnClickListener {
             if (isTimerRunning) {
                 pauseTimer()
             } else {
@@ -114,7 +153,7 @@ class PomodoroDialog(private val context: Context) {
             }
         }
 
-        binding.btnPomoReset.setOnClickListener {
+        binding.btnResetTimer.setOnClickListener {
             resetTimer()
         }
 
@@ -122,8 +161,9 @@ class PomodoroDialog(private val context: Context) {
             countDownTimer?.cancel()
         }
 
-        updateTimerText()
-        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        // Initialize state
+        selectMode(Mode.FOCUS)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.show()
     }
 }

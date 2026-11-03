@@ -7,21 +7,23 @@ import android.media.AudioTrack
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.duorhythm.app.databinding.ActivityFocusSuiteBinding
 import com.duorhythm.app.ui.tools.AmbientSoundDialog
 import com.duorhythm.app.ui.tools.PomodoroDialog
 import com.duorhythm.app.util.AnimationUtils
+import java.util.Random
 import kotlin.concurrent.thread
 import kotlin.math.sin
 
 class FocusSuiteActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityFocusSuiteBinding
-    private var binauralTrack: AudioTrack? = null
-    @Volatile
-    private var isPlayingBinaural = false
+    private var audioTrack: AudioTrack? = null
+    private var isPlayingAudio = false
+    private var masterVolume = 0.6f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,12 +55,32 @@ class FocusSuiteActivity : AppCompatActivity() {
             }
         }
 
-        // Binaural Beat Presets
-        binding.cardAlphaWaves.setOnClickListener { playBinauralBeats(baseFreq = 210.0, beatFreq = 10.0, "Alpha (10Hz) • Deep Flow & Focus") }
-        binding.cardBetaWaves.setOnClickListener { playBinauralBeats(baseFreq = 250.0, beatFreq = 20.0, "Beta (20Hz) • Peak Concentration & Code") }
-        binding.cardThetaWaves.setOnClickListener { playBinauralBeats(baseFreq = 180.0, beatFreq = 6.0, "Theta (6Hz) • Memory & Insight") }
-        binding.cardGammaWaves.setOnClickListener { playBinauralBeats(baseFreq = 300.0, beatFreq = 40.0, "Gamma (40Hz) • Cognitive Processing") }
-        binding.btnStopAudio.setOnClickListener { stopBinauralBeats() }
+        // Scientific Binaural Frequencies layered on Soft Ambient Noise
+        binding.cardAlphaWaves.setOnClickListener {
+            playLayeredBinaural(baseFreq = 144.0, beatFreq = 10.0, "Alpha Flow (10 Hz) • Soft Rain & Calm Focus")
+        }
+        binding.cardBetaWaves.setOnClickListener {
+            playLayeredBinaural(baseFreq = 180.0, beatFreq = 20.0, "Beta Concentration (20 Hz) • Deep Coding & Logic")
+        }
+        binding.cardThetaWaves.setOnClickListener {
+            playLayeredBinaural(baseFreq = 120.0, beatFreq = 6.0, "Theta Meditation (6 Hz) • Creative Insight & Rest")
+        }
+        binding.cardGammaWaves.setOnClickListener {
+            playLayeredBinaural(baseFreq = 216.0, beatFreq = 40.0, "Gamma Processing (40 Hz) • Peak Memory Recall")
+        }
+        binding.cardCozyBrown.setOnClickListener {
+            playLayeredBinaural(baseFreq = 0.0, beatFreq = 0.0, "Pure Brown Noise • Deep Waterfall (Zero Whistle)")
+        }
+
+        binding.btnStopAudio.setOnClickListener { stopAudio() }
+
+        binding.sbVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                masterVolume = progress / 100f
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
 
         AnimationUtils.attachTactileFeedback(
             binding.btnBackFocus,
@@ -69,61 +91,79 @@ class FocusSuiteActivity : AppCompatActivity() {
             binding.cardBetaWaves,
             binding.cardThetaWaves,
             binding.cardGammaWaves,
+            binding.cardCozyBrown,
             binding.btnStopAudio
         )
     }
 
-    private fun playBinauralBeats(baseFreq: Double, beatFreq: Double, title: String) {
-        stopBinauralBeats()
-        isPlayingBinaural = true
+    private fun playLayeredBinaural(baseFreq: Double, beatFreq: Double, title: String) {
+        stopAudio()
+        isPlayingAudio = true
         binding.tvNowPlayingTitle.text = title
         binding.layoutAudioPlayerBar.visibility = View.VISIBLE
 
         thread(priority = Thread.MAX_PRIORITY) {
             val sampleRate = 44100
             val buffSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT)
-            val track = AudioTrack.Builder()
+            audioTrack = AudioTrack.Builder()
                 .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
                 .setAudioFormat(AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT).setSampleRate(sampleRate).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).build())
                 .setBufferSizeInBytes(buffSize)
                 .setTransferMode(AudioTrack.MODE_STREAM)
                 .build()
 
-            binauralTrack = track
-            track.play()
+            audioTrack?.play()
             val samples = ShortArray(buffSize)
+            val random = Random()
+
+            var brownLeft = 0.0
+            var brownRight = 0.0
             var phaseLeft = 0.0
             var phaseRight = 0.0
             val freqLeft = baseFreq
             val freqRight = baseFreq + beatFreq
+            val hasTone = baseFreq > 0.0
 
-            while (isPlayingBinaural) {
+            while (isPlayingAudio) {
                 for (i in 0 until buffSize / 2 step 2) {
-                    val sLeft = (sin(phaseLeft) * 16384).toInt().toShort()
-                    val sRight = (sin(phaseRight) * 16384).toInt().toShort()
-                    samples[i] = sLeft
-                    samples[i + 1] = sRight
+                    // 1. Organic Brown Noise Bed (Low-pass filtered soothing warmth)
+                    val whiteLeft = (random.nextDouble() * 2.0 - 1.0)
+                    val whiteRight = (random.nextDouble() * 2.0 - 1.0)
+                    brownLeft = (brownLeft + (0.02 * whiteLeft)) / 1.02
+                    brownRight = (brownRight + (0.02 * whiteRight)) / 1.02
+
+                    // 2. Ultra-soft harmonic binaural drone (scaled way down so it's a subconscious soothing pulse)
+                    val toneL = if (hasTone) sin(phaseLeft) * 0.07 else 0.0
+                    val toneR = if (hasTone) sin(phaseRight) * 0.07 else 0.0
+
+                    // 3. Combined mix attenuated for safety and zero ear fatigue
+                    val finalL = ((brownLeft * 0.4 + toneL) * masterVolume).coerceIn(-1.0, 1.0)
+                    val finalR = ((brownRight * 0.4 + toneR) * masterVolume).coerceIn(-1.0, 1.0)
+
+                    samples[i] = (finalL * 32767).toInt().toShort()
+                    samples[i + 1] = (finalR * 32767).toInt().toShort()
+
                     phaseLeft += 2.0 * Math.PI * freqLeft / sampleRate
                     phaseRight += 2.0 * Math.PI * freqRight / sampleRate
                 }
-                track.write(samples, 0, samples.size)
+                audioTrack?.write(samples, 0, samples.size)
             }
         }
     }
 
-    private fun stopBinauralBeats() {
-        isPlayingBinaural = false
+    private fun stopAudio() {
+        isPlayingAudio = false
         try {
-            binauralTrack?.stop()
-            binauralTrack?.release()
-            binauralTrack = null
+            audioTrack?.stop()
+            audioTrack?.release()
+            audioTrack = null
         } catch (_: Exception) {}
         binding.layoutAudioPlayerBar.visibility = View.GONE
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        stopBinauralBeats()
+        stopAudio()
     }
 
     companion object {

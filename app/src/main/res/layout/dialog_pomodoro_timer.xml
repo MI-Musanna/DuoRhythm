@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass_oled"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Mode Selector Pills -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:background="@drawable/bg_pill_dark"
+        android:padding="3dp">
+
+        <TextView
+            android:id="@+id/tabFocusMode"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_pill_blue"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="25M FOCUS"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tabShortBreak"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="5M BREAK"
+            android:textColor="#64748B"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tabLongBreak"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="15M BREAK"
+            android:textColor="#64748B"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Circular Progress Countdown Container -->
+    <FrameLayout
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="24dp">
+
+        <ProgressBar
+            android:id="@+id/pbPomodoroRing"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="false"
+            android:max="1500"
+            android:progress="1500"
+            android:progressDrawable="@drawable/circular_progress_neon" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvPomodoroTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="25:00"
+                android:textColor="#FFFFFF"
+                android:textSize="38sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvPomodoroState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Deep Flow State"
+                android:textColor="#00E5FF"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Round Dots Tracker (e.g. Round 2 of 4) -->
+    <TextView
+        android:id="@+id/tvSessionCounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Session 1 of 4 • Stay locked in"
+        android:textColor="#94A3B8"
+        android:textSize="12sp" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResetTimer"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="110dp"
+            android:layout_height="44dp"
+            android:text="Reset"
+            android:textColor="#94A3B8"
+            app:cornerRadius="22dp"
+            app:strokeColor="#1F2F4D" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStartTimer"
+            android:layout_width="140dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="14dp"
+            android:backgroundTint="#00E5FF"
+            android:text="START"
+            android:textColor="#0A0F1D"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:cornerRadius="22dp" />
+    </LinearLayout>
+</LinearLayout>

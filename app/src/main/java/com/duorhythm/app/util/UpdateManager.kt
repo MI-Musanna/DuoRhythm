@@ -180,10 +180,15 @@ object UpdateManager {
 
         val currentVersion = BuildConfig.VERSION_NAME
 
-        // Bind Stable
-        val tvStable = view.findViewById<TextView>(R.id.tvStableVersion)
-        val btnStable = view.findViewById<MaterialButton>(R.id.btnInstallStable)
+        val cardStable = view.findViewById<View>(R.id.cardStableTrack)
+        val tvNoStable = view.findViewById<View>(R.id.tvNoStableBanner)
+
+        // Only show Stable card if GitHub actually returned a non-prerelease!
         if (stable != null) {
+            cardStable.visibility = View.VISIBLE
+            tvNoStable.visibility = View.GONE
+            val tvStable = view.findViewById<TextView>(R.id.tvStableVersion)
+            val btnStable = view.findViewById<MaterialButton>(R.id.btnInstallStable)
             tvStable.text = "${stable.tagName} • Verified Stable"
             if (currentVersion == stable.tagName) {
                 btnStable.text = "Installed"
@@ -195,18 +200,24 @@ object UpdateManager {
                     dialog.dismiss()
                 }
             }
+        } else {
+            // No stable releases exist on GitHub -> Completely hide the stable card!
+            cardStable.visibility = View.GONE
+            tvNoStable.visibility = View.VISIBLE
         }
 
-        // Bind Beta
+        // Bind Beta Track
+        val cardBeta = view.findViewById<View>(R.id.cardBetaTrack)
         val tvBeta = view.findViewById<TextView>(R.id.tvBetaVersion)
         val badgeBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
         if (beta != null) {
+            cardBeta.visibility = View.VISIBLE
             tvBeta.text = "${beta.tagName} • Latest Preview"
             if (currentVersion == beta.tagName) {
                 badgeBeta.text = "INSTALLED"
             } else {
                 badgeBeta.text = "UPDATE"
-                badgeBeta.setOnClickListener {
+                cardBeta.setOnClickListener {
                     downloadAndInstallApk(context, beta.downloadUrl, "${beta.tagName}.apk")
                     dialog.dismiss()
                 }

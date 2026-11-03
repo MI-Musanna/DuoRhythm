@@ -398,207 +398,182 @@
 
             <!-- 3. 2-Column Asymmetric Metric Deck: Finance + Missions -->
             <LinearLayout
+                android:id="@+id/layoutOverviewSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clipToPadding="true"
-                android:clipChildren="true"
+                android:layout_marginTop="12dp"
                 android:orientation="horizontal">
 
-            <!-- Finance Card (Left Column) -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/cardHomeWallet"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1.15"
-                android:background="@drawable/bg_glass_specular_edge"
-                android:clipToOutline="true"
-                android:clipToPadding="true"
-                android:clipChildren="true"
-                android:outlineProvider="background"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="0dp"
-                app:blurOverlayColor="@color/blur_overlay">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <!-- Finance Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardFinanceOverview"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="#131B2E"
+                    app:cardCornerRadius="14dp"
+                    app:strokeColor="#1F2F4D"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <FrameLayout
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:background="@drawable/bg_badge_overview_rect">
-
-                            <ImageView
-                                android:layout_width="15dp"
-                                android:layout_height="15dp"
-                                android:layout_gravity="center"
-                                android:src="@drawable/ic_wallet"
-                                app:tint="#00F2FE" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="Finance"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/tvHomeBalance"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:text="0.00"
-                        android:textColor="@color/text_primary"
-                        android:textSize="20sp"
-                        android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvHomeIncomeExpenseBrief"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:text="+0.00 / -0.00"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="10sp" />
-
-                    <!-- Electric Cyan Bezier Sparkline with Translucent Gradient Underfill -->
-                    <com.duorhythm.app.ui.home.SparklineTrendView
-                        android:id="@+id/sparklineHomeBalance"
-                        android:layout_width="match_parent"
-                        android:layout_height="24dp"
-                        android:layout_marginTop="4dp" />
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
-
-            <!-- Missions Card (Right Column) -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/cardHomeTasks"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1.0"
-                android:background="@drawable/bg_glass_specular_edge"
-                android:clipToOutline="true"
-                android:clipToPadding="true"
-                android:clipChildren="true"
-                android:outlineProvider="background"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="0dp"
-                app:blurOverlayColor="@color/blur_overlay">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <LinearLayout
-                        android:id="@+id/btnToggleMissions"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <FrameLayout
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:background="@drawable/bg_badge_overview_rect">
-
-                            <ImageView
-                                android:layout_width="15dp"
-                                android:layout_height="15dp"
-                                android:layout_gravity="center"
-                                android:src="@drawable/ic_tasks"
-                                app:tint="#D946EF" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:text="Missions"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <ImageView
-                            android:id="@+id/ivChevronMissions"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_chevron_down"
-                            app:tint="#00E5FF" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/layoutMissionsContent"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <!-- Circular Progress Ring with Electric Glow -->
-                        <com.duorhythm.app.ui.home.CircularProgressRingView
-                            android:id="@+id/progressRingHomeTasks"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp" />
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <FrameLayout
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:background="@drawable/bg_badge_overview_rect">
+
+                                <ImageView
+                                    android:layout_width="15dp"
+                                    android:layout_height="15dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_wallet"
+                                    app:tint="#00F2FE" />
+                            </FrameLayout>
 
                             <TextView
-                                android:id="@+id/tvHomeTasksCount"
-                                android:layout_width="match_parent"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:breakStrategy="simple"
-                                android:ellipsize="end"
-                                android:maxLines="1"
-                                android:text="0 Pending"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
+                                android:layout_marginStart="8dp"
+                                android:text="Finance"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvHomeBalance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="0.00"
+                            android:textColor="@color/text_primary"
+                            android:textSize="20sp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvHomeIncomeExpenseBrief"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:text="+0.00 / -0.00"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="10sp" />
+
+                        <!-- Electric Cyan Bezier Sparkline with Translucent Gradient Underfill -->
+                        <com.duorhythm.app.ui.home.SparklineTrendView
+                            android:id="@+id/sparklineHomeBalance"
+                            android:layout_width="match_parent"
+                            android:layout_height="24dp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Missions Card with Clean True Collapse -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMissionsOverview"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="#131B2E"
+                    app:cardCornerRadius="14dp"
+                    app:strokeColor="#1F2F4D"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <!-- Mission Header Bar -->
+                        <LinearLayout
+                            android:id="@+id/btnToggleMissionsCollapse"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_checkbox_checked"
+                                app:tint="#A855F7" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:layout_weight="1"
+                                android:text="Missions"
+                                android:textColor="#FFFFFF"
+                                android:textSize="13sp"
                                 android:textStyle="bold" />
 
-                            <TextView
-                                android:id="@+id/tvHomeTasksPriorityBrief"
+                            <ImageView
+                                android:id="@+id/ivMissionsChevron"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_chevron_down"
+                                app:tint="#64748B" />
+                        </LinearLayout>
+
+                        <!-- Collapsible Mission Details Container -->
+                        <LinearLayout
+                            android:id="@+id/layoutMissionsExpandable"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="vertical">
+
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="1dp"
-                                android:breakStrategy="simple"
-                                android:ellipsize="end"
-                                android:maxLines="2"
-                                android:text="All clear"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="10sp" />
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tvMissionsCountBadge"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/bg_pill_dark"
+                                    android:paddingHorizontal="6dp"
+                                    android:paddingVertical="2dp"
+                                    android:text="0/2"
+                                    android:textColor="#A855F7"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvMissionsSummary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="6dp"
+                                    android:text="2 Pending"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
-
-        </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Work Overview Container -->

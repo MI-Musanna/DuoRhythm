@@ -28,6 +28,11 @@ object NotificationHelper {
     fun showUnifiedDailyBriefing(context: Context, db: DatabaseHelper, profileId: Long) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+        // Cancel rogue individual notification IDs to clear spam
+        notificationManager.cancel(1002) // Old Class Warning
+        notificationManager.cancel(2001) // Old Dot Internet
+        notificationManager.cancel(2002) // Old DPI Fee
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_BRIEFING,
@@ -57,28 +62,6 @@ object NotificationHelper {
             it.dueDate == todayStr && it.status.uppercase() !in listOf("COMPLETED", "DONE", "FINISHED")
         }
 
-        val inboxStyle = NotificationCompat.InboxStyle()
-            .setBigContentTitle("Daily Agenda • ${SimpleDateFormat("EEEE, MMM d", Locale.ENGLISH).format(Date())}")
-
-        // 1. Add All Classes
-        if (classes.isNotEmpty()) {
-            inboxStyle.addLine("📚 Classes (${classes.size}):")
-            for (c in classes) {
-                inboxStyle.addLine("  • ${c.subjectName} (${c.startTime} - ${c.endTime}, Room ${c.room})")
-            }
-        } else {
-            inboxStyle.addLine("📚 Classes: No lectures today")
-        }
-
-        // 2. Add All Today's Exams
-        if (examsToday.isNotEmpty()) {
-            inboxStyle.addLine("📝 Exams Today (${examsToday.size}):")
-            for (e in examsToday) {
-                inboxStyle.addLine("  • ${e.title} at ${e.dueTime} (Room ${e.room ?: "TBA"})")
-            }
-        }
-
-        // 3. Add Subscriptions / Dues
         val currentDay = cal.get(Calendar.DAY_OF_MONTH)
         val maxDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
         val subs = db.getSubscriptions(profileId)
@@ -87,19 +70,36 @@ object NotificationHelper {
             val sEnd = sub.endDay.coerceIn(sStart, maxDays)
             if (sub.isRange) currentDay in sStart..sEnd else currentDay == sub.dueDay.coerceIn(1, maxDays)
         }
-        if (dueSubs.isNotEmpty()) {
-            inboxStyle.addLine("💳 Subscriptions Due (${dueSubs.size}):")
-            for (s in dueSubs) {
-                inboxStyle.addLine("  • ${s.title} (Cost: ${s.amount})")
-            }
+
+        val inboxStyle = NotificationCompat.InboxStyle()
+            .setBigContentTitle("Agenda • ${SimpleDateFormat("EEEE, MMM d", Locale.ENGLISH).format(Date())}")
+
+        // 1. High-Density Classes Line
+        if (classes.isNotEmpty()) {
+            val classSummary = classes.joinToString(", ") { "${it.subjectName} (${it.startTime})" }
+            inboxStyle.addLine("📚 Classes (${classes.size}): $classSummary")
+        } else {
+            inboxStyle.addLine("📚 Classes: No lectures today")
         }
 
-        val summaryText = "${classes.size} classes, ${examsToday.size} exams, ${dueSubs.size} dues"
+        // 2. High-Density Exams Line
+        if (examsToday.isNotEmpty()) {
+            val examSummary = examsToday.joinToString(", ") { "${it.title} at ${it.dueTime} (R:${it.room ?: "TBA"})" }
+            inboxStyle.addLine("📝 Exams (${examsToday.size}): $examSummary")
+        } else {
+            inboxStyle.addLine("📝 Exams: All clear today")
+        }
+
+        // 3. Guaranteed High-Density Subscriptions Line (Never pushed off screen!)
+        if (dueSubs.isNotEmpty()) {
+            val subsSummary = dueSubs.joinToString(", ") { "${it.title} (৳${it.amount})" }
+            inboxStyle.addLine("💳 Dues Pending (${dueSubs.size}): $subsSummary")
+        }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_BRIEFING)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("DuoRhythm • Morning Briefing")
-            .setContentText(summaryText)
+            .setContentText("${classes.size} classes, ${examsToday.size} exams, ${dueSubs.size} dues pending")
             .setStyle(inboxStyle)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)

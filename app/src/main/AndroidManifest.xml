@@ -232,14 +232,17 @@
             </intent-filter>
         </receiver>
 
-        <!-- Subscription Due Alarms Dual-time Receiver -->
+        <!-- Subscription Due Alarms Dual-time Receiver (Disabled legacy receiver) -->
         <receiver
             android:name=".receiver.SubscriptionAlarmReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.duorhythm.app.ACTION_CHECK_SUBSCRIPTIONS" />
-            </intent-filter>
-        </receiver>
+            android:enabled="false"
+            android:exported="false" />
+
+        <!-- Class Reminder Legacy Receiver (Disabled) -->
+        <receiver
+            android:name=".receiver.ClassReminderReceiver"
+            android:enabled="false"
+            android:exported="false" />
 
         <!-- Subscription Action Receiver (Mark as Paid) -->
         <receiver
