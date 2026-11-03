@@ -3,12 +3,16 @@ package com.duorhythm.app.ui.portal
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.database.Cursor
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +20,7 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.data.model.StudentSubject
 import com.duorhythm.app.data.model.SubjectMaterial
 import com.duorhythm.app.data.model.SubjectWorkItem
@@ -45,6 +50,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
     private var subjectId: Long = -1
     private var currentSubject: StudentSubject? = null
     private var currentFilter: String = "ALL"
+    private var activeCategoryFilter: String = "All"
     private var allMaterials: List<SubjectMaterial> = emptyList()
     private var currentDocFilter: String = "ALL"
     private var pendingAttachmentPath: String = ""
@@ -147,18 +153,9 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             applyDocumentFilter()
         }
 
-        binding.chipGroupSubjectFilter.setOnCheckedChangeListener { _, checkedId ->
-            currentFilter = when (checkedId) {
-                R.id.chipSubFilterHomework -> "HOMEWORK"
-                R.id.chipSubFilterPractical -> "PRACTICAL"
-                R.id.chipSubFilterExam -> "EXAM"
-                R.id.chipSubFilterAssignment -> "ASSIGNMENT"
-                else -> "ALL"
-            }
-            loadItems()
-        }
 
         binding.btnAddSubjectItem.setOnClickListener { showAddItemDialog() }
+        binding.btnAddTaskExam.setOnClickListener { showAddItemDialog() }
         binding.btnEmptyAddSubjectItem.setOnClickListener { showAddItemDialog() }
 
         binding.btnAddMaterial.setOnClickListener { pickMaterialLauncher.launch("*/*") }
@@ -170,6 +167,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
 
         AnimationUtils.attachTactileFeedback(
             binding.btnAddSubjectItem,
+            binding.btnAddTaskExam,
             binding.btnEmptyAddSubjectItem,
             binding.btnAddMaterial,
             binding.btnAttachSyllabusFile,
@@ -259,6 +257,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
 
         loadMaterials()
         loadItems()
+        populateDynamicCourseCategoryFilters(subjectId)
     }
 
     private fun loadMaterials() {
@@ -301,15 +300,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
     }
 
     private fun loadItems() {
-        val items = dbHelper.getItemsForSubject(subjectId, currentFilter)
-        itemsAdapter.updateList(items)
-        if (items.isEmpty()) {
-            binding.rvSubjectItems.visibility = View.GONE
-            binding.layoutEmptySubjectItems.visibility = View.VISIBLE
-        } else {
-            binding.rvSubjectItems.visibility = View.VISIBLE
-            binding.layoutEmptySubjectItems.visibility = View.GONE
-        }
+        filterCourseAssessments(subjectId, activeCategoryFilter)
     }
 
     private fun getFileNameFromUri(uri: Uri): String {
@@ -517,8 +508,177 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
     }
 
     private fun showAddItemDialog() {
-        com.duorhythm.app.ui.courses.AddHomeworkDialogFragment.newInstance(subjectId) { loadItems() }
-            .show(supportFragmentManager, "ADD_HOMEWORK")
+        com.duorhythm.app.ui.courses.AddHomeworkDialogFragment.newInstance(subjectId) {
+            loadItems()
+            populateDynamicCourseCategoryFilters(subjectId)
+        }.show(supportFragmentManager, "ADD_HOMEWORK")
+    }
+
+    private fun populateDynamicCourseCategoryFilters(courseId: Long) {
+        val db = DatabaseHelper.getInstance(this)
+        val profileId = ProfileManager.getActiveProfileId()
+
+        // 1. Fetch only categories that ACTUALLY have assessments for this specific course
+        val allCourseAssessments = db.getAssessmentsForCourse(courseId)
+        val distinctUsedCategories = allCourseAssessments
+            .map { it.type.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        binding.chipGroupCourseFilters.removeAllViews()
+
+        // Chip "All"
+        val chipAll = com.google.android.material.chip.Chip(this).apply {
+            text = "All"
+            isCheckable = true
+            isChecked = (activeCategoryFilter == "All")
+            setChipBackgroundColorResource(android.R.color.transparent)
+            chipStrokeWidth = 2f
+            chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (isChecked) "#00E5FF" else "#1F2F4D"))
+            setTextColor(Color.WHITE)
+            setOnClickListener {
+                activeCategoryFilter = "All"
+                filterCourseAssessments(courseId, "All")
+                populateDynamicCourseCategoryFilters(courseId)
+            }
+        }
+        binding.chipGroupCourseFilters.addView(chipAll)
+
+        // Dynamically add chips ONLY for categories present in this course
+        for (category in distinctUsedCategories) {
+            val chip = com.google.android.material.chip.Chip(this).apply {
+                text = category
+                isCheckable = true
+                isChecked = (activeCategoryFilter == category)
+                setChipBackgroundColorResource(android.R.color.transparent)
+                chipStrokeWidth = 2f
+                chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (isChecked) "#00E5FF" else "#1F2F4D"))
+                setTextColor(Color.WHITE)
+                checkedIconTint = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+
+                setOnClickListener {
+                    activeCategoryFilter = category
+                    filterCourseAssessments(courseId, category)
+                    populateDynamicCourseCategoryFilters(courseId)
+                }
+
+                setOnLongClickListener {
+                    // Manage: Rename or Delete this category
+                    showManageCategoryDialog(profileId, category, courseId)
+                    true
+                }
+            }
+            binding.chipGroupCourseFilters.addView(chip)
+        }
+
+        // Add "+ Add Category" Chip
+        val addChip = com.google.android.material.chip.Chip(this).apply {
+            text = "+ Add"
+            chipStrokeWidth = 2f
+            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+            setTextColor(Color.parseColor("#00E5FF"))
+            setChipBackgroundColorResource(android.R.color.transparent)
+            setOnClickListener {
+                showCreateCategoryModal(profileId, courseId)
+            }
+        }
+        binding.chipGroupCourseFilters.addView(addChip)
+    }
+
+    private fun showManageCategoryDialog(profileId: Long, categoryName: String, courseId: Long) {
+        val options = arrayOf("✏️ Rename Category", "🗑️ Delete Category")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Category: $categoryName")
+            .setItems(options) { _, which ->
+                val db = DatabaseHelper.getInstance(this)
+                when (which) {
+                    0 -> {
+                        val input = android.widget.EditText(this).apply {
+                            setText(categoryName)
+                            setSelection(categoryName.length)
+                            setTextColor(Color.WHITE)
+                        }
+                        androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("Rename Category")
+                            .setView(input)
+                            .setPositiveButton("Save") { _, _ ->
+                                val newName = input.text.toString().trim()
+                                if (newName.isNotBlank() && newName != categoryName) {
+                                    db.updateAssessmentCategory(profileId, categoryName, newName)
+                                    activeCategoryFilter = newName
+                                    populateDynamicCourseCategoryFilters(courseId)
+                                    filterCourseAssessments(courseId, newName)
+                                }
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                    1 -> {
+                        androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("Delete Category")
+                            .setMessage("Delete '$categoryName'? Assessments under this category will not be lost but category will be removed.")
+                            .setPositiveButton("Delete") { _, _ ->
+                                db.deleteAssessmentCategory(profileId, categoryName)
+                                activeCategoryFilter = "All"
+                                populateDynamicCourseCategoryFilters(courseId)
+                                filterCourseAssessments(courseId, "All")
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun filterCourseAssessments(courseId: Long, category: String) {
+        activeCategoryFilter = category
+        val allItems = dbHelper.getItemsForSubject(courseId, null)
+        val filtered = if (category.equals("All", ignoreCase = true)) {
+            allItems
+        } else {
+            allItems.filter { item ->
+                item.examType.equals(category, ignoreCase = true) ||
+                item.itemType.equals(category, ignoreCase = true)
+            }
+        }
+        itemsAdapter.updateList(filtered)
+        if (filtered.isEmpty()) {
+            binding.rvSubjectItems.visibility = View.GONE
+            binding.layoutEmptySubjectItems.visibility = View.VISIBLE
+        } else {
+            binding.rvSubjectItems.visibility = View.VISIBLE
+            binding.layoutEmptySubjectItems.visibility = View.GONE
+        }
+    }
+
+    private fun showCreateCategoryModal(profileId: Long, courseId: Long) {
+        val input = android.widget.EditText(this).apply {
+            hint = "Category Name"
+            setHintTextColor(Color.parseColor("#64748B"))
+            setTextColor(Color.WHITE)
+        }
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 20, 50, 10)
+            addView(input)
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("New Assessment Category")
+            .setView(container)
+            .setPositiveButton("Create") { _, _ ->
+                val name = input.text.toString().trim()
+                if (name.isNotBlank()) {
+                    val db = DatabaseHelper.getInstance(this)
+                    db.addAssessmentCategory(profileId, name)
+                    activeCategoryFilter = name
+                    populateDynamicCourseCategoryFilters(courseId)
+                    filterCourseAssessments(courseId, name)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }
 

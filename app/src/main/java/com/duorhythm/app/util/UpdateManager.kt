@@ -233,30 +233,30 @@ object UpdateManager {
         val lastSeenVer = prefs.getString("last_seen_version", "")
         val currentVer = BuildConfig.VERSION_NAME
 
+        // Strictly show ONLY ONCE when a new version code is detected
         if (lastSeenVer != currentVer) {
             prefs.edit().putString("last_seen_version", currentVer).apply()
 
-            val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
-            val view = LayoutInflater.from(context).inflate(R.layout.dialog_whats_new, null)
+            val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
+            val view = android.view.LayoutInflater.from(context).inflate(R.layout.dialog_whats_new, null)
             dialog.setContentView(view)
-            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
             dialog.setOnShowListener {
                 val bottomSheet = dialog.findViewById<android.widget.FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
-                bottomSheet?.setBackgroundColor(Color.TRANSPARENT)
+                bottomSheet?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 bottomSheet?.background = null
             }
 
-            view.findViewById<TextView>(R.id.tvWhatsNewTitle).text = "What's New in $currentVer ✨"
-            view.findViewById<TextView>(R.id.tvWhatsNewBody).text = """
-                🎯 Pure In-Use Categories: Export sheets only show active categories.
-                ✨ Circular Dots: Perfectly calibrated rounded indicator dots.
-                🌿 Emerald Mode: Full palette transformation in Work Workspace.
-                🎧 Scientific Binaural Beats: Real Alpha/Beta/Theta/Gamma audio tracks.
-                📦 Dynamic Category Engine: Add custom categories inside courses and exams.
+            view.findViewById<android.widget.TextView>(R.id.tvWhatsNewTitle).text = "What's New in $currentVer ✨"
+            view.findViewById<android.widget.TextView>(R.id.tvWhatsNewBody).text = """
+                🎯 100% Dynamic Course Filters: Hardcoded categories completely removed. Filter chips only show categories with active items.
+                🧹 Zero Home Top-Gap: Top bar and profile section seamlessly flush with OLED deep obsidian black.
+                📝 Redesigned Scratchpad: Clean single-note card without ghost duplicate previews.
+                🔇 Sound Module Purged: Unnecessary synthesizer stripped out for high performance.
+                ⏰ Unified Morning Brief: No more duplicate 8:00 AM or 9:00 AM alarms.
             """.trimIndent()
 
-            view.findViewById<View>(R.id.btnDismissWhatsNew).setOnClickListener { dialog.dismiss() }
+            view.findViewById<android.view.View>(R.id.btnDismissWhatsNew).setOnClickListener { dialog.dismiss() }
             dialog.show()
         }
     }

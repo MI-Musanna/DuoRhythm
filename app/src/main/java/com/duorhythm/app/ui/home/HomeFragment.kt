@@ -150,9 +150,9 @@ class HomeFragment : Fragment() {
             val rootView = activity?.window?.decorView?.findViewById<ViewGroup>(android.R.id.content)
                 ?: (binding.root as? ViewGroup)
             if (rootView != null) {
-                BlurUtil.setupBlur(binding.cardHomeQuickNotes, rootView)
-                BlurUtil.setupBlur(binding.cardHomePortal, rootView)
-                BlurUtil.setupBlur(binding.cardHomePortalWork, rootView)
+                (binding.cardHomeQuickNotes as? eightbitlab.com.blurview.BlurView)?.let { BlurUtil.setupBlur(it, rootView) }
+                (binding.cardHomePortal as? eightbitlab.com.blurview.BlurView)?.let { BlurUtil.setupBlur(it, rootView) }
+                (binding.cardHomePortalWork as? eightbitlab.com.blurview.BlurView)?.let { BlurUtil.setupBlur(it, rootView) }
                 (binding.btnHomeOpenTools as? eightbitlab.com.blurview.BlurView)?.let { BlurUtil.setupBlur(it, rootView) }
             }
         } catch (e: Throwable) {
@@ -339,6 +339,18 @@ class HomeFragment : Fragment() {
                 }
             }
 
+            binding.btnQuickFocusTimer.setOnClickListener {
+                PomodoroDialog(requireContext()).show()
+            }
+
+            binding.btnQuickCalculator.setOnClickListener {
+                PercentageCalcDialog(requireContext()).show()
+            }
+
+            binding.btnNewQuickNote.setOnClickListener {
+                showAddNoteDialog()
+            }
+
             binding.toolHomePomodoro.setOnClickListener {
                 PomodoroDialog(requireContext()).show()
             }
@@ -373,6 +385,9 @@ class HomeFragment : Fragment() {
                 binding.btnNextWorkOrder,
                 binding.btnHomeOpenTools,
                 binding.btnHomeAddNote,
+                binding.btnNewQuickNote,
+                binding.btnQuickFocusTimer,
+                binding.btnQuickCalculator,
                 binding.toolHomePomodoro,
                 binding.toolHomeMusic,
                 binding.toolHomeCalc,
@@ -622,17 +637,7 @@ class HomeFragment : Fragment() {
             } else {
                 binding.rvHomeQuickNotes.visibility = View.VISIBLE
                 binding.tvEmptyHomeQuickNotes.visibility = View.GONE
-                binding.scrollScratchpadPreview.visibility = View.VISIBLE
-                val previewText = notes.joinToString("\n\n") { note ->
-                    if (note.title.isNotBlank()) "${note.title}\n${note.content}" else note.content
-                }
-                binding.tvScratchpadPreview.text = previewText
-                val topColor = notes.firstOrNull()?.colorHex
-                if (!topColor.isNullOrBlank()) {
-                    try {
-                        binding.tvScratchpadPreview.setTextColor(Color.parseColor(topColor))
-                    } catch (_: Exception) {}
-                }
+                binding.scrollScratchpadPreview.visibility = View.GONE
             }
         } catch (e: Exception) {
             e.printStackTrace()

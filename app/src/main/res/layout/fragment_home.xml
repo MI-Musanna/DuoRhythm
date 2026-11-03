@@ -1,76 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/homeScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#06080F"
     android:fillViewport="true"
-    android:clipToPadding="false"
-    android:overScrollMode="never"
-    android:background="#06080F">
+    android:overScrollMode="never">
 
     <LinearLayout
         android:id="@+id/rootLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:animateLayoutChanges="true"
         android:orientation="vertical"
         android:paddingHorizontal="16dp"
-        android:paddingTop="4dp"
+        android:paddingTop="0dp"
         android:paddingBottom="96dp">
 
-        <!-- Top Header Layout in fragment_home.xml -->
-        <LinearLayout
+        <!-- Top Header: Zero top-gap flush against action bar -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:layout_marginTop="4dp">
+            android:layout_marginTop="0dp"
+            android:paddingTop="4dp">
 
             <ImageView
                 android:id="@+id/ivUserProfile"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
                 android:background="@drawable/bg_circle_button_dark"
                 android:contentDescription="Profile"
                 android:src="@drawable/ic_profile_placeholder" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
                 android:layout_marginStart="12dp"
-                android:layout_weight="1"
+                android:layout_toEndOf="@id/ivUserProfile"
                 android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/tvWelcomeUser"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="17sp"
+                    android:text="Welcome back"
+                    android:textColor="#F8FAFC"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvCurrentDateHeader"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="1dp"
+                    android:text="Today"
                     android:textColor="#94A3B8"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
+            <!-- Mode Switch Pill -->
             <LinearLayout
                 android:id="@+id/toggleStudentWork"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
                 android:background="@drawable/bg_pill_dark"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="4dp">
+                android:paddingHorizontal="3dp">
 
                 <TextView
                     android:id="@+id/btnStudentMode"
@@ -78,10 +79,10 @@
                     android:layout_height="24dp"
                     android:background="@drawable/bg_pill_blue"
                     android:gravity="center"
-                    android:paddingHorizontal="8dp"
+                    android:paddingHorizontal="10dp"
                     android:text="STUDENT"
                     android:textColor="#FFFFFF"
-                    android:textSize="10sp"
+                    android:textSize="9.5sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -89,872 +90,320 @@
                     android:layout_width="wrap_content"
                     android:layout_height="24dp"
                     android:gravity="center"
-                    android:paddingHorizontal="8dp"
+                    android:paddingHorizontal="10dp"
                     android:text="WORK"
                     android:textColor="#64748B"
-                    android:textSize="10sp"
+                    android:textSize="9.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
-        </LinearLayout>
+        </RelativeLayout>
 
-        <!-- Student Next Up Schedule Container -->
+        <!-- Live Next Up Lecture Carousel -->
         <LinearLayout
-            android:id="@+id/layoutNextUpSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="vertical">
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <!-- Next Up Header with Navigation Arrows -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Next Up"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/btnNextUpPrev"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:background="@drawable/bg_circle_button_dark"
-                    android:contentDescription="Previous"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_chevron_left" />
-
-                <ImageView
-                    android:id="@+id/btnNextUpNext"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_circle_button_dark"
-                    android:contentDescription="Next"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_chevron_right" />
-            </LinearLayout>
-
-    <!-- Carousel ViewPager2 with Fixed Height -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPagerNextUp"
-        android:layout_width="match_parent"
-        android:layout_height="126dp"
-        android:layout_marginTop="8dp" />
-
-    <!-- Clean Page Dots Indicator -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/dotsIndicatorNextUp"
-        android:layout_width="wrap_content"
-        android:layout_height="10dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="8dp"
-        android:background="@android:color/transparent"
-        android:clickable="false"
-        android:focusable="false"
-        app:tabBackground="@drawable/selector_carousel_dots_clean"
-        app:tabGravity="center"
-        app:tabIndicatorHeight="0dp"
-        app:tabMaxWidth="12dp"
-        app:tabRippleColor="@null"
-        app:tabUnboundedRipple="false" />
-
-    <TextView
-        android:id="@+id/tvNoClassesScheduled"
-        android:layout_width="match_parent"
-        android:layout_height="90dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_card_dark"
-        android:gravity="center"
-        android:text="All clear • Timetable on track"
-        android:textColor="#64748B"
-        android:textSize="13sp"
-        android:visibility="gone" />
-        </LinearLayout>
-
-        <!-- Work Milestones & Deliverables Container -->
-        <LinearLayout
-            android:id="@+id/layoutWorkMilestonesContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="150dp"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Work Deliverables &amp; Milestones"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/btnPrevWorkOrder"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="4dp"
-                    android:background="@drawable/bg_header_action_button"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_chevron_left"
-                    app:tint="@color/text_primary" />
-
-                <ImageView
-                    android:id="@+id/btnNextWorkOrder"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/bg_header_action_button"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_chevron_right"
-                    app:tint="@color/text_primary" />
-
-                <TextView
-                    android:id="@+id/tvDeliverablesBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_pill_work_active"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    android:text="WORK MODE"
-                    android:textColor="#052E16"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/cardWorkMilestones"
-                android:layout_width="match_parent"
-                android:layout_height="124dp"
-                android:background="@drawable/bg_glass_specular_edge"
-                android:clipToOutline="true"
-                android:clipToPadding="true"
-                android:clipChildren="true"
-                android:outlineProvider="background"
-                android:clickable="true"
-                android:focusable="true"
-                app:blurOverlayColor="@color/blur_overlay">
-
-                <!-- Active Order View -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/layoutActiveWorkOrder"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="16dp">
-
-                    <FrameLayout
-                        android:id="@+id/ivWorkMilestoneIcon"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_squircle_portal_work"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_work"
-                            app:tint="#10B981" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:id="@+id/tvWorkMilestoneTitle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_marginEnd="8dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="Active Client Deliverables"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toStartOf="@id/tvWorkMilestoneCountdown"
-                        app:layout_constraintStart_toEndOf="@id/ivWorkMilestoneIcon"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tvWorkMilestoneCountdown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_pill_work_active"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="2dp"
-                        android:text="Due Today"
-                        android:textColor="#052E16"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tvWorkMilestoneSubtext"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginEnd="8dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="All projects and client tasks tracked on schedule"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        app:layout_constraintEnd_toStartOf="@id/tvWorkMilestoneStatus"
-                        app:layout_constraintStart_toEndOf="@id/ivWorkMilestoneIcon"
-                        app:layout_constraintTop_toBottomOf="@id/tvWorkMilestoneTitle" />
-
-                    <TextView
-                        android:id="@+id/tvWorkMilestoneStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="IN PROGRESS"
-                        android:textColor="#10B981"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tvWorkMilestoneCountdown" />
-
-                    <TextView
-                        android:id="@+id/tvWorkOrderCounter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="1 of 3"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <!-- Empty State View -->
-                <LinearLayout
-                    android:id="@+id/layoutEmptyWorkOrders"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="12dp"
-                    android:visibility="gone">
-
-                    <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:src="@drawable/ic_work"
-                        app:tint="#10B981" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="No Active Deliverables"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Tap to manage projects &amp; client orders in Work Portal"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-            </eightbitlab.com.blurview.BlurView>
-        </LinearLayout>
-
-        <!-- Student Overview Section -->
-        <LinearLayout
-            android:id="@+id/layoutStudentOverview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!-- Section Title: Overview -->
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:text="Overview"
-                android:textColor="@color/text_primary"
+                android:layout_weight="1"
+                android:text="Next Up"
+                android:textColor="#F8FAFC"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
-            <!-- 3. 2-Column Asymmetric Metric Deck: Finance + Missions -->
-            <LinearLayout
-                android:id="@+id/layoutOverviewRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:baselineAligned="false"
-                android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/btnNextUpPrev"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/bg_circle_button_dark"
+                android:contentDescription="Previous"
+                android:padding="6dp"
+                android:src="@drawable/ic_chevron_left" />
 
-                <!-- Finance Glance Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardFinanceGlance"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    app:cardBackgroundColor="#111827"
-                    app:cardCornerRadius="16dp"
-                    app:strokeColor="#1F293D"
-                    app:strokeWidth="1dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:padding="12dp">
-
-                        <LinearLayout
-                            android:id="@+id/headerFinance"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:src="@drawable/ic_wallet"
-                                app:tint="#38BDF8" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:text="Ledger"
-                                android:textColor="#94A3B8"
-                                android:textSize="11.5sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvFinanceBalanceMain"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@id/headerFinance"
-                            android:layout_marginTop="8dp"
-                            android:textColor="#FFFFFF"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvFinanceDeltaSub"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentBottom="true"
-                            android:textColor="#10B981"
-                            android:textSize="10sp" />
-                    </RelativeLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Missions Glance Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardMissionsGlance"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    app:cardBackgroundColor="#111827"
-                    app:cardCornerRadius="16dp"
-                    app:strokeColor="#1F293D"
-                    app:strokeWidth="1dp">
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:padding="12dp">
-
-                        <LinearLayout
-                            android:id="@+id/headerMissions"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:src="@drawable/ic_checkbox_checked"
-                                app:tint="#A855F7" />
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:layout_weight="1"
-                                android:text="Missions"
-                                android:textColor="#94A3B8"
-                                android:textSize="11.5sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/badgeMissionRatio"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/bg_pill_dark"
-                                android:paddingHorizontal="6dp"
-                                android:paddingVertical="2dp"
-                                android:text="0/2"
-                                android:textColor="#A855F7"
-                                android:textSize="9sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvMissionsTitleCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@id/headerMissions"
-                            android:layout_marginTop="8dp"
-                            android:text="2 Active"
-                            android:textColor="#FFFFFF"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvMissionsSubtitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentBottom="true"
-                            android:text="High priority tasks"
-                            android:textColor="#64748B"
-                            android:textSize="10sp" />
-                    </RelativeLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
+            <ImageView
+                android:id="@+id/btnNextUpNext"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_circle_button_dark"
+                android:contentDescription="Next"
+                android:padding="6dp"
+                android:src="@drawable/ic_chevron_right" />
         </LinearLayout>
 
-        <!-- Work Overview Container -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPagerNextUp"
+            android:layout_width="match_parent"
+            android:layout_height="124dp"
+            android:layout_marginTop="8dp" />
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/dotsIndicatorNextUp"
+            android:layout_width="wrap_content"
+            android:layout_height="10dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="6dp"
+            android:background="@android:color/transparent"
+            android:clickable="false"
+            android:focusable="false"
+            app:tabBackground="@drawable/selector_carousel_dots_clean"
+            app:tabGravity="center"
+            app:tabIndicatorHeight="0dp"
+            app:tabMaxWidth="12dp"
+            app:tabRippleColor="@null"
+            app:tabUnboundedRipple="false" />
+
+        <TextView
+            android:id="@+id/tvNoClassesScheduled"
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_card_dark"
+            android:gravity="center"
+            android:text="All lectures finished • Rest and recharge"
+            android:textColor="#475569"
+            android:textSize="12.5sp"
+            android:visibility="gone" />
+
+        <!-- Symmetrical Ledger & Missions -->
         <LinearLayout
-            android:id="@+id/layoutWorkOverview"
+            android:id="@+id/layoutOverviewSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFinanceGlance"
+                android:layout_width="0dp"
+                android:layout_height="96dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                app:cardBackgroundColor="#0D1322"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#18243C"
+                app:strokeWidth="1dp">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Work Analytics"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvAnalyticsBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_pill_work_active"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    android:text="ANALYTICS"
-                    android:textColor="#052E16"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <eightbitlab.com.blurview.BlurView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_glass_specular_edge"
-                android:clipToOutline="true"
-                android:clipToPadding="true"
-                android:clipChildren="true"
-                android:outlineProvider="background"
-                app:blurOverlayColor="@color/blur_overlay">
-
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:layout_height="match_parent"
+                    android:padding="12dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:id="@+id/hFin"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_wallet"
+                            app:tint="#38BDF8" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Work Portal Active"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
+                            android:layout_marginStart="6dp"
+                            android:text="Ledger"
+                            android:textColor="#94A3B8"
+                            android:textSize="11sp"
                             android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Professional mode synchronized"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
                     </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tvWorkPortalStatusBadge"
+                        android:id="@+id/tvFinanceBalanceMain"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_pill_work_active"
-                        android:gravity="center"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="4dp"
-                        android:text="SYNCED"
-                        android:textColor="#052E16"
-                        android:textSize="11sp"
+                        android:layout_below="@id/hFin"
+                        android:layout_marginTop="6dp"
+                        android:textColor="#F8FAFC"
+                        android:textSize="17sp"
                         android:textStyle="bold" />
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
+
+                    <TextView
+                        android:id="@+id/tvFinanceDeltaSub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:text="Net Total"
+                        android:textColor="#10B981"
+                        android:textSize="9.5sp" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardMissionsGlance"
+                android:layout_width="0dp"
+                android:layout_height="96dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                app:cardBackgroundColor="#0D1322"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#18243C"
+                app:strokeWidth="1dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:id="@+id/hMis"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_checkbox_checked"
+                            app:tint="#A855F7" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:text="Missions"
+                            android:textColor="#94A3B8"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/badgeMissionRatio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_pill_dark"
+                            android:paddingHorizontal="5dp"
+                            android:paddingVertical="1dp"
+                            android:text="0/3"
+                            android:textColor="#A855F7"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvMissionsTitleCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/hMis"
+                        android:layout_marginTop="6dp"
+                        android:text="3 Active"
+                        android:textColor="#F8FAFC"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvMissionsSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:text="Tasks on agenda"
+                        android:textColor="#475569"
+                        android:textSize="9.5sp" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- 4. Scratchpad / Quick Notes Bento Card -->
-        <eightbitlab.com.blurview.BlurView
-            android:id="@+id/cardHomeQuickNotes"
+        <!-- Redesigned Minimal Scratchpad: Single Clean Card (No Ghost Duplicate Text) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardQuickNotesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:background="@drawable/bg_glass_specular_edge"
-            android:clipToOutline="true"
-            android:clipToPadding="true"
-            android:clipChildren="true"
-            android:outlineProvider="background"
-            android:elevation="0dp"
-            app:blurOverlayColor="@color/blur_overlay">
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#0D1322"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#18243C"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
 
-                <!-- Header Row -->
-                <LinearLayout
-                    android:id="@+id/btnToggleNotes"
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_height="wrap_content">
 
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:src="@drawable/ic_edit_note"
-                        app:tint="?attr/colorPrimary" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_notes"
+                            app:tint="#00E5FF" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="Scratchpad"
+                            android:textColor="#F8FAFC"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:text="Scratchpad / Quick Notes"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/ivChevronNotes"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginEnd="8dp"
-                        android:src="@drawable/ic_chevron_down"
-                        app:tint="#00E5FF" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnHomeAddNote"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:id="@+id/btnNewQuickNote"
                         android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:minWidth="0dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="0dp"
-                        android:text="+ Quick Note"
-                        android:textColor="#38BDF8"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:text="+ NOTE"
+                        android:textColor="#00E5FF"
                         android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:background="@drawable/bg_action_pill_cyan" />
-                </LinearLayout>
+                        android:textStyle="bold" />
+                </RelativeLayout>
 
-                <!-- Collapsible Notes Content Container -->
-                <LinearLayout
-                    android:id="@+id/layoutNotesContent"
+                <!-- Note Content Container -->
+                <FrameLayout
+                    android:id="@+id/containerNoteContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:layout_marginTop="10dp">
 
-                    <!-- RecyclerView for Notes (Horizontal scroll wrapped in NestedScrollableHost) -->
-                    <com.duorhythm.app.ui.common.NestedScrollableHost
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvHomeQuickNotes"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp">
+                        android:nestedScrollingEnabled="false"
+                        android:clipToPadding="false"
+                        android:orientation="horizontal"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rvHomeQuickNotes"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:nestedScrollingEnabled="false"
-                            android:clipToPadding="false"
-                            android:orientation="horizontal"
-                            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                            tools:listitem="@layout/item_quick_note_home" />
-                    </com.duorhythm.app.ui.common.NestedScrollableHost>
-
-                    <!-- Empty State -->
                     <TextView
                         android:id="@+id/tvEmptyHomeQuickNotes"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
                         android:background="@drawable/bg_scratchpad_field"
                         android:padding="14dp"
-                        android:text="Tap + Quick Note to jot down lecture formulas, ideas, or quick memos."
+                        android:text="Tap + NOTE to jot down lecture formulas, ideas, or quick memos."
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
                         android:visibility="gone" />
-
-                    <!-- Bounded Scratchpad Preview -->
-                    <androidx.core.widget.NestedScrollView
-                        android:id="@+id/scrollScratchpadPreview"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:maxHeight="120dp"
-                        android:scrollbars="vertical"
-                        android:overScrollMode="ifContentScrolls">
-
-                        <TextView
-                            android:id="@+id/tvScratchpadPreview"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:maxLines="6"
-                            android:ellipsize="end"
-                            android:textColor="#CBD5E1"
-                            android:textSize="13sp" />
-                    </androidx.core.widget.NestedScrollView>
-                </LinearLayout>
+                </FrameLayout>
             </LinearLayout>
-        </eightbitlab.com.blurview.BlurView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <!-- 5. Portal Cards (Study / Work Portal Hub) -->
-        <FrameLayout
-            android:id="@+id/cardStudyPortal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/cardHomePortal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:background="@drawable/bg_glass_specular_edge"
-                android:clipToOutline="true"
-                android:clipToPadding="true"
-                android:clipChildren="true"
-                android:outlineProvider="background"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="0dp"
-                app:blurOverlayColor="@color/blur_overlay">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <FrameLayout
-                        android:id="@+id/badgeHomePortal"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_squircle_portal_student">
-
-                        <ImageView
-                            android:id="@+id/ivHomePortalIcon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_portal"
-                            app:tint="#38BDF8" />
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tvHomePortalTitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Study Portal"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvHomePortalSummary"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="0 Enrolled Subjects"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/tvHomePortalSubtext"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
-                            android:text="Assignments, exams, and notes"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/btnHomePortalAction"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_action_pill_cyan"
-                        android:paddingHorizontal="14dp"
-                        android:paddingVertical="6dp"
-                        android:text="Portal →"
-                        android:textColor="#38BDF8"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/cardWorkPortal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone">
-
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/cardHomePortalWork"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:background="@drawable/bg_glass_specular_edge"
-                android:clipToOutline="true"
-                android:clipToPadding="true"
-                android:clipChildren="true"
-                android:outlineProvider="background"
-                android:clickable="true"
-                android:focusable="true"
-                android:elevation="0dp"
-                app:blurOverlayColor="@color/blur_overlay">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_squircle_portal_work">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_work"
-                            app:tint="#10B981" />
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Client &amp; Work Portal"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Projects, invoices, and milestones"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
-                            android:text="Active contracts and deliverables"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/btnHomePortalWorkAction"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_portal_pill_work"
-                        android:paddingHorizontal="14dp"
-                        android:paddingVertical="6dp"
-                        android:text="Portal →"
-                        android:textColor="#10B981"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
-        </FrameLayout>
-
-        <!-- Quick Actions (Pure 2-Item Balanced Row: Focus Timer & Calculator) -->
+        <!-- Quick Actions: 2 Symmetrical Tools (Timer & Calc) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="14dp"
             android:text="Quick Actions"
             android:textColor="#94A3B8"
             android:textSize="12sp"
@@ -967,13 +416,11 @@
             android:orientation="horizontal">
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/toolHomePomodoro"
+                android:id="@+id/btnQuickFocusTimer"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                android:clickable="true"
-                android:focusable="true"
                 app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
@@ -987,8 +434,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
                         android:src="@drawable/ic_timer"
                         app:tint="#F43F5E" />
 
@@ -998,19 +445,17 @@
                         android:layout_marginStart="8dp"
                         android:text="Pomodoro Timer"
                         android:textColor="#F8FAFC"
-                        android:textSize="12.5sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/toolHomeCalc"
+                android:id="@+id/btnQuickCalculator"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                android:clickable="true"
-                android:focusable="true"
                 app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
@@ -1024,8 +469,8 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
                         android:src="@drawable/ic_calculator"
                         app:tint="#EAB308" />
 
@@ -1035,17 +480,56 @@
                         android:layout_marginStart="8dp"
                         android:text="CGPA &amp; Marks"
                         android:textColor="#F8FAFC"
-                        android:textSize="12.5sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
         <!-- Hidden legacy views for ViewBinding compatibility -->
-        <View android:id="@+id/toolHomeMusic" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
-        <eightbitlab.com.blurview.BlurView android:id="@+id/btnHomeOpenTools" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
-        <View android:id="@+id/btnQuickFocusTimer" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
-        <View android:id="@+id/btnQuickCalculator" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
+        <LinearLayout
+            android:visibility="gone"
+            android:layout_width="0dp"
+            android:layout_height="0dp">
+
+            <View android:id="@+id/cardHomeQuickNotes" />
+            <View android:id="@+id/layoutNotesContent" />
+            <ImageView android:id="@+id/ivChevronNotes" />
+            <View android:id="@+id/btnToggleNotes" />
+            <View android:id="@+id/btnHomeAddNote" />
+            <View android:id="@+id/scrollScratchpadPreview" />
+            <TextView android:id="@+id/tvScratchpadPreview" />
+            <View android:id="@+id/layoutNextUpSection" />
+            <View android:id="@+id/layoutWorkMilestonesContainer" />
+            <View android:id="@+id/layoutStudentOverview" />
+            <View android:id="@+id/layoutWorkOverview" />
+            <View android:id="@+id/cardStudyPortal" />
+            <View android:id="@+id/cardWorkPortal" />
+            <View android:id="@+id/cardHomePortal" />
+            <View android:id="@+id/cardHomePortalWork" />
+            <View android:id="@+id/btnHomeOpenTools" />
+            <View android:id="@+id/badgeHomePortal" />
+            <ImageView android:id="@+id/ivHomePortalIcon" />
+            <TextView android:id="@+id/btnHomePortalAction" />
+            <TextView android:id="@+id/btnHomePortalWorkAction" />
+            <View android:id="@+id/cardWorkMilestones" />
+            <TextView android:id="@+id/tvHomePortalTitle" />
+            <TextView android:id="@+id/tvHomePortalSummary" />
+            <TextView android:id="@+id/tvHomePortalSubtext" />
+            <View android:id="@+id/btnPrevWorkOrder" />
+            <View android:id="@+id/btnNextWorkOrder" />
+            <View android:id="@+id/layoutActiveWorkOrder" />
+            <View android:id="@+id/layoutEmptyWorkOrders" />
+            <TextView android:id="@+id/tvDeliverablesBadge" />
+            <TextView android:id="@+id/tvWorkMilestoneTitle" />
+            <TextView android:id="@+id/tvWorkMilestoneSubtext" />
+            <TextView android:id="@+id/tvWorkMilestoneStatus" />
+            <TextView android:id="@+id/tvWorkMilestoneCountdown" />
+            <TextView android:id="@+id/tvWorkOrderCounter" />
+            <View android:id="@+id/toolHomePomodoro" />
+            <View android:id="@+id/toolHomeMusic" />
+            <View android:id="@+id/toolHomeCalc" />
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -2532,6 +2532,71 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return assessmentDao.getAssessmentsByProfile(profileId)
     }
 
+    fun getAssessmentsForCourse(courseId: Long, profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
+        ensureAssessmentsTable()
+        val list = mutableListOf<database.entities.AssessmentEntity>()
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT * FROM assessments WHERE course_id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id DESC",
+                arrayOf(courseId.toString(), profileId.toString())
+            )
+            cursor.use {
+                val idCol = it.getColumnIndex("id")
+                val pIdCol = it.getColumnIndex("profile_id")
+                val cIdCol = it.getColumnIndex("course_id")
+                val titleCol = it.getColumnIndex("title")
+                val typeCol = it.getColumnIndex("type")
+                val descCol = it.getColumnIndex("description")
+                val startCol = it.getColumnIndex("start_date")
+                val dueCol = it.getColumnIndex("due_date")
+                val marksCol = it.getColumnIndex("marks")
+                val statusCol = it.getColumnIndex("status")
+
+                while (it.moveToNext()) {
+                    list.add(
+                        database.entities.AssessmentEntity(
+                            id = if (idCol >= 0) it.getLong(idCol) else 0L,
+                            profileId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId,
+                            subjectId = if (cIdCol >= 0) it.getLong(cIdCol) else courseId,
+                            title = if (titleCol >= 0) it.getString(titleCol) ?: "" else "",
+                            type = if (typeCol >= 0) it.getString(typeCol) ?: "General" else "General",
+                            syllabus = if (descCol >= 0) it.getString(descCol) ?: "" else "",
+                            date = if (dueCol >= 0) it.getString(dueCol) ?: "" else "",
+                            status = if (statusCol >= 0) it.getString(statusCol) ?: "PENDING" else "PENDING",
+                            room = if (marksCol >= 0) it.getString(marksCol) ?: "" else ""
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB", "Error getAssessmentsForCourse", e)
+        }
+
+        try {
+            val workItems = getItemsForSubject(courseId, null, profileId)
+            for (w in workItems) {
+                val t = if (w.examType.isNotBlank()) w.examType else w.itemType
+                if (t.isNotBlank() && list.none { it.id == w.id && it.title == w.title }) {
+                    list.add(
+                        database.entities.AssessmentEntity(
+                            id = w.id,
+                            profileId = w.profileId,
+                            subjectId = w.subjectId,
+                            title = w.title,
+                            type = t,
+                            syllabus = w.description,
+                            date = w.endDate.ifBlank { w.startDate },
+                            status = w.status
+                        )
+                    )
+                }
+            }
+        } catch (_: Exception) {}
+
+        return list
+    }
+
     fun getAssessmentCategories(profileId: Long = getActiveProfileId()): List<String> {
         ensureAssessmentCategoriesTable()
         val list = mutableListOf<String>()

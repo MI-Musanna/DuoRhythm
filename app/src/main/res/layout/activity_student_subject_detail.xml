@@ -364,92 +364,68 @@
                     android:textSize="12sp" />
             </LinearLayout>
 
-            <!-- Actions Row: Add Homework/Item -->
+            <!-- Dynamic Tasks & Assessments Header & Dynamic Filter Strip -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:layout_marginTop="16dp">
 
-                <TextView
-                    android:layout_width="0dp"
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:text="Tasks &amp; Assessments"
+                        android:textColor="#F8FAFC"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddTaskExam"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:backgroundTint="#00E5FF"
+                        android:text="+ ADD TASK / EXAM"
+                        android:textColor="#06080F"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="17dp" />
+                </RelativeLayout>
+
+                <!-- Dynamic Category Filter Scroll Strip -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Tasks &amp; Assessments"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="8dp"
+                    android:scrollbars="none">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddSubjectItem"
-                    android:layout_width="wrap_content"
-                    android:layout_height="38dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="+ Add Task / Exam"
-                    android:textSize="12sp" />
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupCourseFilters"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true" />
+                </HorizontalScrollView>
             </LinearLayout>
 
-            <!-- Filter Chips: All, Homework, Practicals, Exams, Assignments -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:scrollbars="none">
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupSubjectFilter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:singleLine="true"
-                    app:singleSelection="true">
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipSubFilterAll"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="All" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipSubFilterHomework"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:chipIcon="@drawable/ic_tasks"
-                        app:chipIconVisible="true"
-                        android:text="Homework" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipSubFilterPractical"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:chipIcon="@drawable/ic_quiz"
-                        app:chipIconVisible="true"
-                        android:text="Practicals" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipSubFilterExam"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:chipIcon="@drawable/ic_target"
-                        app:chipIconVisible="true"
-                        android:text="Exams" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipSubFilterAssignment"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:chipIcon="@drawable/ic_article"
-                        app:chipIconVisible="true"
-                        android:text="Assignments" />
-                </com.google.android.material.chip.ChipGroup>
-            </HorizontalScrollView>
+            <!-- Hidden legacy view stubs for ViewBinding backward compatibility -->
+            <View
+                android:id="@+id/btnAddSubjectItem"
+                android:visibility="gone"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupSubjectFilter"
+                android:visibility="gone"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
 
             <!-- Items List -->
             <androidx.recyclerview.widget.RecyclerView
