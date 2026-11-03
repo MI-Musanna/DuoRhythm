@@ -55,21 +55,26 @@ class FocusSuiteActivity : AppCompatActivity() {
             }
         }
 
-        // Scientific Binaural Frequencies layered on Soft Ambient Noise
+        // Scientific Binaural Frequencies layered on Soft Ambient Noise (Silenced for ear comfort)
         binding.cardAlphaWaves.setOnClickListener {
-            playLayeredBinaural(baseFreq = 144.0, beatFreq = 10.0, "Alpha Flow (10 Hz) • Soft Rain & Calm Focus")
+            stopAudio()
+            android.widget.Toast.makeText(this, "Studio Binaural Beats require bundled offline soundscapes. Pure synth disabled for ear comfort.", android.widget.Toast.LENGTH_LONG).show()
         }
         binding.cardBetaWaves.setOnClickListener {
-            playLayeredBinaural(baseFreq = 180.0, beatFreq = 20.0, "Beta Concentration (20 Hz) • Deep Coding & Logic")
+            stopAudio()
+            android.widget.Toast.makeText(this, "Studio Binaural Beats require bundled offline soundscapes. Pure synth disabled for ear comfort.", android.widget.Toast.LENGTH_LONG).show()
         }
         binding.cardThetaWaves.setOnClickListener {
-            playLayeredBinaural(baseFreq = 120.0, beatFreq = 6.0, "Theta Meditation (6 Hz) • Creative Insight & Rest")
+            stopAudio()
+            android.widget.Toast.makeText(this, "Studio Binaural Beats require bundled offline soundscapes. Pure synth disabled for ear comfort.", android.widget.Toast.LENGTH_LONG).show()
         }
         binding.cardGammaWaves.setOnClickListener {
-            playLayeredBinaural(baseFreq = 216.0, beatFreq = 40.0, "Gamma Processing (40 Hz) • Peak Memory Recall")
+            stopAudio()
+            android.widget.Toast.makeText(this, "Studio Binaural Beats require bundled offline soundscapes. Pure synth disabled for ear comfort.", android.widget.Toast.LENGTH_LONG).show()
         }
         binding.cardCozyBrown.setOnClickListener {
-            playLayeredBinaural(baseFreq = 0.0, beatFreq = 0.0, "Pure Brown Noise • Deep Waterfall (Zero Whistle)")
+            stopAudio()
+            android.widget.Toast.makeText(this, "Studio Binaural Beats require bundled offline soundscapes. Pure synth disabled for ear comfort.", android.widget.Toast.LENGTH_LONG).show()
         }
 
         binding.btnStopAudio.setOnClickListener { stopAudio() }

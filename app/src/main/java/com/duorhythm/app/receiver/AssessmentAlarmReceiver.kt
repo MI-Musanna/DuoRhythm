@@ -15,15 +15,6 @@ class AssessmentAlarmReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        val title = intent.getStringExtra(EXTRA_TITLE) ?: "Upcoming Assessment"
-        val body = intent.getStringExtra(EXTRA_BODY) ?: "You have an exam scheduled."
-        val assessmentId = intent.getLongExtra(EXTRA_ASSESSMENT_ID, System.currentTimeMillis())
-
-        NotificationHelper.showAssessmentNotification(
-            context = context,
-            notificationId = (300000 + (assessmentId % 100000)).toInt(),
-            title = title,
-            body = body
-        )
+        // Disabled individual exam alarms; consolidated daily morning briefing handles all exams
     }
 }

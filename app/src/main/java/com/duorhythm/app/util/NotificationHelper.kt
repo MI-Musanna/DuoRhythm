@@ -5,14 +5,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.duorhythm.app.MainActivity
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
-import com.duorhythm.app.receiver.SubscriptionActionReceiver
-import com.duorhythm.app.scheduler.SubscriptionAlarmScheduler
 import database.entities.SubscriptionEntity
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -22,16 +19,16 @@ import java.util.Locale
 object NotificationHelper {
 
     private const val CHANNEL_BRIEFING = "duorhythm_daily_briefing"
-    const val ASSESSMENT_CHANNEL_ID = "duorhythm_assessment_channel"
-    const val ASSESSMENT_CHANNEL_NAME = "Exams & Assessments"
 
     fun showUnifiedDailyBriefing(context: Context, db: DatabaseHelper, profileId: Long) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Cancel rogue individual notification IDs to clear spam
-        notificationManager.cancel(1002) // Old Class Warning
-        notificationManager.cancel(2001) // Old Dot Internet
-        notificationManager.cancel(2002) // Old DPI Fee
+        // Purge any lingering legacy notification IDs from notification tray
+        notificationManager.cancel(1001)
+        notificationManager.cancel(1002)
+        notificationManager.cancel(1003)
+        notificationManager.cancel(2001)
+        notificationManager.cancel(2002)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -39,7 +36,7 @@ object NotificationHelper {
                 "Daily Academic Briefing",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Unified morning schedule, assessments, and dues"
+                description = "Consolidated daily academic and financial agenda"
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -72,35 +69,54 @@ object NotificationHelper {
         }
 
         val inboxStyle = NotificationCompat.InboxStyle()
-            .setBigContentTitle("Agenda • ${SimpleDateFormat("EEEE, MMM d", Locale.ENGLISH).format(Date())}")
+            .setBigContentTitle("Daily Agenda • ${SimpleDateFormat("EEEE, MMM d", Locale.ENGLISH).format(Date())}")
 
-        // 1. High-Density Classes Line
+        // 1. Classes High-Density Format (Handles 1 to 10 classes)
         if (classes.isNotEmpty()) {
-            val classSummary = classes.joinToString(", ") { "${it.subjectName} (${it.startTime})" }
-            inboxStyle.addLine("📚 Classes (${classes.size}): $classSummary")
+            val shown = classes.take(2).joinToString(", ") { "${it.subjectName} (${it.startTime})" }
+            val extra = if (classes.size > 2) " (+${classes.size - 2} more)" else ""
+            inboxStyle.addLine("📚 Classes (${classes.size}): $shown$extra")
         } else {
             inboxStyle.addLine("📚 Classes: No lectures today")
         }
 
-        // 2. High-Density Exams Line
+        // 2. Exams High-Density Format
         if (examsToday.isNotEmpty()) {
-            val examSummary = examsToday.joinToString(", ") { "${it.title} at ${it.dueTime} (R:${it.room ?: "TBA"})" }
-            inboxStyle.addLine("📝 Exams (${examsToday.size}): $examSummary")
+            val shown = examsToday.take(2).joinToString(", ") { "${it.title} at ${it.dueTime}" }
+            val extra = if (examsToday.size > 2) " (+${examsToday.size - 2} more)" else ""
+            inboxStyle.addLine("📝 Exams (${examsToday.size}): $shown$extra")
         } else {
             inboxStyle.addLine("📝 Exams: All clear today")
         }
 
-        // 3. Guaranteed High-Density Subscriptions Line (Never pushed off screen!)
+        // 3. Subscriptions & Recurring Dues with Grand Total
         if (dueSubs.isNotEmpty()) {
-            val subsSummary = dueSubs.joinToString(", ") { "${it.title} (৳${it.amount})" }
-            inboxStyle.addLine("💳 Dues Pending (${dueSubs.size}): $subsSummary")
+            val totalAmount = dueSubs.sumOf { it.amount }
+            val shown = dueSubs.take(2).joinToString(", ") { "${it.title} (৳${it.amount.toInt()})" }
+            val extra = if (dueSubs.size > 2) " (+${dueSubs.size - 2} more)" else ""
+            inboxStyle.addLine("💳 Dues (${dueSubs.size}): $shown$extra • Total: ৳${totalAmount.toInt()}")
         }
+
+        // Tap Action -> Opens Schedule tab directly
+        val openIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("EXTRA_DEEP_LINK_DESTINATION", "DESTINATION_SCHEDULE")
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            901,
+            openIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val summaryContent = "${classes.size} classes, ${examsToday.size} exams, ${dueSubs.size} dues pending"
 
         val notification = NotificationCompat.Builder(context, CHANNEL_BRIEFING)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("DuoRhythm • Morning Briefing")
-            .setContentText("${classes.size} classes, ${examsToday.size} exams, ${dueSubs.size} dues pending")
+            .setContentText(summaryContent)
             .setStyle(inboxStyle)
+            .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
@@ -112,21 +128,8 @@ object NotificationHelper {
         showUnifiedDailyBriefing(context, db, profileId)
     }
 
-    fun ensureAssessmentChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                ASSESSMENT_CHANNEL_ID,
-                ASSESSMENT_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Urgent alerts for Semester Finals, Midterms, Quizzes, and Tests"
-                enableLights(true)
-                lightColor = Color.CYAN
-                enableVibration(true)
-            }
-            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-            nm?.createNotificationChannel(channel)
-        }
+    fun postSubscriptionDueNotification(context: Context, sub: SubscriptionEntity) {
+        // Consolidated in showUnifiedDailyBriefing to prevent duplicate individual alerts
     }
 
     fun showAssessmentNotification(
@@ -135,80 +138,6 @@ object NotificationHelper {
         title: String,
         body: String
     ) {
-        ensureAssessmentChannel(context)
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
-
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("navigate_to", "portal")
-        }
-        val pi = PendingIntent.getActivity(
-            context,
-            notificationId,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(context, ASSESSMENT_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_quiz)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setColor(Color.parseColor("#0284C7"))
-            .setAutoCancel(true)
-            .setContentIntent(pi)
-            .build()
-
-        nm.notify(notificationId, notification)
-    }
-
-    fun postSubscriptionDueNotification(context: Context, sub: SubscriptionEntity) {
-        SubscriptionAlarmScheduler.ensureChannel(context)
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
-
-        val sourceText = if (sub.linkedAccountId == null || sub.linkedAccountId <= 0L) {
-            "Payer: External"
-        } else {
-            "Source: ${sub.accountName.ifBlank { "Account" }}"
-        }
-
-        val cal = Calendar.getInstance()
-        val dueDesc = if (sub.isRange) {
-            "Window: Day ${DateRollValidator.getClampedDay(sub.startDay, cal)} - ${DateRollValidator.getClampedDay(sub.endDay, cal)}"
-        } else {
-            "Due today (Day ${DateRollValidator.getClampedDay(sub.dueDay, cal)})"
-        }
-
-        val markPaidIntent = Intent(context, SubscriptionActionReceiver::class.java).apply {
-            action = SubscriptionActionReceiver.ACTION_MARK_SUB_PAID
-            putExtra(SubscriptionActionReceiver.EXTRA_SUB_ID, sub.id)
-            putExtra(SubscriptionActionReceiver.EXTRA_NOTIFICATION_ID, (92000 + sub.id).toInt())
-        }
-        val markPaidPi = PendingIntent.getBroadcast(
-            context,
-            (92000 + sub.id).toInt(),
-            markPaidIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notif = NotificationCompat.Builder(context, SubscriptionAlarmScheduler.CHANNEL_FINANCE_ALERTS)
-            .setSmallIcon(R.drawable.ic_sync)
-            .setContentTitle("Subscription Due: ${sub.name}")
-            .setContentText("Cost: ${sub.amount.toInt()} • $dueDesc • $sourceText")
-            .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .bigText("Subscription '${sub.name}' is due.\nAmount: ${sub.amount.toInt()}\n$dueDesc • $sourceText")
-            )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .addAction(
-                R.drawable.ic_check,
-                "Mark as Paid",
-                markPaidPi
-            )
-            .build()
-
-        nm.notify((92000 + sub.id).toInt(), notif)
+        // Consolidated in showUnifiedDailyBriefing
     }
 }

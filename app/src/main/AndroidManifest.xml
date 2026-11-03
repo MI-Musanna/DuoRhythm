@@ -195,9 +195,10 @@
             </intent-filter>
         </receiver>
 
-        <!-- Dynamic Assessment & Exam Alarm Receiver -->
+        <!-- Dynamic Assessment & Exam Alarm Receiver (Disabled individual alerts) -->
         <receiver
             android:name=".receiver.AssessmentAlarmReceiver"
+            android:enabled="false"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.duorhythm.app.ACTION_ASSESSMENT_ALERT" />
@@ -241,6 +242,12 @@
         <!-- Class Reminder Legacy Receiver (Disabled) -->
         <receiver
             android:name=".receiver.ClassReminderReceiver"
+            android:enabled="false"
+            android:exported="false" />
+
+        <!-- Exam Reminder Legacy Receiver (Disabled) -->
+        <receiver
+            android:name=".receiver.ExamReminderReceiver"
             android:enabled="false"
             android:exported="false" />
 
