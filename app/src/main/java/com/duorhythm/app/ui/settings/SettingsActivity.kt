@@ -853,6 +853,9 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.tvCurrentVersionBadge.text = "v${com.duorhythm.app.BuildConfig.VERSION_NAME}"
+        binding.cardSystemUpdateEngine.setOnClickListener {
+            com.duorhythm.app.util.UpdateManager.showResultOrientedWhatsNew(this)
+        }
         binding.btnCheckUpdatesTop.setOnClickListener {
             com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = true) { stable, beta ->
                 com.duorhythm.app.util.UpdateManager.showModernDualChannelDialog(this, stable, beta)

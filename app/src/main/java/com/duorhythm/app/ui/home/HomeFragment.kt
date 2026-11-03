@@ -109,9 +109,12 @@ class HomeFragment : Fragment() {
             loadUserProfile()
             setupGreetingAndDate()
 
-            val prefs = requireContext().getSharedPreferences(AppPreferences.PREFS_NAME, Context.MODE_PRIVATE)
-            isNotesCollapsed = prefs.getBoolean("pref_notes_collapsed", false)
-            setSectionCollapsed(binding.layoutNotesContent, binding.ivChevronNotes, isNotesCollapsed, animate = false)
+            var isScratchpadCollapsed = false
+            binding.layoutScratchpadHeader.setOnClickListener {
+                isScratchpadCollapsed = !isScratchpadCollapsed
+                binding.layoutNotesCollapsibleBody.visibility = if (isScratchpadCollapsed) View.GONE else View.VISIBLE
+                binding.ivNotesChevron.animate().rotation(if (isScratchpadCollapsed) 180f else 0f).setDuration(200).start()
+            }
 
             setupListeners()
             loadDashboardData()
@@ -632,11 +635,13 @@ class HomeFragment : Fragment() {
             quickNotesAdapter.updateList(notes)
             if (notes.isEmpty()) {
                 binding.rvHomeQuickNotes.visibility = View.GONE
-                binding.tvEmptyHomeQuickNotes.visibility = View.VISIBLE
+                binding.tvEmptyHomeQuickNotes.visibility = View.GONE
+                binding.tvQuickNotePreview.visibility = View.VISIBLE
                 binding.scrollScratchpadPreview.visibility = View.GONE
             } else {
                 binding.rvHomeQuickNotes.visibility = View.VISIBLE
                 binding.tvEmptyHomeQuickNotes.visibility = View.GONE
+                binding.tvQuickNotePreview.visibility = View.GONE
                 binding.scrollScratchpadPreview.visibility = View.GONE
             }
         } catch (e: Exception) {

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_root_obsidian"
+    android:background="#06080F"
     android:fillViewport="true"
     android:overScrollMode="never">
 
@@ -13,94 +13,109 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="16dp"
-        android:paddingTop="4dp"
+        android:paddingTop="12dp"
         android:paddingBottom="96dp">
 
-        <!-- Top Header & Profile Status Row -->
-        <RelativeLayout
+        <!-- Top Profile Glass Card (Zero Black Voids, Flush & Balanced) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardProfileHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp">
+            app:cardBackgroundColor="#0D1322"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#18243C"
+            app:strokeWidth="1dp">
 
-            <ImageView
-                android:id="@+id/ivUserProfile"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:background="@drawable/bg_circle_button_dark"
-                android:contentDescription="Profile"
-                android:src="@drawable/ic_profile_placeholder" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginStart="12dp"
-                android:layout_toEndOf="@id/ivUserProfile"
-                android:orientation="vertical">
+                android:padding="12dp">
 
-                <TextView
-                    android:id="@+id/tvWelcomeUser"
-                    android:layout_width="wrap_content"
+                <ImageView
+                    android:id="@+id/ivUserProfile"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_circle_button_dark"
+                    android:contentDescription="Profile"
+                    android:src="@drawable/ic_profile_placeholder" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Welcome back"
-                    android:textColor="@color/text_primary_white"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_toEndOf="@id/ivUserProfile"
+                    android:layout_toStartOf="@id/toggleStudentWork"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvCurrentDateHeader"
+                    <TextView
+                        android:id="@+id/tvWelcomeUser"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="Welcome back"
+                        android:textColor="#F8FAFC"
+                        android:textSize="14.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCurrentDateHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:text="Today"
+                        android:textColor="#94A3B8"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <!-- Student / Work Toggle Mode Switch Pill -->
+                <LinearLayout
+                    android:id="@+id/toggleStudentWork"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:text="Today"
-                    android:textColor="@color/text_secondary_slate"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    android:layout_height="30dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_pill_dark"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="3dp">
 
-            <!-- Mode Switch Pill -->
-            <LinearLayout
-                android:id="@+id/toggleStudentWork"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:background="@drawable/bg_pill_dark"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="3dp">
+                    <TextView
+                        android:id="@+id/btnStudentMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="24dp"
+                        android:background="@drawable/bg_pill_blue"
+                        android:gravity="center"
+                        android:paddingHorizontal="8dp"
+                        android:text="STUDENT"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/btnStudentMode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="24dp"
-                    android:background="@drawable/bg_pill_blue"
-                    android:gravity="center"
-                    android:paddingHorizontal="10dp"
-                    android:text="STUDENT"
-                    android:textColor="#FFFFFF"
-                    android:textSize="9.5sp"
-                    android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/btnWorkMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="24dp"
+                        android:gravity="center"
+                        android:paddingHorizontal="8dp"
+                        android:text="WORK"
+                        android:textColor="#64748B"
+                        android:textSize="9sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                    android:id="@+id/btnWorkMode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="24dp"
-                    android:gravity="center"
-                    android:paddingHorizontal="10dp"
-                    android:text="WORK"
-                    android:textColor="@color/text_secondary_slate"
-                    android:textSize="9.5sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </RelativeLayout>
-
-        <!-- Live Next Up Lecture Carousel Section -->
+        <!-- Next Up Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -109,7 +124,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Next Up"
-                android:textColor="@color/text_primary_white"
+                android:textColor="#F8FAFC"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -163,7 +178,7 @@
             android:background="@drawable/bg_card_dark"
             android:gravity="center"
             android:text="All lectures finished • Rest and recharge"
-            android:textColor="@color/text_tertiary_muted"
+            android:textColor="#475569"
             android:textSize="12.5sp"
             android:visibility="gone" />
 
@@ -175,17 +190,16 @@
             android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
-            <!-- Ledger Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardFinanceGlance"
                 android:layout_width="0dp"
                 android:layout_height="96dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="@color/border_glass_stroke"
+                app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
                 <RelativeLayout
@@ -197,21 +211,20 @@
                         android:id="@+id/hFin"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:gravity="center_vertical">
 
                         <ImageView
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_wallet"
-                            app:tint="@color/accent_cyan_glow" />
+                            app:tint="#38BDF8" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:text="Ledger"
-                            android:textColor="@color/text_secondary_slate"
+                            android:textColor="#94A3B8"
                             android:textSize="11sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -222,7 +235,7 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@id/hFin"
                         android:layout_marginTop="6dp"
-                        android:textColor="@color/text_primary_white"
+                        android:textColor="#F8FAFC"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
@@ -232,22 +245,21 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
                         android:text="Net Total"
-                        android:textColor="@color/accent_emerald_work"
+                        android:textColor="#10B981"
                         android:textSize="9.5sp" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Missions Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardMissionsGlance"
                 android:layout_width="0dp"
                 android:layout_height="96dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="@color/border_glass_stroke"
+                app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
                 <RelativeLayout
@@ -259,14 +271,13 @@
                         android:id="@+id/hMis"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:gravity="center_vertical">
 
                         <ImageView
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_checkbox_checked"
-                            app:tint="@color/accent_purple_badge" />
+                            app:tint="#A855F7" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -274,7 +285,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:text="Missions"
-                            android:textColor="@color/text_secondary_slate"
+                            android:textColor="#94A3B8"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -286,7 +297,7 @@
                             android:paddingHorizontal="5dp"
                             android:paddingVertical="1dp"
                             android:text="0/3"
-                            android:textColor="@color/accent_purple_badge"
+                            android:textColor="#A855F7"
                             android:textSize="9sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -298,7 +309,7 @@
                         android:layout_below="@id/hMis"
                         android:layout_marginTop="6dp"
                         android:text="3 Active"
-                        android:textColor="@color/text_primary_white"
+                        android:textColor="#F8FAFC"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
@@ -308,22 +319,22 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
                         android:text="Tasks on agenda"
-                        android:textColor="@color/text_tertiary_muted"
+                        android:textColor="#475569"
                         android:textSize="9.5sp" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Scratchpad / Quick Notes -->
+        <!-- Scratchpad: Restored Collapsible Arrow & Note Preview -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardQuickNotesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/surface_card_slate"
+            app:cardBackgroundColor="#0D1322"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="@color/border_glass_stroke"
+            app:strokeColor="#18243C"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -333,6 +344,7 @@
                 android:padding="14dp">
 
                 <RelativeLayout
+                    android:id="@+id/layoutScratchpadHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
@@ -341,23 +353,30 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:gravity="center_vertical">
 
                         <ImageView
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_notes"
-                            app:tint="@color/accent_cyan_primary" />
+                            app:tint="#00E5FF" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:text="Scratchpad"
-                            android:textColor="@color/text_primary_white"
+                            android:textColor="#F8FAFC"
                             android:textSize="13sp"
                             android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/ivNotesChevron"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginStart="6dp"
+                            android:src="@drawable/ic_chevron_down"
+                            app:tint="#64748B" />
                     </LinearLayout>
 
                     <TextView
@@ -367,14 +386,14 @@
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:text="+ NOTE"
-                        android:textColor="@color/accent_cyan_primary"
+                        android:textColor="#00E5FF"
                         android:textSize="11sp"
                         android:textStyle="bold" />
                 </RelativeLayout>
 
-                <!-- Single Clean Container for Dynamic Note Injection -->
+                <!-- Collapsible Container for Scratchpad Body -->
                 <LinearLayout
-                    android:id="@+id/layoutNotesContainer"
+                    android:id="@+id/layoutNotesCollapsibleBody"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -388,116 +407,39 @@
                         android:clipToPadding="false"
                         android:orientation="horizontal"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                    <TextView
+                        android:id="@+id/tvEmptyHomeQuickNotes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_dark"
+                        android:padding="10dp"
+                        android:text="Tap + NOTE to jot down formulas or lecture memos..."
+                        android:textColor="#475569"
+                        android:textSize="11.5sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvQuickNotePreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_pill_dark"
+                        android:padding="10dp"
+                        android:text="Tap + NOTE to jot down formulas or lecture memos..."
+                        android:textColor="#475569"
+                        android:textSize="11.5sp"
+                        android:visibility="gone" />
                 </LinearLayout>
-
-                <!-- Standby Preview Prompt (Shown Only When Notes List Is Empty) -->
-                <TextView
-                    android:id="@+id/tvEmptyHomeQuickNotes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_pill_dark"
-                    android:padding="10dp"
-                    android:text="Tap + NOTE to jot down formulas or lecture memos..."
-                    android:textColor="@color/text_tertiary_muted"
-                    android:textSize="11.5sp"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/tvQuickNotePreview"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Study Portal Navigation Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardStudyPortal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/surface_card_slate"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/border_glass_stroke"
-            app:strokeWidth="1dp">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="14dp">
-
-                <FrameLayout
-                    android:id="@+id/iconPortalContainer"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:background="@drawable/bg_circle_button_dark">
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_gravity="center"
-                        android:contentDescription="Study Portal"
-                        android:src="@drawable/ic_portal"
-                        app:tint="@color/accent_cyan_primary" />
-                </FrameLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_toEndOf="@id/iconPortalContainer"
-                    android:layout_toStartOf="@id/btnStudyPortal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Study Portal"
-                        android:textColor="@color/text_primary_white"
-                        android:textSize="13.5sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvEnrolledSubjectsCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="7 Enrolled Subjects • Coursework &amp; Exams"
-                        android:textColor="@color/text_secondary_slate"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnStudyPortal"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="0dp"
-                    android:text="Portal →"
-                    android:textColor="@color/accent_cyan_primary"
-                    android:textSize="11sp"
-                    app:cornerRadius="16dp"
-                    app:strokeColor="@color/border_glass_stroke"
-                    app:strokeWidth="1dp" />
-            </RelativeLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Quick Actions: Symmetrical 2-Pill Grid (Timer & Calculator) -->
+        <!-- Quick Actions: Symmetrical 2 Tools -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:text="Quick Actions"
-            android:textColor="@color/text_secondary_slate"
+            android:textColor="#94A3B8"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -513,10 +455,10 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="@color/border_glass_stroke"
+                app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -536,7 +478,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="Pomodoro Timer"
-                        android:textColor="@color/text_primary_white"
+                        android:textColor="#F8FAFC"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -548,10 +490,10 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardBackgroundColor="#0D1322"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="@color/border_glass_stroke"
+                app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -571,7 +513,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="CGPA &amp; Marks"
-                        android:textColor="@color/text_primary_white"
+                        android:textColor="#F8FAFC"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -636,6 +578,11 @@
 
             <View
                 android:id="@+id/layoutWorkOverview"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/cardStudyPortal"
                 android:layout_width="0dp"
                 android:layout_height="0dp" />
 

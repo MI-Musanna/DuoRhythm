@@ -94,7 +94,6 @@ object UpdateManager {
 
                     for (i in 0 until array.length()) {
                         val item = array.getJSONObject(i)
-                        val isPre = item.getBoolean("prerelease")
                         val tag = item.getString("tag_name")
                         val body = item.optString("body", "Bug fixes and enhancements.")
                         val assets = item.getJSONArray("assets")
@@ -108,9 +107,19 @@ object UpdateManager {
                         }
 
                         if (apkUrl.isNotEmpty()) {
-                            val release = ReleaseInfo(tag, isPre, apkUrl, body)
-                            if (!isPre && latestStable == null) latestStable = release
-                            if (isPre && latestBeta == null) latestBeta = release
+                            val isExplicitBeta = item.optBoolean("prerelease", false) ||
+                                    tag.contains("beta", ignoreCase = true) ||
+                                    tag.contains("alpha", ignoreCase = true) ||
+                                    tag.contains("rc", ignoreCase = true)
+
+                            val release = ReleaseInfo(tag, isExplicitBeta, apkUrl, body)
+
+                            if (!isExplicitBeta && latestStable == null) {
+                                latestStable = release
+                            }
+                            if (isExplicitBeta && latestBeta == null) {
+                                latestBeta = release
+                            }
                         }
                     }
 
@@ -183,8 +192,8 @@ object UpdateManager {
         val cardStable = view.findViewById<View>(R.id.cardStableTrack)
         val tvNoStable = view.findViewById<View>(R.id.tvNoStableBanner)
 
-        // Only show Stable card if GitHub actually returned a non-prerelease!
-        if (stable != null) {
+        // Only show stable card if it truly exists and does NOT contain 'beta'
+        if (stable != null && !stable.tagName.contains("beta", ignoreCase = true)) {
             cardStable.visibility = View.VISIBLE
             tvNoStable.visibility = View.GONE
             val tvStable = view.findViewById<TextView>(R.id.tvStableVersion)
@@ -201,7 +210,7 @@ object UpdateManager {
                 }
             }
         } else {
-            // No stable releases exist on GitHub -> Completely hide the stable card!
+            // Zero stable releases on GitHub -> HIDE IT COMPLETELY
             cardStable.visibility = View.GONE
             tvNoStable.visibility = View.VISIBLE
         }
@@ -212,15 +221,17 @@ object UpdateManager {
         val badgeBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
         if (beta != null) {
             cardBeta.visibility = View.VISIBLE
-            tvBeta.text = "${beta.tagName} • Latest Preview"
+            tvBeta.text = "${beta.tagName} • Bleeding-Edge Preview"
             if (currentVersion == beta.tagName) {
                 badgeBeta.text = "INSTALLED"
             } else {
                 badgeBeta.text = "UPDATE"
-                cardBeta.setOnClickListener {
+                val startBetaInstall = View.OnClickListener {
                     downloadAndInstallApk(context, beta.downloadUrl, "${beta.tagName}.apk")
                     dialog.dismiss()
                 }
+                cardBeta.setOnClickListener(startBetaInstall)
+                badgeBeta.setOnClickListener(startBetaInstall)
             }
         }
 
@@ -228,13 +239,13 @@ object UpdateManager {
         dialog.show()
     }
 
-    fun showResultOrientedWhatsNew(context: Context) {
+    fun showResultOrientedWhatsNew(context: Context, force: Boolean = true) {
         val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
         val lastSeenVer = prefs.getString("last_seen_version", "")
         val currentVer = BuildConfig.VERSION_NAME
 
-        // Strictly show ONLY ONCE when a new version code is detected
-        if (lastSeenVer != currentVer) {
+        // Show when forced (e.g. from settings button) or when a new version code is detected
+        if (force || lastSeenVer != currentVer) {
             prefs.edit().putString("last_seen_version", currentVer).apply()
 
             val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
@@ -300,6 +311,11 @@ object UpdateManager {
     }
 
     fun showWhatsNewIfUpdated(context: Context) {
-        showResultOrientedWhatsNew(context)
+        val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
+        val lastSeenVer = prefs.getString("last_seen_version", "")
+        val currentVer = BuildConfig.VERSION_NAME
+        if (lastSeenVer != currentVer) {
+            showResultOrientedWhatsNew(context, force = true)
+        }
     }
 }

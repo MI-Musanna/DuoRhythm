@@ -206,7 +206,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="Mute distractions and configure Zen rules"
+                            android:text="Mute distractions and configure system Zen rules"
                             android:textColor="#94A3B8"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -265,7 +265,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="Calendar-synced attendance tracking"
+                            android:text="Calendar-synced class attendance logs"
                             android:textColor="#94A3B8"
                             android:textSize="12sp" />
                     </LinearLayout>

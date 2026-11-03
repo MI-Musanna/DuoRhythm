@@ -570,19 +570,6 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             }
             binding.chipGroupCourseFilters.addView(chip)
         }
-
-        // Add "+ Add Category" Chip
-        val addChip = com.google.android.material.chip.Chip(this).apply {
-            text = "+ Add"
-            chipStrokeWidth = 2f
-            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
-            setTextColor(Color.parseColor("#00E5FF"))
-            setChipBackgroundColorResource(android.R.color.transparent)
-            setOnClickListener {
-                showCreateCategoryModal(profileId, courseId)
-            }
-        }
-        binding.chipGroupCourseFilters.addView(addChip)
     }
 
     private fun showManageCategoryDialog(profileId: Long, categoryName: String, courseId: Long) {
