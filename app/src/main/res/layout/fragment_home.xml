@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/homeScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#06080F"
+    android:background="@color/bg_root_obsidian"
     android:fillViewport="true"
     android:overScrollMode="never">
 
@@ -14,15 +13,14 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="16dp"
-        android:paddingTop="0dp"
+        android:paddingTop="4dp"
         android:paddingBottom="96dp">
 
-        <!-- Top Header: Zero top-gap flush against action bar -->
+        <!-- Top Header & Profile Status Row -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="0dp"
-            android:paddingTop="4dp">
+            android:layout_marginTop="2dp">
 
             <ImageView
                 android:id="@+id/ivUserProfile"
@@ -47,7 +45,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Welcome back"
-                    android:textColor="#F8FAFC"
+                    android:textColor="@color/text_primary_white"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
@@ -57,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:text="Today"
-                    android:textColor="#94A3B8"
+                    android:textColor="@color/text_secondary_slate"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -92,13 +90,13 @@
                     android:gravity="center"
                     android:paddingHorizontal="10dp"
                     android:text="WORK"
-                    android:textColor="#64748B"
+                    android:textColor="@color/text_secondary_slate"
                     android:textSize="9.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </RelativeLayout>
 
-        <!-- Live Next Up Lecture Carousel -->
+        <!-- Live Next Up Lecture Carousel Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -111,7 +109,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Next Up"
-                android:textColor="#F8FAFC"
+                android:textColor="@color/text_primary_white"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -165,7 +163,7 @@
             android:background="@drawable/bg_card_dark"
             android:gravity="center"
             android:text="All lectures finished • Rest and recharge"
-            android:textColor="#475569"
+            android:textColor="@color/text_tertiary_muted"
             android:textSize="12.5sp"
             android:visibility="gone" />
 
@@ -177,16 +175,17 @@
             android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
+            <!-- Ledger Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardFinanceGlance"
                 android:layout_width="0dp"
                 android:layout_height="96dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="#0D1322"
+                app:cardBackgroundColor="@color/surface_card_slate"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#18243C"
+                app:strokeColor="@color/border_glass_stroke"
                 app:strokeWidth="1dp">
 
                 <RelativeLayout
@@ -198,20 +197,21 @@
                         android:id="@+id/hFin"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_wallet"
-                            app:tint="#38BDF8" />
+                            app:tint="@color/accent_cyan_glow" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:text="Ledger"
-                            android:textColor="#94A3B8"
+                            android:textColor="@color/text_secondary_slate"
                             android:textSize="11sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -222,7 +222,7 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@id/hFin"
                         android:layout_marginTop="6dp"
-                        android:textColor="#F8FAFC"
+                        android:textColor="@color/text_primary_white"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
@@ -232,21 +232,22 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
                         android:text="Net Total"
-                        android:textColor="#10B981"
+                        android:textColor="@color/accent_emerald_work"
                         android:textSize="9.5sp" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Missions Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardMissionsGlance"
                 android:layout_width="0dp"
                 android:layout_height="96dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                app:cardBackgroundColor="#0D1322"
+                app:cardBackgroundColor="@color/surface_card_slate"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#18243C"
+                app:strokeColor="@color/border_glass_stroke"
                 app:strokeWidth="1dp">
 
                 <RelativeLayout
@@ -258,13 +259,14 @@
                         android:id="@+id/hMis"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_checkbox_checked"
-                            app:tint="#A855F7" />
+                            app:tint="@color/accent_purple_badge" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -272,7 +274,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:text="Missions"
-                            android:textColor="#94A3B8"
+                            android:textColor="@color/text_secondary_slate"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -284,7 +286,7 @@
                             android:paddingHorizontal="5dp"
                             android:paddingVertical="1dp"
                             android:text="0/3"
-                            android:textColor="#A855F7"
+                            android:textColor="@color/accent_purple_badge"
                             android:textSize="9sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -296,7 +298,7 @@
                         android:layout_below="@id/hMis"
                         android:layout_marginTop="6dp"
                         android:text="3 Active"
-                        android:textColor="#F8FAFC"
+                        android:textColor="@color/text_primary_white"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
@@ -306,22 +308,22 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
                         android:text="Tasks on agenda"
-                        android:textColor="#475569"
+                        android:textColor="@color/text_tertiary_muted"
                         android:textSize="9.5sp" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Redesigned Minimal Scratchpad: Single Clean Card (No Ghost Duplicate Text) -->
+        <!-- Scratchpad / Quick Notes -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardQuickNotesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#0D1322"
+            app:cardBackgroundColor="@color/surface_card_slate"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="#18243C"
+            app:strokeColor="@color/border_glass_stroke"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -339,20 +341,21 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_notes"
-                            app:tint="#00E5FF" />
+                            app:tint="@color/accent_cyan_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:text="Scratchpad"
-                            android:textColor="#F8FAFC"
+                            android:textColor="@color/text_primary_white"
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -364,17 +367,18 @@
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:text="+ NOTE"
-                        android:textColor="#00E5FF"
+                        android:textColor="@color/accent_cyan_primary"
                         android:textSize="11sp"
                         android:textStyle="bold" />
                 </RelativeLayout>
 
-                <!-- Note Content Container -->
-                <FrameLayout
-                    android:id="@+id/containerNoteContent"
+                <!-- Single Clean Container for Dynamic Note Injection -->
+                <LinearLayout
+                    android:id="@+id/layoutNotesContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp">
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical">
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvHomeQuickNotes"
@@ -384,28 +388,116 @@
                         android:clipToPadding="false"
                         android:orientation="horizontal"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/tvEmptyHomeQuickNotes"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_scratchpad_field"
-                        android:padding="14dp"
-                        android:text="Tap + NOTE to jot down lecture formulas, ideas, or quick memos."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        android:visibility="gone" />
-                </FrameLayout>
+                <!-- Standby Preview Prompt (Shown Only When Notes List Is Empty) -->
+                <TextView
+                    android:id="@+id/tvEmptyHomeQuickNotes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_pill_dark"
+                    android:padding="10dp"
+                    android:text="Tap + NOTE to jot down formulas or lecture memos..."
+                    android:textColor="@color/text_tertiary_muted"
+                    android:textSize="11.5sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvQuickNotePreview"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Quick Actions: 2 Symmetrical Tools (Timer & Calc) -->
+        <!-- Study Portal Navigation Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardStudyPortal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="@color/surface_card_slate"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border_glass_stroke"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="14dp">
+
+                <FrameLayout
+                    android:id="@+id/iconPortalContainer"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_circle_button_dark">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Study Portal"
+                        android:src="@drawable/ic_portal"
+                        app:tint="@color/accent_cyan_primary" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_toEndOf="@id/iconPortalContainer"
+                    android:layout_toStartOf="@id/btnStudyPortal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Study Portal"
+                        android:textColor="@color/text_primary_white"
+                        android:textSize="13.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvEnrolledSubjectsCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="7 Enrolled Subjects • Coursework &amp; Exams"
+                        android:textColor="@color/text_secondary_slate"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStudyPortal"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="0dp"
+                    android:text="Portal →"
+                    android:textColor="@color/accent_cyan_primary"
+                    android:textSize="11sp"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="@color/border_glass_stroke"
+                    app:strokeWidth="1dp" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Quick Actions: Symmetrical 2-Pill Grid (Timer & Calculator) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:text="Quick Actions"
-            android:textColor="#94A3B8"
+            android:textColor="@color/text_secondary_slate"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -421,10 +513,10 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="#0D1322"
+                app:cardBackgroundColor="@color/surface_card_slate"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#18243C"
+                app:strokeColor="@color/border_glass_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -444,7 +536,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="Pomodoro Timer"
-                        android:textColor="#F8FAFC"
+                        android:textColor="@color/text_primary_white"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -456,10 +548,10 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                app:cardBackgroundColor="#0D1322"
+                app:cardBackgroundColor="@color/surface_card_slate"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#18243C"
+                app:strokeColor="@color/border_glass_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -479,56 +571,198 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="CGPA &amp; Marks"
-                        android:textColor="#F8FAFC"
+                        android:textColor="@color/text_primary_white"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Hidden legacy views for ViewBinding compatibility -->
+        <!-- Hidden legacy views for ViewBinding compatibility with valid explicit layout attributes -->
         <LinearLayout
-            android:visibility="gone"
             android:layout_width="0dp"
-            android:layout_height="0dp">
+            android:layout_height="0dp"
+            android:visibility="gone">
 
-            <View android:id="@+id/cardHomeQuickNotes" />
-            <View android:id="@+id/layoutNotesContent" />
-            <ImageView android:id="@+id/ivChevronNotes" />
-            <View android:id="@+id/btnToggleNotes" />
-            <View android:id="@+id/btnHomeAddNote" />
-            <View android:id="@+id/scrollScratchpadPreview" />
-            <TextView android:id="@+id/tvScratchpadPreview" />
-            <View android:id="@+id/layoutNextUpSection" />
-            <View android:id="@+id/layoutWorkMilestonesContainer" />
-            <View android:id="@+id/layoutStudentOverview" />
-            <View android:id="@+id/layoutWorkOverview" />
-            <View android:id="@+id/cardStudyPortal" />
-            <View android:id="@+id/cardWorkPortal" />
-            <View android:id="@+id/cardHomePortal" />
-            <View android:id="@+id/cardHomePortalWork" />
-            <View android:id="@+id/btnHomeOpenTools" />
-            <View android:id="@+id/badgeHomePortal" />
-            <ImageView android:id="@+id/ivHomePortalIcon" />
-            <TextView android:id="@+id/btnHomePortalAction" />
-            <TextView android:id="@+id/btnHomePortalWorkAction" />
-            <View android:id="@+id/cardWorkMilestones" />
-            <TextView android:id="@+id/tvHomePortalTitle" />
-            <TextView android:id="@+id/tvHomePortalSummary" />
-            <TextView android:id="@+id/tvHomePortalSubtext" />
-            <View android:id="@+id/btnPrevWorkOrder" />
-            <View android:id="@+id/btnNextWorkOrder" />
-            <View android:id="@+id/layoutActiveWorkOrder" />
-            <View android:id="@+id/layoutEmptyWorkOrders" />
-            <TextView android:id="@+id/tvDeliverablesBadge" />
-            <TextView android:id="@+id/tvWorkMilestoneTitle" />
-            <TextView android:id="@+id/tvWorkMilestoneSubtext" />
-            <TextView android:id="@+id/tvWorkMilestoneStatus" />
-            <TextView android:id="@+id/tvWorkMilestoneCountdown" />
-            <TextView android:id="@+id/tvWorkOrderCounter" />
-            <View android:id="@+id/toolHomePomodoro" />
-            <View android:id="@+id/toolHomeMusic" />
-            <View android:id="@+id/toolHomeCalc" />
+            <View
+                android:id="@+id/cardHomeQuickNotes"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/layoutNotesContent"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <ImageView
+                android:id="@+id/ivChevronNotes"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/btnToggleNotes"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/btnHomeAddNote"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/scrollScratchpadPreview"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvScratchpadPreview"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/layoutNextUpSection"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/layoutWorkMilestonesContainer"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/layoutStudentOverview"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/layoutWorkOverview"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/cardWorkPortal"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/cardHomePortal"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/cardHomePortalWork"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/btnHomeOpenTools"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/badgeHomePortal"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <ImageView
+                android:id="@+id/ivHomePortalIcon"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/btnHomePortalAction"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/btnHomePortalWorkAction"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/cardWorkMilestones"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvHomePortalTitle"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvHomePortalSummary"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvHomePortalSubtext"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/btnPrevWorkOrder"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/btnNextWorkOrder"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/layoutActiveWorkOrder"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/layoutEmptyWorkOrders"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvDeliverablesBadge"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvWorkMilestoneTitle"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvWorkMilestoneSubtext"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvWorkMilestoneStatus"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvWorkMilestoneCountdown"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/tvWorkOrderCounter"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/toolHomePomodoro"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/toolHomeMusic"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <View
+                android:id="@+id/toolHomeCalc"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
         </LinearLayout>
 
     </LinearLayout>
