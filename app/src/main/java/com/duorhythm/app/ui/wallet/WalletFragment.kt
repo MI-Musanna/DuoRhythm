@@ -215,6 +215,9 @@ class WalletFragment : Fragment() {
         binding.rvWalletBuckets.adapter = bucketsAdapter
         AnimationUtils.applySlideUpLayoutAnimation(binding.rvWalletBuckets)
 
+        binding.rvAccounts.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvAccounts.adapter = bucketsAdapter
+
         // Subscriptions Preview Adapter
         subscriptionsPreviewAdapter = SubscriptionsPreviewAdapter(
             emptyList(),
@@ -408,6 +411,9 @@ class WalletFragment : Fragment() {
         binding.btnHeroRecordTx.setOnClickListener { showAddTransactionDialog("INCOME") }
         binding.btnHeroTransfer.setOnClickListener { showAddTransactionDialog("TRANSFER") }
         binding.btnAddTransaction.setOnClickListener { showAddTransactionDialog() }
+        binding.btnRecordTransaction.setOnClickListener { showAddTransactionDialog() }
+        binding.btnDuesDebts.setOnClickListener { showDuesDebtsTracker() }
+        binding.btnCurrencyBadge.setOnClickListener { showCurrencyChooserDialog() }
 
         // Category Management Shortcut
         binding.btnWalletCategories.setOnClickListener {
@@ -434,6 +440,9 @@ class WalletFragment : Fragment() {
             binding.btnEmptyAddBucket,
             binding.btnManageSubscriptions,
             binding.btnAddTransaction,
+            binding.btnRecordTransaction,
+            binding.btnDuesDebts,
+            binding.btnCurrencyBadge,
             binding.btnCurrencySelector,
             binding.btnToggleLockWallet,
             binding.btnUnlockWallet
@@ -520,6 +529,8 @@ class WalletFragment : Fragment() {
                 binding.layoutActiveDashboard.visibility = View.GONE
 
                 binding.tvTotalBalance.text = "••••••"
+                binding.tvTotalNetWorth.text = "••••••"
+                binding.btnCurrencyBadge.text = "$currentCurrency ($currentSymbol)"
                 binding.tvAccountsSummary.text = "••••••"
                 binding.tvCashBadge.text = "••••"
                 binding.tvBucketsBadge.text = "••••"
@@ -640,6 +651,8 @@ class WalletFragment : Fragment() {
                 String.format(Locale.US, "%s%.2f", currentSymbol, totalNet)
             }
             binding.tvTotalBalance.text = formattedNetBalance
+            binding.tvTotalNetWorth.text = formattedNetBalance
+            binding.btnCurrencyBadge.text = "$currentCurrency ($currentSymbol)"
 
             // Keep legacy views updated safely in case referenced
             binding.tvCashBadge.text = "${buckets.size} Accounts"

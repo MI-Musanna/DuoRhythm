@@ -673,15 +673,19 @@ class PortalFragment : Fragment() {
 
         val totalAssessments = subjects.sumOf { dbHelper.getItemsForSubject(it.id).size }
         binding.tvStudentTotalSubjects.text = "${subjects.size} Courses"
+        binding.tvStatTotalCourses.text = "${subjects.size} Courses"
         binding.tvStudentTotalAssessments.text = "$totalAssessments Items"
+        binding.tvStatPendingAssessments.text = "$totalAssessments Items"
 
         val totalAttended = allAttendance.sumOf { it.attendedClasses }
         val totalClasses = allAttendance.sumOf { it.totalClasses }
         if (totalClasses > 0) {
             val avgPct = (totalAttended * 100) / totalClasses
             binding.tvStudentAttendanceTarget.text = "$avgPct% Target"
+            binding.tvStatAttendanceRate.text = "$avgPct% Att."
         } else {
             binding.tvStudentAttendanceTarget.text = "0% Target"
+            binding.tvStatAttendanceRate.text = "0% Att."
         }
 
         // Load Unified Exams & Assessments

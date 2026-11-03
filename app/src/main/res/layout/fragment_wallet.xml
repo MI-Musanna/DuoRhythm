@@ -7,7 +7,7 @@
     android:fillViewport="true"
     android:clipToPadding="false"
     android:paddingBottom="100dp"
-    android:background="?android:attr/colorBackground">
+    android:background="@color/bg_root_obsidian">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -71,6 +71,20 @@
                 android:contentDescription="Live Currency Converter"
                 android:src="@drawable/ic_calculate"
                 app:tint="#38BDF8" />
+
+            <!-- Currency Badge Pill -->
+            <TextView
+                android:id="@+id/btnCurrencyBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_pill_dark"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:text="BDT (৳)"
+                android:textColor="@color/accent_cyan_primary"
+                android:textSize="11.5sp"
+                android:textStyle="bold" />
 
             <!-- Currency Selector ("BDT (৳)") -->
             <com.google.android.material.button.MaterialButton
@@ -301,6 +315,12 @@
                         android:textSize="28sp"
                         android:textStyle="bold" />
 
+                    <TextView
+                        android:id="@+id/tvTotalNetWorth"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
+
                     <!-- Bottom Meta Row: Active accounts count & currency sync caption -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -350,6 +370,8 @@
                     </LinearLayout>
 
                     <!-- Quick Hero Actions: Record, Transfer, Dues & Debts -->
+                    <View android:id="@+id/btnRecordTransaction" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
+                    <View android:id="@+id/btnDuesDebts" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -536,6 +558,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- 3. "My Accounts" Section -->
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvAccounts" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp" />
             <LinearLayout
                 android:id="@+id/layoutBucketsHeader"
                 android:layout_width="match_parent"

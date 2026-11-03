@@ -471,6 +471,7 @@ class TasksFragment : Fragment() {
             loadTasks()
         }
 
+        binding.btnNewTaskTop.setOnClickListener { showCreateTaskDialog(isGoal = (currentTab == TaskTab.GOALS)) }
         binding.fabAddTask.setOnClickListener { showCreateTaskDialog(isGoal = (currentTab == TaskTab.GOALS)) }
         binding.btnAddGoal.setOnClickListener {
             binding.toggleTasksGoals.check(R.id.btnTabGoals)
@@ -480,6 +481,7 @@ class TasksFragment : Fragment() {
         binding.btnAddFirstGoal.setOnClickListener { showCreateTaskDialog(isGoal = true) }
 
         AnimationUtils.attachTactileFeedback(
+            binding.btnNewTaskTop,
             binding.fabAddTask,
             binding.btnAddGoal,
             binding.btnAddFirstTask,
@@ -570,6 +572,10 @@ class TasksFragment : Fragment() {
                 val completedTasks = allTasks.count { it.isCompleted }
                 val taskPercent = if (totalTasks > 0) ((completedTasks * 100) / totalTasks) else 0
 
+                binding.tvTaskProgressPercent.text = "$taskPercent%"
+                binding.pbTasksLinear.progress = taskPercent
+                binding.tvTaskCountCompleted.text = "$completedTasks of $totalTasks Done"
+
                 binding.tvGoalProgressHeader.text = "Task Progress"
                 binding.tvGoalProgressSubtitle.text = "$completedTasks of $totalTasks Completed"
                 binding.progressGoalCircular.setIndicatorColor(Color.parseColor("#0284C7"))
@@ -593,6 +599,10 @@ class TasksFragment : Fragment() {
                 val goalPercent = if (totalGoals > 0) {
                     (goals.sumOf { it.progress.coerceIn(0, 100) } / totalGoals)
                 } else 0
+
+                binding.tvTaskProgressPercent.text = "$goalPercent%"
+                binding.pbTasksLinear.progress = goalPercent
+                binding.tvTaskCountCompleted.text = "$completedGoals of $totalGoals Done"
 
                 binding.tvGoalProgressHeader.text = "Goal Progress"
                 binding.tvGoalProgressSubtitle.text = "$completedGoals of $totalGoals Completed"

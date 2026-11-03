@@ -3,69 +3,79 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0F1D"
+    android:background="@color/bg_root_obsidian"
     android:orientation="vertical">
 
-    <!-- Clean Header Bar -->
+    <!-- Top Action / Header Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="12dp">
 
         <ImageView
             android:id="@+id/btnBackFocus"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="@drawable/bg_circle_button_dark"
             android:contentDescription="Back"
-            android:padding="8dp"
+            android:padding="9dp"
             android:src="@drawable/ic_chevron_left"
-            app:tint="#FFFFFF" />
+            app:tint="@color/text_primary_white" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
-            android:text="Focus &amp; Productivity Suite"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Focus &amp; Productivity Suite"
+                android:textColor="@color/text_primary_white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Obsidian-grade distraction-free utilities"
+                android:textColor="@color/text_secondary_slate"
+                android:textSize="12sp" />
+        </LinearLayout>
     </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="16dp">
+        android:fillViewport="true"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Section 1: Productivity Tools -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Productivity Tools"
-                android:textColor="#64748B"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <!-- Pomodoro Card -->
+            <!-- Card 1: Pomodoro Focus Timer -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardPomodoroFocus"
+                android:id="@+id/cardPomodoroLaunch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:layout_marginBottom="12dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="#131B2E"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="#1F2F4D"
+                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/border_glass_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -73,18 +83,25 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="18dp">
 
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_timer"
-                        app:tint="#F43F5E" />
+                    <FrameLayout
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_circle_button_dark">
+
+                        <ImageView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_timer"
+                            app:tint="@color/accent_rose" />
+                    </FrameLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -92,32 +109,38 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Pomodoro Focus Timer"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
+                            android:textColor="@color/text_primary_white"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="25m focus &amp; 5m break intervals"
-                            android:textColor="#94A3B8"
+                            android:layout_marginTop="3dp"
+                            android:text="Interval training with 25m deep study sprints &amp; 5m recovery breaks"
+                            android:textColor="@color/text_secondary_slate"
                             android:textSize="12sp" />
                     </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_tertiary_muted" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Ambient Sounds Card -->
+            <!-- Card 2: Percentage & Exam Marks Calculator -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAmbientSounds"
+                android:id="@+id/cardCalculatorLaunch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="#131B2E"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="#1F2F4D"
+                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/border_glass_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -125,329 +148,64 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="18dp">
 
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_music"
-                        app:tint="#A855F7" />
+                    <FrameLayout
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_circle_button_dark">
+
+                        <ImageView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_calculate"
+                            app:tint="@color/accent_amber" />
+                    </FrameLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Ambient Study Sounds"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
+                            android:text="Percentage &amp; Exam Calculator"
+                            android:textColor="@color/text_primary_white"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Rain, pink noise, alpha waves &amp; cafe sounds"
-                            android:textColor="#94A3B8"
+                            android:layout_marginTop="3dp"
+                            android:text="Quick multi-mode calculations for exam scores, discounts &amp; mark percentages"
+                            android:textColor="@color/text_secondary_slate"
                             android:textSize="12sp" />
                     </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- DND Focus Mode Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardZenDnd"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="18dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="#131B2E"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="#1F2F4D"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
 
                     <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_shield"
-                        app:tint="#10B981" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="DND Zen Rules"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Configure system Zen distraction filters"
-                            android:textColor="#94A3B8"
-                            android:textSize="12sp" />
-                    </LinearLayout>
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_tertiary_muted" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Section 2: Binaural Brainwave Beats -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="Binaural Brainwave Beats"
-                android:textColor="#64748B"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="Stereo headphones required for frequency entrainment"
-                android:textColor="#475569"
-                android:textSize="11sp" />
-
-            <!-- Alpha Waves Card -->
+            <!-- Card 3: Zen Focus Mode & System DND -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAlphaWaves"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="#131B2E"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="#1F2F4D"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:src="@drawable/ic_waves"
-                        app:tint="#00E5FF" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Alpha Waves (10 Hz)"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Deep flow, relaxed focus &amp; calm reading"
-                            android:textColor="#94A3B8"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Beta Waves Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardBetaWaves"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="#131B2E"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="#1F2F4D"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:src="@drawable/ic_waves"
-                        app:tint="#38BDF8" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Beta Waves (20 Hz)"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Peak concentration, coding &amp; analytical problem solving"
-                            android:textColor="#94A3B8"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Theta Waves Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardThetaWaves"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="#131B2E"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="#1F2F4D"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:src="@drawable/ic_waves"
-                        app:tint="#A78BFA" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Theta Waves (6 Hz)"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Memory retention, creative intuition &amp; insight"
-                            android:textColor="#94A3B8"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Gamma Waves Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardGammaWaves"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="#131B2E"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="#1F2F4D"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:src="@drawable/ic_waves"
-                        app:tint="#F59E0B" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Gamma Waves (40 Hz)"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="High cognitive processing, speed learning &amp; synthesis"
-                            android:textColor="#94A3B8"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Pure Brown Noise Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardCozyBrown"
+                android:id="@+id/cardDndLaunch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="#131B2E"
-                app:cardCornerRadius="14dp"
-                app:strokeColor="#1F2F4D"
+                app:cardBackgroundColor="@color/surface_card_slate"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/border_glass_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -455,108 +213,53 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="18dp">
 
-                    <ImageView
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:src="@drawable/ic_music"
-                        app:tint="#D97706" />
+                    <FrameLayout
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_circle_button_dark">
+
+                        <ImageView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_shield_check"
+                            app:tint="@color/accent_purple" />
+                    </FrameLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="14dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pure Brown Noise"
-                            android:textColor="#FFFFFF"
-                            android:textSize="15sp"
+                            android:text="Zen Mode &amp; System DND"
+                            android:textColor="@color/text_primary_white"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Deep waterfall &amp; thunder acoustics, zero high-pitch hiss"
-                            android:textColor="#94A3B8"
+                            android:layout_marginTop="3dp"
+                            android:text="Silence notifications, avoid interruptions, and lock focus"
+                            android:textColor="@color/text_secondary_slate"
                             android:textSize="12sp" />
                     </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_tertiary_muted" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </ScrollView>
-
-    <!-- Bottom Audio Player Control Bar -->
-    <LinearLayout
-        android:id="@+id/layoutAudioPlayerBar"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:background="#131B2E"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/bg_circle_button_dark"
-            android:padding="6dp"
-            android:src="@drawable/ic_waves"
-            app:tint="#00E5FF" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PLAYING BINAURAL BEATS"
-                android:textColor="#00E5FF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvNowPlayingTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Alpha (10Hz) • Deep Flow &amp; Focus"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <SeekBar
-            android:id="@+id/sbVolume"
-            android:layout_width="96dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:max="100"
-            android:progress="60"
-            android:progressTint="#00E5FF"
-            android:thumbTint="#00E5FF" />
-
-        <ImageView
-            android:id="@+id/btnStopAudio"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="@drawable/bg_circle_button_dark"
-            android:contentDescription="Stop Audio"
-            android:padding="10dp"
-            android:src="@drawable/ic_stop"
-            app:tint="#F43F5E" />
-    </LinearLayout>
-
 </LinearLayout>

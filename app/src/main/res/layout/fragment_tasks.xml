@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:background="@drawable/bg_ambient_canvas">
+    android:background="@color/bg_root_obsidian">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -51,6 +51,22 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNewTaskTop"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:layout_marginEnd="8dp"
+                android:paddingHorizontal="14dp"
+                android:text="+ Task"
+                android:textColor="#06080F"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/accent_cyan_primary"
+                app:cornerRadius="14dp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddGoal"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
@@ -70,17 +86,17 @@
                 app:strokeWidth="1dp" />
         </LinearLayout>
 
-        <!-- Goal Progress Summary Card with Circular Ring -->
+        <!-- Slim Progress Header Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardGoalProgressSummary"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
-            app:cardBackgroundColor="@color/surface_card"
+            app:cardBackgroundColor="@color/surface_card_slate"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
-            app:strokeColor="@color/card_stroke"
+            app:strokeColor="@color/border_glass_stroke"
             app:strokeWidth="1dp"
             app:layout_constraintTop_toBottomOf="@id/layoutTasksHeader"
             app:layout_constraintStart_toStartOf="parent"
@@ -89,76 +105,78 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
+                android:orientation="vertical">
 
-                <!-- Left: Circular Progress Ring with Center Percentage -->
-                <FrameLayout
-                    android:layout_width="64dp"
-                    android:layout_height="64dp">
+                <!-- Slim Progress Bar Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <TextView
+                        android:id="@+id/tvTaskProgressPercent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0%"
+                        android:textColor="@color/accent_cyan_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <ProgressBar
+                        android:id="@+id/pbTasksLinear"
+                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="6dp"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="14dp"
+                        android:max="100"
+                        android:progress="0"
+                        android:progressTint="@color/accent_cyan_primary"
+                        android:progressBackgroundTint="@color/border_glass_stroke" />
+
+                    <TextView
+                        android:id="@+id/tvTaskCountCompleted"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 Done"
+                        android:textColor="@color/text_secondary_slate"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Hidden legacy circular views container so existing code compiles & runs without crash -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone">
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/progressGoalCircular"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:layout_gravity="center"
-                        android:max="100"
-                        android:progress="0"
-                        app:indicatorColor="@color/primary"
-                        app:indicatorSize="64dp"
-                        app:trackColor="@color/surface_variant"
-                        app:trackCornerRadius="4dp"
-                        app:trackThickness="6dp" />
+                        android:layout_width="0dp"
+                        android:layout_height="0dp" />
 
                     <TextView
                         android:id="@+id/tvGoalPercentText"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="0%"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
-
-                <!-- Right: Header, Subtitle & Horizontal Progress -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                        android:layout_height="wrap_content" />
 
                     <TextView
                         android:id="@+id/tvGoalProgressHeader"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Goal Progress"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
+                        android:layout_height="wrap_content" />
 
                     <TextView
                         android:id="@+id/tvGoalProgressSubtitle"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="0 of 0 Completed"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:layout_height="wrap_content" />
 
                     <com.google.android.material.progressindicator.LinearProgressIndicator
                         android:id="@+id/progressGoalHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:max="100"
-                        android:progress="0"
-                        app:indicatorColor="@color/primary"
-                        app:trackColor="@color/surface_variant"
-                        app:trackCornerRadius="3dp"
-                        app:trackThickness="6dp" />
+                        android:layout_width="0dp"
+                        android:layout_height="0dp" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

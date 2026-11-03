@@ -3,51 +3,77 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0F1D"
+    android:background="@color/bg_root_obsidian"
     android:orientation="vertical">
 
-    <!-- Top Action Bar -->
-    <LinearLayout
+    <!-- Header Action Bar -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:paddingTop="16dp"
+        android:paddingTop="14dp"
         android:paddingBottom="10dp">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Weekly Timetable"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddClass"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:backgroundTint="#00E5FF"
-            android:text="+ ADD CLASS"
-            android:textColor="#0A0F1D"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            app:cornerRadius="19dp" />
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/btnExportSchedule"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Export"
-            android:padding="6dp"
-            android:src="@drawable/ic_export" />
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Weekly Timetable"
+                android:textColor="@color/text_primary_white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-    <!-- Days Horizontal Scroll Bar -->
+            <TextView
+                android:id="@+id/tvScheduleActiveDaySub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Academic Class Routine"
+                android:textColor="@color/text_secondary_slate"
+                android:textSize="11.5sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddClass"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:backgroundTint="@color/accent_cyan_primary"
+                android:paddingHorizontal="12dp"
+                android:text="+ ADD"
+                android:textColor="#06080F"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                app:cornerRadius="18dp" />
+
+            <ImageView
+                android:id="@+id/btnExportSchedule"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_circle_button_dark"
+                android:contentDescription="Export"
+                android:padding="7dp"
+                android:src="@drawable/ic_export"
+                app:tint="@color/text_secondary_slate" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Modern Day Selector Strip -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -67,12 +93,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp"
-        android:textColor="#64748B"
-        android:textSize="12sp"
+        android:paddingVertical="6dp"
+        android:textColor="@color/text_tertiary_muted"
+        android:textSize="11sp"
         android:textStyle="bold" />
 
-    <!-- Pure Wrap List without Spacer Gaps -->
+    <!-- Class List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvClasses"
         android:layout_width="match_parent"
@@ -80,7 +106,7 @@
         android:layout_weight="1"
         android:clipToPadding="false"
         android:paddingHorizontal="16dp"
-        android:paddingBottom="80dp" />
+        android:paddingBottom="84dp" />
 
     <TextView
         android:id="@+id/tvEmptySchedule"
@@ -88,8 +114,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="No classes scheduled for this day"
-        android:textColor="#64748B"
-        android:textSize="14sp"
+        android:text="No lectures scheduled for this day"
+        android:textColor="@color/text_tertiary_muted"
+        android:textSize="13sp"
         android:visibility="gone" />
 </LinearLayout>
