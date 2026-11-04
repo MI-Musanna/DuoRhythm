@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Theme.DuoRhythm" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Unified System Bar Colors App-Wide -->
+        <item name="android:statusBarColor">#0A1322</item>
+        <item name="android:navigationBarColor">#06080F</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowBackground">@color/bg_root_obsidian</item>
         <item name="android:colorBackground">@color/bg_root_obsidian</item>
+
+        <!-- Base Surface Tokens -->
         <item name="colorSurface">@color/surface_card_slate</item>
         <item name="colorPrimary">@color/accent_cyan_primary</item>
         <item name="colorSecondary">@color/accent_cyan_glow</item>
@@ -10,9 +16,7 @@
         <item name="colorControlActivated">@color/accent_cyan_primary</item>
         <item name="colorOnSurfaceVariant">@color/text_secondary_slate</item>
         <item name="colorOnSurface">@color/text_primary_white</item>
-        <item name="android:statusBarColor">@color/bg_root_obsidian</item>
-        <item name="android:navigationBarColor">@color/bg_root_obsidian</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+
         <item name="bottomSheetDialogTheme">@style/CustomBottomSheetDialog</item>
         <item name="materialCardViewStyle">@style/CardElevationRounded</item>
         <item name="android:textViewStyle">@style/DuoRhythmTextView</item>

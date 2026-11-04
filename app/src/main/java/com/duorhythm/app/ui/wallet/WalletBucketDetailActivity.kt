@@ -1,6 +1,7 @@
 package com.duorhythm.app.ui.wallet
 
 import android.app.AlertDialog
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -80,6 +81,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.statusBarColor = Color.parseColor("#0A1322")
+            window.navigationBarColor = Color.parseColor("#06080F")
+        }
         binding = ActivityWalletBucketDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

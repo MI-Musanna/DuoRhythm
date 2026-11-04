@@ -1,6 +1,8 @@
 package com.duorhythm.app.ui.focus
 
 import android.content.Intent
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
@@ -16,6 +18,10 @@ class FocusSuiteActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.statusBarColor = Color.parseColor("#0A1322")
+            window.navigationBarColor = Color.parseColor("#06080F")
+        }
         binding = ActivityFocusSuiteBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

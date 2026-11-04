@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
@@ -174,6 +175,10 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                window.statusBarColor = Color.parseColor("#0A1322")
+                window.navigationBarColor = Color.parseColor("#06080F")
+            }
             isHydratingUI = true
             window.setBackgroundDrawableResource(R.drawable.bg_ambient_canvas)
             binding = ActivitySettingsBinding.inflate(layoutInflater)

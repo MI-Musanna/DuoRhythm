@@ -9,6 +9,7 @@ import database.entities.CategoryEntity
 
 class RecordTransactionDialogFragment : DialogFragment() {
 
+    private var selectedCategoryName: String = ""
     private var masterCategoryList: List<CategoryEntity> = emptyList()
     private val categoryDao: CategoryDao by lazy {
         AppDatabase.getInstance(requireContext()).categoryDao
@@ -35,6 +36,30 @@ class RecordTransactionDialogFragment : DialogFragment() {
             initialType = selectedType
         )
         return addRecordDialog.create()
+    }
+
+    private fun setupCategoryDropdownAdapter(categories: List<CategoryEntity>) {
+        val adapter = CategoryDropdownAdapter(
+            categories = categories,
+            onSelect = { category ->
+                // 1. Store chosen category
+                selectedCategoryName = category.name
+            },
+            onEdit = { category ->
+                showEditCategoryDialog(category)
+            },
+            onDelete = { category ->
+                showDeleteCategoryConfirmDialog(category)
+            }
+        )
+    }
+
+    private fun showEditCategoryDialog(category: CategoryEntity) {
+        // Dialog edit callback hook
+    }
+
+    private fun showDeleteCategoryConfirmDialog(category: CategoryEntity) {
+        // Dialog delete confirmation callback hook
     }
 
     companion object {

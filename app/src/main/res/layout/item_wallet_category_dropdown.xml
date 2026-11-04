@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layoutCategoryRowRoot"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:background="?attr/selectableItemBackground"
+    android:descendantFocusability="afterDescendants"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp">
+
+    <!-- Primary Selection Area (Tapping this triggers category selection) -->
+    <LinearLayout
+        android:id="@+id/layoutCategorySelectHitbox"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivCategoryIcon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_wallet"
+            app:tint="#EC4899" />
+
+        <TextView
+            android:id="@+id/tvCategoryName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="Bkash"
+            android:textColor="#F8FAFC"
+            android:textSize="13.5sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/badgeCategoryType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_pill_dark"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="1dp"
+            android:text="INCOME"
+            android:textColor="#38BDF8"
+            android:textSize="8.5sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Edit Action Button (Explicit non-stealing) -->
+    <ImageView
+        android:id="@+id/btnEditCategory"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:contentDescription="Edit"
+        android:focusable="false"
+        android:padding="7dp"
+        android:src="@drawable/ic_edit"
+        app:tint="#94A3B8" />
+
+    <!-- Delete Action Button (Explicit non-stealing) -->
+    <ImageView
+        android:id="@+id/btnDeleteCategory"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:contentDescription="Delete"
+        android:focusable="false"
+        android:padding="7dp"
+        android:src="@drawable/ic_trash"
+        app:tint="#EF4444" />
+</LinearLayout>

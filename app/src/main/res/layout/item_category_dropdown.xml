@@ -1,71 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layoutCategoryRowRoot"
     android:layout_width="match_parent"
     android:layout_height="48dp"
     android:background="?attr/selectableItemBackground"
+    android:descendantFocusability="afterDescendants"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="14dp"
-    android:paddingEnd="8dp">
+    android:paddingHorizontal="12dp">
 
-    <ImageView
-        android:id="@+id/ivCategoryDropdownIcon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginEnd="10dp"
-        android:background="@drawable/bg_category_icon_circle"
-        android:padding="5dp"
-        android:src="@drawable/ic_tasks"
-        android:visibility="gone"
-        app:tint="@color/white" />
-
-    <TextView
-        android:id="@+id/tvCategoryDropdownName"
+    <!-- Primary Selection Area (Tapping this triggers category selection) -->
+    <LinearLayout
+        android:id="@+id/layoutCategorySelectHitbox"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:ellipsize="end"
-        android:singleLine="true"
-        android:textColor="@color/text_primary"
-        android:textSize="14sp" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/tvCategoryTypeBadge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="6dp"
-        android:background="@drawable/bg_chip_unselected"
-        android:paddingHorizontal="6dp"
-        android:paddingVertical="2dp"
-        android:textColor="@color/text_muted"
-        android:textSize="9sp"
-        android:textStyle="bold"
-        android:visibility="gone" />
+        <ImageView
+            android:id="@+id/ivCategoryIcon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_wallet"
+            app:tint="#EC4899" />
 
-    <ImageButton
-        android:id="@+id/btnEditCategoryDropdown"
+        <TextView
+            android:id="@+id/tvCategoryName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="Bkash"
+            android:textColor="#F8FAFC"
+            android:textSize="13.5sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/badgeCategoryType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_pill_dark"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="1dp"
+            android:text="INCOME"
+            android:textColor="#38BDF8"
+            android:textSize="8.5sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Edit Action Button (Explicit non-stealing) -->
+    <ImageView
+        android:id="@+id/btnEditCategory"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Edit Category"
+        android:clickable="true"
+        android:contentDescription="Edit"
         android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:padding="6dp"
+        android:padding="7dp"
         android:src="@drawable/ic_edit"
-        app:tint="@color/text_secondary" />
+        app:tint="#94A3B8" />
 
-    <ImageButton
-        android:id="@+id/btnDeleteCategoryDropdown"
+    <!-- Delete Action Button (Explicit non-stealing) -->
+    <ImageView
+        android:id="@+id/btnDeleteCategory"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:layout_marginStart="2dp"
+        android:layout_marginStart="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Delete Category"
+        android:clickable="true"
+        android:contentDescription="Delete"
         android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:padding="6dp"
-        android:src="@drawable/ic_delete"
+        android:padding="7dp"
+        android:src="@drawable/ic_trash"
         app:tint="#EF4444" />
-
 </LinearLayout>
