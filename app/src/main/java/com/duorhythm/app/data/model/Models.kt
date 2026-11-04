@@ -258,6 +258,17 @@ data class WorkOrder(
     val attachmentPath: String = ""
 )
 
+data class ClientOrder(
+    val id: Long = 0,
+    val title: String = "",
+    val clientName: String = "",
+    val amount: String = "0",
+    val status: String = "IN PROGRESS",
+    val dueDate: String = "",
+    val notes: String = "",
+    val profileId: Long = 1
+)
+
 data class NoteItem(
     val id: Long = 0,
     val profileId: Long = 1,

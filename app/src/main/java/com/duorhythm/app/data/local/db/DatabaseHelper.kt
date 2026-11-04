@@ -4738,6 +4738,48 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return db.delete("work_orders", "id = ?", arrayOf(orderId.toString()))
     }
 
+    fun getClientOrders(profileId: Long = getActiveProfileId()): List<ClientOrder> {
+        return getAllWorkOrders().map { wo ->
+            ClientOrder(
+                id = wo.id,
+                title = wo.title,
+                clientName = wo.clientName.ifBlank { "Client Direct" },
+                amount = if (wo.totalPrice > 0) String.format(Locale.US, "%.2f", wo.totalPrice) else String.format(Locale.US, "%.2f", wo.quantity * wo.unitPrice),
+                status = wo.status.ifBlank { "IN PROGRESS" },
+                dueDate = wo.endDate.ifBlank { wo.startDate },
+                notes = wo.notes,
+                profileId = profileId
+            )
+        }
+    }
+
+    fun getUpcomingWorkDeadlines(profileId: Long = getActiveProfileId()): List<ClientOrder> {
+        return getClientOrders(profileId).filter {
+            it.status.uppercase() != "COMPLETED"
+        }
+    }
+
+    fun deleteClientOrder(orderId: Long): Int {
+        return deleteWorkOrder(orderId)
+    }
+
+    fun insertClientOrder(order: ClientOrder): Long {
+        val wo = WorkOrder(
+            id = order.id,
+            title = order.title,
+            clientName = order.clientName,
+            totalPrice = order.amount.toDoubleOrNull() ?: 0.0,
+            endDate = order.dueDate,
+            status = order.status,
+            notes = order.notes
+        )
+        return insertWorkOrder(wo)
+    }
+
+    fun getCourses(profileId: Long = getActiveProfileId()): List<StudentSubject> {
+        return getAllStudentSubjects(profileId)
+    }
+
     // ==========================================
     // NOTES & CONTACTS
     // ==========================================
@@ -4904,6 +4946,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val db = writableDatabase
         return db.delete("contacts_groups", "id = ?", arrayOf(id.toString()))
     }
+
+    fun deleteContactGroupItem(id: Long): Int = deleteContactGroup(id)
 
     // ==========================================
     // BACKUP & CLOUD EXPORT / IMPORT (JSON)

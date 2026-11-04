@@ -6,7 +6,6 @@
     android:background="@color/bg_root_obsidian"
     android:orientation="vertical">
 
-    <!-- Top Action Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -47,7 +46,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Banner Header -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

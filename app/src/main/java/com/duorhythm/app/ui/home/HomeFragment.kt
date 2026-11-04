@@ -227,6 +227,7 @@ class HomeFragment : Fragment() {
             }
 
             updateToggleStyle(isStudent)
+            updateWorkspaceThemeAndFeed(!isStudent)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -273,9 +274,70 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun updateWorkspaceThemeAndFeed(isWorkMode: Boolean) {
+        if (_binding == null || !isAdded) return
+        val context = context ?: return
+        val db = DatabaseHelper.getInstance(context)
+        val profileId = ProfileManager.getActiveProfileId()
+
+        if (isWorkMode) {
+            // --- WORK MODE ACTIVE ---
+            binding.btnWorkMode.setBackgroundResource(R.drawable.bg_pill_emerald)
+            binding.btnWorkMode.setTextColor(Color.WHITE)
+            binding.btnStudentMode.background = null
+            binding.btnStudentMode.setTextColor(Color.parseColor("#64748B"))
+
+            // Update Study Portal card to WORK PORTAL
+            binding.tvPortalCardTitle.text = "Work & Client Hub"
+            val activeOrders = db.getClientOrders(profileId).filter { it.status.uppercase() != "COMPLETED" }
+            binding.tvEnrolledSubjectsCount.text = "${activeOrders.size} Active Client Deliverables • Invoicing & CRM"
+            binding.btnStudyPortal.text = "Work Hub →"
+            binding.btnStudyPortal.setTextColor(Color.parseColor("#10B981"))
+            binding.btnStudyPortal.strokeColor = ColorStateList.valueOf(Color.parseColor("#10B981"))
+            binding.ivPortalCardIcon.setImageResource(R.drawable.ic_work)
+            binding.ivPortalCardIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
+
+            // Switch Next Up carousel to Work Deadlines instead of lectures
+            val clientDeadlines = db.getUpcomingWorkDeadlines(profileId)
+            if (clientDeadlines.isNotEmpty()) {
+                binding.viewPagerNextUp.visibility = View.VISIBLE
+                binding.tvNoClassesScheduled.visibility = View.GONE
+                binding.viewPagerNextUp.adapter = WorkDeadlinesAdapter(clientDeadlines)
+            } else {
+                binding.viewPagerNextUp.visibility = View.GONE
+                binding.tvNoClassesScheduled.visibility = View.VISIBLE
+                binding.tvNoClassesScheduled.text = "No pending client deadlines • All projects on track"
+            }
+        } else {
+            // --- STUDENT MODE ACTIVE ---
+            binding.btnStudentMode.setBackgroundResource(R.drawable.bg_pill_blue)
+            binding.btnStudentMode.setTextColor(Color.WHITE)
+            binding.btnWorkMode.background = null
+            binding.btnWorkMode.setTextColor(Color.parseColor("#64748B"))
+
+            // Revert to Study Portal
+            binding.tvPortalCardTitle.text = "Study Portal"
+            val enrolledCount = db.getCourses(profileId).size
+            binding.tvEnrolledSubjectsCount.text = "$enrolledCount Enrolled Subjects • Coursework & Exams"
+            binding.btnStudyPortal.text = "Portal →"
+            binding.btnStudyPortal.setTextColor(Color.parseColor("#00E5FF"))
+            binding.btnStudyPortal.strokeColor = ColorStateList.valueOf(Color.parseColor("#18243C"))
+            binding.ivPortalCardIcon.setImageResource(R.drawable.ic_portal)
+            binding.ivPortalCardIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+
+            // Load academic classes into Next Up
+            loadStudentNextUpLectures()
+        }
+    }
+
+    private fun loadStudentNextUpLectures() {
+        loadNextUpSchedule()
+    }
+
     fun applyWorkspaceColorTheme(isWorkMode: Boolean) {
         if (_binding != null) {
             updateToggleStyle(!isWorkMode)
+            updateWorkspaceThemeAndFeed(isWorkMode)
         }
     }
 
@@ -287,6 +349,7 @@ class HomeFragment : Fragment() {
                 mainActivity?.applyWorkspaceColorTheme(false)
                 mainActivity?.setStudentProfile(true)
                 updateToggleStyle(true)
+                updateWorkspaceThemeAndFeed(false)
                 loadDashboardData()
             }
 
@@ -294,7 +357,15 @@ class HomeFragment : Fragment() {
                 mainActivity?.applyWorkspaceColorTheme(true)
                 mainActivity?.setStudentProfile(false)
                 updateToggleStyle(false)
+                updateWorkspaceThemeAndFeed(true)
                 loadDashboardData()
+            }
+
+            binding.btnStudyPortal.setOnClickListener {
+                mainActivity?.selectNavTab(R.id.menu_portal)
+            }
+            binding.cardStudyPortal.setOnClickListener {
+                mainActivity?.selectNavTab(R.id.menu_portal)
             }
 
             binding.cardFinanceGlance.setOnClickListener {
@@ -483,6 +554,7 @@ class HomeFragment : Fragment() {
             }
 
             updateToggleStyle(isStudent)
+            updateWorkspaceThemeAndFeed(!isStudent)
 
             if (isStudent) {
                 binding.tvHomePortalTitle.text = "Study Portal"

@@ -322,6 +322,87 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
+        <!-- Study & Work Portal Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardStudyPortal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#0D1322"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="#18243C"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="14dp">
+
+                <FrameLayout
+                    android:id="@+id/framePortalIcon"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_circle_button_dark">
+
+                    <ImageView
+                        android:id="@+id/ivPortalCardIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_portal"
+                        app:tint="#00E5FF" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_toEndOf="@id/framePortalIcon"
+                    android:layout_toStartOf="@id/btnStudyPortal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvPortalCardTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Study Portal"
+                        android:textColor="@color/text_primary_white"
+                        android:textSize="14.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvEnrolledSubjectsCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="0 Enrolled Subjects • Coursework &amp; Exams"
+                        android:textColor="@color/text_secondary_slate"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStudyPortal"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="0dp"
+                    android:text="Portal →"
+                    android:textColor="#00E5FF"
+                    android:textSize="11sp"
+                    app:cornerRadius="17dp"
+                    app:strokeColor="#18243C"
+                    app:strokeWidth="1dp" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Scratchpad: Restored Collapsible Arrow & Note Preview -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardQuickNotesContainer"
@@ -575,11 +656,6 @@
 
             <View
                 android:id="@+id/layoutWorkOverview"
-                android:layout_width="0dp"
-                android:layout_height="0dp" />
-
-            <View
-                android:id="@+id/cardStudyPortal"
                 android:layout_width="0dp"
                 android:layout_height="0dp" />
 
