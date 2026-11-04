@@ -15,6 +15,7 @@ import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.data.model.ClassEntity
+import com.duorhythm.app.data.model.ClientOrder
 import com.duorhythm.app.data.model.ClassStatus
 import com.duorhythm.app.data.model.CarouselClassItem
 import com.duorhythm.app.databinding.FragmentHomeBinding
@@ -56,6 +57,7 @@ class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private var currentWorkOrderIndex = 0
     private var activeWorkOrders = listOf<com.duorhythm.app.data.model.WorkOrder>()
+    private var tabLayoutMediator: TabLayoutMediator? = null
 
     private var isNotesCollapsed = false
 
@@ -128,7 +130,6 @@ class HomeFragment : Fragment() {
             try {
                 loadUserProfile()
                 loadDashboardData()
-                loadNextUpSchedule()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
@@ -279,16 +280,22 @@ class HomeFragment : Fragment() {
         val db = DatabaseHelper.getInstance(context)
         val profileId = ProfileManager.getActiveProfileId()
 
+        // 1. Detach existing dots indicator mediator to avoid stale dot counts
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = null
+
         if (isWorkMode) {
-            // --- WORK MODE ACTIVE ---
+            // --- WORK MODE ---
             binding.btnWorkMode.setBackgroundResource(R.drawable.bg_pill_emerald)
             binding.btnWorkMode.setTextColor(Color.WHITE)
             binding.btnStudentMode.background = null
             binding.btnStudentMode.setTextColor(Color.parseColor("#64748B"))
 
-            // Update Study Portal card to WORK PORTAL
+            // Update Header & Portal Banner
+            binding.tvWelcomeUser.text = "Client & Project Hub"
             binding.tvPortalCardTitle.text = "Work & Client Hub"
-            val activeOrders = db.getClientOrders(profileId).filter { it.status.uppercase() != "COMPLETED" }
+            val orders = db.getClientOrders(profileId)
+            val activeOrders = orders.filter { it.status.uppercase() != "COMPLETED" }
             binding.tvEnrolledSubjectsCount.text = "${activeOrders.size} Active Client Deliverables • Invoicing & CRM"
             binding.btnStudyPortal.text = "Work Hub →"
             binding.btnStudyPortal.setTextColor(Color.parseColor("#10B981"))
@@ -296,41 +303,104 @@ class HomeFragment : Fragment() {
             binding.ivPortalCardIcon.setImageResource(R.drawable.ic_work)
             binding.ivPortalCardIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
 
-            // Switch Next Up carousel to Work Deadlines instead of lectures
-            val clientDeadlines = db.getUpcomingWorkDeadlines(profileId)
-            if (clientDeadlines.isNotEmpty()) {
+            // Bind Work Orders into Next-Up Carousel
+            if (activeOrders.isNotEmpty()) {
                 binding.viewPagerNextUp.visibility = View.VISIBLE
+                binding.dotsIndicatorNextUp.visibility = View.VISIBLE
                 binding.tvNoClassesScheduled.visibility = View.GONE
-                binding.viewPagerNextUp.adapter = WorkDeadlinesAdapter(clientDeadlines)
+
+                val adapter = WorkOrdersCarouselAdapter(activeOrders) { order ->
+                    openOrderDetails(order)
+                }
+                binding.viewPagerNextUp.adapter = adapter
+                binding.viewPagerNextUp.setCurrentItem(0, false)
+
+                tabLayoutMediator = com.google.android.material.tabs.TabLayoutMediator(
+                    binding.dotsIndicatorNextUp,
+                    binding.viewPagerNextUp
+                ) { _, _ -> }
+                tabLayoutMediator?.attach()
             } else {
                 binding.viewPagerNextUp.visibility = View.GONE
+                binding.dotsIndicatorNextUp.visibility = View.GONE
                 binding.tvNoClassesScheduled.visibility = View.VISIBLE
-                binding.tvNoClassesScheduled.text = "No pending client deadlines • All projects on track"
+                binding.tvNoClassesScheduled.text = "No pending client deliverables • All clear"
             }
         } else {
-            // --- STUDENT MODE ACTIVE ---
+            // --- STUDENT MODE ---
             binding.btnStudentMode.setBackgroundResource(R.drawable.bg_pill_blue)
             binding.btnStudentMode.setTextColor(Color.WHITE)
             binding.btnWorkMode.background = null
             binding.btnWorkMode.setTextColor(Color.parseColor("#64748B"))
 
-            // Revert to Study Portal
+            // Restore Student Header & Portal Banner
+            val profilePrefs = context.getSharedPreferences("duorhythm_user_profile_prefs", Context.MODE_PRIVATE)
+            val savedName = profilePrefs.getString(com.duorhythm.app.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.trim()
+                ?: profilePrefs.getString("user_display_name", null)?.trim()
+            val displayName = if (!savedName.isNullOrBlank()) savedName else "Mahdi Islam Musanna"
+            binding.tvWelcomeUser.text = "Welcome back, $displayName"
             binding.tvPortalCardTitle.text = "Study Portal"
-            val enrolledCount = db.getCourses(profileId).size
-            binding.tvEnrolledSubjectsCount.text = "$enrolledCount Enrolled Subjects • Coursework & Exams"
+            val courses = db.getCourses(profileId)
+            binding.tvEnrolledSubjectsCount.text = "${courses.size} Enrolled Subjects • Coursework & Exams"
             binding.btnStudyPortal.text = "Portal →"
             binding.btnStudyPortal.setTextColor(Color.parseColor("#00E5FF"))
             binding.btnStudyPortal.strokeColor = ColorStateList.valueOf(Color.parseColor("#18243C"))
             binding.ivPortalCardIcon.setImageResource(R.drawable.ic_portal)
             binding.ivPortalCardIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
 
-            // Load academic classes into Next Up
+            // Reload Academic Classes into Next-Up
             loadStudentNextUpLectures()
         }
     }
 
     private fun loadStudentNextUpLectures() {
-        loadNextUpSchedule()
+        if (_binding == null || !isAdded) return
+        val context = context ?: return
+        val db = DatabaseHelper.getInstance(context)
+        val profileId = ProfileManager.getActiveProfileId()
+
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = null
+
+        val cal = java.util.Calendar.getInstance()
+        val isoDay = when (cal.get(java.util.Calendar.DAY_OF_WEEK)) {
+            java.util.Calendar.MONDAY -> 1
+            java.util.Calendar.TUESDAY -> 2
+            java.util.Calendar.WEDNESDAY -> 3
+            java.util.Calendar.THURSDAY -> 4
+            java.util.Calendar.FRIDAY -> 5
+            java.util.Calendar.SATURDAY -> 6
+            java.util.Calendar.SUNDAY -> 7
+            else -> 1
+        }
+
+        val todayClasses = db.getClassesForIsoDay(profileId, isoDay)
+        if (todayClasses.isNotEmpty()) {
+            binding.viewPagerNextUp.visibility = View.VISIBLE
+            binding.dotsIndicatorNextUp.visibility = View.VISIBLE
+            binding.tvNoClassesScheduled.visibility = View.GONE
+
+            val adapter = NextUpClassAdapter(todayClasses) {
+                (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
+            }
+            binding.viewPagerNextUp.adapter = adapter
+            binding.viewPagerNextUp.setCurrentItem(0, false)
+
+            tabLayoutMediator = com.google.android.material.tabs.TabLayoutMediator(
+                binding.dotsIndicatorNextUp,
+                binding.viewPagerNextUp
+            ) { _, _ -> }
+            tabLayoutMediator?.attach()
+        } else {
+            binding.viewPagerNextUp.visibility = View.GONE
+            binding.dotsIndicatorNextUp.visibility = View.GONE
+            binding.tvNoClassesScheduled.visibility = View.VISIBLE
+            binding.tvNoClassesScheduled.text = "All lectures finished • Rest and recharge"
+        }
+    }
+
+    private fun openOrderDetails(order: ClientOrder) {
+        (activity as? MainActivity)?.selectNavTab(R.id.menu_portal)
     }
 
     fun applyWorkspaceColorTheme(isWorkMode: Boolean) {
@@ -574,16 +644,6 @@ class HomeFragment : Fragment() {
 
     private fun setupNextUpCarousel() {
         if (_binding == null) return
-        binding.viewPagerNextUp.adapter = NextUpCardAdapter(
-            onScheduleClick = {
-                (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
-                    ?: (activity as? com.duorhythm.app.ui.main.MainActivity)?.let { main ->
-                        main.findViewById<androidx.viewpager2.widget.ViewPager2>(com.duorhythm.app.R.id.mainViewPager)?.setCurrentItem(3, false)
-                    }
-            }
-        )
-
-        TabLayoutMediator(binding.dotsIndicatorNextUp, binding.viewPagerNextUp) { _, _ -> }.attach()
         binding.dotsIndicatorNextUp.setOnTouchListener { _, _ -> true }
 
         binding.btnNextUpPrev.setOnClickListener {
@@ -600,97 +660,10 @@ class HomeFragment : Fragment() {
 
     private fun loadNextUpSchedule() {
         if (_binding == null || !isAdded) return
-        val db = DatabaseHelper.getInstance(requireContext())
-        val profileId = ProfileManager.getActiveProfileId()
-
-        val cal = Calendar.getInstance()
-        val currentHour = cal.get(Calendar.HOUR_OF_DAY)
-        val nowMinutes = currentHour * 60 + cal.get(Calendar.MINUTE)
-
-        fun calendarToIso(c: Calendar): Int {
-            return when (c.get(Calendar.DAY_OF_WEEK)) {
-                Calendar.MONDAY -> 1
-                Calendar.TUESDAY -> 2
-                Calendar.WEDNESDAY -> 3
-                Calendar.THURSDAY -> 4
-                Calendar.FRIDAY -> 5
-                Calendar.SATURDAY -> 6
-                Calendar.SUNDAY -> 7
-                else -> 1
-            }
-        }
-
-        fun parseTimeToMinutes(timeStr: String): Int {
-            return try {
-                val regex = Regex("""(\d{1,2})[:.](\d{2})\s*([AaPp][Mm])?""")
-                val match = regex.find(timeStr.trim()) ?: return -1
-                var hour = match.groupValues[1].toIntOrNull() ?: return -1
-                val minute = match.groupValues[2].toIntOrNull() ?: 0
-                val ampm = match.groupValues[3].uppercase(Locale.US)
-                if (ampm == "PM" && hour < 12) hour += 12
-                if (ampm == "AM" && hour == 12) hour = 0
-                hour * 60 + minute
-            } catch (_: Exception) { -1 }
-        }
-
-        val todayIso = calendarToIso(cal)
-        val todayClasses = db.getClassesForIsoDay(profileId, todayIso)
-
-        val remainingTodayClasses = todayClasses.filter { cls ->
-            val endMin = parseTimeToMinutes(cls.endTime)
-            endMin == -1 || nowMinutes < endMin
-        }
-
-        val adapter = binding.viewPagerNextUp.adapter as? NextUpCardAdapter
-
-        if (remainingTodayClasses.isNotEmpty() && currentHour < 17) {
-            // Today has upcoming/ongoing classes
-            binding.viewPagerNextUp.visibility = View.VISIBLE
-            binding.dotsIndicatorNextUp.visibility = if (todayClasses.size > 1) View.VISIBLE else View.GONE
-            binding.tvNoClassesScheduled.visibility = View.GONE
-
-            adapter?.submitClasses(todayClasses, isTomorrow = false, dayLabel = "Today")
-
-            val activeIndex = todayClasses.indexOfFirst { cls ->
-                val endMin = parseTimeToMinutes(cls.endTime)
-                endMin == -1 || nowMinutes < endMin
-            }.coerceAtLeast(0)
-
-            binding.viewPagerNextUp.setCurrentItem(activeIndex, false)
-        } else {
-            // Evening Rollover (Past 5 PM or today's classes ended) -> Load Monday!
-            val tomorrowCal = (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
-            val tomorrowIso = calendarToIso(tomorrowCal)
-            var targetClasses = db.getClassesForIsoDay(profileId, tomorrowIso)
-            var targetDayName = "Tomorrow"
-
-            if (targetClasses.isEmpty()) {
-                val searchCal = tomorrowCal.clone() as Calendar
-                for (i in 1..6) {
-                    searchCal.add(Calendar.DAY_OF_YEAR, 1)
-                    val iso = calendarToIso(searchCal)
-                    val candidate = db.getClassesForIsoDay(profileId, iso)
-                    if (candidate.isNotEmpty()) {
-                        targetClasses = candidate
-                        targetDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(searchCal.time)
-                        break
-                    }
-                }
-            }
-
-            if (targetClasses.isNotEmpty()) {
-                binding.viewPagerNextUp.visibility = View.VISIBLE
-                binding.dotsIndicatorNextUp.visibility = if (targetClasses.size > 1) View.VISIBLE else View.GONE
-                binding.tvNoClassesScheduled.visibility = View.GONE
-
-                // Submit Monday classes and snap to position 0
-                adapter?.submitClasses(targetClasses, isTomorrow = true, dayLabel = targetDayName)
-                binding.viewPagerNextUp.setCurrentItem(0, false)
-            } else {
-                binding.viewPagerNextUp.visibility = View.GONE
-                binding.dotsIndicatorNextUp.visibility = View.GONE
-                binding.tvNoClassesScheduled.visibility = View.VISIBLE
-            }
+        val workPortalEnabled = dbHelper.isWorkPortalEnabled()
+        val isStudent = !workPortalEnabled || ((activity as? MainActivity)?.isStudentProfile() ?: true)
+        if (isStudent) {
+            loadStudentNextUpLectures()
         }
     }
 

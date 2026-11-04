@@ -1172,10 +1172,11 @@
                         </FrameLayout>
 
                         <TextView
+                            android:id="@+id/tvWorkCompletedOrders"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="Net 15/30"
+                            android:text="0 Done"
                             android:textColor="#38BDF8"
                             android:textSize="17sp"
                             android:textStyle="bold" />
@@ -1184,7 +1185,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Payment Terms"
+                            android:text="Completed"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>

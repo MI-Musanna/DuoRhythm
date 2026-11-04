@@ -750,11 +750,13 @@ class PortalFragment : Fragment() {
 
         val totalOrders = orders.size
         val pendingOrders = orders.count { it.status != "COMPLETED" }
+        val completedOrders = orders.count { it.status == "COMPLETED" }
         val totalRevenue = orders.sumOf { it.totalPrice } * rate
 
         binding.tvWorkTotalOrders.text = "$totalOrders Orders"
         binding.tvWorkPendingOrders.text = "$pendingOrders Active"
         binding.tvWorkTotalRevenue.text = String.format(Locale.US, "%s%.2f", symbol, totalRevenue)
+        binding.tvWorkCompletedOrders.text = "$completedOrders Done"
 
         loadWorkContacts()
     }

@@ -106,7 +106,7 @@ class WorkPortalFragment : Fragment() {
 
         // 1. Update 1-Line Stats
         binding.tvStatTotalOrders.text = "${orders.size} Orders"
-        binding.tvStatActiveOrders.text = "${activeOrders.size} Active"
+        binding.tvStatActiveOrders.text = "${activeOrders.size} In Progress"
         binding.tvStatTotalBilled.text = "৳${String.format(Locale.US, "%.2f", totalBilled)} Billed"
 
         // 2. Bind Orders List to rvClientOrders

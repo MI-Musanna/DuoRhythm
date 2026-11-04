@@ -4773,7 +4773,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             status = order.status,
             notes = order.notes
         )
-        return insertWorkOrder(wo)
+        return if (order.id > 0) {
+            updateWorkOrder(wo).toLong()
+        } else {
+            insertWorkOrder(wo)
+        }
     }
 
     fun getCourses(profileId: Long = getActiveProfileId()): List<StudentSubject> {

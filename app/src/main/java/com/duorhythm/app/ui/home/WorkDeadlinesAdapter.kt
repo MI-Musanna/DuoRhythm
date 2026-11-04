@@ -9,6 +9,8 @@ import com.duorhythm.app.R
 import com.duorhythm.app.data.model.ClientOrder
 import com.duorhythm.app.databinding.ItemNextUpCardBinding
 
+typealias WorkOrdersCarouselAdapter = WorkDeadlinesAdapter
+
 class WorkDeadlinesAdapter(
     private val items: List<ClientOrder>,
     private val onOrderClick: ((ClientOrder) -> Unit)? = null
