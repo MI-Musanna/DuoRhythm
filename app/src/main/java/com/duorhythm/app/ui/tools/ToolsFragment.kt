@@ -40,10 +40,6 @@ class ToolsFragment : Fragment() {
             PomodoroDialog(requireContext()).show()
         }
 
-        binding.cardToolSound.setOnClickListener {
-            AmbientSoundDialog(requireContext()).show()
-        }
-
         binding.cardToolCalc.setOnClickListener {
             PercentageCalcDialog(requireContext()).show()
         }
@@ -73,7 +69,6 @@ class ToolsFragment : Fragment() {
         com.duorhythm.app.util.AnimationUtils.attachTactileFeedback(
             binding.btnBackTools,
             binding.cardToolPomodoro,
-            binding.cardToolSound,
             binding.cardToolCalc,
             binding.cardToolCurrency,
             binding.cardToolDND,

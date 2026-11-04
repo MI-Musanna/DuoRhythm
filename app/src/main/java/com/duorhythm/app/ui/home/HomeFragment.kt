@@ -24,7 +24,6 @@ import android.widget.Toast
 import com.duorhythm.app.data.model.NoteItem
 import com.duorhythm.app.databinding.DialogAddNoteBinding
 import com.duorhythm.app.ui.common.ColorSliderView
-import com.duorhythm.app.ui.tools.AmbientSoundDialog
 import com.duorhythm.app.ui.tools.PercentageCalcDialog
 import com.duorhythm.app.ui.tools.PomodoroDialog
 import com.duorhythm.app.ui.focus.FocusSuiteActivity
@@ -429,10 +428,6 @@ class HomeFragment : Fragment() {
                 PomodoroDialog(requireContext()).show()
             }
 
-            binding.toolHomeMusic.setOnClickListener {
-                AmbientSoundDialog(requireContext()).show()
-            }
-
             binding.toolHomeCalc.setOnClickListener {
                 PercentageCalcDialog(requireContext()).show()
             }
@@ -463,7 +458,6 @@ class HomeFragment : Fragment() {
                 binding.btnQuickFocusTimer,
                 binding.btnQuickCalculator,
                 binding.toolHomePomodoro,
-                binding.toolHomeMusic,
                 binding.toolHomeCalc,
                 binding.ivUserProfile,
                 binding.btnStudentMode,

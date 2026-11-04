@@ -33,7 +33,6 @@ import com.duorhythm.app.ui.common.PermissionRationaleDialogs
 import com.duorhythm.app.ui.home.HomeFragment
 import com.duorhythm.app.ui.portal.PortalFragment
 import com.duorhythm.app.ui.settings.SettingsActivity
-import com.duorhythm.app.ui.tools.AmbientSoundDialog
 import com.duorhythm.app.ui.tools.PercentageCalcDialog
 import com.duorhythm.app.ui.tools.PomodoroDialog
 import com.duorhythm.app.ui.tools.ToolsFragment
@@ -478,10 +477,6 @@ class MainActivity : AppCompatActivity() {
             PomodoroDialog(this).show()
         }
 
-        binding.btnQuickMusic.setOnClickListener {
-            AmbientSoundDialog(this).show()
-        }
-
         binding.btnQuickCalc.setOnClickListener {
             PercentageCalcDialog(this).show()
         }
@@ -503,7 +498,6 @@ class MainActivity : AppCompatActivity() {
             binding.btnQuickProfile,
             binding.btnQuickSettings,
             binding.btnQuickPomodoro,
-            binding.btnQuickMusic,
             binding.btnQuickCalc,
             binding.btnQuickBackup,
             binding.btnQuickAbout,
