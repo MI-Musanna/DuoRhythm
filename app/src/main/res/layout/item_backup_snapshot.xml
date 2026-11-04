@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="#0D1322"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="0dp"
+    app:strokeColor="#18243C"
+    app:strokeWidth="1dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <FrameLayout
+            android:id="@+id/frameSnapshotIcon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_circle_button_dark">
+
+            <ImageView
+                android:id="@+id/ivSnapshotType"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:contentDescription="Snapshot Type"
+                android:src="@drawable/ic_history"
+                app:tint="@color/accent_cyan_primary" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutSnapshotMeta"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toEndOf="@id/frameSnapshotIcon"
+            android:layout_toStartOf="@id/layoutSnapshotActions"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvSnapshotTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Automatic Snapshot"
+                android:textColor="#F8FAFC"
+                android:textSize="13.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvSnapshotDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Nov 3, 2026 • 09:37 PM • 42 KB"
+                android:textColor="#94A3B8"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutSnapshotActions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRestoreSnapshot"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:backgroundTint="#13243B"
+                android:paddingHorizontal="10dp"
+                android:text="Restore"
+                android:textColor="#38BDF8"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                app:cornerRadius="16dp"
+                app:strokeColor="#1F3A5F"
+                app:strokeWidth="1dp" />
+
+            <ImageView
+                android:id="@+id/btnDeleteSnapshot"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Delete"
+                android:padding="6dp"
+                android:src="@drawable/ic_trash"
+                app:tint="#EF4444" />
+        </LinearLayout>
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

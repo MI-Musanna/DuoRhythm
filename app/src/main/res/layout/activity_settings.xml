@@ -1545,7 +1545,7 @@
                             android:orientation="horizontal">
 
                             <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnExportBackup"
+                                android:id="@+id/btnCreateBackup"
                                 style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                                 android:layout_width="0dp"
                                 android:layout_height="44dp"
@@ -1756,6 +1756,62 @@
                                 android:layout_height="18dp"
                                 android:src="@drawable/ic_chevron_right"
                                 app:tint="#64748B" />
+                        </LinearLayout>
+
+                        <!-- Saved Backup Snapshots History -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:orientation="vertical">
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentStart="true"
+                                    android:layout_centerVertical="true"
+                                    android:text="SAVED BACKUP SNAPSHOTS"
+                                    android:textColor="@color/accent_cyan_primary"
+                                    android:textSize="11sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/btnRefreshSnapshots"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_centerVertical="true"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:padding="4dp"
+                                    android:text="Refresh"
+                                    android:textColor="#94A3B8"
+                                    android:textSize="11sp" />
+                            </RelativeLayout>
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvBackupSnapshots"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:nestedScrollingEnabled="false"
+                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                            <TextView
+                                android:id="@+id/tvEmptySnapshots"
+                                android:layout_width="match_parent"
+                                android:layout_height="56dp"
+                                android:background="@drawable/bg_pill_dark"
+                                android:gravity="center"
+                                android:text="No snapshots saved yet. Tap 'CREATE BACKUP' above."
+                                android:textColor="#64748B"
+                                android:textSize="11.5sp"
+                                android:visibility="gone" />
                         </LinearLayout>
 
                     </LinearLayout>

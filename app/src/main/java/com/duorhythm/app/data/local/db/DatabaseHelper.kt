@@ -4961,6 +4961,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return root.toString(2)
     }
 
+    fun exportFullDatabaseAsJson(): String = exportDatabaseToJson()
+
+    fun importFullDatabaseFromJson(jsonString: String): Boolean = importDatabaseFromJson(jsonString)
+
     fun importDatabaseFromJson(jsonString: String): Boolean {
         return try {
             val root = JSONObject(jsonString)

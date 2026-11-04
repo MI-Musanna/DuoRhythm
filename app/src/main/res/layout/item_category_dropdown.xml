@@ -10,7 +10,6 @@
     android:orientation="horizontal"
     android:paddingHorizontal="12dp">
 
-    <!-- Primary Selection Area (Tapping this triggers category selection) -->
     <LinearLayout
         android:id="@+id/layoutCategorySelectHitbox"
         android:layout_width="0dp"
@@ -19,19 +18,20 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <!-- Dynamic Tint Applied via Adapter (No hardcoded tint) -->
         <ImageView
             android:id="@+id/ivCategoryIcon"
             android:layout_width="22dp"
             android:layout_height="22dp"
-            android:src="@drawable/ic_wallet"
-            app:tint="#EC4899" />
+            android:contentDescription="Category Icon"
+            android:src="@drawable/ic_wallet" />
 
         <TextView
             android:id="@+id/tvCategoryName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:text="Bkash"
+            android:text="Category Name"
             android:textColor="#F8FAFC"
             android:textSize="13.5sp"
             android:textStyle="bold" />
@@ -51,7 +51,6 @@
             android:visibility="gone" />
     </LinearLayout>
 
-    <!-- Edit Action Button (Explicit non-stealing) -->
     <ImageView
         android:id="@+id/btnEditCategory"
         android:layout_width="32dp"
@@ -64,7 +63,6 @@
         android:src="@drawable/ic_edit"
         app:tint="#94A3B8" />
 
-    <!-- Delete Action Button (Explicit non-stealing) -->
     <ImageView
         android:id="@+id/btnDeleteCategory"
         android:layout_width="32dp"

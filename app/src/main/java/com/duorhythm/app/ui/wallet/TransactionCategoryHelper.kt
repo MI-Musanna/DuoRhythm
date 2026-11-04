@@ -32,7 +32,7 @@ class TransactionCategoryHelper(
 
     private var masterCategoryList: List<CategoryEntity> = emptyList()
     private val categoriesList = mutableListOf<TransactionCategoryItem>()
-    private lateinit var adapter: CategoryDropdownAdapter
+    private lateinit var adapter: AutoCompleteCategoryAdapter
 
     private val categoryDao: CategoryDao by lazy {
         AppDatabase.getInstance(context).categoryDao
@@ -72,7 +72,7 @@ class TransactionCategoryHelper(
             }
         }
 
-        adapter = CategoryDropdownAdapter(
+        adapter = AutoCompleteCategoryAdapter(
             context = context,
             allCategories = categoriesList,
             onSelectClicked = handleCategorySelection,
@@ -292,5 +292,181 @@ class TransactionCategoryHelper(
 
         dialog.show()
         dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(Color.parseColor("#EF4444"))
+    }
+}
+
+class AutoCompleteCategoryAdapter(
+    private val context: Context,
+    allCategories: List<TransactionCategoryItem>,
+    private val onSelectClicked: (TransactionCategoryItem) -> Unit,
+    private val onEditClicked: (TransactionCategoryItem) -> Unit,
+    private val onDeleteClicked: (TransactionCategoryItem) -> Unit,
+    private val onManageClicked: () -> Unit
+) : BaseAdapter(), Filterable {
+
+    private val allCategoriesList = mutableListOf<TransactionCategoryItem>()
+    private val displayedItems = mutableListOf<TransactionCategoryItem>()
+    private var lastConstraint: String = ""
+
+    init {
+        allCategoriesList.addAll(allCategories)
+        updateDisplayed(allCategoriesList, "")
+    }
+
+    fun updateCategories(newList: List<TransactionCategoryItem>) {
+        allCategoriesList.clear()
+        allCategoriesList.addAll(newList)
+        lastConstraint = ""
+        updateDisplayed(allCategoriesList, "")
+        notifyDataSetChanged()
+    }
+
+    private fun updateDisplayed(source: List<TransactionCategoryItem>, query: String) {
+        displayedItems.clear()
+        val filtered = if (query.isEmpty()) {
+            source.filter { it.id > 0 }.toMutableList()
+        } else {
+            source.filter { it.id > 0 && it.name.contains(query, ignoreCase = true) }.toMutableList()
+        }
+
+        val addLabel = if (query.isNotEmpty() && !source.any { it.name.equals(query, ignoreCase = true) }) {
+            "➕ Create \"$query\""
+        } else {
+            "+ Add New Category"
+        }
+        filtered.add(TransactionCategoryItem(id = -1L, name = addLabel, type = "", isDefault = false))
+        filtered.add(TransactionCategoryItem(id = -2L, name = "Manage Categories", type = "", isDefault = false))
+
+        displayedItems.addAll(filtered)
+    }
+
+    override fun getCount(): Int = displayedItems.size
+
+    override fun getItem(position: Int): TransactionCategoryItem = displayedItems[position]
+
+    override fun getItemId(position: Int): Long = displayedItems[position].id
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.item_wallet_category_dropdown, parent, false)
+        val item = getItem(position)
+
+        val ivIcon = view.findViewById<ImageView>(R.id.ivCategoryIcon)
+        val tvName = view.findViewById<TextView>(R.id.tvCategoryName)
+        val tvBadge = view.findViewById<TextView>(R.id.badgeCategoryType)
+        val btnEdit = view.findViewById<View>(R.id.btnEditCategory)
+        val btnDelete = view.findViewById<View>(R.id.btnDeleteCategory)
+        val hitbox = view.findViewById<View>(R.id.layoutCategorySelectHitbox)
+        val root = view.findViewById<View>(R.id.layoutCategoryRowRoot) ?: view
+
+        when (item.id) {
+            -1L -> {
+                // "+ Add New Category" / "➕ Create '$name'"
+                tvName?.text = item.name
+                tvName?.setTextColor(Color.parseColor("#0284C7"))
+                tvName?.typeface = Typeface.DEFAULT_BOLD
+                ivIcon?.visibility = View.VISIBLE
+                ivIcon?.setImageResource(R.drawable.ic_add)
+                ivIcon?.imageTintList = ColorStateList.valueOf(Color.parseColor("#0284C7"))
+                tvBadge?.visibility = View.GONE
+                btnEdit?.visibility = View.GONE
+                btnDelete?.visibility = View.GONE
+            }
+            -2L -> {
+                // "Manage Categories"
+                tvName?.text = item.name
+                tvName?.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                tvName?.typeface = Typeface.DEFAULT
+                ivIcon?.visibility = View.VISIBLE
+                ivIcon?.setImageResource(R.drawable.ic_settings)
+                ivIcon?.imageTintList = ColorStateList.valueOf(Color.parseColor("#475569"))
+                tvBadge?.visibility = View.GONE
+                btnEdit?.visibility = View.GONE
+                btnDelete?.visibility = View.GONE
+            }
+            else -> {
+                tvName?.text = item.name
+                tvName?.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                tvName?.typeface = Typeface.DEFAULT
+
+                ivIcon?.visibility = View.VISIBLE
+                ivIcon?.setImageResource(CategoryManagementDialog.getCategoryIconRes(item.icon))
+
+                val resolvedColor = try {
+                    if (!item.colorHex.isNullOrBlank()) {
+                        Color.parseColor(item.colorHex)
+                    } else {
+                        CategoryDropdownAdapter.getFallbackColorForCategory(item.name, item.type)
+                    }
+                } catch (_: Exception) {
+                    CategoryDropdownAdapter.getFallbackColorForCategory(item.name, item.type)
+                }
+                ivIcon?.imageTintList = ColorStateList.valueOf(resolvedColor)
+
+                if (item.type != "BOTH") {
+                    tvBadge?.text = item.type
+                    tvBadge?.visibility = View.VISIBLE
+                    if (item.type.equals("INCOME", ignoreCase = true)) {
+                        tvBadge?.setTextColor(Color.parseColor("#38BDF8"))
+                    }
+                } else {
+                    tvBadge?.visibility = View.GONE
+                }
+
+                btnEdit?.visibility = View.VISIBLE
+                btnDelete?.visibility = View.VISIBLE
+
+                btnEdit?.setOnClickListener { onEditClicked(item) }
+                btnDelete?.setOnClickListener { onDeleteClicked(item) }
+            }
+        }
+
+        // Direct Tap Selection: Tapping either the hitbox or row selects immediately
+        val onSelectAction = View.OnClickListener {
+            onSelectClicked(item)
+        }
+        hitbox?.setOnClickListener(onSelectAction)
+        root.setOnClickListener(onSelectAction)
+
+        return view
+    }
+
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val results = FilterResults()
+                val query = constraint?.toString()?.trim() ?: ""
+                lastConstraint = query
+                val filtered = if (query.isEmpty()) {
+                    allCategoriesList.filter { it.id > 0 }.toMutableList()
+                } else {
+                    allCategoriesList.filter { it.id > 0 && it.name.contains(query, ignoreCase = true) }.toMutableList()
+                }
+                val addLabel = if (query.isNotEmpty() && !allCategoriesList.any { it.name.equals(query, ignoreCase = true) }) {
+                    "➕ Create \"$query\""
+                } else {
+                    "+ Add New Category"
+                }
+                filtered.add(TransactionCategoryItem(id = -1L, name = addLabel, type = "", isDefault = false))
+                filtered.add(TransactionCategoryItem(id = -2L, name = "Manage Categories", type = "", isDefault = false))
+
+                results.values = filtered
+                results.count = filtered.size
+                return results
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                displayedItems.clear()
+                if (results?.values is List<*>) {
+                    displayedItems.addAll(results.values as List<TransactionCategoryItem>)
+                }
+                notifyDataSetChanged()
+            }
+
+            override fun convertResultToString(resultValue: Any?): CharSequence {
+                val item = resultValue as? TransactionCategoryItem
+                return if (item == null || item.id < 0) "" else item.name
+            }
+        }
     }
 }

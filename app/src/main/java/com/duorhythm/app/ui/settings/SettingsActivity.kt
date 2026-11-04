@@ -3,15 +3,18 @@ package com.duorhythm.app.ui.settings
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +22,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.duorhythm.app.util.BackupSnapshotHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.duorhythm.app.R
@@ -41,7 +47,6 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import android.widget.CheckBox
-import android.widget.TextView
 import java.util.Calendar
 import com.duorhythm.app.security.LifeSyncSecurityManager
 import com.duorhythm.app.worker.LocalBackupWorker
@@ -764,9 +769,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // --- 1. Streamlined Data Backup & Restore Hub ---
-        binding.btnExportBackup.setOnClickListener {
-            showBackupProfilesDialog()
-        }
+        setupBackupSnapshotsView()
 
         binding.btnImportBackup.setOnClickListener {
             importBackupLauncher.launch(arrayOf("application/json", "text/*", "*/*"))
@@ -899,7 +902,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         AnimationUtils.attachTactileFeedback(
-            binding.btnExportBackup,
+            binding.btnCreateBackup,
             binding.btnImportBackup,
             binding.btnResetAppData,
             binding.btnLoadDemoData,
@@ -1060,6 +1063,82 @@ class SettingsActivity : AppCompatActivity() {
                 AppPreferences.setWalletBiometricLocked(this, false)
                 backupPrefs.edit().putBoolean("pref_wallet_biometric_locked", false).apply()
                 Toast.makeText(this, "Wallet Biometric Lock Disabled", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun setupBackupSnapshotsView() {
+        binding.rvBackupSnapshots.layoutManager = LinearLayoutManager(this)
+        loadSavedSnapshots()
+
+        binding.btnRefreshSnapshots.setOnClickListener {
+            loadSavedSnapshots()
+        }
+
+        binding.btnCreateBackup.setOnClickListener {
+            BackupSnapshotHelper.createInstantSnapshot(this, isAuto = false)
+            Toast.makeText(this, "Manual Snapshot Created Successfully!", Toast.LENGTH_SHORT).show()
+            loadSavedSnapshots()
+        }
+    }
+
+    private fun loadSavedSnapshots() {
+        val snapshots = BackupSnapshotHelper.listAvailableSnapshots(this)
+        if (snapshots.isEmpty()) {
+            binding.rvBackupSnapshots.visibility = View.GONE
+            binding.tvEmptySnapshots.visibility = View.VISIBLE
+        } else {
+            binding.rvBackupSnapshots.visibility = View.VISIBLE
+            binding.tvEmptySnapshots.visibility = View.GONE
+
+            binding.rvBackupSnapshots.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+                override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+                    val v = LayoutInflater.from(parent.context).inflate(R.layout.item_backup_snapshot, parent, false)
+                    return object : RecyclerView.ViewHolder(v) {}
+                }
+
+                override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                    val item = snapshots[position]
+                    val v = holder.itemView
+
+                    v.findViewById<TextView>(R.id.tvSnapshotTitle).text = item.displayName
+                    v.findViewById<TextView>(R.id.tvSnapshotDate).text = "${item.formattedDate} • ${item.sizeFormatted}"
+
+                    val icon = v.findViewById<ImageView>(R.id.ivSnapshotType)
+                    if (item.isAuto) {
+                        icon.setImageResource(R.drawable.ic_schedule)
+                        icon.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                    } else {
+                        icon.setImageResource(R.drawable.ic_save)
+                        icon.imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
+                    }
+
+                    // 1-Tap Direct Restore Action
+                    v.findViewById<View>(R.id.btnRestoreSnapshot).setOnClickListener {
+                        androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                            .setTitle("Restore Database Snapshot?")
+                            .setMessage("Are you sure you want to restore the snapshot from ${item.formattedDate}? Current unsaved changes will be replaced.")
+                            .setPositiveButton("Restore") { _, _ ->
+                                val success = BackupSnapshotHelper.restoreSnapshotFromFile(this@SettingsActivity, item.file)
+                                if (success) {
+                                    Toast.makeText(this@SettingsActivity, "Database restored successfully!", Toast.LENGTH_LONG).show()
+                                    recreate() // Reload activity with restored data
+                                } else {
+                                    Toast.makeText(this@SettingsActivity, "Failed to parse snapshot file.", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+
+                    // Delete Action
+                    v.findViewById<View>(R.id.btnDeleteSnapshot).setOnClickListener {
+                        BackupSnapshotHelper.deleteSnapshot(item.file)
+                        loadSavedSnapshots()
+                    }
+                }
+
+                override fun getItemCount(): Int = snapshots.size
             }
         }
     }
