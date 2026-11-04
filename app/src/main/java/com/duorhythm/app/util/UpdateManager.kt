@@ -5,14 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.CheckBox
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -26,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -41,25 +41,22 @@ object UpdateManager {
         val bodyText: String
     )
 
-    // 1. AUTOMATIC CLEANUP: Purges leftover .apk files from app downloads directory
     fun cleanupDownloadedApks(context: Context) {
         try {
             val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return
             val apkFiles = downloadDir.listFiles { file -> file.name.endsWith(".apk") }
-            apkFiles?.forEach { file ->
-                if (file.exists()) {
-                    file.delete()
-                }
-            }
+            apkFiles?.forEach { file -> if (file.exists()) file.delete() }
         } catch (_: Exception) {}
     }
 
-    // 2. CHECK UPDATES: Strictly discriminates between Stable and Beta
-    fun checkForUpdates(context: Context, isManualCheck: Boolean, onResult: ((ReleaseInfo?, ReleaseInfo?) -> Unit)? = null) {
+    fun checkForUpdates(
+        context: Context,
+        isManualCheck: Boolean,
+        onResult: ((ReleaseInfo?, ReleaseInfo?) -> Unit)? = null
+    ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL(GITHUB_RELEASES_API)
-                val conn = url.openConnection() as HttpURLConnection
+                val conn = URL(GITHUB_RELEASES_API).openConnection() as HttpURLConnection
                 conn.setRequestProperty("User-Agent", "DuoRhythm-Android")
                 conn.connectTimeout = 8000
                 conn.readTimeout = 8000
@@ -93,6 +90,10 @@ object UpdateManager {
 
                             val release = ReleaseInfo(tag, isBeta, apkUrl, body)
 
+                            // Cache the online release body for this tag
+                            val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
+                            prefs.edit().putString("online_body_$tag", body).apply()
+
                             if (!isBeta && latestStable == null) {
                                 latestStable = release
                             }
@@ -108,7 +109,6 @@ object UpdateManager {
                         } else if (isManualCheck) {
                             showModernDualChannelDialog(context, latestStable, latestBeta)
                         } else {
-                            // AUTO PROMPT: ONLY prompt automatically if a new STABLE release exists!
                             handleAutoStablePrompt(context, latestStable)
                         }
                     }
@@ -131,7 +131,6 @@ object UpdateManager {
         if (stable == null) return
         val currentVer = BuildConfig.VERSION_NAME
 
-        // If the stable version is strictly different from current and not running a dev build
         if (stable.tagName != currentVer && !currentVer.contains("dev", ignoreCase = true)) {
             val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
             val view = LayoutInflater.from(context).inflate(R.layout.dialog_auto_stable_update, null)
@@ -151,7 +150,6 @@ object UpdateManager {
         }
     }
 
-    // 3. DOWNLOAD & INSTALL: Tracks installation intent
     fun downloadAndInstallApk(context: Context, apkUrl: String, fileName: String) {
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val request = DownloadManager.Request(Uri.parse(apkUrl))
@@ -184,21 +182,24 @@ object UpdateManager {
             }
         }
 
-        ContextCompat.registerReceiver(
-            context,
-            receiver,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-            ContextCompat.RECEIVER_NOT_EXPORTED
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            ContextCompat.registerReceiver(
+                context,
+                receiver,
+                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+        }
     }
 
-    // 4. WHAT'S NEW MODAL: With "Don't show again" Checkbox + Manual invocation
+    // 100% DYNAMIC WHAT'S NEW: Fetches live GitHub Release body for the current version
     fun showWhatsNewDialog(context: Context, forceManual: Boolean = false) {
         val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
         val currentVer = BuildConfig.VERSION_NAME
         val prefKey = "suppress_whats_new_$currentVer"
 
-        // If suppressed by user and not forced manually from Settings, return immediately
         if (!forceManual && prefs.getBoolean(prefKey, false)) {
             return
         }
@@ -208,7 +209,46 @@ object UpdateManager {
         dialog.setContentView(view)
 
         view.findViewById<TextView>(R.id.tvWhatsNewTitle)?.text = "What's New in $currentVer ✨"
+        val tvBody = view.findViewById<TextView>(R.id.tvWhatsNewBody)
+        val progressBar = view.findViewById<ProgressBar>(R.id.pbLoadingReleaseNotes)
         val cbDontShow = view.findViewById<CheckBox>(R.id.cbDontShowAgain)
+
+        // 1. Check local cache first
+        val cachedBody = prefs.getString("online_body_$currentVer", null)
+        if (!cachedBody.isNullOrBlank()) {
+            progressBar?.visibility = View.GONE
+            tvBody?.visibility = View.VISIBLE
+            tvBody?.text = formatReleaseNotes(cachedBody)
+        } else {
+            // 2. Fetch directly from GitHub Releases API
+            CoroutineScope(Dispatchers.IO).launch {
+                var fetchedBody: String? = null
+                try {
+                    val url = URL("$GITHUB_RELEASES_API/tags/$currentVer")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.setRequestProperty("User-Agent", "DuoRhythm-Android")
+                    conn.connectTimeout = 6000
+                    conn.readTimeout = 6000
+                    if (conn.responseCode == 200) {
+                        val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+                        fetchedBody = json.optString("body", "")
+                        if (!fetchedBody.isNullOrBlank()) {
+                            prefs.edit().putString("online_body_$currentVer", fetchedBody).apply()
+                        }
+                    }
+                } catch (_: Exception) {}
+
+                withContext(Dispatchers.Main) {
+                    progressBar?.visibility = View.GONE
+                    tvBody?.visibility = View.VISIBLE
+                    if (!fetchedBody.isNullOrBlank()) {
+                        tvBody?.text = formatReleaseNotes(fetchedBody)
+                    } else {
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Real-time GitHub release notes unavailable offline.\n• Visit github.com/MI-Musanna/DuoRhythm/releases for full notes."
+                    }
+                }
+            }
+        }
 
         view.findViewById<MaterialButton>(R.id.btnDismissWhatsNew)?.setOnClickListener {
             if (cbDontShow?.isChecked == true) {
@@ -219,26 +259,24 @@ object UpdateManager {
         dialog.show()
     }
 
-    fun showResultOrientedWhatsNew(context: Context, force: Boolean = true) {
-        showWhatsNewDialog(context, forceManual = force)
+    private fun formatReleaseNotes(rawMarkdown: String): String {
+        return rawMarkdown
+            .replace("###", "•")
+            .replace("##", "•")
+            .replace("#", "")
+            .replace("**", "")
+            .trim()
     }
 
-    fun showWhatsNewIfUpdated(context: Context) {
-        showWhatsNewDialog(context, forceManual = false)
-    }
-
-    // 5. MANUAL RELEASE CHANNEL DIALOG (Settings Hub)
     fun showModernDualChannelDialog(context: Context, stable: ReleaseInfo?, beta: ReleaseInfo?) {
         val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_updater, null)
         dialog.setContentView(view)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         val currentVersion = BuildConfig.VERSION_NAME
         val cardStable = view.findViewById<View>(R.id.cardStableTrack)
         val tvNoStable = view.findViewById<View>(R.id.tvNoStableBanner)
 
-        // STABLE CHANNEL: Strict check
         if (stable != null && !stable.tagName.contains("beta", ignoreCase = true)) {
             cardStable?.visibility = View.VISIBLE
             tvNoStable?.visibility = View.GONE
@@ -256,12 +294,10 @@ object UpdateManager {
                 }
             }
         } else {
-            // If no stable tag exists on GitHub, hide the card completely
             cardStable?.visibility = View.GONE
             tvNoStable?.visibility = View.VISIBLE
         }
 
-        // BETA / PREVIEW CHANNEL:
         val tvBeta = view.findViewById<TextView>(R.id.tvBetaVersion)
         val btnBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
         if (beta != null) {
@@ -270,12 +306,10 @@ object UpdateManager {
                 btnBeta?.text = "INSTALLED"
             } else {
                 btnBeta?.text = "UPDATE"
-                val startBetaInstall = View.OnClickListener {
+                btnBeta?.setOnClickListener {
                     downloadAndInstallApk(context, beta.downloadUrl, "${beta.tagName}.apk")
                     dialog.dismiss()
                 }
-                btnBeta?.setOnClickListener(startBetaInstall)
-                view.findViewById<View>(R.id.cardBetaTrack)?.setOnClickListener(startBetaInstall)
             }
         }
 

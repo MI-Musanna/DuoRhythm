@@ -16,15 +16,29 @@
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/tvWhatsNewBody"
+    <!-- Live Release Notes Content -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:lineSpacingExtra="4dp"
-        android:text="• Pure Stable Auto-Prompts: Beta builds remain silent.\n• Automatic APK Cleanup: Downloaded installers are wiped upon launch.\n• Deep Obsidian Aesthetics: 100% unified OLED dark theme.\n• Dynamic Course Filters: Clutter-free category management.\n• Streamlined Dashboard: Faster schedule navigation."
-        android:textColor="#94A3B8"
-        android:textSize="12.5sp" />
+        android:layout_marginTop="12dp"
+        android:minHeight="80dp">
+
+        <ProgressBar
+            android:id="@+id/pbLoadingReleaseNotes"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="#00E5FF" />
+
+        <TextView
+            android:id="@+id/tvWhatsNewBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4dp"
+            android:textColor="#94A3B8"
+            android:textSize="12.5sp"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <CheckBox
         android:id="@+id/cbDontShowAgain"

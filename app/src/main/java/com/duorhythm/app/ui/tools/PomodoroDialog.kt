@@ -29,7 +29,7 @@ class PomodoroDialog(private val context: Context) {
     private var initialTimeInMillis: Long = currentMode.durationMs
     private var completedSessions = 0
 
-    fun show() {
+    fun createDialog(): AlertDialog {
         val binding = DialogPomodoroTimerBinding.inflate(LayoutInflater.from(context))
         val dialog = AlertDialog.Builder(context)
             .setView(binding.root)
@@ -164,6 +164,10 @@ class PomodoroDialog(private val context: Context) {
         // Initialize state
         selectMode(Mode.FOCUS)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.show()
+        return dialog
+    }
+
+    fun show() {
+        createDialog().show()
     }
 }
