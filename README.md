@@ -5,7 +5,7 @@
 # DuoRhythm
 **Next-Gen Local-First Financial Ledger & Academic Companion**
 
-[![Release](https://img.shields.io/github/v/release/MI-Musanna/DuoRhythm?color=38BDF8&label=Beta%20Build&style=flat-square)](https://github.com/MI-Musanna/DuoRhythm/releases/latest)
+[![Release](https://img.shields.io/github/v/release/MI-Musanna/DuoRhythm?color=38BDF8&label=Beta%20Build&style=flat-square)](https://github.com/MI-Musanna/DuoRhythm/releases/Pre-release)
 [![Platform](https://img.shields.io/badge/Platform-Android_8.0+-10B981?style=flat-square)](https://github.com/MI-Musanna/DuoRhythm)
 [![Stack](https://img.shields.io/badge/Stack-Kotlin_%7C_Room_%7C_MVVM-6366F1?style=flat-square)](https://github.com/MI-Musanna/DuoRhythm)
 [![License](https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square)](LICENSE)
