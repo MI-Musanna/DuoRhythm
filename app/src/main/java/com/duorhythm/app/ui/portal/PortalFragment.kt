@@ -24,6 +24,9 @@ import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.StudentSubject
 import com.duorhythm.app.data.model.WorkOrder
+import com.duorhythm.app.data.model.ClientOrder
+import com.duorhythm.app.ui.work.ClientOrdersAdapter
+import com.duorhythm.app.data.local.pref.ProfileManager
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import com.duorhythm.app.data.model.SubjectWorkItem
@@ -347,8 +350,8 @@ class PortalFragment : Fragment() {
                 }
             }
         )
-        binding.rvWorkContacts.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvWorkContacts.adapter = workContactsAdapter
+        binding.rvWorkPortalContacts.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvWorkPortalContacts.adapter = workContactsAdapter
     }
 
     private fun setupListeners() {
@@ -406,8 +409,6 @@ class PortalFragment : Fragment() {
                 android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
             }
         }
-        binding.btnAddWorkOrder.setOnClickListener { showAddWorkOrderDialog() }
-        binding.btnEmptyAddWorkOrder.setOnClickListener { showAddWorkOrderDialog() }
         binding.btnStudentScheduleShortcut.setOnClickListener {
             (activity as? com.duorhythm.app.MainActivity)?.selectNavTab(R.id.nav_schedule)
         }
@@ -478,28 +479,6 @@ class PortalFragment : Fragment() {
             }
         }
 
-        binding.toggleWorkDirectoryTab.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isChecked) {
-                isWorkContactsTab = checkedId == R.id.tabWorkContacts
-                val emeraldColor = ColorStateList.valueOf(Color.parseColor("#10B981"))
-                val transparentColor = ColorStateList.valueOf(Color.TRANSPARENT)
-                if (isWorkContactsTab) {
-                    binding.tabWorkContacts.backgroundTintList = emeraldColor
-                    binding.tabWorkContacts.setTextColor(Color.WHITE)
-                    binding.tabWorkGroupLinks.backgroundTintList = transparentColor
-                    binding.tabWorkGroupLinks.setTextColor(Color.parseColor("#64748B"))
-                    binding.btnWorkAddContact.text = "+ Contact"
-                } else {
-                    binding.tabWorkGroupLinks.backgroundTintList = emeraldColor
-                    binding.tabWorkGroupLinks.setTextColor(Color.WHITE)
-                    binding.tabWorkContacts.backgroundTintList = transparentColor
-                    binding.tabWorkContacts.setTextColor(Color.parseColor("#64748B"))
-                    binding.btnWorkAddContact.text = "+ Add Link"
-                }
-                loadWorkContacts()
-            }
-        }
-
         binding.btnStudentAddContact.setOnClickListener {
             try {
                 if (isStudentContactsTab) showAddContactDialog(true) else showAddGroupLinkDialog(true)
@@ -523,7 +502,7 @@ class PortalFragment : Fragment() {
         }
         binding.btnWorkAddContact.setOnClickListener {
             try {
-                if (isWorkContactsTab) showAddContactDialog(false) else showAddGroupLinkDialog(false)
+                showAddContactDialog(false)
             } catch (e: Throwable) {
                 android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
             }
@@ -585,7 +564,7 @@ class PortalFragment : Fragment() {
 
             if (isStudentProfile) {
                 binding.layoutStudentPortal.visibility = View.VISIBLE
-                binding.layoutWorkPortal.visibility = View.GONE
+                binding.layoutWorkPortalContainer.visibility = View.GONE
                 val currentSegment = if (binding.toggleStudentSegment.checkedButtonId != View.NO_ID) {
                     binding.toggleStudentSegment.checkedButtonId
                 } else {
@@ -595,8 +574,8 @@ class PortalFragment : Fragment() {
                 loadStudentData()
             } else {
                 binding.layoutStudentPortal.visibility = View.GONE
-                binding.layoutWorkPortal.visibility = View.VISIBLE
-                loadWorkData()
+                binding.layoutWorkPortalContainer.visibility = View.VISIBLE
+                setupWorkPortalView()
             }
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -730,57 +709,131 @@ class PortalFragment : Fragment() {
         }
     }
 
-    private fun loadWorkData() {
-        val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)
-        val defaultCurr = if (java.util.Locale.getDefault().country.equals("BD", ignoreCase = true)) "BDT" else "USD"
-        val currCode = prefs.getString("selected_currency", defaultCurr) ?: defaultCurr
-        val rateObj = dbHelper.getAllCurrencyRates().find { it.code == currCode }
-        val rate = rateObj?.rate ?: 1.0
-        val symbol = rateObj?.symbol ?: "$"
+    private fun setupWorkPortalView() {
+        if (_binding == null || !isAdded) return
+        val db = DatabaseHelper.getInstance(requireContext())
+        val profileId = ProfileManager.getActiveProfileId()
 
-        val orders = dbHelper.getAllWorkOrders()
-        workOrdersAdapter.updateList(orders, symbol, rate)
+        val orders = db.getClientOrders(profileId)
+        val activeOrders = orders.filter { it.status.uppercase() != "COMPLETED" }
+        val totalBilled = orders.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
+
+        binding.tvWorkStatTotalOrders.text = "${orders.size} Orders"
+        binding.tvWorkStatActiveOrders.text = "${activeOrders.size} In Progress"
+        binding.tvWorkStatTotalBilled.text = "৳${String.format(Locale.US, "%.2f", totalBilled)} Billed"
+
         if (orders.isEmpty()) {
-            binding.rvWorkOrders.visibility = View.GONE
-            binding.layoutEmptyWorkOrders.visibility = View.VISIBLE
+            binding.rvWorkClientOrders.visibility = View.GONE
+            binding.tvEmptyWorkOrders.visibility = View.VISIBLE
         } else {
-            binding.rvWorkOrders.visibility = View.VISIBLE
-            binding.layoutEmptyWorkOrders.visibility = View.GONE
+            binding.rvWorkClientOrders.visibility = View.VISIBLE
+            binding.tvEmptyWorkOrders.visibility = View.GONE
+
+            binding.rvWorkClientOrders.adapter = ClientOrdersAdapter(
+                orders = orders,
+                onOrderClick = { order -> showOrderDetailsModal(order) },
+                onDeleteOrder = { order ->
+                    db.deleteClientOrder(order.id)
+                    setupWorkPortalView()
+                }
+            )
         }
 
-        val totalOrders = orders.size
-        val pendingOrders = orders.count { it.status != "COMPLETED" }
-        val completedOrders = orders.count { it.status == "COMPLETED" }
-        val totalRevenue = orders.sumOf { it.totalPrice } * rate
-
-        binding.tvWorkTotalOrders.text = "$totalOrders Orders"
-        binding.tvWorkPendingOrders.text = "$pendingOrders Active"
-        binding.tvWorkTotalRevenue.text = String.format(Locale.US, "%s%.2f", symbol, totalRevenue)
-        binding.tvWorkCompletedOrders.text = "$completedOrders Done"
-
+        binding.btnNewClientOrderPortal.setOnClickListener {
+            showCreateOrderDialog()
+        }
         loadWorkContacts()
     }
 
-    private fun loadWorkContacts() {
-        val all = dbHelper.getContactsForPortal(isStudent = false, roleFilter = workContactRoleFilter)
-        val contacts = if (isWorkContactsTab) {
-            all.filter { !it.type.equals("GROUP", ignoreCase = true) }
-        } else {
-            all.filter { it.type.equals("GROUP", ignoreCase = true) }
+    private fun loadWorkData() {
+        setupWorkPortalView()
+    }
+
+    private fun showCreateOrderDialog() {
+        val context = requireContext()
+        val db = DatabaseHelper.getInstance(context)
+        val profileId = ProfileManager.getActiveProfileId()
+
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_work_order, null)
+        val bindingDialog = DialogAddWorkOrderBinding.bind(dialogView)
+
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        bindingDialog.etOrderStartDate.setText(today)
+        bindingDialog.etOrderEndDate.setText(today)
+
+        val pickDateListener = View.OnClickListener { v ->
+            val cal = java.util.Calendar.getInstance()
+            DatePickerDialog(context, { _, year, month, day ->
+                val chosen = java.util.Calendar.getInstance().apply { set(year, month, day) }
+                val formatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(chosen.time)
+                (v as? android.widget.EditText)?.setText(formatted)
+            }, cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH)).show()
         }
-        workContactsAdapter.updateList(contacts)
-        if (contacts.isEmpty()) {
-            binding.rvWorkContacts.visibility = View.GONE
-            binding.tvEmptyWorkContacts.visibility = View.VISIBLE
-            binding.tvEmptyWorkContacts.text = if (isWorkContactsTab) {
-                "No client or partner contacts recorded yet. Tap + Contact to save new work connections!"
-            } else {
-                "No community or client channel links saved yet. Tap + Add Link to save Discord, Telegram, or WhatsApp channels."
+        bindingDialog.etOrderStartDate.setOnClickListener(pickDateListener)
+        bindingDialog.etOrderEndDate.setOnClickListener(pickDateListener)
+
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setView(dialogView)
+            .create()
+
+        bindingDialog.btnSaveWorkOrder.setOnClickListener {
+            val title = bindingDialog.etOrderTitle.text.toString().trim()
+            if (title.isBlank()) {
+                bindingDialog.etOrderTitle.error = "Title required"
+                return@setOnClickListener
             }
-        } else {
-            binding.rvWorkContacts.visibility = View.VISIBLE
-            binding.tvEmptyWorkContacts.visibility = View.GONE
+            val client = bindingDialog.etOrderClient.text.toString().trim()
+            val unitPrice = bindingDialog.etOrderUnitPrice.text.toString().toDoubleOrNull() ?: 0.0
+            val qty = bindingDialog.etOrderQuantity.text.toString().toIntOrNull() ?: 1
+            val total = unitPrice * qty
+            val dueDate = bindingDialog.etOrderEndDate.text.toString().trim()
+            val notes = bindingDialog.etOrderNotes.text.toString().trim()
+
+            val order = ClientOrder(
+                profileId = profileId,
+                title = title,
+                clientName = client,
+                amount = total.toString(),
+                status = "IN PROGRESS",
+                dueDate = dueDate,
+                notes = notes
+            )
+            db.insertClientOrder(order)
+            dialog.dismiss()
+            setupWorkPortalView()
         }
+
+        dialog.show()
+    }
+
+    private fun showOrderDetailsModal(order: ClientOrder) {
+        val db = DatabaseHelper.getInstance(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(order.title)
+            .setMessage(
+                "Client: ${if (order.clientName.isNotBlank()) order.clientName else "Independent Partner"}\n" +
+                "Status: ${order.status}\n" +
+                "Amount: ৳${order.amount}\n" +
+                "Due Date: ${if (order.dueDate.isNotBlank()) order.dueDate else "Ongoing"}\n\n" +
+                (if (order.notes.isNotBlank()) "Notes: ${order.notes}" else "")
+            )
+            .setPositiveButton(if (order.status.uppercase() == "COMPLETED") "Mark In-Progress" else "Mark Complete") { _, _ ->
+                val newStatus = if (order.status.uppercase() == "COMPLETED") "IN PROGRESS" else "COMPLETED"
+                db.insertClientOrder(order.copy(status = newStatus))
+                setupWorkPortalView()
+            }
+            .setNeutralButton("Delete") { _, _ ->
+                db.deleteClientOrder(order.id)
+                setupWorkPortalView()
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun loadWorkContacts() {
+        if (!isAdded || _binding == null) return
+        val all = dbHelper.getContactsForPortal(isStudent = false, roleFilter = workContactRoleFilter)
+        workContactsAdapter.updateList(all)
     }
 
     private fun showAddExamDialog(preselectedExamType: String) {

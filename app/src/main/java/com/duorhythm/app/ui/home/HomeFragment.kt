@@ -359,11 +359,8 @@ class HomeFragment : Fragment() {
         val db = DatabaseHelper.getInstance(context)
         val profileId = ProfileManager.getActiveProfileId()
 
-        tabLayoutMediator?.detach()
-        tabLayoutMediator = null
-
         val cal = java.util.Calendar.getInstance()
-        val isoDay = when (cal.get(java.util.Calendar.DAY_OF_WEEK)) {
+        val currentIsoDay = when (cal.get(java.util.Calendar.DAY_OF_WEEK)) {
             java.util.Calendar.MONDAY -> 1
             java.util.Calendar.TUESDAY -> 2
             java.util.Calendar.WEDNESDAY -> 3
@@ -374,13 +371,49 @@ class HomeFragment : Fragment() {
             else -> 1
         }
 
-        val todayClasses = db.getClassesForIsoDay(profileId, isoDay)
+        val nowMinutes = cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE)
+        val todayClasses = db.getClassesForIsoDay(profileId, currentIsoDay)
+
+        // Check if all classes today have already ended
+        val displayClasses = mutableListOf<ClassEntity>()
+        var isShowingTomorrow = false
+
         if (todayClasses.isNotEmpty()) {
+            val lastClass = todayClasses.maxByOrNull { parseTimeToMinutes(it.endTime) }
+            val lastClassEndMinutes = lastClass?.let { parseTimeToMinutes(it.endTime) } ?: 0
+
+            if (nowMinutes > lastClassEndMinutes) {
+                // All of today's classes ended -> Rollover to Tomorrow!
+                val nextIsoDay = if (currentIsoDay == 7) 1 else currentIsoDay + 1
+                val tomorrowClasses = db.getClassesForIsoDay(profileId, nextIsoDay)
+                if (tomorrowClasses.isNotEmpty()) {
+                    displayClasses.addAll(tomorrowClasses)
+                    isShowingTomorrow = true
+                }
+            } else {
+                // Show today's upcoming/current classes
+                val upcomingToday = todayClasses.filter { parseTimeToMinutes(it.endTime) >= nowMinutes }
+                displayClasses.addAll(if (upcomingToday.isNotEmpty()) upcomingToday else todayClasses)
+            }
+        } else {
+            // No classes today -> check tomorrow
+            val nextIsoDay = if (currentIsoDay == 7) 1 else currentIsoDay + 1
+            val tomorrowClasses = db.getClassesForIsoDay(profileId, nextIsoDay)
+            if (tomorrowClasses.isNotEmpty()) {
+                displayClasses.addAll(tomorrowClasses)
+                isShowingTomorrow = true
+            }
+        }
+
+        if (displayClasses.isNotEmpty()) {
             binding.viewPagerNextUp.visibility = View.VISIBLE
             binding.dotsIndicatorNextUp.visibility = View.VISIBLE
             binding.tvNoClassesScheduled.visibility = View.GONE
 
-            val adapter = NextUpClassAdapter(todayClasses) {
+            tabLayoutMediator?.detach()
+            tabLayoutMediator = null
+
+            val adapter = NextUpClassAdapter(displayClasses, isShowingTomorrow) {
                 (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
             }
             binding.viewPagerNextUp.adapter = adapter
@@ -395,7 +428,23 @@ class HomeFragment : Fragment() {
             binding.viewPagerNextUp.visibility = View.GONE
             binding.dotsIndicatorNextUp.visibility = View.GONE
             binding.tvNoClassesScheduled.visibility = View.VISIBLE
-            binding.tvNoClassesScheduled.text = "All lectures finished • Rest and recharge"
+            binding.tvNoClassesScheduled.text = "No upcoming lectures scheduled"
+        }
+    }
+
+    private fun parseTimeToMinutes(timeStr: String?): Int {
+        if (timeStr.isNullOrBlank()) return 0
+        return try {
+            val clean = timeStr.trim().uppercase()
+            val isPm = clean.contains("PM")
+            val parts = clean.replace("AM", "").replace("PM", "").trim().split(":")
+            var hour = parts[0].trim().toInt()
+            val minute = if (parts.size > 1) parts[1].trim().toInt() else 0
+            if (isPm && hour < 12) hour += 12
+            if (!isPm && hour == 12) hour = 0
+            hour * 60 + minute
+        } catch (_: Exception) {
+            0
         }
     }
 

@@ -156,6 +156,8 @@ data class ClassScheduleItem(
     val teacherName: String = teacher
 ) {
     val displayTeacherName: String get() = if (teacherName.isNotBlank()) teacherName else teacher
+    val type: String get() = classType
+    val roomNo: String get() = room
 }
 
 typealias ClassEntity = ClassScheduleItem

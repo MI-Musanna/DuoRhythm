@@ -947,459 +947,153 @@
 
         </LinearLayout>
 
-        <!-- ================= WORK PORTAL VIEW ================= -->
+                <!-- ================= WORK PORTAL VIEW ================= -->
         <LinearLayout
-            android:id="@+id/layoutWorkPortal"
+            android:id="@+id/layoutWorkPortalContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone">
 
-            <!-- Section Header & Add Work Order Button -->
+            <!-- 1-Line Minimal Work Metric Bar -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_dialog_glass_oled"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp">
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvWorkStatTotalOrders"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Client Jobs &amp; Orders"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Custom orders • Specifications • Invoicing"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddWorkOrder"
-                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="38dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:paddingHorizontal="14dp"
-                    android:text="+ New Order"
-                    android:textColor="@color/white"
+                    android:text="2 Orders"
+                    android:textColor="@color/text_primary_white"
                     android:textSize="12sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="#059669"
-                    app:cornerRadius="12dp" />
-            </LinearLayout>
+                    android:textStyle="bold" />
 
-            <!-- Work Overview: 2x2 Grid Tiles -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:orientation="vertical">
-
-                <!-- Row 1: Client Jobs & In Progress Orders -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <!-- Tile 1: Client Jobs -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/bg_elevated_metric_card"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <FrameLayout
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_icon_badge_neutral">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_gravity="center"
-                                android:src="@drawable/ic_tasks"
-                                app:tint="#34D399" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:id="@+id/tvWorkTotalOrders"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="0 Orders"
-                            android:textColor="#34D399"
-                            android:textSize="17sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Client Jobs"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Tile 2: In Progress -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_elevated_metric_card"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <FrameLayout
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_icon_badge_neutral">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_gravity="center"
-                                android:src="@drawable/ic_timer"
-                                app:tint="#FBBF24" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:id="@+id/tvWorkPendingOrders"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="0 Active"
-                            android:textColor="#FBBF24"
-                            android:textSize="17sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="In Progress"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- Row 2: Expected Revenue & Billing Terms -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:orientation="horizontal">
-
-                    <!-- Tile 3: Total Revenue -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/bg_elevated_metric_card"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <FrameLayout
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_icon_badge_neutral">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_gravity="center"
-                                android:src="@drawable/ic_wallet"
-                                app:tint="#10B981" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:id="@+id/tvWorkTotalRevenue"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="$0.00"
-                            android:textColor="#10B981"
-                            android:textSize="17sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Total Billed"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Tile 4: Billing Terms -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_elevated_metric_card"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <FrameLayout
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_icon_badge_neutral">
-
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:layout_gravity="center"
-                                android:src="@drawable/ic_article"
-                                app:tint="#38BDF8" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:id="@+id/tvWorkCompletedOrders"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="0 Done"
-                            android:textColor="#38BDF8"
-                            android:textSize="17sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Completed"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Work Orders RecyclerView -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvWorkOrders"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_work_order" />
-
-            <!-- Clean Onboarding Empty State Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/layoutEmptyWorkOrders"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/card_stroke"
-                app:cardBackgroundColor="@color/surface_card"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="28dp">
-
-                    <FrameLayout
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="@drawable/bg_glass_squircle_action">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_portal"
-                            app:tint="#10B981" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:text="Track Client Orders &amp; Jobs"
-                        android:textColor="@color/text_primary"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="Manage quotes, specs, delivery status, and revenue."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEmptyAddWorkOrder"
-                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:layout_marginTop="18dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="20dp"
-                        android:text="+ Create First Order"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="#059669"
-                        app:cornerRadius="16dp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ================= UNIFIED DIRECTORY & COMMUNITIES HUB (WORK) ================= -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:orientation="vertical">
-
-                <!-- Header Row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Directory &amp; Communities"
-                            android:textColor="@color/text_primary"
-                            android:textSize="17sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Direct reach, WhatsApp, Telegram &amp; Client Channels"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnWorkAddContact"
-                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="12dp"
-                        android:text="+ Contact"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="#064E3B"
-                        app:strokeColor="#10B981"
-                        app:strokeWidth="1dp"
-                        app:cornerRadius="12dp" />
-                </LinearLayout>
-
-                <!-- Segmented Dual-Tab Pill: Contacts vs Group Links -->
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="38dp"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_toggle_container"
-                    android:padding="3dp">
-
-                    <com.google.android.material.button.MaterialButtonToggleGroup
-                        android:id="@+id/toggleWorkDirectoryTab"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        app:checkedButton="@id/tabWorkContacts"
-                        app:singleSelection="true">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/tabWorkContacts"
-                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            android:minHeight="32dp"
-                            android:insetTop="0dp"
-                            android:insetBottom="0dp"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="0dp"
-                            android:text="Contacts"
-                            android:textColor="@color/white"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            app:backgroundTint="#10B981"
-                            app:strokeWidth="0dp"
-                            app:cornerRadius="16dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/tabWorkGroupLinks"
-                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            android:minHeight="32dp"
-                            android:insetTop="0dp"
-                            android:insetBottom="0dp"
-                            android:paddingHorizontal="14dp"
-                            android:paddingVertical="0dp"
-                            android:text="Group Links"
-                            android:textColor="#64748B"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            app:backgroundTint="@android:color/transparent"
-                            app:strokeWidth="0dp"
-                            app:cornerRadius="16dp" />
-                    </com.google.android.material.button.MaterialButtonToggleGroup>
-                </FrameLayout>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvWorkContacts"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:nestedScrollingEnabled="false"
-                    tools:listitem="@layout/item_contact_group" />
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="20dp"
+                    android:background="@color/border_glass_stroke" />
 
                 <TextView
-                    android:id="@+id/tvEmptyWorkContacts"
-                    android:layout_width="match_parent"
+                    android:id="@+id/tvWorkStatActiveOrders"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:background="@drawable/bg_glass_squircle_action"
-                    android:padding="12dp"
-                    android:text="No client or partner contacts recorded yet. Tap + Contact to save new work connections!"
-                    android:textColor="@color/text_secondary"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="2 In Progress"
+                    android:textColor="#10B981"
                     android:textSize="12sp"
-                    android:visibility="gone" />
+                    android:textStyle="bold" />
 
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="20dp"
+                    android:background="@color/border_glass_stroke" />
+
+                <TextView
+                    android:id="@+id/tvWorkStatTotalBilled"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.3"
+                    android:gravity="end"
+                    android:text="৳8,707.15 Billed"
+                    android:textColor="@color/accent_cyan_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- Client Orders Section Header -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:text="Client Jobs &amp; Orders"
+                    android:textColor="@color/text_primary_white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNewClientOrderPortal"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:backgroundTint="#10B981"
+                    android:text="+ NEW ORDER"
+                    android:textColor="#06080F"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="18dp" />
+            </RelativeLayout>
+
+            <!-- REAL RECYCLERVIEW FOR ORDERS -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvWorkClientOrders"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:nestedScrollingEnabled="false" />
+
+            <TextView
+                android:id="@+id/tvEmptyWorkOrders"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_pill_dark"
+                android:gravity="center"
+                android:text="No client orders recorded. Tap '+ NEW ORDER' above."
+                android:textColor="@color/text_tertiary_muted"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <!-- Directory & Communities Section -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:text="Directory &amp; Communities"
+                    android:textColor="@color/text_primary_white"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnWorkAddContact"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="+ CONTACT"
+                    android:textColor="#10B981"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvWorkPortalContacts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false" />
         </LinearLayout>
 
     </LinearLayout>
