@@ -865,9 +865,7 @@ class SettingsActivity : AppCompatActivity() {
             com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this, forceManual = true)
         }
         binding.btnCheckUpdatesTop.setOnClickListener {
-            com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = true) { stable, beta ->
-                com.duorhythm.app.util.UpdateManager.showModernDualChannelDialog(this, stable, beta)
-            }
+            com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = true)
         }
         binding.btnViewWhatsNewManual.setOnClickListener {
             com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this, forceManual = true)
