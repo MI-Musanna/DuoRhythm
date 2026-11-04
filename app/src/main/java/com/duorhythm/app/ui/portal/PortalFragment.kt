@@ -711,16 +711,22 @@ class PortalFragment : Fragment() {
 
     private fun setupWorkPortalView() {
         if (_binding == null || !isAdded) return
-        val db = DatabaseHelper.getInstance(requireContext())
+        val context = requireContext()
+        val db = DatabaseHelper.getInstance(context)
         val profileId = ProfileManager.getActiveProfileId()
 
         val orders = db.getClientOrders(profileId)
         val activeOrders = orders.filter { it.status.uppercase() != "COMPLETED" }
         val totalBilled = orders.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
 
+        // 1. Update 1-line modern status pill
         binding.tvWorkStatTotalOrders.text = "${orders.size} Orders"
         binding.tvWorkStatActiveOrders.text = "${activeOrders.size} In Progress"
-        binding.tvWorkStatTotalBilled.text = "৳${String.format(Locale.US, "%.2f", totalBilled)} Billed"
+        binding.tvWorkStatTotalBilled.text = "৳${String.format(java.util.Locale.US, "%.2f", totalBilled)} Billed"
+
+        // 2. Programmatically enforce LinearLayoutManager
+        binding.rvWorkClientOrders.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        binding.rvWorkClientOrders.setHasFixedSize(true)
 
         if (orders.isEmpty()) {
             binding.rvWorkClientOrders.visibility = View.GONE
@@ -834,6 +840,13 @@ class PortalFragment : Fragment() {
         if (!isAdded || _binding == null) return
         val all = dbHelper.getContactsForPortal(isStudent = false, roleFilter = workContactRoleFilter)
         workContactsAdapter.updateList(all)
+        if (all.isEmpty()) {
+            binding.rvWorkPortalContacts.visibility = View.GONE
+            binding.tvEmptyWorkContacts.visibility = View.VISIBLE
+        } else {
+            binding.rvWorkPortalContacts.visibility = View.VISIBLE
+            binding.tvEmptyWorkContacts.visibility = View.GONE
+        }
     }
 
     private fun showAddExamDialog(preselectedExamType: String) {

@@ -1045,12 +1045,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:nestedScrollingEnabled="false" />
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
             <TextView
                 android:id="@+id/tvEmptyWorkOrders"
                 android:layout_width="match_parent"
-                android:layout_height="64dp"
+                android:layout_height="70dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_pill_dark"
                 android:gravity="center"
@@ -1093,7 +1094,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:nestedScrollingEnabled="false" />
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+            <TextView
+                android:id="@+id/tvEmptyWorkContacts"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_pill_dark"
+                android:gravity="center"
+                android:text="No client contacts saved. Tap '+ CONTACT' above."
+                android:textColor="@color/text_tertiary_muted"
+                android:textSize="11.5sp" />
         </LinearLayout>
 
     </LinearLayout>

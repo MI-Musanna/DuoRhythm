@@ -153,11 +153,11 @@ data class ClassScheduleItem(
     val classType: String = "LECTURE", // "LECTURE", "LAB", "TUTORIAL", "SEMINAR"
     val buildingOrLink: String = "",
     val dayName: String = "",
-    val teacherName: String = teacher
+    val teacherName: String = teacher,
+    val type: String = classType,
+    val roomNo: String = room
 ) {
     val displayTeacherName: String get() = if (teacherName.isNotBlank()) teacherName else teacher
-    val type: String get() = classType
-    val roomNo: String get() = room
 }
 
 typealias ClassEntity = ClassScheduleItem

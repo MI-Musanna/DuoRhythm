@@ -2273,9 +2273,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val endIdx = cursor.getColumnIndexSafe("end_time")
             val dayNameIdx = cursor.getColumnIndexSafe("day_name")
             val dayOfWeekIdx = cursor.getColumnIndexSafe("day_of_week")
+            val typeColIndex = cursor.getColumnIndexSafe("class_type").takeIf { it != -1 }
+                ?: cursor.getColumnIndexSafe("type").takeIf { it != -1 }
+                ?: cursor.getColumnIndexSafe("session_type").takeIf { it != -1 }
 
             while (cursor.moveToNext()) {
                 val tName = if (teacherIdx != -1) cursor.getString(teacherIdx) else ""
+                val resolvedClassType = if (typeColIndex != null) {
+                    cursor.getString(typeColIndex)?.trim()?.uppercase() ?: "LECTURE"
+                } else {
+                    "LECTURE"
+                }
                 list.add(
                     ClassEntity(
                         id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
@@ -2287,7 +2295,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
                         endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
                         dayName = if (dayNameIdx != -1 && !cursor.getString(dayNameIdx).isNullOrEmpty()) cursor.getString(dayNameIdx) else targetDayName,
-                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else isoDay
+                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else isoDay,
+                        classType = resolvedClassType,
+                        type = resolvedClassType
                     )
                 )
             }
@@ -2384,9 +2394,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val endIdx = cursor.getColumnIndex("end_time")
             val dayNameIdx = cursor.getColumnIndex("day_name")
             val dayOfWeekIdx = cursor.getColumnIndex("day_of_week")
+            val typeColIndex = cursor.getColumnIndex("class_type").takeIf { it != -1 }
+                ?: cursor.getColumnIndex("type").takeIf { it != -1 }
+                ?: cursor.getColumnIndex("session_type").takeIf { it != -1 }
 
             while (cursor.moveToNext()) {
                 val tName = if (teacherIdx != -1) cursor.getString(teacherIdx) else ""
+                val resolvedClassType = if (typeColIndex != null) {
+                    cursor.getString(typeColIndex)?.trim()?.uppercase() ?: "LECTURE"
+                } else {
+                    "LECTURE"
+                }
                 list.add(
                     ClassEntity(
                         id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
@@ -2398,7 +2416,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
                         endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
                         dayName = if (dayNameIdx != -1) cursor.getString(dayNameIdx) else dayName,
-                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else calDayOfWeek
+                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else calDayOfWeek,
+                        classType = resolvedClassType,
+                        type = resolvedClassType
                     )
                 )
             }
@@ -2435,9 +2455,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val endIdx = cursor.getColumnIndex("end_time")
             val dayNameIdx = cursor.getColumnIndex("day_name")
             val dayOfWeekIdx = cursor.getColumnIndex("day_of_week")
+            val typeColIndex = cursor.getColumnIndex("class_type").takeIf { it != -1 }
+                ?: cursor.getColumnIndex("type").takeIf { it != -1 }
+                ?: cursor.getColumnIndex("session_type").takeIf { it != -1 }
 
             while (cursor.moveToNext()) {
                 val tName = if (teacherIdx != -1) cursor.getString(teacherIdx) else ""
+                val resolvedClassType = if (typeColIndex != null) {
+                    cursor.getString(typeColIndex)?.trim()?.uppercase() ?: "LECTURE"
+                } else {
+                    "LECTURE"
+                }
                 list.add(
                     ClassEntity(
                         id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
@@ -2449,7 +2477,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
                         endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
                         dayName = if (dayNameIdx != -1) cursor.getString(dayNameIdx) else targetDayName,
-                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else 1
+                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else 1,
+                        classType = resolvedClassType,
+                        type = resolvedClassType
                     )
                 )
             }
@@ -2501,8 +2531,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val endIdx = cursor.getColumnIndex("end_time")
             val dayOfWeekIdx = cursor.getColumnIndex("day_of_week")
 
+            val typeColIndex = cursor.getColumnIndex("class_type").takeIf { it != -1 }
+                ?: cursor.getColumnIndex("type").takeIf { it != -1 }
+                ?: cursor.getColumnIndex("session_type").takeIf { it != -1 }
+
             while (cursor.moveToNext()) {
                 val tName = if (teacherIdx != -1) cursor.getString(teacherIdx) else ""
+                val resolvedClassType = if (typeColIndex != null) {
+                    cursor.getString(typeColIndex)?.trim()?.uppercase() ?: "LECTURE"
+                } else {
+                    "LECTURE"
+                }
                 list.add(
                     ClassEntity(
                         id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
@@ -2513,7 +2552,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         room = if (roomIdx != -1) cursor.getString(roomIdx) else "",
                         startTime = if (startIdx != -1) cursor.getString(startIdx) else "",
                         endTime = if (endIdx != -1) cursor.getString(endIdx) else "",
-                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else isoDayOfWeek
+                        dayOfWeek = if (dayOfWeekIdx != -1) cursor.getInt(dayOfWeekIdx) else isoDayOfWeek,
+                        classType = resolvedClassType,
+                        type = resolvedClassType
                     )
                 )
             }
