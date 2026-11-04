@@ -147,6 +147,8 @@ class MainActivity : AppCompatActivity() {
 
             // 3. Silent check for new Stable releases (Beta will remain silent)
             com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = false)
+
+            purgeLegacyBackgroundWorkers()
         } catch (t: Throwable) {
             t.printStackTrace()
         }
@@ -159,6 +161,18 @@ class MainActivity : AppCompatActivity() {
         } catch (t: Throwable) {
             t.printStackTrace()
         }
+    }
+
+    private fun purgeLegacyBackgroundWorkers() {
+        try {
+            val workManager = androidx.work.WorkManager.getInstance(applicationContext)
+            // Cancel all legacy unique worker tags causing ghost 6:00 AM notifications
+            workManager.cancelUniqueWork("ClassMorningWorker")
+            workManager.cancelUniqueWork("DailyBriefingWorker")
+            workManager.cancelUniqueWork("ClassReminderWorker")
+            workManager.cancelUniqueWork("MorningAgendaWorker")
+            workManager.cancelAllWorkByTag("morning_classes_tag")
+        } catch (_: Exception) {}
     }
 
     override fun onNewIntent(intent: Intent) {

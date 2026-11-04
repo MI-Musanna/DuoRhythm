@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.duorhythm.app.MainActivity
 import com.duorhythm.app.R
@@ -18,25 +19,23 @@ import java.util.Locale
 
 object NotificationHelper {
 
-    private const val CHANNEL_BRIEFING = "duorhythm_daily_briefing"
+    private const val CHANNEL_BRIEFING = "duorhythm_unified_agenda"
 
     fun showUnifiedDailyBriefing(context: Context, db: DatabaseHelper, profileId: Long) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Purge any lingering legacy notification IDs from notification tray
+        // Clear all ghost IDs
         notificationManager.cancel(1001)
         notificationManager.cancel(1002)
         notificationManager.cancel(1003)
-        notificationManager.cancel(2001)
-        notificationManager.cancel(2002)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_BRIEFING,
-                "Daily Academic Briefing",
+                "Daily Unified Agenda",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Consolidated daily academic and financial agenda"
+                description = "Custom dashboard notifications for academic routines and dues"
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -68,39 +67,37 @@ object NotificationHelper {
             if (sub.isRange) currentDay in sStart..sEnd else currentDay == sub.dueDay.coerceIn(1, maxDays)
         }
 
-        val inboxStyle = NotificationCompat.InboxStyle()
-            .setBigContentTitle("Daily Agenda • ${SimpleDateFormat("EEEE, MMM d", Locale.ENGLISH).format(Date())}")
-
-        // 1. Classes High-Density Format (Handles 1 to 10 classes)
-        if (classes.isNotEmpty()) {
-            val shown = classes.take(2).joinToString(", ") { "${it.subjectName} (${it.startTime})" }
-            val extra = if (classes.size > 2) " (+${classes.size - 2} more)" else ""
-            inboxStyle.addLine("📚 Classes (${classes.size}): $shown$extra")
+        // Format Classes Text
+        val classText = if (classes.isNotEmpty()) {
+            classes.joinToString("\n") { "• ${it.subjectName} (${it.startTime})" }
         } else {
-            inboxStyle.addLine("📚 Classes: No lectures today")
+            "• No lectures today"
         }
 
-        // 2. Exams High-Density Format
+        // Format Dues & Exams Text
+        val duesList = mutableListOf<String>()
         if (examsToday.isNotEmpty()) {
-            val shown = examsToday.take(2).joinToString(", ") { "${it.title} at ${it.dueTime}" }
-            val extra = if (examsToday.size > 2) " (+${examsToday.size - 2} more)" else ""
-            inboxStyle.addLine("📝 Exams (${examsToday.size}): $shown$extra")
-        } else {
-            inboxStyle.addLine("📝 Exams: All clear today")
+            examsToday.forEach { duesList.add("• Exam: ${it.title} (${it.dueTime})") }
         }
-
-        // 3. Subscriptions & Recurring Dues with Grand Total
         if (dueSubs.isNotEmpty()) {
-            val totalAmount = dueSubs.sumOf { it.amount }
-            val shown = dueSubs.take(2).joinToString(", ") { "${it.title} (৳${it.amount.toInt()})" }
-            val extra = if (dueSubs.size > 2) " (+${dueSubs.size - 2} more)" else ""
-            inboxStyle.addLine("💳 Dues (${dueSubs.size}): $shown$extra • Total: ৳${totalAmount.toInt()}")
+            val total = dueSubs.sumOf { it.amount }
+            dueSubs.forEach { duesList.add("• ${it.title}: ৳${if (it.amount % 1.0 == 0.0) it.amount.toInt().toString() else it.amount.toString()}") }
+            duesList.add("• Total Due: ৳${if (total % 1.0 == 0.0) total.toInt().toString() else total.toString()}")
+        }
+        if (duesList.isEmpty()) {
+            duesList.add("• All dues & exams clear")
+        }
+        val rightColumnText = duesList.joinToString("\n")
+
+        // Build Custom RemoteViews
+        val expandedView = RemoteViews(context.packageName, R.layout.notification_agenda_expanded).apply {
+            setTextViewText(R.id.tvNotifDateBadge, SimpleDateFormat("EEE, MMM d", Locale.ENGLISH).format(Date()))
+            setTextViewText(R.id.tvNotifClassesContent, classText)
+            setTextViewText(R.id.tvNotifDuesContent, rightColumnText)
         }
 
-        // Tap Action -> Opens Schedule tab directly
         val openIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("EXTRA_DEEP_LINK_DESTINATION", "DESTINATION_SCHEDULE")
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
@@ -109,16 +106,17 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val summaryContent = "${classes.size} classes, ${examsToday.size} exams, ${dueSubs.size} dues pending"
-
         val notification = NotificationCompat.Builder(context, CHANNEL_BRIEFING)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("DuoRhythm • Morning Briefing")
-            .setContentText(summaryContent)
-            .setStyle(inboxStyle)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setCustomBigContentView(expandedView)
+            .setContentTitle("DuoRhythm • Daily Agenda")
+            .setContentText("${classes.size} classes, ${dueSubs.size} dues pending today")
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            .setGroup("DUORHYTHM_SINGLE_BRIEFING")
+            .setGroupSummary(false)
             .build()
 
         notificationManager.notify(1001, notification)

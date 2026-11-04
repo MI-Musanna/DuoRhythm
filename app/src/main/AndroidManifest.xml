@@ -60,6 +60,12 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.focus.DndRulesActivity"
+            android:theme="@style/Theme.DuoRhythm"
+            android:exported="false"
+            android:parentActivityName=".ui.focus.FocusSuiteActivity" />
+
+        <activity
             android:name=".ui.portal.StudentSubjectDetailActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity"
