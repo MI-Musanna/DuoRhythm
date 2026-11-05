@@ -22,4 +22,17 @@ data class SubscriptionEntity(
 
     @Ignore
     var accountName: String = ""
+
+    val isExternal: Boolean
+        get() = linkedAccountId == null || linkedAccountId <= 0L ||
+                accountName.contains("External", ignoreCase = true) ||
+                accountName.contains("None", ignoreCase = true)
+
+    val accountId: Long?
+        get() = linkedAccountId
+
+    val paymentSource: String
+        get() = if (isExternal) "External / None" else accountName.ifBlank { "Linked Account" }
+
+    fun isPaidForMonth(monthYear: String): Boolean = lastPaidMonthYear == monthYear
 }

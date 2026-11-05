@@ -43,6 +43,20 @@ data class SubscriptionItem(
     val isActive: Boolean = true,
     val autoLog: Boolean = true
 ) {
+    val isExternal: Boolean
+        get() = bucketId <= 0L ||
+                bucketName.contains("External", ignoreCase = true) ||
+                bucketName.contains("None", ignoreCase = true) ||
+                bucketName.isBlank()
+
+    val accountId: Long
+        get() = bucketId
+
+    val paymentSource: String
+        get() = if (isExternal) "External / None" else bucketName.ifBlank { "Linked Account" }
+
+    fun isPaidForMonth(monthYear: String): Boolean = false
+
     fun getMonthlyEquivalentCost(): Double {
         return if (billingCycle.equals("YEARLY", ignoreCase = true)) cost / 12.0 else cost
     }

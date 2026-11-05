@@ -686,10 +686,10 @@ class WalletFragment : Fragment() {
         val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(ctx)
         val currentMonthYear = SimpleDateFormat("yyyy-MM", Locale.US).format(selectedCalendar.time)
         val unpaidSubsTotal = try {
-            val subs = dbHelper.subscriptionDao.getSubscriptions(activeProfileId)
-            subs.filter { it.lastPaidMonthYear != currentMonthYear }.sumOf { it.amount }
+            dbHelper.getWalletProjectedExpenses(activeProfileId, currentMonthYear)
         } catch (_: Exception) {
-            0.0
+            val subs = dbHelper.subscriptionDao.getSubscriptions(activeProfileId)
+            subs.filter { !it.isExternal && !it.isPaidForMonth(currentMonthYear) }.sumOf { it.amount }
         }
         val projectedTotal = walletViewModel.calculateProjectedMonthlyOutflow(totalExpenses, unpaidSubsTotal)
         val symbol = if (currentSymbol.isNotBlank()) currentSymbol else "৳"

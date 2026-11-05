@@ -4008,6 +4008,19 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return rowId
     }
 
+    @JvmOverloads
+    fun getWalletProjectedExpenses(
+        profileId: Long = 1L,
+        monthYear: String = java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.US).format(java.util.Date())
+    ): Double {
+        return try {
+            val subs = getSubscriptions(profileId)
+            subs.filter { !it.isExternal && !it.isPaidForMonth(monthYear) }.sumOf { it.amount }
+        } catch (_: Exception) {
+            0.0
+        }
+    }
+
     fun getSubscriptions(profileId: Long): List<database.entities.SubscriptionEntity> {
         ensureSubscriptionsTable()
         val list = mutableListOf<database.entities.SubscriptionEntity>()
