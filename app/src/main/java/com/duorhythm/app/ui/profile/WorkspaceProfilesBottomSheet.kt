@@ -294,18 +294,11 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         fun updateAvatarPreview() {
             dialogBinding.ivEditAvatar.setImageDrawable(null)
             dialogBinding.ivEditAvatar.setImageBitmap(null)
-            if (!selectedAvatarUri.isNullOrBlank()) {
-                try {
-                    dialogBinding.ivEditAvatar.setImageURI(Uri.parse(selectedAvatarUri))
-                    dialogBinding.ivEditAvatar.imageTintList = null
-                } catch (e: Exception) {
-                    dialogBinding.ivEditAvatar.setImageResource(R.drawable.ic_default_profile)
-                    dialogBinding.ivEditAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-                }
-            } else {
-                dialogBinding.ivEditAvatar.setImageResource(R.drawable.ic_default_profile)
-                dialogBinding.ivEditAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-            }
+            com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(
+                dialogBinding.ivEditAvatar,
+                selectedAvatarUri,
+                profile.name
+            )
         }
 
         updateAvatarPreview()
@@ -430,11 +423,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                 }
                 Toast.makeText(act, "Workspace Slot 1 deleted. Promoted active workspace to Slot 1.", Toast.LENGTH_SHORT).show()
             } else {
-                val avatarFile = java.io.File(act.filesDir, "avatar_profile_${targetProfile.id}.jpg")
-                if (avatarFile.exists()) {
-                    try { avatarFile.delete() } catch (_: Exception) {}
-                }
-                dbHelper.deleteWorkspaceProfile(targetProfile.id)
+                dbHelper.deleteAndResetProfileSlot(act, targetProfile.id)
                 Toast.makeText(act, "Workspace Slot ${targetProfile.slotNumber} deleted", Toast.LENGTH_SHORT).show()
             }
 
@@ -567,19 +556,12 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                         .joinToString(" • ")
                     itemBinding.tvProfileDept.text = if (meta.isNotBlank()) meta else "Workspace Slot ${item.slotNumber}"
 
-                    val avatarUriString = profile.avatarUri
-                    if (!avatarUriString.isNullOrBlank()) {
-                        try {
-                            itemBinding.ivUserAvatar.setImageURI(Uri.parse(avatarUriString))
-                            itemBinding.ivUserAvatar.imageTintList = null
-                        } catch (e: Exception) {
-                            itemBinding.ivUserAvatar.setImageResource(R.drawable.ic_default_profile)
-                            itemBinding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-                        }
-                    } else {
-                        itemBinding.ivUserAvatar.setImageResource(R.drawable.ic_default_profile)
-                        itemBinding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-                    }
+                    // RESILIENT AVATAR RENDERER: Prevents blank black holes if file is missing
+                    com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(
+                        itemBinding.ivUserAvatar,
+                        profile.avatarUri,
+                        profile.name
+                    )
 
                     itemBinding.btnEditProfile.visibility = View.VISIBLE
                     itemBinding.btnEditProfile.setOnClickListener {

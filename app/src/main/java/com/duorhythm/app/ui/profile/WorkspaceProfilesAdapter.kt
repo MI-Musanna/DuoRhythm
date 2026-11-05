@@ -78,19 +78,8 @@ class WorkspaceProfilesAdapter(
                     .joinToString(" • ")
                 binding.tvProfileDept.text = if (meta.isNotBlank()) meta else "Workspace Slot ${item.slotNumber}"
 
-                val avatarUriString = profile.avatarUri
-                if (!avatarUriString.isNullOrBlank()) {
-                    try {
-                        binding.ivUserAvatar.setImageURI(Uri.parse(avatarUriString))
-                        binding.ivUserAvatar.imageTintList = null
-                    } catch (e: Exception) {
-                        binding.ivUserAvatar.setImageResource(R.drawable.ic_default_profile)
-                        binding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-                    }
-                } else {
-                    binding.ivUserAvatar.setImageResource(R.drawable.ic_default_profile)
-                    binding.ivUserAvatar.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-                }
+                // RESILIENT AVATAR RENDERER: Prevents blank black holes if file is missing
+                bindProfileAvatar(binding.ivUserAvatar, profile.avatarUri, profile.name)
 
                 binding.btnEditProfile.visibility = View.VISIBLE
                 binding.btnEditProfile.setOnClickListener {
@@ -166,5 +155,10 @@ class WorkspaceProfilesAdapter(
                 }
             }
         }
+    }
+
+    // RESILIENT AVATAR RENDERER: Prevents blank black holes if file is missing
+    fun bindProfileAvatar(imageView: android.widget.ImageView, avatarPath: String?, profileName: String) {
+        com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(imageView, avatarPath, profileName)
     }
 }

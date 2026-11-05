@@ -4488,6 +4488,44 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         deleteWorkspaceProfile(profileId)
     }
 
+    fun deleteAndResetProfileSlot(context: Context, profileId: Long): Boolean {
+        val db = writableDatabase
+        var avatarToDelete: String? = null
+
+        // 1. Fetch avatar path before deletion
+        try {
+            val cursor = db.rawQuery("SELECT avatarUri FROM profiles WHERE id = ?", arrayOf(profileId.toString()))
+            if (cursor.moveToFirst()) {
+                avatarToDelete = cursor.getString(0)
+            }
+            cursor.close()
+        } catch (_: Exception) {}
+
+        // 2. Perform schema-safe database purge
+        val success = deleteWorkspaceProfile(profileId)
+
+        // 3. Only delete files from disk IF database deletion succeeded
+        if (success) {
+            val legacyFile = java.io.File(context.filesDir, "avatar_profile_${profileId}.jpg")
+            if (legacyFile.exists()) {
+                try { legacyFile.delete() } catch (_: Exception) {}
+            }
+
+            if (!avatarToDelete.isNullOrBlank()) {
+                try {
+                    val cleanPath = when {
+                        avatarToDelete.startsWith("file://") -> android.net.Uri.parse(avatarToDelete).path ?: avatarToDelete.removePrefix("file://")
+                        avatarToDelete.contains("?") -> avatarToDelete.substringBefore("?")
+                        else -> avatarToDelete
+                    }
+                    val f = java.io.File(cleanPath)
+                    if (f.exists()) f.delete()
+                } catch (_: Exception) {}
+            }
+        }
+        return success
+    }
+
     // QUERY DISTINCT TITLES FOR AUTO-SUGGESTIONS
     @JvmOverloads
     fun getDistinctTransactionTitles(profileId: Long = 1L): List<String> {

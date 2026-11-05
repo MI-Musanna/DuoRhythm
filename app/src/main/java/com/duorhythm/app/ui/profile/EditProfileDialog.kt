@@ -30,6 +30,7 @@ class EditProfileDialog(
         dialogBinding.etEditName.setText(profile.name)
         dialogBinding.etEditDepartment.setText(profile.department)
         dialogBinding.etEditSemester.setText(profile.semester)
+        com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(dialogBinding.ivEditAvatar, profile.avatarUri, profile.name)
 
         dialogBinding.btnEditCancel.setOnClickListener {
             dialog.dismiss()
@@ -68,5 +69,10 @@ class EditProfileDialog(
         }
 
         dialog.show()
+    }
+
+    // PERSISTENT AVATAR STORAGE: Copies gallery stream directly into app private filesDir
+    fun saveAvatarPermanently(context: android.content.Context, sourceUri: android.net.Uri, profileId: Long): String {
+        return com.duorhythm.app.util.ProfileAvatarHelper.saveAvatarPermanently(context, sourceUri, profileId)
     }
 }

@@ -144,7 +144,7 @@ class ProfileActivity : AppCompatActivity() {
                     } else {
                         binding.ivProfileAvatar.setPadding(0, 0, 0, 0)
                         binding.ivProfileAvatar.imageTintList = null
-                        binding.ivProfileAvatar.setImageURI(Uri.parse(avatarUriString))
+                        com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(binding.ivProfileAvatar, avatarUriString, profile.name)
                     }
                 } catch (e: Exception) {
                     val density = resources.displayMetrics.density
