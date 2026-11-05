@@ -129,48 +129,25 @@ class DailyAutomationReceiver : BroadcastReceiver() {
                 nm.notify((20200 + sub.id).toInt(), notif)
             }
 
-            // 2. Renewal day: auto-log if enabled
-            if (daysUntil <= 0 && sub.autoLog) {
-                // Log expense
-                val tx = TransactionItem(
-                    title = "${sub.serviceName} Renewal",
-                    amount = sub.cost,
-                    type = "EXPENSE",
-                    category = sub.category.ifBlank { "Entertainment" },
-                    date = todayStr,
-                    currency = sub.currency,
-                    notes = "Automatic subscription renewal (${sub.billingCycle})",
-                    bucketId = sub.bucketId
-                )
-                db.insertTransaction(tx)
+            // 2. Renewal day:
+            if (daysUntil <= 0) {
+                // STRICT SAFETY: Never deduct money for External / Third-party subscriptions
+                val isExternal = sub.bucketName.contains("External", ignoreCase = true) ||
+                                 sub.bucketName.contains("None", ignoreCase = true) ||
+                                 sub.bucketId <= 0L ||
+                                 sub.bucketName.isBlank()
 
-                // Advance renewal date to next cycle
+                if (isExternal) {
+                    // DO NOT TOUCH WALLET BALANCE. DO NOT INSERT EXPENSE TRANSACTION.
+                    // Simply mark renewal date rollover if window passed, zero balance impact.
+                    val nextRenewalDate = calculateNextRenewalDate(sub.renewalDate, sub.billingCycle)
+                    db.updateSubscriptionRenewalDate(sub.id, nextRenewalDate)
+                    continue
+                }
+
+                // Advance renewal date to next cycle without deducting money
                 val nextRenewalDate = calculateNextRenewalDate(sub.renewalDate, sub.billingCycle)
                 db.updateSubscriptionRenewalDate(sub.id, nextRenewalDate)
-
-                // Send confirmation notification
-                val message = "Automatically logged ৳$costStr under '$bucketName'. Next renewal: $nextRenewalDate."
-                val openIntent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                }
-                val pi = PendingIntent.getActivity(
-                    context,
-                    (20300 + sub.id).toInt(),
-                    openIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-
-                val notif = NotificationCompat.Builder(context, SmartAutomationManager.CHANNEL_SUBSCRIPTIONS)
-                    .setSmallIcon(R.drawable.ic_subscription)
-                    .setContentTitle("${sub.serviceName} Auto-Renewed")
-                    .setContentText(message)
-                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setAutoCancel(true)
-                    .setContentIntent(pi)
-                    .build()
-
-                nm.notify((20300 + sub.id).toInt(), notif)
             }
         }
     }

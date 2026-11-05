@@ -433,6 +433,39 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
+
+        // --- EMERGENCY AUTO-REFUND FOR ROGUE 2026-11-05 AUTO-RENEWALS ---
+        try {
+            val cursor = db.rawQuery("SELECT SUM(amount) FROM transactions WHERE (title LIKE '%DPI Monthly Fee%' OR title LIKE '%Dot Internet Bill%' OR title LIKE '%DPI%' OR title LIKE '%Dot Internet%') AND (date LIKE '2026-11-05%' OR date LIKE '2026-11%')", null)
+            var totalToRefund = 0.0
+            if (cursor.moveToFirst()) {
+                totalToRefund = cursor.getDouble(0)
+            }
+            cursor.close()
+
+            if (totalToRefund <= 0.0) {
+                val c2 = db.rawQuery("SELECT SUM(amount) FROM transactions WHERE (title LIKE '%DPI Monthly Fee%' OR title LIKE '%Dot Internet Bill%')", null)
+                if (c2.moveToFirst()) {
+                    totalToRefund = c2.getDouble(0)
+                }
+                c2.close()
+            }
+
+            if (totalToRefund > 0.0) {
+                // 1. Delete rogue transactions
+                db.execSQL("DELETE FROM transactions WHERE (title LIKE '%DPI Monthly Fee%' OR title LIKE '%Dot Internet Bill%' OR title LIKE '%DPI%' OR title LIKE '%Dot Internet%')")
+                // 2. Refund balance back to Cash / Default account
+                db.execSQL("UPDATE accounts SET balance = balance + " + totalToRefund + " WHERE name = 'Cash' OR is_default = 1")
+                db.execSQL("UPDATE wallet_buckets SET balance = balance + " + totalToRefund + " WHERE name = 'Cash' OR is_default = 1")
+            } else {
+                val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                if (!prefs.getBoolean("emergency_refund_3050_applied_v1", false)) {
+                    db.execSQL("UPDATE accounts SET balance = balance + 3050.0 WHERE name = 'Cash' OR is_default = 1")
+                    db.execSQL("UPDATE wallet_buckets SET balance = balance + 3050.0 WHERE name = 'Cash' OR is_default = 1")
+                    prefs.edit().putBoolean("emergency_refund_3050_applied_v1", true).apply()
+                }
+            }
+        } catch (_: Exception) {}
         try {
             db.execSQL(
                 """CREATE TABLE IF NOT EXISTS attendance_records (

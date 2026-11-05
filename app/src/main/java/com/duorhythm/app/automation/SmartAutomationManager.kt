@@ -32,9 +32,9 @@ object SmartAutomationManager {
     const val CHANNEL_SUBSCRIPTIONS = "lifesync_subscriptions_channel"
     const val CHANNEL_DND = "lifesync_dnd_channel"
 
-    private const val REQUEST_CODE_MORNING = 31001
-    private const val REQUEST_CODE_EVENING = 31002
-    private const val REQUEST_CODE_SUBSCRIPTION = 31003
+    const val REQUEST_CODE_MORNING = 31001
+    const val REQUEST_CODE_EVENING = 31002
+    const val REQUEST_CODE_SUBSCRIPTION = 31003
 
     fun init(context: Context) {
         createNotificationChannels(context)
@@ -188,8 +188,7 @@ object SmartAutomationManager {
     }
 
     fun scheduleSubscriptionCheck(context: Context) {
-        if (!isSubscriptionAlertsEnabled(context)) return
-        scheduleDailyAlarm(context, DailyAutomationReceiver.ACTION_SUBSCRIPTION_CHECK, 9, 0, REQUEST_CODE_SUBSCRIPTION)
+        // Neutralized: Subscription dues are consolidated in the 6:00 AM Daily Briefing, preventing duplicate 9:00 AM spam
     }
 
     private fun scheduleDailyAlarm(

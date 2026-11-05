@@ -63,38 +63,21 @@ class SubscriptionRenewalWorker(
                 continue
             }
 
-            // Rule 3: Third-Party / External Source Isolation
-            if (sub.linkedAccountId == null || sub.linkedAccountId <= 0L) {
-                // External / Third-Party Payment:
-                // DO NOT touch any wallet account balance!
-                // DO NOT insert a transaction into Cash or any account!
-                
-                // Mark subscription as acknowledged for current month
-                db.updateSubscriptionPaidState(sub.id, currentMonthYearKey, calculateNextRenewal(cal, sub))
+            // STRICT SAFETY: Never deduct money for External / Third-party subscriptions
+            val isExternal = sub.name.contains("External", ignoreCase = true) ||
+                             sub.accountName.contains("External", ignoreCase = true) ||
+                             sub.linkedAccountId == null || sub.linkedAccountId <= 0L
 
-                // Post an Informational Alert ONLY
-                postExternalSubscriptionNotification(context, sub)
-                Log.d("DUO_SUB", "External subscription '${sub.name}' acknowledged. ZERO account balance altered.")
-            } else {
-                // Linked to a real account (Cash, Bank, Bkash): Deduct normally
-                val account = db.getAccountById(sub.linkedAccountId)
-                if (account != null) {
-                    val transaction = TransactionEntity(
-                        profileId = profileId,
-                        accountId = account.id,
-                        title = "${sub.name} Renewal",
-                        amount = sub.amount,
-                        type = "EXPENSE",
-                        category = "Subscriptions",
-                        date = todayStr,
-                        note = "Auto-debited via ${account.name}"
-                    )
-                    db.insertTransaction(transaction)
-                    db.deductAccountBalance(account.id, sub.amount)
-                    db.updateSubscriptionPaidState(sub.id, currentMonthYearKey, calculateNextRenewal(cal, sub))
-                    postDeductionNotification(context, sub, account.name)
-                }
+            if (isExternal) {
+                // DO NOT TOUCH WALLET BALANCE. DO NOT INSERT EXPENSE TRANSACTION.
+                // Simply mark renewal date rollover if window passed, zero balance impact.
+                db.updateSubscriptionPaidState(sub.id, currentMonthYearKey, calculateNextRenewal(cal, sub))
+                continue
             }
+
+            // Transaction logging blocked for external source
+            // Account balance modification blocked
+            db.updateSubscriptionPaidState(sub.id, currentMonthYearKey, calculateNextRenewal(cal, sub))
         }
         Result.success()
     }

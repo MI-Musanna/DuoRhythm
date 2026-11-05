@@ -15,7 +15,6 @@ class LifeSyncApp : Application() {
 
         try {
             DatabaseMaintenanceWorker.scheduleWeekly(this)
-            com.duorhythm.app.worker.SubscriptionRenewalWorker.scheduleDaily(this)
             com.duorhythm.app.util.BriefingScheduler.scheduleDailyBriefing(this)
         } catch (e: Exception) {
             android.util.Log.e("DUO_STARTUP", "Error scheduling DB maintenance or Subscription Worker", e)

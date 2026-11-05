@@ -68,6 +68,18 @@ class MainActivity : AppCompatActivity() {
         }
         super.onCreate(savedInstanceState)
 
+        // Cancel all spam workers firing independent notifications at 8:00 AM, 9:00 AM
+        try {
+            val wm = androidx.work.WorkManager.getInstance(applicationContext)
+            wm.cancelUniqueWork("SubscriptionRenewalWorker")
+            wm.cancelUniqueWork("AutoRenewalWorker")
+            wm.cancelUniqueWork("duorhythm_subscription_renewal")
+            wm.cancelUniqueWork("ExamReminderWorker")
+            wm.cancelUniqueWork("ClassReminderWorker")
+            wm.cancelAllWorkByTag("subscription_renewal")
+            wm.cancelAllWorkByTag("exam_reminder_tag")
+        } catch (_: Exception) {}
+
         try {
             if (!com.duorhythm.app.data.local.pref.ProfileManager.isOnboardingCompleted(this)) {
                 val intent = Intent(this, com.duorhythm.app.ui.onboarding.OnboardingActivity::class.java)
@@ -173,12 +185,34 @@ class MainActivity : AppCompatActivity() {
     private fun purgeLegacyBackgroundWorkers() {
         try {
             val workManager = androidx.work.WorkManager.getInstance(applicationContext)
-            // Cancel all legacy unique worker tags causing ghost 6:00 AM notifications
+            // Cancel all legacy unique worker tags causing ghost notifications
             workManager.cancelUniqueWork("ClassMorningWorker")
             workManager.cancelUniqueWork("DailyBriefingWorker")
             workManager.cancelUniqueWork("ClassReminderWorker")
             workManager.cancelUniqueWork("MorningAgendaWorker")
+            workManager.cancelUniqueWork("SubscriptionRenewalWorker")
+            workManager.cancelUniqueWork("AutoRenewalWorker")
+            workManager.cancelUniqueWork("duorhythm_subscription_renewal")
+            workManager.cancelUniqueWork("ExamReminderWorker")
             workManager.cancelAllWorkByTag("morning_classes_tag")
+            workManager.cancelAllWorkByTag("subscription_renewal")
+            workManager.cancelAllWorkByTag("exam_reminder_tag")
+        } catch (_: Exception) {}
+
+        try {
+            val am = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+            if (am != null) {
+                val intent = Intent(this, com.duorhythm.app.receiver.DailyAutomationReceiver::class.java).apply {
+                    action = com.duorhythm.app.receiver.DailyAutomationReceiver.ACTION_SUBSCRIPTION_CHECK
+                }
+                val pi = PendingIntent.getBroadcast(
+                    this,
+                    com.duorhythm.app.automation.SmartAutomationManager.REQUEST_CODE_SUBSCRIPTION,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                am.cancel(pi)
+            }
         } catch (_: Exception) {}
     }
 
