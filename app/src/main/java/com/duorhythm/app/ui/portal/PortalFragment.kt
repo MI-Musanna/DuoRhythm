@@ -283,7 +283,7 @@ class PortalFragment : Fragment() {
                     .show()
             },
             onItemClick = { entity ->
-                showEditExamDialog(entity.toSubjectWorkItem())
+                showEditExamDialog(entity)
             }
         )
         unifiedAssessmentsAdapter.onFilterApplied = { filtered ->
@@ -756,84 +756,175 @@ class PortalFragment : Fragment() {
     }
 
     private fun showCreateOrderDialog() {
-        val context = requireContext()
-        val db = DatabaseHelper.getInstance(context)
-        val profileId = ProfileManager.getActiveProfileId()
+        val createDialog = com.duorhythm.app.ui.work.CreateWorkOrderDialogFragment()
+        createDialog.setOnOrderSavedListener { setupWorkPortalView() }
+        createDialog.show(parentFragmentManager, "CreateWorkOrder")
+    }
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_work_order, null)
-        val bindingDialog = DialogAddWorkOrderBinding.bind(dialogView)
+    private fun showOrderDetailsModal(order: ClientOrder) {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.CustomBottomSheetDialog)
+        val view = layoutInflater.inflate(R.layout.dialog_client_order_details, null)
+        dialog.setContentView(view)
 
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        bindingDialog.etOrderStartDate.setText(today)
-        bindingDialog.etOrderEndDate.setText(today)
-
-        val pickDateListener = View.OnClickListener { v ->
-            val cal = java.util.Calendar.getInstance()
-            DatePickerDialog(context, { _, year, month, day ->
-                val chosen = java.util.Calendar.getInstance().apply { set(year, month, day) }
-                val formatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(chosen.time)
-                (v as? android.widget.EditText)?.setText(formatted)
-            }, cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH)).show()
+        view.findViewById<android.widget.TextView>(R.id.tvDetailOrderTitle).text = order.title
+        view.findViewById<android.widget.TextView>(R.id.tvDetailClientName).text = "Client: ${if (order.clientName.isNotBlank()) order.clientName else "Direct Customer"}"
+        view.findViewById<android.widget.TextView>(R.id.tvDetailAmount).text = "৳${order.amount}"
+        view.findViewById<android.widget.TextView>(R.id.tvDetailStatus).text = order.status
+        view.findViewById<android.widget.TextView>(R.id.tvDetailDueDate).text = "Due Date: ${if (order.dueDate.isNotBlank()) order.dueDate else "Ongoing"}"
+        val tvNotes = view.findViewById<android.widget.TextView>(R.id.tvDetailNotes)
+        if (order.notes.isNotBlank()) {
+            tvNotes.visibility = View.VISIBLE
+            tvNotes.text = "Notes: ${order.notes}"
+        } else {
+            tvNotes.visibility = View.GONE
         }
-        bindingDialog.etOrderStartDate.setOnClickListener(pickDateListener)
-        bindingDialog.etOrderEndDate.setOnClickListener(pickDateListener)
 
-        val dialog = MaterialAlertDialogBuilder(context)
-            .setView(dialogView)
-            .create()
-
-        bindingDialog.btnSaveWorkOrder.setOnClickListener {
-            val title = bindingDialog.etOrderTitle.text.toString().trim()
-            if (title.isBlank()) {
-                bindingDialog.etOrderTitle.error = "Title required"
-                return@setOnClickListener
-            }
-            val client = bindingDialog.etOrderClient.text.toString().trim()
-            val unitPrice = bindingDialog.etOrderUnitPrice.text.toString().toDoubleOrNull() ?: 0.0
-            val qty = bindingDialog.etOrderQuantity.text.toString().toIntOrNull() ?: 1
-            val total = unitPrice * qty
-            val dueDate = bindingDialog.etOrderEndDate.text.toString().trim()
-            val notes = bindingDialog.etOrderNotes.text.toString().trim()
-
-            val order = ClientOrder(
-                profileId = profileId,
-                title = title,
-                clientName = client,
-                amount = total.toString(),
-                status = "IN PROGRESS",
-                dueDate = dueDate,
-                notes = notes
-            )
-            db.insertClientOrder(order)
+        // EDIT ACTION:
+        val btnEdit = view.findViewById<View>(R.id.btnEditOrder)
+        btnEdit.visibility = View.VISIBLE
+        btnEdit.setOnClickListener {
             dialog.dismiss()
-            setupWorkPortalView()
+            val editDialog = com.duorhythm.app.ui.work.CreateWorkOrderDialogFragment()
+            editDialog.setupEditMode(order)
+            editDialog.setOnOrderSavedListener { setupWorkPortalView() }
+            editDialog.show(parentFragmentManager, "EditWorkOrder")
+        }
+
+        // MARK COMPLETE ACTION:
+        val btnComplete = view.findViewById<View>(R.id.btnMarkComplete)
+        if (order.status.uppercase() == "COMPLETED") {
+            (btnComplete as? com.google.android.material.button.MaterialButton)?.text = "MARK IN PROGRESS"
+            btnComplete.setOnClickListener {
+                dialog.dismiss()
+                val db = DatabaseHelper.getInstance(requireContext())
+                db.updateClientOrderStatus(order.id, "IN PROGRESS")
+                setupWorkPortalView()
+            }
+        } else {
+            btnComplete.setOnClickListener {
+                dialog.dismiss()
+                showDepositEarningsDialog(order)
+            }
+        }
+
+        // DELETE ACTION:
+        view.findViewById<View>(R.id.btnDeleteOrder).setOnClickListener {
+            dialog.dismiss()
+            confirmDeleteOrder(order)
         }
 
         dialog.show()
     }
 
-    private fun showOrderDetailsModal(order: ClientOrder) {
-        val db = DatabaseHelper.getInstance(requireContext())
+    private fun confirmDeleteOrder(order: ClientOrder) {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(order.title)
-            .setMessage(
-                "Client: ${if (order.clientName.isNotBlank()) order.clientName else "Independent Partner"}\n" +
-                "Status: ${order.status}\n" +
-                "Amount: ৳${order.amount}\n" +
-                "Due Date: ${if (order.dueDate.isNotBlank()) order.dueDate else "Ongoing"}\n\n" +
-                (if (order.notes.isNotBlank()) "Notes: ${order.notes}" else "")
-            )
-            .setPositiveButton(if (order.status.uppercase() == "COMPLETED") "Mark In-Progress" else "Mark Complete") { _, _ ->
-                val newStatus = if (order.status.uppercase() == "COMPLETED") "IN PROGRESS" else "COMPLETED"
-                db.insertClientOrder(order.copy(status = newStatus))
-                setupWorkPortalView()
-            }
-            .setNeutralButton("Delete") { _, _ ->
+            .setTitle("Delete Order")
+            .setMessage("Are you sure you want to remove '${order.title}'?")
+            .setPositiveButton("Delete") { _, _ ->
+                val db = DatabaseHelper.getInstance(requireContext())
                 db.deleteClientOrder(order.id)
                 setupWorkPortalView()
             }
-            .setNegativeButton("Close", null)
+            .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showDepositEarningsDialog(order: ClientOrder) {
+        val db = DatabaseHelper.getInstance(requireContext())
+        val profileId = ProfileManager.getActiveProfileId()
+        val accounts = db.getAccounts(profileId)
+
+        val depositDialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.CustomBottomSheetDialog)
+        val view = layoutInflater.inflate(R.layout.dialog_deposit_earnings, null)
+        depositDialog.setContentView(view)
+
+        view.findViewById<android.widget.TextView>(R.id.tvDepositOrderTitleSub).text = "${order.title} • Client: ${order.clientName}"
+        view.findViewById<android.widget.TextView>(R.id.tvDepositAmountHighlight).text = "+ ৳${order.amount}"
+
+        val container = view.findViewById<android.widget.LinearLayout>(R.id.layoutBucketListContainer)
+        val orderAmount = order.amount.toDoubleOrNull() ?: 0.0
+
+        for (acc in accounts) {
+            val card = com.google.android.material.card.MaterialCardView(requireContext()).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(0, 0, 0, 16) }
+                setCardBackgroundColor(Color.parseColor("#0D1322"))
+                radius = 24f
+                strokeWidth = 2
+                strokeColor = Color.parseColor("#18243C")
+
+                val row = android.widget.LinearLayout(requireContext()).apply {
+                    orientation = android.widget.LinearLayout.HORIZONTAL
+                    setPadding(32, 28, 32, 28)
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+
+                    val icon = android.widget.ImageView(requireContext()).apply {
+                        layoutParams = android.widget.LinearLayout.LayoutParams(48, 48)
+                        setImageResource(R.drawable.ic_wallet)
+                        imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
+                    }
+                    addView(icon)
+
+                    val textCol = android.widget.LinearLayout(requireContext()).apply {
+                        orientation = android.widget.LinearLayout.VERTICAL
+                        layoutParams = android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                            marginStart = 24
+                        }
+                        val tvName = android.widget.TextView(requireContext()).apply {
+                            text = acc.name
+                            setTextColor(Color.WHITE)
+                            textSize = 14f
+                            typeface = android.graphics.Typeface.DEFAULT_BOLD
+                        }
+                        val tvBal = android.widget.TextView(requireContext()).apply {
+                            text = "Current: ৳${acc.balance}"
+                            setTextColor(Color.parseColor("#94A3B8"))
+                            textSize = 11f
+                        }
+                        addView(tvName)
+                        addView(tvBal)
+                    }
+                    addView(textCol)
+
+                    val arrow = android.widget.TextView(requireContext()).apply {
+                        text = "Deposit →"
+                        setTextColor(Color.parseColor("#10B981"))
+                        textSize = 12f
+                        typeface = android.graphics.Typeface.DEFAULT_BOLD
+                    }
+                    addView(arrow)
+                }
+                addView(row)
+
+                setOnClickListener {
+                    depositDialog.dismiss()
+                    val success = db.completeOrderAndDeposit(
+                        orderId = order.id,
+                        profileId = profileId,
+                        accountId = acc.id,
+                        orderTitle = order.title,
+                        clientName = order.clientName,
+                        amount = orderAmount
+                    )
+                    if (success) {
+                        Toast.makeText(requireContext(), "৳${order.amount} deposited into ${acc.name}! Order Completed.", Toast.LENGTH_LONG).show()
+                        setupWorkPortalView()
+                    }
+                }
+            }
+            container.addView(card)
+        }
+
+        view.findViewById<View>(R.id.btnSkipDeposit).setOnClickListener {
+            depositDialog.dismiss()
+            db.updateClientOrderStatus(order.id, "COMPLETED")
+            Toast.makeText(requireContext(), "Order marked as completed without wallet deposit.", Toast.LENGTH_SHORT).show()
+            setupWorkPortalView()
+        }
+
+        depositDialog.show()
     }
 
     private fun loadWorkContacts() {
@@ -867,11 +958,12 @@ class PortalFragment : Fragment() {
         ).show()
     }
 
-    private fun showEditExamDialog(item: SubjectWorkItem) {
+    private fun showEditExamDialog(entity: database.entities.AssessmentEntity) {
         ScheduleAssessmentDialog(
             context = requireContext(),
             fragmentManager = parentFragmentManager,
-            existingItem = item,
+            existingItem = entity.toSubjectWorkItem(),
+            existingEntity = entity,
             onSaved = { loadStudentData() }
         ).show()
     }

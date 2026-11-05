@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_glass_oled"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Header & Title -->
+    <TextView
+        android:id="@+id/tvDetailOrderTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Order Title"
+        android:textColor="#F8FAFC"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvDetailClientName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Client: Direct Customer"
+        android:textColor="#94A3B8"
+        android:textSize="13sp" />
+
+    <!-- Amount Badge -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvDetailAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="৳0.00"
+            android:textColor="#10B981"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetailStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_pill_dark"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="IN PROGRESS"
+            android:textColor="#38BDF8"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvDetailDueDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Due Date: Ongoing"
+        android:textColor="#94A3B8"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/tvDetailNotes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text=""
+        android:textColor="#CBD5E1"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMarkComplete"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:backgroundTint="#10B981"
+            android:text="✓ MARK COMPLETE &amp; DEPOSIT"
+            android:textColor="#06080F"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:cornerRadius="22dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditOrder"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:text="Edit Order"
+                android:textColor="#38BDF8"
+                android:textSize="12sp"
+                app:cornerRadius="20dp"
+                app:strokeColor="#1E3A5F" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteOrder"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:text="Delete"
+                android:textColor="#EF4444"
+                android:textSize="12sp"
+                app:cornerRadius="20dp"
+                app:strokeColor="#7F1D1D" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

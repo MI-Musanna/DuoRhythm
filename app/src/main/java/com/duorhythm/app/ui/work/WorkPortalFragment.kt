@@ -1,12 +1,15 @@
 package com.duorhythm.app.ui.work
 
-import android.app.DatePickerDialog
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.MainActivity
@@ -14,13 +17,12 @@ import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.data.model.ClientOrder
-import com.duorhythm.app.databinding.DialogAddWorkOrderBinding
+import com.duorhythm.app.data.model.ClientOrderEntity
 import com.duorhythm.app.databinding.FragmentWorkPortalBinding
 import com.duorhythm.app.ui.tools.ContactsAdapter
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 class WorkPortalFragment : Fragment() {
@@ -97,6 +99,7 @@ class WorkPortalFragment : Fragment() {
     }
 
     private fun loadOrdersAndStats() {
+        if (!isAdded || _binding == null) return
         val db = DatabaseHelper.getInstance(requireContext())
         val profileId = ProfileManager.getActiveProfileId()
 
@@ -123,8 +126,7 @@ class WorkPortalFragment : Fragment() {
                     showOrderDetailsModal(order)
                 },
                 onDeleteOrder = { order ->
-                    db.deleteClientOrder(order.id)
-                    loadOrdersAndStats()
+                    confirmDeleteOrder(order)
                 }
             )
         }
@@ -138,84 +140,176 @@ class WorkPortalFragment : Fragment() {
     }
 
     private fun showAddOrderDialog() {
-        val context = requireContext()
-        val db = DatabaseHelper.getInstance(context)
-        val profileId = ProfileManager.getActiveProfileId()
+        val createDialog = CreateWorkOrderDialogFragment()
+        createDialog.setOnOrderSavedListener { loadOrdersAndStats() }
+        createDialog.show(parentFragmentManager, "CreateWorkOrder")
+    }
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_work_order, null)
-        val bindingDialog = DialogAddWorkOrderBinding.bind(dialogView)
+    private fun showOrderDetailsModal(order: ClientOrderEntity) {
+        val dialog = BottomSheetDialog(requireContext(), R.style.CustomBottomSheetDialog)
+        val view = layoutInflater.inflate(R.layout.dialog_client_order_details, null)
+        dialog.setContentView(view)
 
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        bindingDialog.etOrderStartDate.setText(today)
-        bindingDialog.etOrderEndDate.setText(today)
-
-        val pickDateListener = View.OnClickListener { v ->
-            val cal = Calendar.getInstance()
-            DatePickerDialog(context, { _, year, month, day ->
-                val chosen = Calendar.getInstance().apply { set(year, month, day) }
-                val formatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(chosen.time)
-                (v as? EditText)?.setText(formatted)
-            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+        // Bind order text
+        view.findViewById<TextView>(R.id.tvDetailOrderTitle).text = order.title
+        view.findViewById<TextView>(R.id.tvDetailClientName).text = "Client: ${if (order.clientName.isNotBlank()) order.clientName else "Direct Customer"}"
+        view.findViewById<TextView>(R.id.tvDetailAmount).text = "৳${order.amount}"
+        view.findViewById<TextView>(R.id.tvDetailStatus).text = order.status
+        view.findViewById<TextView>(R.id.tvDetailDueDate).text = "Due Date: ${if (order.dueDate.isNotBlank()) order.dueDate else "Ongoing"}"
+        val tvNotes = view.findViewById<TextView>(R.id.tvDetailNotes)
+        if (order.notes.isNotBlank()) {
+            tvNotes.visibility = View.VISIBLE
+            tvNotes.text = "Notes: ${order.notes}"
+        } else {
+            tvNotes.visibility = View.GONE
         }
-        bindingDialog.etOrderStartDate.setOnClickListener(pickDateListener)
-        bindingDialog.etOrderEndDate.setOnClickListener(pickDateListener)
 
-        val dialog = AlertDialog.Builder(context)
-            .setView(dialogView)
-            .create()
-
-        bindingDialog.btnSaveWorkOrder.setOnClickListener {
-            val title = bindingDialog.etOrderTitle.text.toString().trim()
-            if (title.isBlank()) {
-                bindingDialog.etOrderTitle.error = "Title required"
-                return@setOnClickListener
-            }
-            val client = bindingDialog.etOrderClient.text.toString().trim()
-            val unitPrice = bindingDialog.etOrderUnitPrice.text.toString().toDoubleOrNull() ?: 0.0
-            val qty = bindingDialog.etOrderQuantity.text.toString().toIntOrNull() ?: 1
-            val total = unitPrice * qty
-            val dueDate = bindingDialog.etOrderEndDate.text.toString().trim()
-            val notes = bindingDialog.etOrderNotes.text.toString().trim()
-
-            val order = ClientOrder(
-                profileId = profileId,
-                title = title,
-                clientName = client,
-                amount = total.toString(),
-                status = "IN PROGRESS",
-                dueDate = dueDate,
-                notes = notes
-            )
-            db.insertClientOrder(order)
+        // EDIT ACTION:
+        val btnEdit = view.findViewById<View>(R.id.btnEditOrder)
+        btnEdit.visibility = View.VISIBLE
+        btnEdit.setOnClickListener {
             dialog.dismiss()
-            loadOrdersAndStats()
+            val editDialog = CreateWorkOrderDialogFragment()
+            editDialog.setupEditMode(order)
+            editDialog.setOnOrderSavedListener { loadOrdersAndStats() }
+            editDialog.show(parentFragmentManager, "EditWorkOrder")
+        }
+
+        // MARK COMPLETE ACTION (Deposit to Wallet Bucket):
+        val btnComplete = view.findViewById<View>(R.id.btnMarkComplete)
+        if (order.status.uppercase() == "COMPLETED") {
+            (btnComplete as? com.google.android.material.button.MaterialButton)?.text = "MARK IN PROGRESS"
+            btnComplete.setOnClickListener {
+                dialog.dismiss()
+                val db = DatabaseHelper.getInstance(requireContext())
+                db.updateClientOrderStatus(order.id, "IN PROGRESS")
+                loadOrdersAndStats()
+            }
+        } else {
+            btnComplete.setOnClickListener {
+                dialog.dismiss()
+                showDepositEarningsDialog(order)
+            }
+        }
+
+        // DELETE ACTION:
+        view.findViewById<View>(R.id.btnDeleteOrder).setOnClickListener {
+            dialog.dismiss()
+            confirmDeleteOrder(order)
         }
 
         dialog.show()
     }
 
-    private fun showOrderDetailsModal(order: ClientOrder) {
-        val db = DatabaseHelper.getInstance(requireContext())
+    private fun confirmDeleteOrder(order: ClientOrderEntity) {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(order.title)
-            .setMessage(
-                "Client: ${if (order.clientName.isNotBlank()) order.clientName else "Independent Partner"}\n" +
-                "Status: ${order.status}\n" +
-                "Amount: ৳${order.amount}\n" +
-                "Due Date: ${if (order.dueDate.isNotBlank()) order.dueDate else "Ongoing"}\n\n" +
-                (if (order.notes.isNotBlank()) "Notes: ${order.notes}" else "")
-            )
-            .setPositiveButton(if (order.status.uppercase() == "COMPLETED") "Mark In-Progress" else "Mark Complete") { _, _ ->
-                val newStatus = if (order.status.uppercase() == "COMPLETED") "IN PROGRESS" else "COMPLETED"
-                db.insertClientOrder(order.copy(status = newStatus))
-                loadOrdersAndStats()
-            }
-            .setNeutralButton("Delete") { _, _ ->
+            .setTitle("Delete Order")
+            .setMessage("Are you sure you want to remove '${order.title}'?")
+            .setPositiveButton("Delete") { _, _ ->
+                val db = DatabaseHelper.getInstance(requireContext())
                 db.deleteClientOrder(order.id)
                 loadOrdersAndStats()
             }
-            .setNegativeButton("Close", null)
+            .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showDepositEarningsDialog(order: ClientOrderEntity) {
+        val db = DatabaseHelper.getInstance(requireContext())
+        val profileId = ProfileManager.getActiveProfileId()
+        val accounts = db.getAccounts(profileId)
+
+        val depositDialog = BottomSheetDialog(requireContext(), R.style.CustomBottomSheetDialog)
+        val view = layoutInflater.inflate(R.layout.dialog_deposit_earnings, null)
+        depositDialog.setContentView(view)
+
+        view.findViewById<TextView>(R.id.tvDepositOrderTitleSub).text = "${order.title} • Client: ${order.clientName}"
+        view.findViewById<TextView>(R.id.tvDepositAmountHighlight).text = "+ ৳${order.amount}"
+
+        val container = view.findViewById<LinearLayout>(R.id.layoutBucketListContainer)
+        val orderAmount = order.amount.toDoubleOrNull() ?: 0.0
+
+        for (acc in accounts) {
+            val card = MaterialCardView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(0, 0, 0, 16) }
+                setCardBackgroundColor(Color.parseColor("#0D1322"))
+                radius = 24f
+                strokeWidth = 2
+                strokeColor = Color.parseColor("#18243C")
+
+                val row = LinearLayout(requireContext()).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    setPadding(32, 28, 32, 28)
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+
+                    val icon = ImageView(requireContext()).apply {
+                        layoutParams = LinearLayout.LayoutParams(48, 48)
+                        setImageResource(R.drawable.ic_wallet)
+                        imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
+                    }
+                    addView(icon)
+
+                    val textCol = LinearLayout(requireContext()).apply {
+                        orientation = LinearLayout.VERTICAL
+                        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                            marginStart = 24
+                        }
+                        val tvName = TextView(requireContext()).apply {
+                            text = acc.name
+                            setTextColor(Color.WHITE)
+                            textSize = 14f
+                            typeface = android.graphics.Typeface.DEFAULT_BOLD
+                        }
+                        val tvBal = TextView(requireContext()).apply {
+                            text = "Current: ৳${acc.balance}"
+                            setTextColor(Color.parseColor("#94A3B8"))
+                            textSize = 11f
+                        }
+                        addView(tvName)
+                        addView(tvBal)
+                    }
+                    addView(textCol)
+
+                    val arrow = TextView(requireContext()).apply {
+                        text = "Deposit →"
+                        setTextColor(Color.parseColor("#10B981"))
+                        textSize = 12f
+                        typeface = android.graphics.Typeface.DEFAULT_BOLD
+                    }
+                    addView(arrow)
+                }
+                addView(row)
+
+                setOnClickListener {
+                    depositDialog.dismiss()
+                    val success = db.completeOrderAndDeposit(
+                        orderId = order.id,
+                        profileId = profileId,
+                        accountId = acc.id,
+                        orderTitle = order.title,
+                        clientName = order.clientName,
+                        amount = orderAmount
+                    )
+                    if (success) {
+                        Toast.makeText(requireContext(), "৳${order.amount} deposited into ${acc.name}! Order Completed.", Toast.LENGTH_LONG).show()
+                        loadOrdersAndStats()
+                    }
+                }
+            }
+            container.addView(card)
+        }
+
+        view.findViewById<View>(R.id.btnSkipDeposit).setOnClickListener {
+            depositDialog.dismiss()
+            db.updateClientOrderStatus(order.id, "COMPLETED")
+            Toast.makeText(requireContext(), "Order marked as completed without wallet deposit.", Toast.LENGTH_SHORT).show()
+            loadOrdersAndStats()
+        }
+
+        depositDialog.show()
     }
 
     override fun onDestroyView() {

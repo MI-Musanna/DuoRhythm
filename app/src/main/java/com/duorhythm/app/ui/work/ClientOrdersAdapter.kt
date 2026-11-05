@@ -68,7 +68,12 @@ class ClientOrdersAdapter(
 
             binding.root.setOnClickListener { onOrderClick(order) }
             binding.root.setOnLongClickListener {
-                onDeleteOrder(order)
+                com.google.android.material.dialog.MaterialAlertDialogBuilder(binding.root.context)
+                    .setTitle("Delete Order")
+                    .setMessage("Are you sure you want to delete order '${order.title}'?")
+                    .setPositiveButton("Delete") { _, _ -> onDeleteOrder(order) }
+                    .setNegativeButton("Cancel", null)
+                    .show()
                 true
             }
         }

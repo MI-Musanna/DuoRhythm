@@ -268,8 +268,11 @@ data class ClientOrder(
     val status: String = "IN PROGRESS",
     val dueDate: String = "",
     val notes: String = "",
-    val profileId: Long = 1
+    val profileId: Long = 1,
+    val startDate: String = ""
 )
+
+typealias ClientOrderEntity = ClientOrder
 
 data class NoteItem(
     val id: Long = 0,

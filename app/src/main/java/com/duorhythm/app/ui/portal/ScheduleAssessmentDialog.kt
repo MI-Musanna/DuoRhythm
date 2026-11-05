@@ -39,6 +39,7 @@ class ScheduleAssessmentDialog(
     private val context: Context,
     private val fragmentManager: FragmentManager? = null,
     private val existingItem: SubjectWorkItem? = null,
+    private val existingEntity: AssessmentEntity? = null,
     private val preselectedCourseId: Long? = null,
     private val defaultType: String? = null,
     private val onSaved: () -> Unit = {}
@@ -262,8 +263,9 @@ class ScheduleAssessmentDialog(
                 if (binding.etAssessmentTitle.text.isNullOrBlank()) {
                     binding.etAssessmentTitle.setText("${course.name} - $selectedTypeStr")
                 }
-                if (!course.teacherName.isNullOrBlank()) {
-                    binding.etAssessmentTeacher.setText(course.teacherName)
+                val teacherName = if (course.instructorName.isNotBlank()) course.instructorName else course.teacherName
+                if (binding.etAssessmentTeacher.text.isNullOrBlank() || !isEdit) {
+                    binding.etAssessmentTeacher.setText(teacherName)
                 }
                 // Keep binding.etAssessmentRoom untouched so user manually enters room hall number.
             }
@@ -276,6 +278,13 @@ class ScheduleAssessmentDialog(
             binding.etAssessmentTime.setText(existingItem.scoreOrMarks)
             binding.etAssessmentRoom.setText(existingItem.attachmentPath)
             binding.etAssessmentSyllabus.setText(existingItem.description)
+
+            val fallbackInstructor = enrolledCourses.find { it.id == targetCourseId }?.let {
+                if (it.instructorName.isNotBlank()) it.instructorName else it.teacherName
+            } ?: ""
+            val instructorToUse = existingEntity?.instructor?.ifBlank { existingEntity.teacher }
+                ?: fallbackInstructor
+            binding.etAssessmentTeacher.setText(if (instructorToUse.isNotBlank()) instructorToUse else fallbackInstructor)
             if (!existingItem.attachmentUri.isNullOrBlank()) {
                 selectedAttachmentUri = existingItem.attachmentUri
                 selectedAttachmentName = existingItem.attachmentName ?: getFileNameFromUri(context, Uri.parse(existingItem.attachmentUri))

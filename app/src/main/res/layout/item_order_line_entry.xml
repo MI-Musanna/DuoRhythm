@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="6dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <EditText
+        android:id="@+id/etLineItemName"
+        android:layout_width="0dp"
+        android:layout_height="38dp"
+        android:layout_weight="1.6"
+        android:background="@drawable/bg_pill_dark"
+        android:hint="e.g. Color Print"
+        android:paddingHorizontal="10dp"
+        android:textColor="#F8FAFC"
+        android:textColorHint="#475569"
+        android:textSize="12sp" />
+
+    <EditText
+        android:id="@+id/etLineItemQty"
+        android:layout_width="0dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="4dp"
+        android:layout_weight="0.8"
+        android:background="@drawable/bg_pill_dark"
+        android:gravity="center"
+        android:hint="Qty"
+        android:inputType="number"
+        android:textColor="#F8FAFC"
+        android:textColorHint="#475569"
+        android:textSize="12sp" />
+
+    <EditText
+        android:id="@+id/etLineItemPrice"
+        android:layout_width="0dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="4dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_pill_dark"
+        android:gravity="center"
+        android:hint="Rate (৳)"
+        android:inputType="numberDecimal"
+        android:textColor="#10B981"
+        android:textColorHint="#475569"
+        android:textSize="12sp" />
+
+    <ImageView
+        android:id="@+id/btnRemoveLineItem"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginStart="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Remove"
+        android:padding="6dp"
+        android:src="@drawable/ic_close"
+        app:tint="#EF4444" />
+</LinearLayout>

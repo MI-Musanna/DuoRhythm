@@ -554,6 +554,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureColumnExists(db, "tasks", "start_date", "TEXT DEFAULT NULL")
 
         try {
+            db.execSQL("ALTER TABLE assessments ADD COLUMN instructor TEXT DEFAULT ''")
+        } catch (_: Exception) {}
+
+        try {
             db.execSQL(
                 """CREATE TABLE IF NOT EXISTS subject_materials (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -2569,8 +2573,72 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun getClassesForIsoDay(profileId: Long, isoDayOfWeek: Int, dayName: String): List<ClassEntity> =
         getClassesForIsoDay(profileId, isoDayOfWeek)
 
+    fun getCourseById(id: Long): StudentSubject? = getStudentSubjectById(id)
+
     fun getAssessments(profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
-        return assessmentDao.getAssessmentsByProfile(profileId)
+        ensureAssessmentsTable()
+        val list = mutableListOf<database.entities.AssessmentEntity>()
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT * FROM assessments WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id DESC",
+                arrayOf(profileId.toString())
+            )
+            cursor.use {
+                val idCol = it.getColumnIndex("id")
+                val pIdCol = it.getColumnIndex("profile_id")
+                val cIdCol = it.getColumnIndex("course_id")
+                val titleCol = it.getColumnIndex("title")
+                val typeCol = it.getColumnIndex("type")
+                val descCol = it.getColumnIndex("description")
+                val dueCol = it.getColumnIndex("due_date")
+                val timeCol = it.getColumnIndex("due_time")
+                val roomCol = it.getColumnIndex("room")
+                val instCol = it.getColumnIndex("instructor")
+                val statusCol = it.getColumnIndex("status")
+
+                while (it.moveToNext()) {
+                    val courseId = if (cIdCol >= 0) it.getLong(cIdCol) else 0L
+                    var instructorName = if (instCol != -1) it.getString(instCol) ?: "" else ""
+                    if (instructorName.isBlank() && courseId > 0) {
+                        instructorName = getCourseById(courseId)?.instructorName ?: ""
+                    }
+                    val course = if (courseId > 0) getCourseById(courseId) else null
+                    list.add(
+                        database.entities.AssessmentEntity(
+                            id = if (idCol >= 0) it.getLong(idCol) else 0L,
+                            profileId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId,
+                            subjectId = courseId,
+                            subjectName = course?.name ?: "",
+                            courseCode = course?.code ?: "",
+                            title = if (titleCol >= 0) it.getString(titleCol) ?: "" else "",
+                            type = if (typeCol >= 0) it.getString(typeCol) ?: "Semester Final Exam" else "Semester Final Exam",
+                            syllabus = if (descCol >= 0) it.getString(descCol) ?: "" else "",
+                            date = if (dueCol >= 0) it.getString(dueCol) ?: "" else "",
+                            time = if (timeCol >= 0) it.getString(timeCol) ?: "" else "",
+                            room = if (roomCol >= 0) it.getString(roomCol) ?: "" else "",
+                            teacher = instructorName,
+                            instructor = instructorName,
+                            status = if (statusCol >= 0) it.getString(statusCol) ?: "PENDING" else "PENDING"
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DUO_DB", "Error in getAssessments", e)
+        }
+
+        try {
+            val exams = assessmentDao.getAssessmentsByProfile(profileId)
+            for (exam in exams) {
+                if (list.none { it.id == exam.id && it.title == exam.title }) {
+                    val inst = if (exam.instructor.isNotBlank()) exam.instructor else (getCourseById(exam.subjectId)?.instructorName ?: "")
+                    list.add(exam.copy(instructor = inst, teacher = inst))
+                }
+            }
+        } catch (_: Exception) {}
+
+        return list
     }
 
     fun getAssessmentsForCourse(courseId: Long, profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
@@ -2591,21 +2659,34 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 val descCol = it.getColumnIndex("description")
                 val startCol = it.getColumnIndex("start_date")
                 val dueCol = it.getColumnIndex("due_date")
+                val timeCol = it.getColumnIndex("due_time")
+                val roomCol = it.getColumnIndex("room")
+                val instCol = it.getColumnIndex("instructor")
                 val marksCol = it.getColumnIndex("marks")
                 val statusCol = it.getColumnIndex("status")
 
                 while (it.moveToNext()) {
+                    var instructorName = if (instCol != -1) it.getString(instCol) ?: "" else ""
+                    if (instructorName.isBlank() && courseId > 0) {
+                        instructorName = getCourseById(courseId)?.instructorName ?: ""
+                    }
+                    val course = getCourseById(courseId)
                     list.add(
                         database.entities.AssessmentEntity(
                             id = if (idCol >= 0) it.getLong(idCol) else 0L,
                             profileId = if (pIdCol >= 0) it.getLong(pIdCol) else profileId,
                             subjectId = if (cIdCol >= 0) it.getLong(cIdCol) else courseId,
+                            subjectName = course?.name ?: "",
+                            courseCode = course?.code ?: "",
                             title = if (titleCol >= 0) it.getString(titleCol) ?: "" else "",
                             type = if (typeCol >= 0) it.getString(typeCol) ?: "General" else "General",
                             syllabus = if (descCol >= 0) it.getString(descCol) ?: "" else "",
                             date = if (dueCol >= 0) it.getString(dueCol) ?: "" else "",
-                            status = if (statusCol >= 0) it.getString(statusCol) ?: "PENDING" else "PENDING",
-                            room = if (marksCol >= 0) it.getString(marksCol) ?: "" else ""
+                            time = if (timeCol >= 0) it.getString(timeCol) ?: "" else "",
+                            room = if (roomCol >= 0 && it.getString(roomCol)?.isNotBlank() == true) it.getString(roomCol) ?: "" else (if (marksCol >= 0) it.getString(marksCol) ?: "" else ""),
+                            teacher = instructorName,
+                            instructor = instructorName,
+                            status = if (statusCol >= 0) it.getString(statusCol) ?: "PENDING" else "PENDING"
                         )
                     )
                 }
@@ -2752,9 +2833,143 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 description TEXT DEFAULT '',
                 start_date TEXT DEFAULT '',
                 due_date TEXT DEFAULT '',
+                due_time TEXT DEFAULT '',
+                room TEXT DEFAULT '',
+                instructor TEXT DEFAULT '',
+                syllabus TEXT DEFAULT '',
                 marks TEXT DEFAULT '',
-                status TEXT DEFAULT 'PENDING'
+                status TEXT DEFAULT 'PENDING',
+                created_at INTEGER DEFAULT 0
             )"""
+        )
+        try {
+            db.execSQL("ALTER TABLE assessments ADD COLUMN instructor TEXT DEFAULT ''")
+        } catch (_: Exception) {}
+        try {
+            db.execSQL("ALTER TABLE assessments ADD COLUMN due_time TEXT DEFAULT ''")
+        } catch (_: Exception) {}
+        try {
+            db.execSQL("ALTER TABLE assessments ADD COLUMN room TEXT DEFAULT ''")
+        } catch (_: Exception) {}
+        try {
+            db.execSQL("ALTER TABLE assessments ADD COLUMN syllabus TEXT DEFAULT ''")
+        } catch (_: Exception) {}
+        try {
+            db.execSQL("ALTER TABLE assessments ADD COLUMN created_at INTEGER DEFAULT 0")
+        } catch (_: Exception) {}
+    }
+
+    fun insertAssessment(entity: com.duorhythm.app.data.local.entity.AssessmentEntity): Long {
+        ensureAssessmentsTable()
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("profile_id", entity.profileId)
+            put("course_id", entity.courseId)
+            put("title", entity.title)
+            put("type", entity.type)
+            put("due_date", entity.dueDate)
+            put("due_time", entity.dueTime)
+            put("room", entity.room)
+            put("instructor", entity.instructor)
+            put("syllabus", entity.syllabus)
+            put("status", entity.status)
+            put("created_at", System.currentTimeMillis())
+        }
+        val id = db.insert("assessments", null, cv)
+        try {
+            val itemType = if (entity.type.contains("Exam", ignoreCase = true) ||
+                entity.type.contains("Test", ignoreCase = true) ||
+                entity.type.contains("Quiz", ignoreCase = true)) "EXAM" else "HOMEWORK"
+            val workItem = com.duorhythm.app.data.model.SubjectWorkItem(
+                id = if (id > 0) id else 0L,
+                profileId = entity.profileId,
+                subjectId = entity.courseId,
+                itemType = itemType,
+                title = entity.title,
+                description = entity.syllabus,
+                startDate = entity.dueDate,
+                endDate = entity.dueDate,
+                scoreOrMarks = entity.dueTime,
+                attachmentPath = entity.room,
+                status = entity.status,
+                examType = entity.type
+            )
+            insertSubjectWorkItem(workItem)
+        } catch (_: Exception) {}
+        return id
+    }
+
+    fun updateAssessment(entity: com.duorhythm.app.data.local.entity.AssessmentEntity): Int {
+        ensureAssessmentsTable()
+        val db = writableDatabase
+        val cv = ContentValues().apply {
+            put("course_id", entity.courseId)
+            put("title", entity.title)
+            put("type", entity.type)
+            put("due_date", entity.dueDate)
+            put("due_time", entity.dueTime)
+            put("room", entity.room)
+            put("instructor", entity.instructor)
+            put("syllabus", entity.syllabus)
+            put("status", entity.status)
+        }
+        val count = db.update("assessments", cv, "id = ?", arrayOf(entity.id.toString()))
+        try {
+            val itemType = if (entity.type.contains("Exam", ignoreCase = true) ||
+                entity.type.contains("Test", ignoreCase = true) ||
+                entity.type.contains("Quiz", ignoreCase = true)) "EXAM" else "HOMEWORK"
+            val workItem = com.duorhythm.app.data.model.SubjectWorkItem(
+                id = entity.id,
+                profileId = entity.profileId,
+                subjectId = entity.courseId,
+                itemType = itemType,
+                title = entity.title,
+                description = entity.syllabus,
+                startDate = entity.dueDate,
+                endDate = entity.dueDate,
+                scoreOrMarks = entity.dueTime,
+                attachmentPath = entity.room,
+                status = entity.status,
+                examType = entity.type
+            )
+            updateSubjectWorkItem(workItem)
+        } catch (_: Exception) {}
+        return count
+    }
+
+    fun insertAssessment(entity: database.entities.AssessmentEntity): Long {
+        return insertAssessment(
+            com.duorhythm.app.data.local.entity.AssessmentEntity(
+                id = entity.id,
+                profileId = entity.profileId,
+                courseId = entity.subjectId,
+                title = entity.title,
+                type = entity.type,
+                dueDate = entity.date,
+                dueTime = entity.time,
+                room = entity.room,
+                instructor = entity.instructor,
+                syllabus = entity.syllabus,
+                status = entity.status
+            )
+        )
+    }
+
+    fun updateAssessment(entity: database.entities.AssessmentEntity): Int {
+        return updateAssessment(
+            com.duorhythm.app.data.local.entity.AssessmentEntity(
+                id = entity.id,
+                profileId = entity.profileId,
+                courseId = entity.subjectId,
+                title = entity.title,
+                type = entity.type,
+                dueDate = entity.date,
+                dueTime = entity.time,
+                room = entity.room,
+                instructor = entity.instructor,
+                syllabus = entity.syllabus,
+                status = entity.status
+            )
         )
     }
 
@@ -4810,14 +5025,90 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             title = order.title,
             clientName = order.clientName,
             totalPrice = order.amount.toDoubleOrNull() ?: 0.0,
+            startDate = order.startDate,
             endDate = order.dueDate,
             status = order.status,
             notes = order.notes
         )
         return if (order.id > 0) {
-            updateWorkOrder(wo).toLong()
+            updateWorkOrder(wo)
+            order.id
         } else {
             insertWorkOrder(wo)
+        }
+    }
+
+    fun updateClientOrderStatus(orderId: Long, status: String) {
+        updateWorkOrderStatus(orderId, status)
+        try {
+            val cv = ContentValues().apply { put("status", status) }
+            writableDatabase.update("client_orders", cv, "id = ?", arrayOf(orderId.toString()))
+        } catch (_: Exception) {}
+    }
+
+    fun getAccounts(profileId: Long = getActiveProfileId()): List<WalletBucketItem> = getAllWalletBuckets(profileId)
+
+    fun completeOrderAndDeposit(
+        orderId: Long,
+        profileId: Long,
+        accountId: Long,
+        orderTitle: String,
+        clientName: String,
+        amount: Double
+    ): Boolean {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            // 1. Update Order Status
+            val orderCv = ContentValues().apply {
+                put("status", "COMPLETED")
+            }
+            db.update("work_orders", orderCv, "id = ?", arrayOf(orderId.toString()))
+            try {
+                db.update("client_orders", orderCv, "id = ?", arrayOf(orderId.toString()))
+            } catch (_: Exception) {}
+
+            // 2. Fetch current account balance
+            var currentBalance = 0.0
+            var accountName = "Wallet"
+            val bucketCursor = db.rawQuery("SELECT name, balance FROM wallet_buckets WHERE id = ?", arrayOf(accountId.toString()))
+            if (bucketCursor.moveToFirst()) {
+                accountName = bucketCursor.getString(0) ?: "Wallet"
+                currentBalance = bucketCursor.getDouble(1)
+            }
+            bucketCursor.close()
+
+            val newBalance = currentBalance + amount
+
+            // 3. Update Account Balance
+            val accCv = ContentValues().apply {
+                put("balance", newBalance)
+            }
+            db.update("wallet_buckets", accCv, "id = ?", arrayOf(accountId.toString()))
+            try {
+                db.update("accounts", accCv, "id = ?", arrayOf(accountId.toString()))
+            } catch (_: Exception) {}
+
+            // 4. Insert Income Transaction
+            val transCv = ContentValues().apply {
+                put("profile_id", profileId)
+                put("bucket_id", accountId)
+                put("title", "Payment: $orderTitle")
+                put("amount", amount)
+                put("type", "INCOME")
+                put("category", "Project Income")
+                put("date", java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US).format(java.util.Date()))
+                put("notes", "Completed client order for $clientName")
+                put("currency", "BDT")
+            }
+            db.insert("transactions", null, transCv)
+
+            db.setTransactionSuccessful()
+            return true
+        } catch (_: Exception) {
+            return false
+        } finally {
+            db.endTransaction()
         }
     }
 

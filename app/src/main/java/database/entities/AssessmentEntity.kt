@@ -19,10 +19,11 @@ data class AssessmentEntity(
     val attachmentUri: String? = null,
     val attachmentName: String? = null,
     val category: String = type,
-    val instructor: String? = teacher
+    val instructor: String = teacher
 ) {
     val dueDate: String get() = date
     val dueTime: String get() = time
+    val courseId: Long get() = subjectId
 
     fun toSubjectWorkItem(): SubjectWorkItem {
         return SubjectWorkItem(
