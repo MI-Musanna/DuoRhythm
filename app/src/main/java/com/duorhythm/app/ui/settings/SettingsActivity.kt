@@ -49,6 +49,7 @@ import com.google.android.material.card.MaterialCardView
 import android.widget.CheckBox
 import java.util.Calendar
 import com.duorhythm.app.security.LifeSyncSecurityManager
+import com.duorhythm.app.util.NotificationHelper
 import com.duorhythm.app.worker.LocalBackupWorker
 import com.duorhythm.app.worker.AutoBackupWorker
 import com.duorhythm.app.service.ReminderManager
@@ -899,7 +900,13 @@ class SettingsActivity : AppCompatActivity() {
             binding.switchWalletBiometric.toggle()
         }
 
+        binding.btnTestNotificationNow.setOnClickListener {
+            NotificationHelper.showUnifiedDailyBriefing(this)
+            Toast.makeText(this, "Firing Modern Briefing Notification! Pull down notification shade.", Toast.LENGTH_SHORT).show()
+        }
+
         AnimationUtils.attachTactileFeedback(
+            binding.btnTestNotificationNow,
             binding.btnCreateBackup,
             binding.btnImportBackup,
             binding.btnResetAppData,

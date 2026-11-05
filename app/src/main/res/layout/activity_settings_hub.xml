@@ -504,6 +504,22 @@
                                     android:src="@drawable/ic_chevron_right"
                                     app:tint="@color/text_muted" />
                             </LinearLayout>
+
+                            <!-- Test Morning Notification Button -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnTestNotificationNow"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:text="Test Morning Notification"
+                                android:textColor="#00E5FF"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                app:icon="@drawable/ic_schedule"
+                                app:iconTint="#00E5FF"
+                                app:strokeColor="#2E38BDF8"
+                                app:strokeWidth="1dp"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
                         </LinearLayout>
 
                         <View

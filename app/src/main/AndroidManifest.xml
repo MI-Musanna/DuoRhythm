@@ -275,6 +275,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- Daily Briefing Receiver (Modern Obsidian Dual-View) -->
+        <receiver
+            android:name=".receiver.DailyBriefingReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_DAILY_BRIEFING_MODERN" />
+            </intent-filter>
+        </receiver>
+
         <!-- Timezone & System Clock Change Safeguard Receiver -->
         <receiver
             android:name=".receiver.TimezoneChangeReceiver"
