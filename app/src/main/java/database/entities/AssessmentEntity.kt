@@ -25,6 +25,22 @@ data class AssessmentEntity(
     val dueTime: String get() = time
     val courseId: Long get() = subjectId
 
+    fun toLocalEntity(): com.duorhythm.app.data.local.entity.AssessmentEntity {
+        return com.duorhythm.app.data.local.entity.AssessmentEntity(
+            id = id,
+            profileId = profileId,
+            courseId = subjectId,
+            title = title,
+            type = type,
+            dueDate = dueDate,
+            dueTime = dueTime,
+            room = room,
+            instructor = instructor,
+            syllabus = syllabus,
+            status = status
+        )
+    }
+
     fun toSubjectWorkItem(): SubjectWorkItem {
         return SubjectWorkItem(
             id = id,

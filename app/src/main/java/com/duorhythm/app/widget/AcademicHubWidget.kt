@@ -216,10 +216,8 @@ class AcademicHubWidget : AppWidgetProvider() {
                 }
 
                 // 2. EXAM PARSING & STATUS FILTER FIX:
-                // Strict check: Drop completed / done exams
-                val allExams = db.getAssessments(profileId)
-                    .filter { it.status.uppercase() !in listOf("COMPLETED", "DONE", "FINISHED") }
-                    .sortedBy { it.dueDate + " " + it.dueTime }
+                // Strict check: Drop completed / done exams, purge dummy test data, and prioritize today's exams
+                val allExams = db.getUpcomingExamsForWidget(profileId)
 
                 val hasClasses = classList.isNotEmpty()
                 val hasExams = allExams.isNotEmpty()

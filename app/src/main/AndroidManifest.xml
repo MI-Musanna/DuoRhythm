@@ -298,6 +298,18 @@
                 android:resource="@xml/widget_academic_hub_info" />
         </receiver>
 
+        <!-- Schedule Dashboard Widget Provider -->
+        <receiver
+            android:name=".widget.ScheduleWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_schedule_dashboard_info" />
+        </receiver>
+
         <activity
             android:name=".ui.widget.WidgetConfigActivity"
             android:exported="true"

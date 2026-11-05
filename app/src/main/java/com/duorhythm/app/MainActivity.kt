@@ -36,6 +36,7 @@ import com.duorhythm.app.ui.settings.SettingsActivity
 import com.duorhythm.app.ui.tools.PercentageCalcDialog
 import com.duorhythm.app.ui.tools.PomodoroDialog
 import com.duorhythm.app.ui.tools.ToolsFragment
+import com.duorhythm.app.widget.ScheduleWidgetProvider
 
 class MainActivity : AppCompatActivity() {
 
@@ -154,6 +155,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
+            ScheduleWidgetProvider.updateAllWidgets(this)
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+
+        try {
             binding.root.post {
                 handleShortcutIntent(intent)
                 handleIncomingIntent(intent)
@@ -246,6 +253,11 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         if (::binding.isInitialized) {
             ensureOfficialAppLogo()
+        }
+        try {
+            ScheduleWidgetProvider.updateAllWidgets(this)
+        } catch (t: Throwable) {
+            t.printStackTrace()
         }
     }
 

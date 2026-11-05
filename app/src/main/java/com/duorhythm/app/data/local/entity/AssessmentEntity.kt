@@ -14,4 +14,8 @@ data class AssessmentEntity(
     val status: String = "PENDING",
     val score: String = "",
     val createdAt: Long = System.currentTimeMillis()
-)
+) {
+    val date: String get() = dueDate
+    val time: String get() = dueTime
+    val subjectId: Long get() = courseId
+}

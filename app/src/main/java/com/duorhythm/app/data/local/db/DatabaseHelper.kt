@@ -2641,6 +2641,66 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
+    fun purgeDummyTestData(profileId: Long = getActiveProfileId()) {
+        try {
+            val db = writableDatabase
+            // Delete garbage test items created during previous testing
+            db.delete("assessments", "(profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND LOWER(TRIM(title)) IN ('fg', 'gg', 'test', 'hh', 'asdf')", arrayOf(profileId.toString()))
+            db.delete("assessments", "LOWER(TRIM(title)) IN ('fg', 'gg', 'test', 'hh', 'asdf')", null)
+            try {
+                db.delete("subject_work_items", "LOWER(TRIM(title)) IN ('fg', 'gg', 'test', 'hh', 'asdf')", null)
+            } catch (_: Exception) {}
+        } catch (_: Exception) {}
+    }
+
+    fun getUpcomingExamsForWidget(profileId: Long = getActiveProfileId()): List<com.duorhythm.app.data.local.entity.AssessmentEntity> {
+        purgeDummyTestData(profileId)
+
+        val allAssessments = getAssessments(profileId)
+        val todayStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+
+        // 1. STRICT FILTER: Discard Homework, Assignments, Practicals, and Tasks. Keep ONLY exams!
+        val nonExamKeywords = listOf("HOMEWORK", "ASSIGNMENT", "PRACTICAL", "TASK", "NOTE", "ROUTINE")
+        val validExams = allAssessments.filter { assessment ->
+            val statusUpper = assessment.status.uppercase()
+            val typeUpper = assessment.type.uppercase()
+            val titleUpper = assessment.title.uppercase()
+
+            val isCompleted = statusUpper in listOf("COMPLETED", "DONE", "FINISHED")
+            val isNonExam = nonExamKeywords.any { typeUpper.contains(it) } && 
+                            !typeUpper.contains("EXAM") && 
+                            !typeUpper.contains("TEST") && 
+                            !typeUpper.contains("FINAL")
+
+            !isCompleted && !isNonExam
+        }.map { it.toLocalEntity() }
+
+        // 2. SMART SORTING: Today's exams FIRST -> Future exams SECOND -> Overdue LAST
+        val todayExams = mutableListOf<com.duorhythm.app.data.local.entity.AssessmentEntity>()
+        val futureExams = mutableListOf<com.duorhythm.app.data.local.entity.AssessmentEntity>()
+        val overdueExams = mutableListOf<com.duorhythm.app.data.local.entity.AssessmentEntity>()
+
+        for (exam in validExams) {
+            when {
+                exam.dueDate == todayStr -> todayExams.add(exam)
+                exam.dueDate > todayStr -> futureExams.add(exam)
+                else -> overdueExams.add(exam)
+            }
+        }
+
+        todayExams.sortBy { it.dueTime }
+        futureExams.sortWith(compareBy({ it.dueDate }, { it.dueTime }))
+        overdueExams.sortWith(compareByDescending<com.duorhythm.app.data.local.entity.AssessmentEntity> { it.dueDate }.thenBy { it.dueTime })
+
+        // Return the prioritized stream: Today -> Future -> Overdue
+        val prioritized = mutableListOf<com.duorhythm.app.data.local.entity.AssessmentEntity>()
+        prioritized.addAll(todayExams)
+        prioritized.addAll(futureExams)
+        prioritized.addAll(overdueExams)
+
+        return prioritized.take(5)
+    }
+
     fun getAssessmentsForCourse(courseId: Long, profileId: Long = getActiveProfileId()): List<database.entities.AssessmentEntity> {
         ensureAssessmentsTable()
         val list = mutableListOf<database.entities.AssessmentEntity>()
