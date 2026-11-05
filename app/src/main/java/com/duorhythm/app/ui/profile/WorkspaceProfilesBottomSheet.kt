@@ -434,7 +434,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                 if (avatarFile.exists()) {
                     try { avatarFile.delete() } catch (_: Exception) {}
                 }
-                dbHelper.deleteWorkspaceData(targetProfile.id)
+                dbHelper.deleteWorkspaceProfile(targetProfile.id)
                 Toast.makeText(act, "Workspace Slot ${targetProfile.slotNumber} deleted", Toast.LENGTH_SHORT).show()
             }
 

@@ -1149,6 +1149,31 @@ class WalletFragment : Fragment() {
             updateToAccountDropdown()
         }
 
+        // BIND SMART SUGGESTIONS FOR FREQUENT TITLES
+        val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+        val recentTitles = dbHelper.getDistinctTransactionTitles(activeProfileId)
+        if (recentTitles.isNotEmpty()) {
+            val titleAdapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                recentTitles
+            )
+            dialogBinding.etTxTitle.setAdapter(titleAdapter)
+            dialogBinding.etTxTitle.threshold = 1
+            dialogBinding.etTxTitle.setDropDownBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#0D1322")))
+
+            dialogBinding.etTxTitle.setOnClickListener {
+                if (dialogBinding.etTxTitle.text.isNullOrEmpty()) {
+                    dialogBinding.etTxTitle.showDropDown()
+                }
+            }
+            dialogBinding.etTxTitle.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus && dialogBinding.etTxTitle.text.isNullOrEmpty()) {
+                    dialogBinding.etTxTitle.showDropDown()
+                }
+            }
+        }
+
         dialogBinding.toggleTxType.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
                 when (checkedId) {

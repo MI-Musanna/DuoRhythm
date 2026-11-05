@@ -193,10 +193,11 @@
             android:layout_marginTop="8dp"
             android:hint="Title (Optional - defaults to Category)">
 
-            <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:id="@+id/etTxTitle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:completionThreshold="1" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 5. Optional Notes -->

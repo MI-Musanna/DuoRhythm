@@ -1117,6 +1117,31 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             }
         }
 
+        // BIND SMART SUGGESTIONS FOR FREQUENT TITLES
+        val activeProfileId = currentBucket?.profileId ?: com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(this)
+        val recentTitles = dbHelper.getDistinctTransactionTitles(activeProfileId)
+        if (recentTitles.isNotEmpty()) {
+            val titleAdapter = ArrayAdapter(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                recentTitles
+            )
+            dialogBinding.etTxTitle.setAdapter(titleAdapter)
+            dialogBinding.etTxTitle.threshold = 1
+            dialogBinding.etTxTitle.setDropDownBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#0D1322")))
+
+            dialogBinding.etTxTitle.setOnClickListener {
+                if (dialogBinding.etTxTitle.text.isNullOrEmpty()) {
+                    dialogBinding.etTxTitle.showDropDown()
+                }
+            }
+            dialogBinding.etTxTitle.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus && dialogBinding.etTxTitle.text.isNullOrEmpty()) {
+                    dialogBinding.etTxTitle.showDropDown()
+                }
+            }
+        }
+
         val dialog = AlertDialog.Builder(this)
             .setView(dialogBinding.root)
             .create()

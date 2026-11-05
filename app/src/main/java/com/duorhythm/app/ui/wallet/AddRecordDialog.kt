@@ -106,6 +106,31 @@ class AddRecordDialog(
         dialogBinding.actvTxToAccount.setOnClickListener { dialogBinding.actvTxToAccount.showDropDown() }
         dialogBinding.actvTxCard.setOnItemClickListener { _, _, _, _ -> updateToAccountDropdown() }
 
+        // BIND SMART SUGGESTIONS FOR FREQUENT TITLES
+        val recentTitles = dbHelper.getDistinctTransactionTitles(activeProfileId)
+        if (recentTitles.isNotEmpty()) {
+            val titleAdapter = ArrayAdapter(
+                context,
+                android.R.layout.simple_dropdown_item_1line,
+                recentTitles
+            )
+            dialogBinding.etTxTitle.setAdapter(titleAdapter)
+            dialogBinding.etTxTitle.threshold = 1
+            dialogBinding.etTxTitle.setDropDownBackgroundDrawable(ColorDrawable(Color.parseColor("#0D1322")))
+
+            // Show suggestions immediately on tap / focus
+            dialogBinding.etTxTitle.setOnClickListener {
+                if (dialogBinding.etTxTitle.text.isNullOrEmpty()) {
+                    dialogBinding.etTxTitle.showDropDown()
+                }
+            }
+            dialogBinding.etTxTitle.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus && dialogBinding.etTxTitle.text.isNullOrEmpty()) {
+                    dialogBinding.etTxTitle.showDropDown()
+                }
+            }
+        }
+
         // Setup Toggle Buttons
         when (selectedType) {
             TransactionType.TRANSFER -> dialogBinding.toggleTxType.check(R.id.btnTypeTransfer)

@@ -4417,25 +4417,96 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     val studentSubjectDao: database.dao.StudentSubjectDao get() = courseDao
 
-    fun deleteWorkspaceData(profileId: Long) {
+    // SCHEMA-SAFE WORKSPACE PROFILE DELETION: Only deletes from tables that genuinely contain profile_id
+    fun deleteWorkspaceProfile(profileId: Long): Boolean {
         val db = writableDatabase
         db.beginTransaction()
         try {
-            timetableDao.deleteByProfileId(profileId)
-            walletDao.deleteByProfileId(profileId)
-            taskDao.deleteByProfileId(profileId)
-            attendanceDao.deleteByProfileId(profileId)
-            holidayDao.deleteByProfileId(profileId)
-            db.delete("subject_work_items", "profile_id = ?", arrayOf(profileId.toString()))
-            db.delete("student_subjects", "profile_id = ?", arrayOf(profileId.toString()))
-            db.delete("notes", "profile_id = ?", arrayOf(profileId.toString()))
-            db.delete("work_orders", "profile_id = ?", arrayOf(profileId.toString()))
-            db.delete("work_clients", "profile_id = ?", arrayOf(profileId.toString()))
+            // Strictly target tables confirmed to have profile_id column
+            val tablesWithProfileId = listOf(
+                "accounts",
+                "wallet_buckets",
+                "cards",
+                "transactions",
+                "classes",
+                "courses",
+                "assessments",
+                "client_orders",
+                "subscriptions",
+                "attendance_logs",
+                "attendance",
+                "attendance_records",
+                "holiday_records",
+                "tasks",
+                "student_subjects",
+                "subject_materials",
+                "subject_work_items",
+                "work_orders",
+                "work_clients",
+                "notes",
+                "contacts_groups",
+                "dues_debts"
+            )
+
+            for (tableName in tablesWithProfileId) {
+                try {
+                    // Verify column existence before compiling delete query
+                    val cursor = db.rawQuery("PRAGMA table_info($tableName)", null)
+                    var hasProfileCol = false
+                    val nameIdx = cursor.getColumnIndex("name")
+                    if (nameIdx != -1) {
+                        while (cursor.moveToNext()) {
+                            val colName = cursor.getString(nameIdx)
+                            if (colName.equals("profile_id", ignoreCase = true)) {
+                                hasProfileCol = true
+                                break
+                            }
+                        }
+                    }
+                    cursor.close()
+
+                    if (hasProfileCol) {
+                        db.delete(tableName, "profile_id = ?", arrayOf(profileId.toString()))
+                    }
+                } catch (_: Exception) {}
+            }
+
+            // Finally delete or reset the profile slot
             db.delete("profiles", "id = ?", arrayOf(profileId.toString()))
+
             db.setTransactionSuccessful()
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
         } finally {
             db.endTransaction()
         }
+    }
+
+    fun deleteWorkspaceData(profileId: Long) {
+        deleteWorkspaceProfile(profileId)
+    }
+
+    // QUERY DISTINCT TITLES FOR AUTO-SUGGESTIONS
+    @JvmOverloads
+    fun getDistinctTransactionTitles(profileId: Long = 1L): List<String> {
+        val list = mutableListOf<String>()
+        val db = readableDatabase
+        try {
+            val cursor = db.rawQuery(
+                "SELECT DISTINCT title FROM transactions WHERE (profile_id = ? OR profile_id = 0) AND title IS NOT NULL AND TRIM(title) != '' ORDER BY id DESC LIMIT 40",
+                arrayOf(profileId.toString())
+            )
+            while (cursor.moveToNext()) {
+                val t = cursor.getString(0)?.trim()
+                if (!t.isNullOrBlank() && !list.contains(t)) {
+                    list.add(t)
+                }
+            }
+            cursor.close()
+        } catch (_: Exception) {}
+        return list
     }
 
     fun promoteProfileToSlot1(fromProfileId: Long) {
