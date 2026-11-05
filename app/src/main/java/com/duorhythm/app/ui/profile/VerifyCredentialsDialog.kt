@@ -70,6 +70,26 @@ class VerifyCredentialsDialog() : DialogFragment() {
             dialog.dismiss()
         }
 
+        val fragAct = act as? androidx.fragment.app.FragmentActivity
+        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+            dialogBinding.btnQuickFingerprint.visibility = android.view.View.VISIBLE
+            dialogBinding.btnQuickFingerprint.setOnClickListener {
+                com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                    activity = fragAct,
+                    title = "Confirm Identity",
+                    subtitle = "Scan fingerprint to authorize",
+                    onSuccess = {
+                        dialog.dismiss()
+                        onVerificationSuccess?.invoke()
+                        legacyOnSuccess?.invoke()
+                    },
+                    onErrorOrFallback = {}
+                )
+            }
+        } else {
+            dialogBinding.btnQuickFingerprint.visibility = android.view.View.GONE
+        }
+
         dialogBinding.btnLoginSubmit.setOnClickListener {
             val enteredPassword = dialogBinding.etLoginPassword.text?.toString().orEmpty()
 
@@ -121,6 +141,26 @@ class VerifyCredentialsDialog() : DialogFragment() {
 
         dialogBinding.btnLoginCancel.setOnClickListener {
             dialog.dismiss()
+        }
+
+        val fragAct = act as? androidx.fragment.app.FragmentActivity
+        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+            dialogBinding.btnQuickFingerprint.visibility = android.view.View.VISIBLE
+            dialogBinding.btnQuickFingerprint.setOnClickListener {
+                com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                    activity = fragAct,
+                    title = "Confirm Identity",
+                    subtitle = "Scan fingerprint to authorize",
+                    onSuccess = {
+                        dialog.dismiss()
+                        onVerificationSuccess?.invoke()
+                        legacyOnSuccess?.invoke()
+                    },
+                    onErrorOrFallback = {}
+                )
+            }
+        } else {
+            dialogBinding.btnQuickFingerprint.visibility = android.view.View.GONE
         }
 
         dialogBinding.btnLoginSubmit.setOnClickListener {

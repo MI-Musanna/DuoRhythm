@@ -16,6 +16,7 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.duorhythm.app.R
@@ -166,6 +167,25 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
             dialog.dismiss()
         }
 
+        val fragAct = act as? FragmentActivity
+        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+            dialogBinding.btnQuickFingerprint.visibility = View.VISIBLE
+            dialogBinding.btnQuickFingerprint.setOnClickListener {
+                com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                    activity = fragAct,
+                    title = "Confirm Identity",
+                    subtitle = "Scan fingerprint to authorize",
+                    onSuccess = {
+                        dialog.dismiss()
+                        onSuccess()
+                    },
+                    onErrorOrFallback = {}
+                )
+            }
+        } else {
+            dialogBinding.btnQuickFingerprint.visibility = View.GONE
+        }
+
         dialogBinding.btnLoginSubmit.setOnClickListener {
             val enteredPassword = dialogBinding.etLoginPassword.text?.toString().orEmpty()
 
@@ -191,26 +211,30 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
     private fun handleSwitchWorkspace(profile: ProfileEntity) {
         val targetSlot = profile.slot
-        BiometricHelper.showBiometricOrDeviceLock(
-            activity = requireActivity(),
-            title = "Authenticate Workspace",
-            subtitle = "Confirm fingerprint or device PIN to switch to ${profile.name}",
-            onSuccess = {
-                ProfileManager.switchProfile(requireContext(), targetSlot)
-                dismiss()
-                requireActivity().recreate()
-            },
-            onFallbackToPassword = {
-                // ONLY if device credential / biometrics is cancelled or unavailable
-                val dialog = VerifyCredentialsDialog.newInstance(targetSlot, profile.name)
-                dialog.onVerificationSuccess = {
-                    ProfileManager.switchProfile(requireContext(), targetSlot)
-                    dismiss()
-                    requireActivity().recreate()
+        val act = requireActivity()
+        if (com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(act)) {
+            com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                activity = act,
+                title = "Switch Workspace Profile",
+                subtitle = "Scan fingerprint to switch to ${profile.name} instantly",
+                onSuccess = {
+                    executeProfileSwitch(profile)
+                },
+                onErrorOrFallback = {
+                    val dialog = VerifyCredentialsDialog.newInstance(targetSlot, profile.name)
+                    dialog.onVerificationSuccess = {
+                        executeProfileSwitch(profile)
+                    }
+                    dialog.show(parentFragmentManager, "VERIFY_DIALOG")
                 }
-                dialog.show(parentFragmentManager, "VERIFY_DIALOG")
+            )
+        } else {
+            val dialog = VerifyCredentialsDialog.newInstance(targetSlot, profile.name)
+            dialog.onVerificationSuccess = {
+                executeProfileSwitch(profile)
             }
-        )
+            dialog.show(parentFragmentManager, "VERIFY_DIALOG")
+        }
     }
 
     private fun executeProfileSwitch(profile: ProfileEntity) {
@@ -228,16 +252,16 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
     private fun handleEditProfile(profile: ProfileEntity) {
         val act = activity ?: return
-        if (BiometricAuthHelper.isBiometricsAvailable(act)) {
-            BiometricAuthHelper.authenticate(
-                activity = act,
+        val fragAct = act as? FragmentActivity
+        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+            com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                activity = fragAct,
                 title = "Edit Profile",
-                subtitle = "Confirm identity to edit ${profile.name}",
-                negativeButtonText = "Use Password/PIN",
+                subtitle = "Scan fingerprint to edit ${profile.name}",
                 onSuccess = {
                     showEditProfileDialog(profile)
                 },
-                onFallbackToPassword = {
+                onErrorOrFallback = {
                     showVerifyCredentialsDialog(profile) {
                         showEditProfileDialog(profile)
                     }
@@ -349,16 +373,16 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
     private fun handleDeleteWorkspace(profile: ProfileEntity) {
         val act = activity ?: return
-        if (BiometricAuthHelper.isBiometricsAvailable(act)) {
-            BiometricAuthHelper.authenticate(
-                activity = act,
+        val fragAct = act as? FragmentActivity
+        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+            com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                activity = fragAct,
                 title = "Delete Workspace Slot ${profile.slotNumber}",
-                subtitle = "Confirm identity to delete Workspace Slot ${profile.slotNumber}",
-                negativeButtonText = "Use Password/PIN",
+                subtitle = "Confirm fingerprint to delete Workspace Slot ${profile.slotNumber}",
                 onSuccess = {
                     showDeleteConfirmationDialog(profile)
                 },
-                onFallbackToPassword = {
+                onErrorOrFallback = {
                     showVerifyCredentialsDialog(profile, isDestructive = true) {
                         showDeleteConfirmationDialog(profile)
                     }
@@ -584,27 +608,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                         itemBinding.btnSwitchProfile.text = "SWITCH"
                         itemBinding.btnSwitchProfile.setBackgroundResource(R.drawable.bg_ocean_pill_btn)
                         val onSwitchClick = View.OnClickListener {
-                            val targetSlot = profile.slot
-                            BiometricHelper.showBiometricOrDeviceLock(
-                                activity = requireActivity(),
-                                title = "Authenticate Workspace",
-                                subtitle = "Confirm fingerprint or device PIN to switch to ${profile.name}",
-                                onSuccess = {
-                                    ProfileManager.switchProfile(requireContext(), targetSlot)
-                                    dismiss()
-                                    requireActivity().recreate()
-                                },
-                                onFallbackToPassword = {
-                                    // ONLY if device credential / biometrics is cancelled or unavailable
-                                    val dialog = VerifyCredentialsDialog.newInstance(targetSlot, profile.name)
-                                    dialog.onVerificationSuccess = {
-                                        ProfileManager.switchProfile(requireContext(), targetSlot)
-                                        dismiss()
-                                        requireActivity().recreate()
-                                    }
-                                    dialog.show(parentFragmentManager, "VERIFY_DIALOG")
-                                }
-                            )
+                            handleSwitchWorkspace(profile)
                         }
                         itemBinding.cardProfileSlot.setOnClickListener(onSwitchClick)
                         itemBinding.btnSwitchProfile.setOnClickListener(onSwitchClick)

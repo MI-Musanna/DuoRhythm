@@ -148,37 +148,16 @@ object BiometricHelper {
         onSuccess: () -> Unit,
         onFallbackToPassword: () -> Unit
     ) {
-        val executor = ContextCompat.getMainExecutor(activity)
-        val biometricPrompt = BiometricPrompt(activity, executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    super.onAuthenticationSucceeded(result)
-                    onSuccess()
-                }
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    super.onAuthenticationError(errorCode, errString)
-                    if (errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON || 
-                        errorCode == BiometricPrompt.ERROR_USER_CANCELED) {
-                        // User chose fallback
-                        onFallbackToPassword()
-                    } else {
-                        onFallbackToPassword()
-                    }
-                }
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                }
-            })
-
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(title)
-            .setSubtitle(subtitle)
-            .setAllowedAuthenticators(
-                BiometricManager.Authenticators.BIOMETRIC_STRONG or 
-                BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        if (com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(activity)) {
+            com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                activity = activity,
+                title = title,
+                subtitle = subtitle,
+                onSuccess = onSuccess,
+                onErrorOrFallback = onFallbackToPassword
             )
-            .build()
-
-        biometricPrompt.authenticate(promptInfo)
+        } else {
+            onFallbackToPassword()
+        }
     }
 }

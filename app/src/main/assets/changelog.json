@@ -1,0 +1,4 @@
+{
+  "1.2.4-beta": "• Biometric Fingerprint Auth: 1-tap profile switching and vault unlock via sensor.\n• Fixed Cash Flow Analytics: External bills permanently isolated from wallet graph.\n• Zero Auto-Deductions: Third-party bills never touch Cash or Ledger balances.\n• Clean Agenda Notification: Dual-view high-density timetable card without spam.\n• Accurate Next-Up Sync: Automatic tomorrow rollover with exact Practical badges.",
+  "1.2.3-beta": "• Strict External Bill Isolation: Cash flow projections now exclude third-party fees.\n• Ledger Refund Engine: Replaced rogue subscription deductions back into Cash.\n• Clean Notification Delivery: Terminated erratic 8 AM and 9 AM worker spam."
+}

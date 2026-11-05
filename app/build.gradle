@@ -11,8 +11,8 @@ android {
         applicationId "com.duorhythm.app"
         minSdk 24
         targetSdk 34
-        versionCode 36
-        versionName "1.2.3-beta"
+        versionCode 37
+        versionName "1.2.4-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables.useSupportLibrary = true
@@ -45,6 +45,7 @@ android {
 }
 
 dependencies {
+    implementation 'androidx.biometric:biometric:1.2.0-alpha05'
     implementation 'androidx.core:core-ktx:1.8.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'

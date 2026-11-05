@@ -309,14 +309,26 @@ object UpdateManager {
         val progressBar = view.findViewById<ProgressBar>(R.id.pbLoadingReleaseNotes)
         val cbDontShow = view.findViewById<CheckBox>(R.id.cbDontShowAgain)
 
-        // 1. Instant Cache Hit
+        // 1. Check local assets for exact version release notes
+        val localChangelog = try {
+            val jsonStr = context.assets.open("changelog.json").bufferedReader().use { it.readText() }
+            val obj = org.json.JSONObject(jsonStr)
+            val note = obj.optString(currentVer, obj.optString(cleanVer, ""))
+            if (note.isNotBlank()) note else null
+        } catch (_: Exception) { null }
+
+        // 2. Instant Cache Hit
         val cachedBody = prefs.getString("online_body_$cleanVer", null)
         if (!cachedBody.isNullOrBlank()) {
             progressBar?.visibility = View.GONE
             tvBody?.visibility = View.VISIBLE
             tvBody?.text = formatReleaseNotes(cachedBody)
+        } else if (!localChangelog.isNullOrBlank()) {
+            progressBar?.visibility = View.GONE
+            tvBody?.visibility = View.VISIBLE
+            tvBody?.text = formatReleaseNotes(localChangelog)
         } else {
-            // 2. Query GitHub using properly normalized tag (with 'v')
+            // 3. Query GitHub using properly normalized tag (with 'v')
             CoroutineScope(Dispatchers.IO).launch {
                 var fetchedBody: String? = null
                 val targetTag = if (currentVer.startsWith("v", ignoreCase = true)) currentVer else "v$currentVer"
@@ -342,8 +354,10 @@ object UpdateManager {
                     tvBody?.visibility = View.VISIBLE
                     if (!fetchedBody.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(fetchedBody)
+                    } else if (!localChangelog.isNullOrBlank()) {
+                        tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• In-app download progress modal enabled.\n• Installed versions now marked and disabled in release hub.\n• All audio modules completely purged."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Dynamic biometric authentication enabled.\n• Wallet cash flow analytics isolated from external bills."
                     }
                 }
             }
