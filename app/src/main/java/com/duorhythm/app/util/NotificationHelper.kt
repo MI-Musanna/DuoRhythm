@@ -5,11 +5,14 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.ui.main.MainActivity
 import database.entities.SubscriptionEntity
 import java.text.SimpleDateFormat
@@ -19,17 +22,40 @@ import java.util.Locale
 
 object NotificationHelper {
 
-    private const val CHANNEL_ID = "duorhythm_briefing_channel"
-    private const val CHANNEL_NAME = "Daily Academic Briefing"
-    private const val NOTIFICATION_ID = 6001
+    private const val CHANNEL_ID = "duorhythm_briefing_channel_v3"
+    private const val CHANNEL_NAME = "Daily Academic & Work Briefings"
+    private const val NOTIF_ID_MORNING = 6001
+    private const val NOTIF_ID_EVENING = 8001
 
-    fun showUnifiedDailyBriefing(context: Context) {
+    fun showUnifiedDailyBriefing(context: Context, isEveningReview: Boolean = false) {
         try {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val db = DatabaseHelper.getInstance(context)
             val profileId = ProfileManager.getActiveProfileId(context)
 
-            // 1. Clean any zombie notification IDs
+            // 1. Enforce Crisp Audible & Vibrating Heads-Up Notification Channel
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                val audioAttributes = AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .build()
+
+                val channel = NotificationChannel(
+                    CHANNEL_ID,
+                    CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Executive timetable, exams, and daily dues briefings"
+                    setShowBadge(true)
+                    enableVibration(true)
+                    vibrationPattern = longArrayOf(0, 250, 150, 250)
+                    setSound(soundUri, audioAttributes)
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+
+            // Clean any legacy zombie notification IDs
             notificationManager.cancel(1001)
             notificationManager.cancel(1002)
             notificationManager.cancel(1003)
@@ -37,23 +63,8 @@ object NotificationHelper {
             notificationManager.cancel(5001)
             notificationManager.cancel(20101)
 
-            // 2. Register Notification Channel
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    description = "Executive daily routine and dues briefing"
-                    setShowBadge(true)
-                    enableVibration(false)
-                }
-                notificationManager.createNotificationChannel(channel)
-            }
-
-            // 3. Query Database for Today's Real Schedule
             val cal = Calendar.getInstance()
-            val isoDay = when (cal.get(Calendar.DAY_OF_WEEK)) {
+            var targetIsoDay = when (cal.get(Calendar.DAY_OF_WEEK)) {
                 Calendar.MONDAY -> 1
                 Calendar.TUESDAY -> 2
                 Calendar.WEDNESDAY -> 3
@@ -63,12 +74,19 @@ object NotificationHelper {
                 Calendar.SUNDAY -> 7
                 else -> 1
             }
-            val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-            val dateHeaderStr = SimpleDateFormat("EEE, MMM d", Locale.ENGLISH).format(Date())
-            val fullDateStr = SimpleDateFormat("EEEE, MMMM d", Locale.ENGLISH).format(Date())
 
-            val classes = db.getClassesForIsoDay(profileId, isoDay)
-            val exams = db.getUpcomingExamsForWidget(profileId).filter { it.dueDate == todayStr }
+            // If evening review (8 PM), target TOMORROW's schedule
+            if (isEveningReview) {
+                targetIsoDay = if (targetIsoDay == 7) 1 else targetIsoDay + 1
+                cal.add(Calendar.DAY_OF_YEAR, 1)
+            }
+
+            val targetDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
+            val targetDayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(cal.time)
+            val targetShortDate = SimpleDateFormat("EEE, MMM d", Locale.ENGLISH).format(cal.time)
+
+            val classes = db.getClassesForIsoDay(profileId, targetIsoDay)
+            val exams = db.getUpcomingExamsForWidget(profileId).filter { it.dueDate == targetDateStr }
             val subs = db.getSubscriptions(profileId)
 
             val currentDay = cal.get(Calendar.DAY_OF_MONTH)
@@ -79,78 +97,92 @@ object NotificationHelper {
                 if (sub.isRange) currentDay in sStart..sEnd else currentDay == sub.dueDay.coerceIn(1, maxDays)
             }
 
-            // 4. Format Classes Text
+            // Header Labels
+            val headerTitle = if (isEveningReview) "Tomorrow's Academic Briefing" else "Today's Academic Briefing"
+            val headerBadge = if (isEveningReview) "TOMORROW • $targetDayName" else "TODAY • $targetDayName"
+
+            // Format Classes String
             val classDetails = if (classes.isNotEmpty()) {
                 classes.joinToString("\n") {
                     val roomStr = if (it.roomNo.isNotBlank()) " • R:${it.roomNo}" else ""
-                    "• ${it.subjectName} (${it.startTime}$roomStr)"
+                    val typeStr = if (it.type.isNotBlank()) " [${it.type}]" else ""
+                    "• ${it.subjectName}$typeStr\n  ${it.startTime} - ${it.endTime}$roomStr"
                 }
             } else {
-                "• No lectures scheduled today"
+                "• No academic lectures scheduled"
             }
 
-            // 5. Format Exams & Dues Text
+            // Format Exams & Dues String
             val duesList = mutableListOf<String>()
             if (exams.isNotEmpty()) {
                 exams.forEach {
-                    val timeStr = if (it.dueTime.isNotBlank()) " (${it.dueTime})" else ""
-                    duesList.add("• Exam: ${it.title}$timeStr")
+                    val roomStr = if (it.room.isNotBlank()) " (R:${it.room})" else ""
+                    duesList.add("• Exam: ${it.title}\n  ${it.dueTime}$roomStr")
                 }
             }
             if (dueSubs.isNotEmpty()) {
                 dueSubs.forEach {
-                    val formattedAmt = if (it.amount % 1.0 == 0.0) it.amount.toInt().toString() else it.amount.toString()
-                    duesList.add("• ${it.title}: ৳$formattedAmt")
+                    val extTag = if (it.paymentSource.contains("External", ignoreCase = true)) " [External]" else ""
+                    duesList.add("• ${it.title}: ৳${it.amount}$extTag")
                 }
             }
             if (duesList.isEmpty()) {
-                duesList.add("• All exams & dues clear")
+                duesList.add("• All exams & financial dues clear")
             }
-            val examsDuesText = duesList.joinToString("\n")
+            val rightColumnText = duesList.joinToString("\n")
 
-            // 6. Bind RemoteViews
+            // Construct Rich Collapsed RemoteViews
             val collapsedView = RemoteViews(context.packageName, R.layout.notification_agenda_collapsed).apply {
-                setTextViewText(R.id.tvNotifCollapsedDate, "• $dateHeaderStr")
+                setTextViewText(R.id.tvNotifCollapsedDate, "• $targetShortDate")
                 val firstClass = classes.firstOrNull()
                 val headline = if (firstClass != null) {
-                    "Next: ${firstClass.subjectName} (${firstClass.startTime}) • ${classes.size} Classes"
+                    "${firstClass.subjectName} (${firstClass.startTime}) • ${classes.size} Classes"
                 } else {
-                    "All clear • ${classes.size} Classes today"
+                    "Schedule Clear • ${classes.size} Classes"
                 }
                 setTextViewText(R.id.tvNotifCollapsedHeadline, headline)
                 setTextViewText(R.id.badgeNotifClassCount, "${classes.size} Classes")
             }
 
+            // Construct Rich Expanded RemoteViews
             val expandedView = RemoteViews(context.packageName, R.layout.notification_agenda_expanded).apply {
-                setTextViewText(R.id.tvNotifExpandedDateBadge, fullDateStr)
+                setTextViewText(R.id.tvNotifExpandedDateBadge, headerBadge)
                 setTextViewText(R.id.tvNotifExpandedClasses, classDetails)
-                setTextViewText(R.id.tvNotifExpandedExamsDues, examsDuesText)
+                setTextViewText(R.id.tvNotifExpandedExamsDues, rightColumnText)
             }
 
-            // 7. Click Intent
+            // Setup Open Action
             val openIntent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val pendingIntent = PendingIntent.getActivity(
                 context,
-                601,
+                if (isEveningReview) 801 else 601,
                 openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // 8. Build Dual-View Notification
-            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            // Native System Strings (These prevent 'Custom app notification' in Android Notification History!)
+            val nativeTitle = "DuoRhythm: $headerTitle ($targetShortDate)"
+            val nativeSummary = "${classes.size} classes, ${exams.size} exams, ${dueSubs.size} dues on agenda"
+
+            val notifBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_schedule)
+                // MANDATORY SYSTEM METADATA: Populates Notification History & Lockscreen
+                .setContentTitle(nativeTitle)
+                .setContentText(nativeSummary)
+                .setSubText(if (isEveningReview) "Evening Review" else "Morning Briefing")
                 .setStyle(NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(collapsedView)
                 .setCustomBigContentView(expandedView)
                 .setContentIntent(pendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setAutoCancel(true)
-                .build()
+                .setVibrate(longArrayOf(0, 250, 150, 250))
 
-            notificationManager.notify(NOTIFICATION_ID, notification)
+            val notifId = if (isEveningReview) NOTIF_ID_EVENING else NOTIF_ID_MORNING
+            notificationManager.notify(notifId, notifBuilder.build())
         } catch (e: Exception) {
             e.printStackTrace()
         }

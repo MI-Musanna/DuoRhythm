@@ -901,8 +901,13 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.btnTestNotificationNow.setOnClickListener {
-            NotificationHelper.showUnifiedDailyBriefing(this)
-            Toast.makeText(this, "Firing Modern Briefing Notification! Pull down notification shade.", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(this, isEveningReview = false)
+            android.widget.Toast.makeText(this, "Morning Briefing Fired! Pull down notification shade.", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        binding.btnTestNotificationNow.setOnLongClickListener {
+            com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(this, isEveningReview = true)
+            android.widget.Toast.makeText(this, "Evening Review (Tomorrow's Preview) Fired!", android.widget.Toast.LENGTH_SHORT).show()
+            true
         }
 
         AnimationUtils.attachTactileFeedback(

@@ -14,6 +14,7 @@ class BootReceiver : BroadcastReceiver() {
             AlarmSyncManager.resyncAll(context)
             SubscriptionAlarmScheduler.scheduleDailyAlarms(context)
             BriefingScheduler.scheduleDailyBriefing(context)
+            com.duorhythm.app.util.BriefingAlarmScheduler.scheduleDailyBriefings(context)
         }
     }
 }

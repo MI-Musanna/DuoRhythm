@@ -278,9 +278,14 @@
         <!-- Daily Briefing Receiver (Modern Obsidian Dual-View) -->
         <receiver
             android:name=".receiver.DailyBriefingReceiver"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.duorhythm.app.ACTION_DAILY_BRIEFING_MODERN" />
+                <action android:name="com.duorhythm.app.ACTION_MORNING_BRIEFING" />
+                <action android:name="com.duorhythm.app.ACTION_EVENING_BRIEFING" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 
