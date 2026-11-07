@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.duorhythm.app.R
 import com.duorhythm.app.data.model.CardItem
 import com.duorhythm.app.data.model.TransactionItem
+import com.duorhythm.app.data.model.previousBalance
+import com.duorhythm.app.data.model.endingBalance
 import com.duorhythm.app.databinding.ItemTransactionBinding
 import com.duorhythm.app.util.AnimationUtils
 import java.util.Locale
@@ -53,8 +55,42 @@ class TransactionsAdapter(
     }
 
     override fun onBindViewHolder(holder: TxViewHolder, position: Int) {
-        holder.bind(transactions[position])
+        val item = transactions[position]
+        holder.bind(item)
         AnimationUtils.animateItemEntry(holder.itemView, position)
+
+        // BIND RUNNING BALANCE TRAIL (IF ENABLED IN SETTINGS)
+        try {
+            val walletPrefs = holder.itemView.context.getSharedPreferences("duorhythm_wallet_prefs", android.content.Context.MODE_PRIVATE)
+            val showTrail = walletPrefs.getBoolean("show_balance_trail", true)
+
+            val tvTrail = holder.itemView.findViewById<android.widget.TextView>(com.duorhythm.app.R.id.tvBalanceTrail)
+            if (tvTrail != null) {
+                if (showTrail) {
+                    val prevBal = item.previousBalance
+                    val endBal = item.endingBalance
+
+                    if (prevBal != null && endBal != null && (prevBal > 0 || endBal > 0)) {
+                        tvTrail.visibility = android.view.View.VISIBLE
+                        val prefix = if (item.type.equals("INCOME", ignoreCase = true)) "+" else "-"
+                        tvTrail.text = String.format(java.util.Locale.US, "৳%.0f ➔ ৳%.0f", prevBal, endBal)
+                        tvTrail.setTextColor(android.graphics.Color.parseColor("#64748B"))
+                    } else {
+                        // Fallback computation if records were created before column logging
+                        val amt = item.amount
+                        if (item.type.equals("INCOME", ignoreCase = true)) {
+                            tvTrail.visibility = android.view.View.VISIBLE
+                            tvTrail.text = String.format(java.util.Locale.US, "Base +৳%.0f", amt)
+                        } else {
+                            tvTrail.visibility = android.view.View.VISIBLE
+                            tvTrail.text = String.format(java.util.Locale.US, "Base -৳%.0f", amt)
+                        }
+                    }
+                } else {
+                    tvTrail.visibility = android.view.View.GONE
+                }
+            }
+        } catch (_: Exception) {}
     }
 
     override fun getItemCount(): Int = transactions.size

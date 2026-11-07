@@ -216,6 +216,7 @@ class SettingsActivity : AppCompatActivity() {
         refreshStartOfWeekUI()
         refreshAutoTrackAttendanceUI()
         refreshShowRunningBalanceUI()
+        refreshShowBalanceTrailUI()
         refreshLeadTimesUI()
         syncSwitchStates()
         syncAutoBackupState()
@@ -366,6 +367,7 @@ class SettingsActivity : AppCompatActivity() {
         refreshStartOfWeekUI()
         refreshAutoTrackAttendanceUI()
         refreshShowRunningBalanceUI()
+        refreshShowBalanceTrailUI()
 
         binding.itemStartOfWeek.setOnClickListener {
             showStartOfWeekDialog()
@@ -391,6 +393,29 @@ class SettingsActivity : AppCompatActivity() {
                 getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
                     .edit().putBoolean("pref_show_running_balance", isChecked).apply()
                 AppSettings.setShowRunningBalanceEnabled(this, isChecked)
+            }
+        }
+
+        // Wire Running Balance Trail Preference
+        val walletPrefs = getSharedPreferences("duorhythm_wallet_prefs", Context.MODE_PRIVATE)
+        binding.rowBalanceTrail.setOnClickListener {
+            binding.switchShowBalanceTrail.toggle()
+        }
+        binding.switchShowBalanceTrail.isChecked = walletPrefs.getBoolean("show_balance_trail", true)
+        binding.switchShowBalanceTrail.setOnCheckedChangeListener { _, isChecked ->
+            if (!isHydratingUI) {
+                walletPrefs.edit().putBoolean("show_balance_trail", isChecked).apply()
+            }
+        }
+    }
+
+    private fun refreshShowBalanceTrailUI() {
+        val walletPrefs = getSharedPreferences("duorhythm_wallet_prefs", Context.MODE_PRIVATE)
+        binding.switchShowBalanceTrail.setOnCheckedChangeListener(null)
+        binding.switchShowBalanceTrail.isChecked = walletPrefs.getBoolean("show_balance_trail", true)
+        binding.switchShowBalanceTrail.setOnCheckedChangeListener { _, isChecked ->
+            if (!isHydratingUI) {
+                walletPrefs.edit().putBoolean("show_balance_trail", isChecked).apply()
             }
         }
     }
@@ -1023,6 +1048,7 @@ class SettingsActivity : AppCompatActivity() {
 
         // Card 3: Financial - Show Running Balance
         refreshShowRunningBalanceUI()
+        refreshShowBalanceTrailUI()
 
         // Card 3: Financial - Subscription Renewal Alerts
         binding.switchSubscriptionAlerts.setOnCheckedChangeListener(null)

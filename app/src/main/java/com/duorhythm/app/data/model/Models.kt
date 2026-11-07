@@ -87,10 +87,19 @@ data class TransactionItem(
     val notes: String = "",
     val bucketId: Long = 0,
     val balanceAfter: Double = 0.0
-)
+) {
+    val previousBalance: Double
+        get() = if (type == "INCOME") balanceAfter - amount else balanceAfter + amount
+
+    val endingBalance: Double
+        get() = balanceAfter
+}
 
 val TransactionItem.previousBalance: Double
     get() = if (type == "INCOME") balanceAfter - amount else balanceAfter + amount
+
+val TransactionItem.endingBalance: Double
+    get() = balanceAfter
 
 typealias Record = TransactionItem
 typealias TransactionRecord = TransactionItem
