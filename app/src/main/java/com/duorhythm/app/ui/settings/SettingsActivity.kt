@@ -202,6 +202,7 @@ class SettingsActivity : AppCompatActivity() {
             syncSwitchStates()
             refreshLeadTimesUI()
             updateBackupUI()
+            refreshBriefingScheduleSubtitle()
             isHydratingUI = false
         } catch (e: Exception) {
             e.printStackTrace()
@@ -219,6 +220,7 @@ class SettingsActivity : AppCompatActivity() {
         syncSwitchStates()
         syncAutoBackupState()
         updateBackupUI()
+        refreshBriefingScheduleSubtitle()
         isHydratingUI = false
     }
 
@@ -450,6 +452,13 @@ class SettingsActivity : AppCompatActivity() {
         binding.tvClientLeadSubtitle.text = AppPreferences.getOrderLeadHoursDisplayLabel(orderHours)
     }
 
+    private fun refreshBriefingScheduleSubtitle() {
+        try {
+            val nextSchedule = com.duorhythm.app.util.BriefingAlarmScheduler.getNextMorningSchedulePreview(this)
+            binding.tvBriefingScheduleSubtitle.text = "Next: $nextSchedule • AlarmClock Engine Active"
+        } catch (_: Exception) {}
+    }
+
     private fun showCustomLeadTimeDialog(isClassMode: Boolean) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_custom_lead_time, null)
         val tvTitle = dialogView.findViewById<TextView>(R.id.tvLeadDialogTitle)
@@ -588,6 +597,8 @@ class SettingsActivity : AppCompatActivity() {
             if (isMorning) {
                 AppPreferences.setMorningBriefingTime(this, formatted)
                 binding.tvMorningBriefingTime.text = formatted
+                com.duorhythm.app.util.BriefingAlarmScheduler.saveMorningTime(this, hour, minute)
+                refreshBriefingScheduleSubtitle()
             } else {
                 AppPreferences.setEveningBriefingTime(this, formatted)
                 binding.tvEveningBriefingTime.text = formatted

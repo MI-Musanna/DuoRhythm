@@ -286,6 +286,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        com.duorhythm.app.util.BriefingAlarmScheduler.scheduleDailyBriefings(this)
         if (::binding.isInitialized) {
             ensureOfficialAppLogo()
         }

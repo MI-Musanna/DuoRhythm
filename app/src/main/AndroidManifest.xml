@@ -278,6 +278,7 @@
         <!-- Daily Briefing Receiver (Modern Obsidian Dual-View) -->
         <receiver
             android:name=".receiver.DailyBriefingReceiver"
+            android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.duorhythm.app.ACTION_DAILY_BRIEFING_MODERN" />

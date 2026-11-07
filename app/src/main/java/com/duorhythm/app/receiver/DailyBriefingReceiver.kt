@@ -3,6 +3,7 @@ package com.duorhythm.app.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.PowerManager
 import com.duorhythm.app.util.BriefingAlarmScheduler
 import com.duorhythm.app.util.NotificationHelper
 import java.util.Calendar
@@ -10,31 +11,46 @@ import java.util.Calendar
 class DailyBriefingReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent?) {
-        val action = intent?.action
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+        val wakeLock = powerManager?.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "DuoRhythm:DailyBriefingExecutionWakeLock"
+        )
 
-        when (action) {
-            BriefingAlarmScheduler.ACTION_EVENING_BRIEFING -> {
-                // 8:00 PM Evening Briefing (Previews Tomorrow's Schedule)
-                NotificationHelper.showUnifiedDailyBriefing(context, isEveningReview = true)
+        // Hold CPU awake for up to 45 seconds to guarantee DB queries & notification render finish
+        wakeLock?.acquire(45_000L)
+
+        try {
+            val action = intent?.action
+
+            when (action) {
+                BriefingAlarmScheduler.ACTION_MORNING_BRIEFING -> {
+                    // Morning Briefing for Today
+                    NotificationHelper.showUnifiedDailyBriefing(context, isEveningReview = false)
+                }
+                BriefingAlarmScheduler.ACTION_EVENING_BRIEFING -> {
+                    // Evening Review for Tomorrow
+                    NotificationHelper.showUnifiedDailyBriefing(context, isEveningReview = true)
+                }
+                Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON" -> {
+                    BriefingAlarmScheduler.scheduleDailyBriefings(context)
+                    return
+                }
+                else -> {
+                    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                    val isEvening = hour >= 18
+                    NotificationHelper.showUnifiedDailyBriefing(context, isEveningReview = isEvening)
+                }
             }
-            BriefingAlarmScheduler.ACTION_MORNING_BRIEFING -> {
-                // 6:00 AM Morning Briefing (Shows Today's Routine)
-                NotificationHelper.showUnifiedDailyBriefing(context, isEveningReview = false)
-            }
-            Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON" -> {
-                // Device rebooted -> Reschedule alarms
-                BriefingAlarmScheduler.scheduleDailyBriefings(context)
-                return
-            }
-            else -> {
-                // Fallback check based on system clock
-                val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-                val isEvening = hour >= 18
-                NotificationHelper.showUnifiedDailyBriefing(context, isEveningReview = isEvening)
+
+            // Always reschedule the next cycle
+            BriefingAlarmScheduler.scheduleDailyBriefings(context)
+        } finally {
+            if (wakeLock?.isHeld == true) {
+                try {
+                    wakeLock.release()
+                } catch (_: Exception) {}
             }
         }
-
-        // Always reschedule to ensure the alarm cycle never dies
-        BriefingAlarmScheduler.scheduleDailyBriefings(context)
     }
 }
