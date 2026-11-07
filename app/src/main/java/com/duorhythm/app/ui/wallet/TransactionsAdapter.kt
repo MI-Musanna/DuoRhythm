@@ -30,6 +30,8 @@ class TransactionsAdapter(
     private val onEditClick: ((TransactionItem) -> Unit)? = null
 ) : RecyclerView.Adapter<TransactionsAdapter.TxViewHolder>() {
 
+    var currentAccountBalance: Double = 0.0
+
     fun updateData(
         newTransactions: List<TransactionItem>,
         newCards: Map<Long, CardItem>,
@@ -37,7 +39,8 @@ class TransactionsAdapter(
         newRate: Double = currencyRate,
         newRunningBalances: Map<Long, Double> = runningBalanceMap,
         newShowRunningBalance: Boolean = showRunningBalance,
-        newCurrencyCode: String = currencyCode
+        newCurrencyCode: String = currencyCode,
+        newCurrentAccountBalance: Double = currentAccountBalance
     ) {
         transactions = newTransactions
         cardsMap = newCards
@@ -46,6 +49,7 @@ class TransactionsAdapter(
         runningBalanceMap = newRunningBalances
         showRunningBalance = newShowRunningBalance
         currencyCode = newCurrencyCode
+        currentAccountBalance = newCurrentAccountBalance
         notifyDataSetChanged()
     }
 
@@ -59,33 +63,45 @@ class TransactionsAdapter(
         holder.bind(item)
         AnimationUtils.animateItemEntry(holder.itemView, position)
 
-        // BIND RUNNING BALANCE TRAIL (IF ENABLED IN SETTINGS)
+        // DYNAMIC RUNNING LEDGER ENGINE: Reconstructs exact balance trails mathematically
         try {
             val walletPrefs = holder.itemView.context.getSharedPreferences("duorhythm_wallet_prefs", android.content.Context.MODE_PRIVATE)
             val showTrail = walletPrefs.getBoolean("show_balance_trail", true)
-
             val tvTrail = holder.itemView.findViewById<android.widget.TextView>(com.duorhythm.app.R.id.tvBalanceTrail)
+
             if (tvTrail != null) {
                 if (showTrail) {
-                    val prevBal = item.previousBalance
-                    val endBal = item.endingBalance
+                    tvTrail.visibility = android.view.View.VISIBLE
 
-                    if (prevBal != null && endBal != null && (prevBal > 0 || endBal > 0)) {
-                        tvTrail.visibility = android.view.View.VISIBLE
-                        val prefix = if (item.type.equals("INCOME", ignoreCase = true)) "+" else "-"
-                        tvTrail.text = String.format(java.util.Locale.US, "৳%.0f ➔ ৳%.0f", prevBal, endBal)
-                        tvTrail.setTextColor(android.graphics.Color.parseColor("#64748B"))
+                    // Compute dynamic running balance if not explicitly tracked
+                    val isIncome = item.type.equals("INCOME", ignoreCase = true)
+                    val currentItemAmt = item.amount
+
+                    // Resolve verified pre & post amounts
+                    val prevBal: Double
+                    val endBal: Double
+
+                    if (item.previousBalance > 0.0 && item.endingBalance > 0.0) {
+                        prevBal = item.previousBalance
+                        endBal = item.endingBalance
                     } else {
-                        // Fallback computation if records were created before column logging
-                        val amt = item.amount
-                        if (item.type.equals("INCOME", ignoreCase = true)) {
-                            tvTrail.visibility = android.view.View.VISIBLE
-                            tvTrail.text = String.format(java.util.Locale.US, "Base +৳%.0f", amt)
-                        } else {
-                            tvTrail.visibility = android.view.View.VISIBLE
-                            tvTrail.text = String.format(java.util.Locale.US, "Base -৳%.0f", amt)
+                        // Calculate backward using account's live balance and item offsets
+                        var running = currentAccountBalance
+                        for (i in 0 until position) {
+                            val tx = transactions[i]
+                            if (tx.type.equals("INCOME", ignoreCase = true)) {
+                                running -= tx.amount
+                            } else {
+                                running += tx.amount
+                            }
                         }
+                        endBal = running
+                        prevBal = if (isIncome) endBal - currentItemAmt else endBal + currentItemAmt
                     }
+
+                    // Format clean visual ledger trail (Zero 'Base +' garbage)
+                    tvTrail.text = String.format(java.util.Locale.US, "৳%,.0f ➔ ৳%,.0f", prevBal, endBal)
+                    tvTrail.setTextColor(if (isIncome) android.graphics.Color.parseColor("#38BDF8") else android.graphics.Color.parseColor("#94A3B8"))
                 } else {
                     tvTrail.visibility = android.view.View.GONE
                 }

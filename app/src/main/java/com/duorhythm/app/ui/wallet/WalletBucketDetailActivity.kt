@@ -150,6 +150,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 showEditTransactionDialog(tx)
             }
         )
+        transactionsAdapter.currentAccountBalance = currentBucket?.balance ?: 0.0
         binding.rvBucketTransactions.layoutManager = LinearLayoutManager(this)
         binding.rvBucketTransactions.adapter = transactionsAdapter
         AnimationUtils.applySlideUpLayoutAnimation(binding.rvBucketTransactions)
@@ -414,6 +415,9 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             finish()
             return
         }
+        if (::transactionsAdapter.isInitialized) {
+            transactionsAdapter.currentAccountBalance = bucket.balance
+        }
 
         val parsedColor = try {
             Color.parseColor(bucket.colorHex)
@@ -577,6 +581,8 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             filtered = filtered.filter { it.category.equals(catFilter, ignoreCase = true) }
         }
 
+        val liveBalance = currentBucket?.balance ?: 0.0
+        transactionsAdapter.currentAccountBalance = liveBalance
         transactionsAdapter.updateData(
             newTransactions = filtered,
             newCards = emptyMap(),
@@ -584,7 +590,8 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             newRate = 1.0,
             newRunningBalances = cachedRunningBalances,
             newShowRunningBalance = AppSettings.isShowRunningBalanceEnabled(this),
-            newCurrencyCode = currentCurrency
+            newCurrencyCode = currentCurrency,
+            newCurrentAccountBalance = liveBalance
         )
 
         if (filtered.isEmpty()) {
