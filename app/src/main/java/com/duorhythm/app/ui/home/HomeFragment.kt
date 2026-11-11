@@ -277,6 +277,19 @@ class HomeFragment : Fragment() {
     private fun updateWorkspaceThemeAndFeed(isWorkMode: Boolean) {
         if (_binding == null || !isAdded) return
         val context = context ?: return
+
+        // SLIDING PILL SMOOTH MOTION
+        try {
+            val toggleGroup = binding.btnStudentMode.parent as? android.view.ViewGroup
+            if (toggleGroup != null) {
+                val transition = androidx.transition.ChangeBounds().apply {
+                    duration = 240L
+                    interpolator = android.view.animation.DecelerateInterpolator()
+                }
+                androidx.transition.TransitionManager.beginDelayedTransition(toggleGroup, transition)
+            }
+        } catch (_: Exception) {}
+
         val db = DatabaseHelper.getInstance(context)
         val profileId = ProfileManager.getActiveProfileId()
 
@@ -462,6 +475,12 @@ class HomeFragment : Fragment() {
     private fun setupListeners() {
         try {
             val mainActivity = activity as? MainActivity
+
+            try {
+                com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnStudentMode)
+                com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnWorkMode)
+                com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnStudyPortal)
+            } catch (_: Exception) {}
 
             binding.btnStudentMode.setOnClickListener {
                 mainActivity?.applyWorkspaceColorTheme(false)

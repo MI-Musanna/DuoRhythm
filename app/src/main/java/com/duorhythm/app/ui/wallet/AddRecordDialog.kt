@@ -161,6 +161,13 @@ class AddRecordDialog(
             handleSaveTransaction(dialog, buckets, currentCurrency)
         }
 
+        try {
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(dialogBinding.btnSaveTx)
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(dialogBinding.btnTypeIncome)
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(dialogBinding.btnTypeExpense)
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(dialogBinding.btnTypeTransfer)
+        } catch (_: Exception) {}
+
         alertDialog = dialog
         return dialog
     }
@@ -245,6 +252,17 @@ class AddRecordDialog(
     }
 
     private fun applyToggleStyles(binding: DialogAddTransactionBinding, mode: String) {
+        try {
+            val pillContainer = binding.btnTypeIncome.parent as? android.view.ViewGroup
+            if (pillContainer != null) {
+                val transition = androidx.transition.ChangeBounds().apply {
+                    duration = 200L
+                    interpolator = android.view.animation.DecelerateInterpolator()
+                }
+                androidx.transition.TransitionManager.beginDelayedTransition(pillContainer, transition)
+            }
+        } catch (_: Exception) {}
+
         val selectedGreen = Color.parseColor("#10B981")
         val selectedRed = Color.parseColor("#EF4444")
         val selectedPurple = Color.parseColor("#8B5CF6")

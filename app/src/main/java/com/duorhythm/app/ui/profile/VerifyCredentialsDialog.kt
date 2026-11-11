@@ -101,6 +101,8 @@ class VerifyCredentialsDialog() : DialogFragment() {
 
                 val enteredHash = ProfileManager.hashPassword(enteredPassword)
                 if (enteredPassword != profile.password && enteredHash != profile.passwordHash) {
+                    com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.layoutLoginPassword)
+                    com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.etLoginPassword)
                     Toast.makeText(act, "Incorrect password", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -174,6 +176,8 @@ class VerifyCredentialsDialog() : DialogFragment() {
 
                 val enteredHash = ProfileManager.hashPassword(enteredPassword)
                 if (enteredPassword != profile.password && enteredHash != profile.passwordHash) {
+                    com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.layoutLoginPassword)
+                    com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.etLoginPassword)
                     Toast.makeText(act, "Incorrect password", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }

@@ -79,6 +79,11 @@ class CreateWorkOrderDialogFragment : DialogFragment() {
 
         setupLineItemAdder()
 
+        try {
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnSubmitWorkOrder)
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnAddLineItem)
+        } catch (_: Exception) {}
+
         editingOrder?.let { order ->
             binding.tvWorkOrderDialogTitle.text = "Edit Work / Print Order"
             binding.btnSubmitWorkOrder.text = "UPDATE WORK ORDER"

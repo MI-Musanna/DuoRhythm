@@ -510,6 +510,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupTopQuickActions() {
+        try {
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnQuickTools)
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnQuickSettings)
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnQuickProfile)
+            com.duorhythm.app.util.ViewAnimationExtensions.addSpringPressEffect(binding.btnQuickPomodoro)
+        } catch (_: Exception) {}
+
         binding.btnQuickTools.setOnClickListener {
             if (isToolsActive) {
                 closeTools()
