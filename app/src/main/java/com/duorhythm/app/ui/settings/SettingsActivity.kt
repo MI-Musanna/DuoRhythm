@@ -1037,8 +1037,8 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchClassDnd.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
             backupPrefs.edit().putBoolean("pref_class_dnd_enabled", isChecked).apply()
-            if (isChecked && !SmartAutomationManager.isNotificationPolicyAccessGranted(this)) {
-                PermissionRationaleDialogs.showDndRationale(this)
+            if (isChecked) {
+                com.duorhythm.app.util.ClassSessionNotificationManager.checkAndPromptDndPermission(this)
             }
             SmartAutomationManager.setAutoSilentClassesEnabled(this, isChecked)
             AlarmSyncManager.resyncAll(this)

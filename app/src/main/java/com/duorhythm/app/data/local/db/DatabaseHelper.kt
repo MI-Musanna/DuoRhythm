@@ -19,6 +19,8 @@ import java.util.Locale
 class DatabaseHelper private constructor(private val appContext: Context) :
     SQLiteOpenHelper(appContext.applicationContext, DATABASE_NAME, null, DATABASE_VERSION) {
 
+    val context: Context get() = appContext
+
     companion object {
         const val DATABASE_NAME = "lifesync.db"
         const val DATABASE_VERSION = 9
@@ -3136,7 +3138,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
         // Auto add to attendance if not already present
         ensureSubjectAttendance(item.subjectName)
-        return db.insertWithOnConflict("classes", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val res = db.insertWithOnConflict("classes", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        try {
+            com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
+        } catch (_: Exception) {}
+        return res
     }
 
     fun updateClassSchedule(item: ClassScheduleItem): Int {
@@ -3152,13 +3158,25 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("class_type", item.classType)
             put("building_or_link", item.buildingOrLink)
         }
-        return db.update("classes", cv, "id = ?", arrayOf(item.id.toString()))
+        val res = db.update("classes", cv, "id = ?", arrayOf(item.id.toString()))
+        try {
+            com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
+        } catch (_: Exception) {}
+        return res
     }
 
     fun deleteClassSchedule(id: Long): Int {
         val db = writableDatabase
-        return db.delete("classes", "id = ?", arrayOf(id.toString()))
+        val res = db.delete("classes", "id = ?", arrayOf(id.toString()))
+        try {
+            com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
+        } catch (_: Exception) {}
+        return res
     }
+
+    fun insertClass(classEntity: ClassScheduleItem): Long = insertClassSchedule(classEntity)
+    fun updateClass(classEntity: ClassScheduleItem): Int = updateClassSchedule(classEntity)
+    fun deleteClass(id: Long): Int = deleteClassSchedule(id)
 
     fun getAllAttendance(): List<SubjectAttendanceItem> {
         val list = mutableListOf<SubjectAttendanceItem>()

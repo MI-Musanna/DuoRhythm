@@ -106,17 +106,8 @@ class ClassEndReceiver : BroadcastReceiver() {
             // 2. Cancel previous class DND notification
             nm?.cancel(30101)
 
-            // 3. Post standard restored notification
-            val restoredNotif = NotificationCompat.Builder(context, SmartAutomationManager.CHANNEL_DND)
-                .setSmallIcon(R.drawable.ic_schedule)
-                .setContentTitle("Class Ended: $subjectName")
-                .setContentText("Normal sound profile restored.")
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setAutoCancel(true)
-                .setTimeoutAfter(8000)
-                .build()
-
-            nm?.notify(30102, restoredNotif)
+            // 3. Post standard restored notification via ClassSessionNotificationManager
+            com.duorhythm.app.util.ClassSessionNotificationManager.endLiveClassSession(context, subjectName)
         }
 
         // Reschedule for next week's occurrence

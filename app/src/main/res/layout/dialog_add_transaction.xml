@@ -5,7 +5,8 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_dialog_glass"
     android:isScrollContainer="true"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -197,6 +198,8 @@
                 android:id="@+id/etTxTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="52dp"
+                android:paddingVertical="12dp"
                 android:completionThreshold="1" />
         </com.google.android.material.textfield.TextInputLayout>
 

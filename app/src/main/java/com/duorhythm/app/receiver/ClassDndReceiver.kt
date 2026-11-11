@@ -60,17 +60,12 @@ class ClassDndReceiver : BroadcastReceiver() {
                     } catch (_: Exception) {}
                 }
 
-                // Show subtle status notification
-                SmartAutomationManager.createNotificationChannels(context)
-                val notif = NotificationCompat.Builder(context, SmartAutomationManager.CHANNEL_DND)
-                    .setSmallIcon(R.drawable.ic_schedule)
-                    .setContentTitle("Auto-Silent: $subjectName")
-                    .setContentText("Device muted for lecture${if (endTime.isNotBlank()) " until $endTime" else ""}.")
-                    .setPriority(NotificationCompat.PRIORITY_LOW)
-                    .setAutoCancel(true)
-                    .build()
-
-                nm?.notify(30101, notif)
+                val classEntity = com.duorhythm.app.data.local.entity.ClassEntity(
+                    id = if (classId > 0) classId else 0L,
+                    subjectName = subjectName,
+                    endTime = endTime
+                )
+                com.duorhythm.app.util.ClassSessionNotificationManager.startLiveClassSession(context, classEntity)
             }
 
             ACTION_CLASS_END -> {

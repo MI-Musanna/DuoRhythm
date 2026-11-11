@@ -181,7 +181,10 @@ data class ClassScheduleItem(
     val roomNo: String = room
 ) {
     val displayTeacherName: String get() = if (teacherName.isNotBlank()) teacherName else teacher
+    val instructor: String get() = displayTeacherName
 }
+
+val ClassScheduleItem.instructor: String get() = displayTeacherName
 
 typealias ClassEntity = ClassScheduleItem
 typealias AssessmentEntity = database.entities.AssessmentEntity

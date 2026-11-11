@@ -67,7 +67,7 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
                 val todayStr = todaySdf.format(Date())
 
                 // ==========================================
-                // 1. LEFT COLUMN: TODAY'S CLASSES
+                // 1. LEFT COLUMN: TODAY'S CLASSES / TOMORROW ROLLOVER
                 // ==========================================
                 val isoDay = when (cal.get(Calendar.DAY_OF_WEEK)) {
                     Calendar.MONDAY -> 1
@@ -80,20 +80,38 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
                     else -> 1
                 }
 
+                // SMART ROLLOVER ENGINE: Only rollover to tomorrow IF all today's classes ended
+                val nowMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
                 val todayClasses = db.getClassesForIsoDay(profileId, isoDay)
-                val dayName = SimpleDateFormat("EEEE", Locale.ENGLISH).format(Date()).uppercase()
-                views.setTextViewText(R.id.tvWidgetDayHeader, "TODAY • $dayName")
 
-                if (todayClasses.isNotEmpty()) {
-                    val class1 = todayClasses[0]
+                val activeOrUpcomingToday = todayClasses.filter {
+                    val endMins = parseTimeToMinutes(it.endTime)
+                    endMins >= nowMinutes
+                }
+
+                val isTomorrow = todayClasses.isNotEmpty() && activeOrUpcomingToday.isEmpty()
+                val targetIsoDay = if (isTomorrow) (if (isoDay == 7) 1 else isoDay + 1) else isoDay
+                val displayClasses = if (isTomorrow) db.getClassesForIsoDay(profileId, targetIsoDay) else activeOrUpcomingToday.ifEmpty { todayClasses }
+
+                val headerPrefix = if (isTomorrow) "TOMORROW" else "TODAY"
+                val targetDayName = if (isTomorrow) {
+                    val nextCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+                    SimpleDateFormat("EEEE", Locale.ENGLISH).format(nextCal.time).uppercase()
+                } else {
+                    SimpleDateFormat("EEEE", Locale.ENGLISH).format(Date()).uppercase()
+                }
+                views.setTextViewText(R.id.tvWidgetDayHeader, "$headerPrefix • $targetDayName")
+
+                if (displayClasses.isNotEmpty()) {
+                    val class1 = displayClasses[0]
                     views.setViewVisibility(R.id.cardWidgetClass1, View.VISIBLE)
-                    views.setTextViewText(R.id.tvClass1Badge, "NEXT UP")
+                    views.setTextViewText(R.id.tvClass1Badge, if (isTomorrow) "TOMORROW" else "NEXT UP")
                     views.setTextViewText(R.id.tvClass1Title, class1.subjectName)
                     views.setTextViewText(R.id.tvClass1Time, "${class1.startTime} - ${class1.endTime}")
                     views.setTextViewText(R.id.tvClass1Room, "R:${class1.roomNo}")
 
-                    if (todayClasses.size > 1) {
-                        val class2 = todayClasses[1]
+                    if (displayClasses.size > 1) {
+                        val class2 = displayClasses[1]
                         views.setViewVisibility(R.id.cardWidgetClass2, View.VISIBLE)
                         views.setTextViewText(R.id.tvClass2Badge, "UPCOMING")
                         views.setTextViewText(R.id.tvClass2Title, class2.subjectName)
@@ -174,6 +192,10 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
                     views.setTextColor(badgeViewId, Color.parseColor("#EF4444"))
                 }
             }
+        }
+
+        private fun parseTimeToMinutes(timeStr: String): Int {
+            return AcademicHubWidget.parseTimeToMinutes(timeStr)
         }
     }
 }

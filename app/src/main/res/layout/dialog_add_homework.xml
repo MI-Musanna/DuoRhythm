@@ -56,6 +56,8 @@
             android:id="@+id/etTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="52dp"
+            android:paddingVertical="12dp"
             android:textColor="?attr/colorOnSurface"
             android:textColorHint="?android:attr/textColorSecondary" />
     </com.google.android.material.textfield.TextInputLayout>

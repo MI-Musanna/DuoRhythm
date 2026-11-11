@@ -150,18 +150,19 @@ class ClassAlarmReceiver : BroadcastReceiver() {
 
         val subjectName = intent.getStringExtra(AlarmSyncManager.EXTRA_SUBJECT_NAME) ?: "Class"
         val room = intent.getStringExtra(AlarmSyncManager.EXTRA_ROOM) ?: ""
-        val roomText = if (room.isNotBlank()) " in Room $room" else ""
+        val startTime = intent.getStringExtra(AlarmSyncManager.EXTRA_START_TIME) ?: ""
+        val endTime = intent.getStringExtra(AlarmSyncManager.EXTRA_END_TIME) ?: ""
+        val classId = intent.getLongExtra(AlarmSyncManager.EXTRA_CLASS_ID, -1L)
 
-        val dndNotification = NotificationCompat.Builder(context, SmartAutomationManager.CHANNEL_DND)
-            .setSmallIcon(R.drawable.ic_schedule)
-            .setContentTitle("Lecture in Session: $subjectName")
-            .setContentText("Device set to silent mode$roomText.")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
-            .setAutoCancel(false)
-            .build()
-
-        nm?.notify(30101, dndNotification)
+        val classEntity = com.duorhythm.app.data.local.entity.ClassEntity(
+            id = if (classId > 0) classId else 0L,
+            subjectName = subjectName,
+            room = room,
+            roomNo = room,
+            startTime = startTime,
+            endTime = endTime
+        )
+        com.duorhythm.app.util.ClassSessionNotificationManager.startLiveClassSession(context, classEntity)
     }
 
     private fun handleClassEnd(context: Context, intent: Intent) {
@@ -232,16 +233,7 @@ class ClassAlarmReceiver : BroadcastReceiver() {
 
             nm?.cancel(30101)
 
-            val restoredNotif = NotificationCompat.Builder(context, SmartAutomationManager.CHANNEL_DND)
-                .setSmallIcon(R.drawable.ic_schedule)
-                .setContentTitle("Class Ended: $subjectName")
-                .setContentText("Normal sound profile restored.")
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setAutoCancel(true)
-                .setTimeoutAfter(8000)
-                .build()
-
-            nm?.notify(30102, restoredNotif)
+            com.duorhythm.app.util.ClassSessionNotificationManager.endLiveClassSession(context, subjectName)
         }
 
         // Reschedule class alarms for next week's occurrence
