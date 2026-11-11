@@ -372,3 +372,15 @@ class AddRecordDialog(
         }
     }
 }
+
+val com.duorhythm.app.databinding.DialogAddTransactionBinding.etTransactionTitle: com.google.android.material.textfield.MaterialAutoCompleteTextView
+    get() = etTxTitle
+
+val com.duorhythm.app.databinding.DialogAddTransactionBinding.tilTxTitle: com.google.android.material.textfield.TextInputLayout
+    get() = tilTransactionTitle
+
+val com.duorhythm.app.databinding.DialogAddTransactionBinding.etNotes: com.google.android.material.textfield.TextInputEditText
+    get() = etTxNotes
+
+val com.duorhythm.app.databinding.DialogAddTransactionBinding.tilTxNotes: com.google.android.material.textfield.TextInputLayout
+    get() = tilNotes

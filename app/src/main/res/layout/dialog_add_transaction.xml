@@ -186,29 +186,39 @@
             android:layout_height="0dp"
             android:visibility="gone" />
 
-        <!-- 4. Optional Title / Description -->
+        <!-- 4. Perfectly Styled Outlined Title Field with AutoComplete -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilTransactionTitle"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="Title (Optional - defaults to Category)">
+            android:layout_marginTop="12dp"
+            android:hint="Title (Optional - defaults to Category)"
+            app:boxStrokeColor="#00E5FF"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="1.5dp"
+            app:hintTextColor="#00E5FF">
 
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:id="@+id/etTxTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="52dp"
-                android:paddingVertical="12dp"
+                android:minHeight="54dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="14dp"
+                android:inputType="textCapSentences"
+                android:textColor="#F8FAFC"
+                android:textSize="14sp"
                 android:completionThreshold="1" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 5. Optional Notes -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNotes"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:hint="Notes (Optional)">
 
             <com.google.android.material.textfield.TextInputEditText
