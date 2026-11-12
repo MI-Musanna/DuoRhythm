@@ -99,6 +99,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         val act = activity ?: return
         dbHelper = DatabaseHelper.getInstance(act)
         dbHelper.ensureDefaultProfileIfEmpty()

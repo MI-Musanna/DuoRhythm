@@ -34,6 +34,7 @@ class ExportHistoryBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
 
         adapter = ExportHistoryAdapter(
             onItemClick = { file -> openFile(file) },

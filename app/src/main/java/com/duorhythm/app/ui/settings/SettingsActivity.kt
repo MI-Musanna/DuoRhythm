@@ -189,6 +189,7 @@ class SettingsActivity : AppCompatActivity() {
             window.setBackgroundDrawableResource(R.drawable.bg_ambient_canvas)
             binding = ActivitySettingsBinding.inflate(layoutInflater)
             setContentView(binding.root)
+            com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(binding.root)
 
             dbHelper = DatabaseHelper.getInstance(this)
 
@@ -937,11 +938,11 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.btnTestNotificationNow.setOnClickListener {
-            com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(this, isEveningReview = false)
+            com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(this, isEveningReview = false, isManualTest = true)
             android.widget.Toast.makeText(this, "Morning Briefing Fired! Pull down notification shade.", android.widget.Toast.LENGTH_SHORT).show()
         }
         binding.btnTestNotificationNow.setOnLongClickListener {
-            com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(this, isEveningReview = true)
+            com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(this, isEveningReview = true, isManualTest = true)
             android.widget.Toast.makeText(this, "Evening Review (Tomorrow's Preview) Fired!", android.widget.Toast.LENGTH_SHORT).show()
             true
         }

@@ -69,6 +69,7 @@ class ScheduleAssessmentDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         val context = requireContext()
         val db = DatabaseHelper.getInstance(context)
         val profileId = ProfileManager.getActiveProfileId()

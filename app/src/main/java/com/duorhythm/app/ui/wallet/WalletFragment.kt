@@ -98,6 +98,7 @@ class WalletFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         if (_binding == null) return
         try {
             dbHelper = DatabaseHelper.getInstance(requireContext())

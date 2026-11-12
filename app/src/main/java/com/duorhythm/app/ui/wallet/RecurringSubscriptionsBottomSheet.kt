@@ -72,6 +72,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         val context = requireContext()
         dbHelper = DatabaseHelper.getInstance(context)
         repository = SubscriptionRepository(context)

@@ -34,6 +34,7 @@ class ExportScheduleBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
 
         val profileId = ProfileManager.getActiveProfileId()
         val db = DatabaseHelper.getInstance(requireContext())

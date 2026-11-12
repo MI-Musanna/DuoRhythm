@@ -61,6 +61,7 @@ class CreateWorkOrderDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
 
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         binding.etOrderStartDate.setText(today)

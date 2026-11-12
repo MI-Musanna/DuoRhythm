@@ -59,6 +59,7 @@ class ScheduleFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         try {
             dbHelper = DatabaseHelper.getInstance(requireContext())
             timetableRepository = TimetableRepository(requireContext())

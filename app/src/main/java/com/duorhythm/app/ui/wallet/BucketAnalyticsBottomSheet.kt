@@ -114,6 +114,7 @@ class BucketAnalyticsBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         binding.tvSheetTitle.text = "$bucketName Analytics"
         setupListeners()
         setupCharts()

@@ -4,13 +4,10 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Build
-import android.widget.Toast
 import com.duorhythm.app.receiver.DailyBriefingReceiver
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 object BriefingAlarmScheduler {
@@ -24,10 +21,7 @@ object BriefingAlarmScheduler {
 
     fun getUserConfiguredMorningTime(context: Context): Pair<Int, Int> {
         val prefs = context.getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
-        // Default to 6:00 AM if not customized
-        val hour = prefs.getInt(KEY_MORNING_HOUR, 6)
-        val minute = prefs.getInt(KEY_MORNING_MINUTE, 0)
-        return Pair(hour, minute)
+        return Pair(prefs.getInt(KEY_MORNING_HOUR, 6), prefs.getInt(KEY_MORNING_MINUTE, 0))
     }
 
     fun saveMorningTime(context: Context, hour: Int, minute: Int) {
@@ -40,28 +34,11 @@ object BriefingAlarmScheduler {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val (morningHour, morningMinute) = getUserConfiguredMorningTime(context)
 
-        // 1. Schedule Morning Briefing using OS AlarmClock (Punches through Deep Doze)
-        scheduleAlarmClock(
-            context = context,
-            alarmManager = alarmManager,
-            targetHour = morningHour,
-            targetMinute = morningMinute,
-            requestCode = 600,
-            action = ACTION_MORNING_BRIEFING
-        )
-
-        // 2. Schedule Evening Briefing at 08:00 PM (20:00)
-        scheduleAlarmClock(
-            context = context,
-            alarmManager = alarmManager,
-            targetHour = 20,
-            targetMinute = 0,
-            requestCode = 800,
-            action = ACTION_EVENING_BRIEFING
-        )
+        scheduleSingleExactAlarm(context, alarmManager, morningHour, morningMinute, 600, ACTION_MORNING_BRIEFING)
+        scheduleSingleExactAlarm(context, alarmManager, 20, 0, 800, ACTION_EVENING_BRIEFING)
     }
 
-    private fun scheduleAlarmClock(
+    private fun scheduleSingleExactAlarm(
         context: Context,
         alarmManager: AlarmManager,
         targetHour: Int,
@@ -77,8 +54,8 @@ object BriefingAlarmScheduler {
             set(Calendar.MILLISECOND, 0)
         }
 
-        // If time already passed today, rollover to tomorrow
-        if (alarmTime.before(now)) {
+        // Add buffer so opening the app right at 6:00:01 never triggers an immediate misfire
+        if (alarmTime.timeInMillis <= now.timeInMillis + 60_000L) {
             alarmTime.add(Calendar.DAY_OF_YEAR, 1)
         }
 
@@ -93,27 +70,21 @@ object BriefingAlarmScheduler {
         )
 
         try {
-            // SET ALARM CLOCK: Guarantees 100% wake-up from Deep Doze on all Android versions
-            val clockInfo = AlarmManager.AlarmClockInfo(alarmTime.timeInMillis, pendingIntent)
-            alarmManager.setAlarmClock(clockInfo, pendingIntent)
-        } catch (_: Exception) {
-            // High-reliability Fallback
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        alarmTime.timeInMillis,
-                        pendingIntent
-                    )
-                } else {
-                    alarmManager.setExact(
-                        AlarmManager.RTC_WAKEUP,
-                        alarmTime.timeInMillis,
-                        pendingIntent
-                    )
-                }
-            } catch (_: Exception) {}
-        }
+            alarmManager.cancel(pendingIntent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    alarmTime.timeInMillis,
+                    pendingIntent
+                )
+            } else {
+                alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    alarmTime.timeInMillis,
+                    pendingIntent
+                )
+            }
+        } catch (_: Exception) {}
     }
 
     fun getNextMorningSchedulePreview(context: Context): String {

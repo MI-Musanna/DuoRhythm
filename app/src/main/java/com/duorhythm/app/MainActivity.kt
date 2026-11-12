@@ -104,6 +104,7 @@ class MainActivity : AppCompatActivity() {
             window.setBackgroundDrawableResource(R.drawable.bg_ambient_canvas)
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
+            com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(binding.root)
         } catch (t: Throwable) {
             t.printStackTrace()
             return

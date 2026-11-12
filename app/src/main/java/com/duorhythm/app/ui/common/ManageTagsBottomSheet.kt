@@ -92,6 +92,7 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         dbHelper = DatabaseHelper.getInstance(requireContext())
         classTypeDao = dbHelper.classTypeDao
         assessmentCategoryDao = dbHelper.assessmentCategoryDao

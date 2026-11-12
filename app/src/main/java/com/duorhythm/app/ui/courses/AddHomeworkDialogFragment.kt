@@ -61,6 +61,7 @@ class AddHomeworkDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         if (binding.etStartDate.text.isNullOrBlank()) binding.etStartDate.setText(today)
         if (binding.etDueDate.text.isNullOrBlank()) binding.etDueDate.setText(today)
