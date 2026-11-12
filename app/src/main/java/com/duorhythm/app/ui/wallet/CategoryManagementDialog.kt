@@ -267,6 +267,7 @@ object CategoryManagementDialog {
 
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     data class CategoryFormData(

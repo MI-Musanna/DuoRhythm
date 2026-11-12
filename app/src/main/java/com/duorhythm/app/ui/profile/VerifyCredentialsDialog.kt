@@ -71,10 +71,10 @@ class VerifyCredentialsDialog() : DialogFragment() {
         }
 
         val fragAct = act as? androidx.fragment.app.FragmentActivity
-        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+        if (fragAct != null && com.duorhythm.app.security.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
             dialogBinding.btnQuickFingerprint.visibility = android.view.View.VISIBLE
             dialogBinding.btnQuickFingerprint.setOnClickListener {
-                com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                com.duorhythm.app.security.BiometricAuthHelper.promptBiometricAuth(
                     activity = fragAct,
                     title = "Confirm Identity",
                     subtitle = "Scan fingerprint to authorize",
@@ -146,10 +146,10 @@ class VerifyCredentialsDialog() : DialogFragment() {
         }
 
         val fragAct = act as? androidx.fragment.app.FragmentActivity
-        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+        if (fragAct != null && com.duorhythm.app.security.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
             dialogBinding.btnQuickFingerprint.visibility = android.view.View.VISIBLE
             dialogBinding.btnQuickFingerprint.setOnClickListener {
-                com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                com.duorhythm.app.security.BiometricAuthHelper.promptBiometricAuth(
                     activity = fragAct,
                     title = "Confirm Identity",
                     subtitle = "Scan fingerprint to authorize",
@@ -189,6 +189,7 @@ class VerifyCredentialsDialog() : DialogFragment() {
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     companion object {

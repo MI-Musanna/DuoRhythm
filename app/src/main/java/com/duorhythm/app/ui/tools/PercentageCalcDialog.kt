@@ -136,5 +136,6 @@ class PercentageCalcDialog(private val context: Context) {
         com.duorhythm.app.util.AnimationUtils.applyDialogAnimation(dialog)
         com.duorhythm.app.util.AnimationUtils.attachTactileFeedback(binding.btnDoCalculate)
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 }

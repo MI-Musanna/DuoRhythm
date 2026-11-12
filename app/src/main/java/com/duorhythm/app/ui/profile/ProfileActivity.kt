@@ -230,6 +230,7 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun showChangePasswordDialog() {
@@ -282,6 +283,7 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun showClearConfirmationDialog() {

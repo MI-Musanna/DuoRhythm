@@ -21,7 +21,7 @@ import java.util.Locale
 
 object NotificationHelper {
 
-    private const val CHANNEL_ID = "duorhythm_briefing_channel_v5"
+    private const val CHANNEL_ID = "duorhythm_briefing_channel_v6"
     private const val CHANNEL_NAME = "Daily Academic & Work Briefings"
     private const val NOTIF_ID_MORNING = 6001
     private const val NOTIF_ID_EVENING = 8001
@@ -36,7 +36,7 @@ object NotificationHelper {
         val guardPrefs = context.getSharedPreferences(PREFS_NOTIF_GUARD, Context.MODE_PRIVATE)
         val guardKey = if (isEveningReview) "last_evening_$todayStamp" else "last_morning_$todayStamp"
 
-        // Strict Deduplication Guard: Never fire twice on the same day unless manually tested
+        // Never auto-fire more than once per day (prevents 6:37 AM on-install misfires)
         if (!isManualTest && guardPrefs.getBoolean(guardKey, false)) {
             return
         }
@@ -57,7 +57,7 @@ object NotificationHelper {
                 CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Complete daily timetable, exams, and dues briefings"
+                description = "Full daily timetable, exams, and dues briefings"
                 setShowBadge(true)
                 enableLights(true)
                 lightColor = Color.parseColor("#00E5FF")
@@ -113,9 +113,8 @@ object NotificationHelper {
             "${classes.size} Classes • ${exams.size} Exams • ${dueSubs.size} Dues"
         }
 
-        // Build Full-Capacity BigTextStyle (Displays ALL classes + ALL exams + ALL bills with zero cutoff!)
+        // BigTextStyle displays ALL classes, exams, and dues without truncating at 5 lines
         val fullBody = StringBuilder()
-
         fullBody.append("CLASSES (${classes.size}):\n")
         if (classes.isEmpty()) {
             fullBody.append("• No classes scheduled\n")
@@ -127,7 +126,7 @@ object NotificationHelper {
             }
         }
 
-        fullBody.append("\nEXAMS & ASSESSMENTS (${exams.size}):\n")
+        fullBody.append("\nEXAMS (${exams.size}):\n")
         if (exams.isEmpty()) {
             fullBody.append("• No exams scheduled\n")
         } else {
@@ -137,7 +136,7 @@ object NotificationHelper {
             }
         }
 
-        fullBody.append("\nBILLS & SUBSCRIPTIONS (${dueSubs.size}):\n")
+        fullBody.append("\nBILLS & DUES (${dueSubs.size}):\n")
         if (dueSubs.isEmpty()) {
             fullBody.append("• All recurring bills clear")
         } else {

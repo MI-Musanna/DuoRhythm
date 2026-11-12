@@ -291,6 +291,7 @@ class TransactionCategoryHelper(
             .create()
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
         dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(Color.parseColor("#EF4444"))
     }
 }

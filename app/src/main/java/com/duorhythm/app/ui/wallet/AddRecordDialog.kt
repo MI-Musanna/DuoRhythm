@@ -175,6 +175,7 @@ class AddRecordDialog(
     fun show(): Dialog {
         val dialog = create()
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
         dialogBinding.etTxAmount.requestFocus()
         return dialog
     }

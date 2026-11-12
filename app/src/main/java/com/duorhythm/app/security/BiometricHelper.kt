@@ -148,8 +148,8 @@ object BiometricHelper {
         onSuccess: () -> Unit,
         onFallbackToPassword: () -> Unit
     ) {
-        if (com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(activity)) {
-            com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+        if (com.duorhythm.app.security.BiometricAuthHelper.isBiometricAvailable(activity)) {
+            com.duorhythm.app.security.BiometricAuthHelper.promptBiometricAuth(
                 activity = activity,
                 title = title,
                 subtitle = subtitle,

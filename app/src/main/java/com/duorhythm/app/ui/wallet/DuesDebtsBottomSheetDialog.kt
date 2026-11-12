@@ -262,6 +262,7 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
         dialogBinding.etDueAmount.requestFocus()
     }
 
@@ -344,6 +345,7 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun confirmDelete(item: DueDebtItem) {

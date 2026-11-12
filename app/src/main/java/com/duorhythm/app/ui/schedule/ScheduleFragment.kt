@@ -377,6 +377,7 @@ class ScheduleFragment : Fragment() {
             setDimAmount(0.65f)
         }
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun showEditClassDialog(classItem: ClassScheduleItem) {

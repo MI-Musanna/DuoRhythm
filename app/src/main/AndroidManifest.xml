@@ -269,18 +269,10 @@
         <!-- Daily Briefing & Subscription Exact Alarm Receiver -->
         <receiver
             android:name=".receiver.DailyBriefingAlarmReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.duorhythm.app.ACTION_DAILY_BRIEFING" />
-            </intent-filter>
-        </receiver>
-
-        <!-- Daily Briefing Receiver (Modern Obsidian Dual-View) -->
-        <receiver
-            android:name=".receiver.DailyBriefingReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_DAILY_BRIEFING" />
                 <action android:name="com.duorhythm.app.ACTION_DAILY_BRIEFING_MODERN" />
                 <action android:name="com.duorhythm.app.ACTION_MORNING_BRIEFING" />
                 <action android:name="com.duorhythm.app.ACTION_EVENING_BRIEFING" />

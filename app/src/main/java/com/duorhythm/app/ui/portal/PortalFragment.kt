@@ -815,6 +815,7 @@ class PortalFragment : Fragment() {
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun confirmDeleteOrder(order: ClientOrder) {
@@ -1029,6 +1030,7 @@ class PortalFragment : Fragment() {
             setDimAmount(0.65f)
         }
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun showEditContactDialog(contact: com.duorhythm.app.data.model.ContactGroupItem) {
@@ -1117,6 +1119,7 @@ class PortalFragment : Fragment() {
 
             dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
             dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
         } catch (e: Exception) {
             Log.e("DirectoryFragment", "Error showing dialog", e)
         }
@@ -1195,6 +1198,7 @@ class PortalFragment : Fragment() {
             setDimAmount(0.65f)
         }
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun showEditGroupLinkDialog(groupLink: com.duorhythm.app.data.model.ContactGroupItem) {
@@ -1267,6 +1271,7 @@ class PortalFragment : Fragment() {
             setDimAmount(0.65f)
         }
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun showAddSubjectDialog() {
@@ -1318,6 +1323,7 @@ class PortalFragment : Fragment() {
             setDimAmount(0.65f)
         }
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun saveOrderAttachmentFromUri(uri: Uri) {
@@ -1425,6 +1431,7 @@ class PortalFragment : Fragment() {
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     fun loadAcademicIdentity() {

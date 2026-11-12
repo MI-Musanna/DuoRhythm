@@ -69,6 +69,7 @@ class EditProfileDialog(
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     // PERSISTENT AVATAR STORAGE: Copies gallery stream directly into app private filesDir

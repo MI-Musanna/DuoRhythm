@@ -486,6 +486,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             setDimAmount(0.65f)
         }
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun saveAttachmentFromUri(uri: Uri) {

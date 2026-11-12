@@ -169,10 +169,10 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         }
 
         val fragAct = act as? FragmentActivity
-        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+        if (fragAct != null && com.duorhythm.app.security.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
             dialogBinding.btnQuickFingerprint.visibility = View.VISIBLE
             dialogBinding.btnQuickFingerprint.setOnClickListener {
-                com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+                com.duorhythm.app.security.BiometricAuthHelper.promptBiometricAuth(
                     activity = fragAct,
                     title = "Confirm Identity",
                     subtitle = "Scan fingerprint to authorize",
@@ -210,13 +210,14 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun handleSwitchWorkspace(profile: ProfileEntity) {
         val targetSlot = profile.slot
         val act = requireActivity()
-        if (com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(act)) {
-            com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+        if (com.duorhythm.app.security.BiometricAuthHelper.isBiometricAvailable(act)) {
+            com.duorhythm.app.security.BiometricAuthHelper.promptBiometricAuth(
                 activity = act,
                 title = "Switch Workspace Profile",
                 subtitle = "Scan fingerprint to switch to ${profile.name} instantly",
@@ -256,8 +257,8 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
     private fun handleEditProfile(profile: ProfileEntity) {
         val act = activity ?: return
         val fragAct = act as? FragmentActivity
-        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
-            com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+        if (fragAct != null && com.duorhythm.app.security.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+            com.duorhythm.app.security.BiometricAuthHelper.promptBiometricAuth(
                 activity = fragAct,
                 title = "Edit Profile",
                 subtitle = "Scan fingerprint to edit ${profile.name}",
@@ -365,13 +366,14 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun handleDeleteWorkspace(profile: ProfileEntity) {
         val act = activity ?: return
         val fragAct = act as? FragmentActivity
-        if (fragAct != null && com.duorhythm.app.util.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
-            com.duorhythm.app.util.BiometricAuthHelper.promptBiometricAuth(
+        if (fragAct != null && com.duorhythm.app.security.BiometricAuthHelper.isBiometricAvailable(fragAct)) {
+            com.duorhythm.app.security.BiometricAuthHelper.promptBiometricAuth(
                 activity = fragAct,
                 title = "Delete Workspace Slot ${profile.slotNumber}",
                 subtitle = "Confirm fingerprint to delete Workspace Slot ${profile.slotNumber}",
@@ -501,6 +503,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private data class SlotItem(

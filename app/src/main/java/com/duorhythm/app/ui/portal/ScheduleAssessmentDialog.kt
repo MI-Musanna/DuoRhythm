@@ -530,5 +530,6 @@ class ScheduleAssessmentDialog(
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 }

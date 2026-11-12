@@ -180,5 +180,6 @@ class EditClassDialog(
         }
 
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 }

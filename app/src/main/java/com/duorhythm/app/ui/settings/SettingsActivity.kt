@@ -480,7 +480,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshBriefingScheduleSubtitle() {
         try {
-            val nextSchedule = com.duorhythm.app.util.BriefingAlarmScheduler.getNextMorningSchedulePreview(this)
+            val nextSchedule = com.duorhythm.app.scheduler.BriefingAlarmScheduler.getNextMorningSchedulePreview(this)
             binding.tvBriefingScheduleSubtitle.text = "Next: $nextSchedule • AlarmClock Engine Active"
         } catch (_: Exception) {}
     }
@@ -623,12 +623,12 @@ class SettingsActivity : AppCompatActivity() {
             if (isMorning) {
                 AppPreferences.setMorningBriefingTime(this, formatted)
                 binding.tvMorningBriefingTime.text = formatted
-                com.duorhythm.app.util.BriefingAlarmScheduler.saveMorningTime(this, hour, minute)
+                com.duorhythm.app.scheduler.BriefingAlarmScheduler.saveMorningTime(this, hour, minute)
                 refreshBriefingScheduleSubtitle()
             } else {
                 AppPreferences.setEveningBriefingTime(this, formatted)
                 binding.tvEveningBriefingTime.text = formatted
-                com.duorhythm.app.util.BriefingAlarmScheduler.saveEveningTime(this, hour, minute)
+                com.duorhythm.app.scheduler.BriefingAlarmScheduler.saveEveningTime(this, hour, minute)
             }
             BriefingAlarmScheduler.resyncBriefings(this)
             Toast.makeText(this, "Briefing time updated to $formatted", Toast.LENGTH_SHORT).show()

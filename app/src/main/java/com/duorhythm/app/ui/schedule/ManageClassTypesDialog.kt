@@ -95,6 +95,7 @@ class ManageClassTypesDialog(
 
         reloadList()
         dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private class ClassTypesAdapter(

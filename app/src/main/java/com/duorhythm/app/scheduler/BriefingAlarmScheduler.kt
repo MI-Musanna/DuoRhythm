@@ -5,9 +5,8 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.duorhythm.app.automation.SmartAutomationManager
 import com.duorhythm.app.data.local.pref.AppPreferences
-import com.duorhythm.app.receiver.DailyAutomationReceiver
+import com.duorhythm.app.receiver.DailyBriefingAlarmReceiver
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -15,97 +14,112 @@ import java.util.Locale
 
 object BriefingAlarmScheduler {
 
+    const val ACTION_MORNING_BRIEFING = "com.duorhythm.app.ACTION_MORNING_BRIEFING"
+    const val ACTION_EVENING_BRIEFING = "com.duorhythm.app.ACTION_EVENING_BRIEFING"
+
     const val REQUEST_CODE_MORNING = 1001
     const val REQUEST_CODE_EVENING = 1002
 
-    fun resyncBriefings(context: Context) {
-        val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+    private const val PREFS_SETTINGS = "duorhythm_user_settings"
+    private const val KEY_MORNING_HOUR = "briefing_morning_hour"
+    private const val KEY_MORNING_MINUTE = "briefing_morning_minute"
+    private const val KEY_EVENING_HOUR = "briefing_evening_hour"
+    private const val KEY_EVENING_MINUTE = "briefing_evening_minute"
 
-        if (!SmartAutomationManager.isSmartBriefingsEnabled(context)) {
-            cancelAlarm(context, am, DailyAutomationReceiver.ACTION_MORNING_BRIEFING, REQUEST_CODE_MORNING)
-            cancelAlarm(context, am, DailyAutomationReceiver.ACTION_EVENING_BRIEFING, REQUEST_CODE_EVENING)
-            return
+    fun getUserConfiguredMorningTime(context: Context): Pair<Int, Int> {
+        val prefs = context.getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        if (prefs.contains(KEY_MORNING_HOUR) && prefs.contains(KEY_MORNING_MINUTE)) {
+            return Pair(prefs.getInt(KEY_MORNING_HOUR, 8), prefs.getInt(KEY_MORNING_MINUTE, 0))
         }
-
-        val morningTimeStr = AppPreferences.getMorningBriefingTime(context)
-        val eveningTimeStr = AppPreferences.getEveningBriefingTime(context)
-
-        val morningPair = parseTime(morningTimeStr) ?: Pair(8, 0)
-        val eveningPair = parseTime(eveningTimeStr) ?: Pair(20, 30)
-
-        scheduleDailyAlarm(
-            context,
-            am,
-            DailyAutomationReceiver.ACTION_MORNING_BRIEFING,
-            morningPair.first,
-            morningPair.second,
-            REQUEST_CODE_MORNING
-        )
-
-        scheduleDailyAlarm(
-            context,
-            am,
-            DailyAutomationReceiver.ACTION_EVENING_BRIEFING,
-            eveningPair.first,
-            eveningPair.second,
-            REQUEST_CODE_EVENING
-        )
+        val prefStr = AppPreferences.getMorningBriefingTime(context)
+        return parseTime(prefStr) ?: Pair(8, 0)
     }
 
-    fun scheduleMorningBriefing(context: Context) {
-        if (!SmartAutomationManager.isSmartBriefingsEnabled(context)) return
-        val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        val morningTimeStr = AppPreferences.getMorningBriefingTime(context)
-        val morningPair = parseTime(morningTimeStr) ?: Pair(8, 0)
-
-        scheduleDailyAlarm(
-            context,
-            am,
-            DailyAutomationReceiver.ACTION_MORNING_BRIEFING,
-            morningPair.first,
-            morningPair.second,
-            REQUEST_CODE_MORNING
-        )
+    fun getUserConfiguredEveningTime(context: Context): Pair<Int, Int> {
+        val prefs = context.getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        if (prefs.contains(KEY_EVENING_HOUR) && prefs.contains(KEY_EVENING_MINUTE)) {
+            return Pair(prefs.getInt(KEY_EVENING_HOUR, 20), prefs.getInt(KEY_EVENING_MINUTE, 0))
+        }
+        val prefStr = AppPreferences.getEveningBriefingTime(context)
+        return parseTime(prefStr) ?: Pair(20, 0)
     }
 
-    fun scheduleEveningBriefing(context: Context) {
-        if (!SmartAutomationManager.isSmartBriefingsEnabled(context)) return
-        val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        val eveningTimeStr = AppPreferences.getEveningBriefingTime(context)
-        val eveningPair = parseTime(eveningTimeStr) ?: Pair(20, 30)
+    fun saveMorningTime(context: Context, hour: Int, minute: Int) {
+        val prefs = context.getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        prefs.edit().putInt(KEY_MORNING_HOUR, hour).putInt(KEY_MORNING_MINUTE, minute).apply()
 
-        scheduleDailyAlarm(
-            context,
-            am,
-            DailyAutomationReceiver.ACTION_EVENING_BRIEFING,
-            eveningPair.first,
-            eveningPair.second,
-            REQUEST_CODE_EVENING
-        )
-    }
-
-    private fun scheduleDailyAlarm(
-        context: Context,
-        am: AlarmManager,
-        action: String,
-        hour: Int,
-        minute: Int,
-        requestCode: Int
-    ) {
         val cal = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
+        }
+        val formatted = SimpleDateFormat("hh:mm a", Locale.US).format(cal.time)
+        AppPreferences.setMorningBriefingTime(context, formatted)
+        scheduleDailyBriefings(context)
+    }
+
+    fun saveEveningTime(context: Context, hour: Int, minute: Int) {
+        val prefs = context.getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        prefs.edit().putInt(KEY_EVENING_HOUR, hour).putInt(KEY_EVENING_MINUTE, minute).apply()
+
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+        }
+        val formatted = SimpleDateFormat("hh:mm a", Locale.US).format(cal.time)
+        AppPreferences.setEveningBriefingTime(context, formatted)
+        scheduleDailyBriefings(context)
+    }
+
+    fun scheduleDailyBriefings(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val (mHour, mMinute) = getUserConfiguredMorningTime(context)
+        val (eHour, eMinute) = getUserConfiguredEveningTime(context)
+
+        scheduleSingleExactAlarm(context, alarmManager, mHour, mMinute, REQUEST_CODE_MORNING, ACTION_MORNING_BRIEFING)
+        scheduleSingleExactAlarm(context, alarmManager, eHour, eMinute, REQUEST_CODE_EVENING, ACTION_EVENING_BRIEFING)
+    }
+
+    fun resyncBriefings(context: Context) {
+        scheduleDailyBriefings(context)
+    }
+
+    fun scheduleMorningBriefing(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val (mHour, mMinute) = getUserConfiguredMorningTime(context)
+        scheduleSingleExactAlarm(context, alarmManager, mHour, mMinute, REQUEST_CODE_MORNING, ACTION_MORNING_BRIEFING)
+    }
+
+    fun scheduleEveningBriefing(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val (eHour, eMinute) = getUserConfiguredEveningTime(context)
+        scheduleSingleExactAlarm(context, alarmManager, eHour, eMinute, REQUEST_CODE_EVENING, ACTION_EVENING_BRIEFING)
+    }
+
+    private fun scheduleSingleExactAlarm(
+        context: Context,
+        alarmManager: AlarmManager,
+        targetHour: Int,
+        targetMinute: Int,
+        requestCode: Int,
+        action: String
+    ) {
+        val now = Calendar.getInstance()
+        val alarmTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, targetHour)
+            set(Calendar.MINUTE, targetMinute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        if (cal.timeInMillis <= System.currentTimeMillis()) {
-            cal.add(Calendar.DAY_OF_YEAR, 1)
+
+        // Strictly schedule for the FUTURE (tomorrow if today's slot has already passed)
+        if (alarmTime.timeInMillis <= now.timeInMillis + 30_000L) {
+            alarmTime.add(Calendar.DAY_OF_YEAR, 1)
         }
 
-        val intent = Intent(context, DailyAutomationReceiver::class.java).apply {
+        val intent = Intent(context, DailyBriefingAlarmReceiver::class.java).apply {
             this.action = action
         }
-        val pi = PendingIntent.getBroadcast(
+        val pendingIntent = PendingIntent.getBroadcast(
             context,
             requestCode,
             intent,
@@ -113,33 +127,40 @@ object BriefingAlarmScheduler {
         )
 
         try {
+            alarmManager.cancel(pendingIntent)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    alarmTime.timeInMillis,
+                    pendingIntent
+                )
             } else {
-                am.setExact(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
+                alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    alarmTime.timeInMillis,
+                    pendingIntent
+                )
             }
         } catch (_: SecurityException) {
-            am.set(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
+            alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTime.timeInMillis, pendingIntent)
         } catch (_: Exception) {}
     }
 
-    private fun cancelAlarm(context: Context, am: AlarmManager, action: String, requestCode: Int) {
-        val intent = Intent(context, DailyAutomationReceiver::class.java).apply {
-            this.action = action
+    fun getNextMorningSchedulePreview(context: Context): String {
+        val (h, m) = getUserConfiguredMorningTime(context)
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, h)
+            set(Calendar.MINUTE, m)
+            set(Calendar.SECOND, 0)
         }
-        val pi = PendingIntent.getBroadcast(
-            context,
-            requestCode,
-            intent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (pi != null) {
-            am.cancel(pi)
-            pi.cancel()
+        if (cal.timeInMillis <= Calendar.getInstance().timeInMillis + 30_000L) {
+            cal.add(Calendar.DAY_OF_YEAR, 1)
         }
+        return SimpleDateFormat("EEE, MMM d • hh:mm a", Locale.ENGLISH).format(cal.time)
     }
 
-    fun parseTime(timeStr: String): Pair<Int, Int>? {
+    fun parseTime(timeStr: String?): Pair<Int, Int>? {
+        if (timeStr.isNullOrBlank()) return null
         val formats = listOf(
             SimpleDateFormat("hh:mm a", Locale.US),
             SimpleDateFormat("h:mm a", Locale.US),

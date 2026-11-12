@@ -3,6 +3,7 @@ package com.duorhythm.app.util
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.app.Dialog
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -12,12 +13,13 @@ import android.view.animation.CycleInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.EditText
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 
-/**
- * Global Window-Level Phase 1 Motion Engine: Spring touch physics & auth error head-shake
- */
 fun View.addSpringPressEffect(
     scaleFactor: Float = 0.94f,
     downDuration: Long = 65L,
@@ -35,24 +37,55 @@ fun View.shakeError(
 object ViewAnimationExtensions {
 
     private const val TAG_SPRING_ATTACHED = 0x7F0A8888
+    private var isInstalled = false
 
-    /**
-     * Registers a global ActivityLifecycleCallback that attaches tactile Sink & Spring physics
-     * to EVERY clickable button, pill, icon, and card across ALL Activities, Fragments, and Dialogs!
-     */
     @JvmStatic
     fun installGlobalMotionEngine(application: Application) {
+        if (isInstalled) return
+        isInstalled = true
+
         application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                 val rootView = activity.window?.decorView ?: return
                 applySpringRecursively(rootView)
 
-                // Re-scan dynamically inflated dialogs, bottom sheets, and RecyclerView items on layout changes
                 rootView.viewTreeObserver.addOnGlobalLayoutListener(
                     ViewTreeObserver.OnGlobalLayoutListener {
                         applySpringRecursively(rootView)
                     }
                 )
+
+                // Catch EVERY Fragment, BottomSheetDialogFragment, and DialogFragment window!
+                if (activity is FragmentActivity) {
+                    activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
+                        object : FragmentManager.FragmentLifecycleCallbacks() {
+                            override fun onFragmentViewCreated(
+                                fm: FragmentManager,
+                                f: Fragment,
+                                v: View,
+                                savedInstanceState: Bundle?
+                            ) {
+                                applySpringRecursively(v)
+                                if (f is DialogFragment) {
+                                    f.dialog?.window?.decorView?.let { dialogDecor ->
+                                        applySpringRecursively(dialogDecor)
+                                        dialogDecor.viewTreeObserver.addOnGlobalLayoutListener {
+                                            applySpringRecursively(dialogDecor)
+                                        }
+                                    }
+                                }
+                            }
+
+                            override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
+                                f.view?.let { applySpringRecursively(it) }
+                                if (f is DialogFragment) {
+                                    f.dialog?.window?.decorView?.let { applySpringRecursively(it) }
+                                }
+                            }
+                        },
+                        true
+                    )
+                }
             }
 
             override fun onActivityStarted(activity: Activity) {}
@@ -66,24 +99,31 @@ object ViewAnimationExtensions {
         })
     }
 
-    /**
-     * Recursively attaches tactile Sink & Spring press physics to all controls inside a view tree
-     */
+    @JvmStatic
+    fun attachToDialog(dialog: Dialog?) {
+        dialog?.window?.decorView?.let { decor ->
+            applySpringRecursively(decor)
+            decor.viewTreeObserver.addOnGlobalLayoutListener {
+                applySpringRecursively(decor)
+            }
+        }
+    }
+
     @JvmStatic
     fun applySpringToAllButtons(root: View?) {
         applySpringRecursively(root)
     }
 
-    /**
-     * Recursively attaches Sink & Spring touch physics to every clickable control in the window
-     */
     @JvmStatic
     fun applySpringRecursively(view: View?) {
         if (view == null) return
 
-        val isInteractiveControl = (view is MaterialButton ||
-                view is MaterialCardView ||
-                (view.isClickable && view !is EditText && view !is ViewGroup))
+        val isInteractiveControl = (
+            view is MaterialButton ||
+            (view is MaterialCardView && view.isClickable) ||
+            (view.isClickable && view !is EditText && view !is ViewGroup) ||
+            (view is ViewGroup && view.isClickable && view.childCount <= 4)
+        )
 
         if (isInteractiveControl) {
             addSpringPressEffect(view)

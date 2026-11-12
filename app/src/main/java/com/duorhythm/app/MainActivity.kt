@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         com.duorhythm.app.util.ViewAnimationExtensions.installGlobalMotionEngine(application)
         com.duorhythm.app.util.ViewAnimationExtensions.applySpringRecursively(window.decorView)
-        com.duorhythm.app.util.BriefingAlarmScheduler.scheduleDailyBriefings(this)
+        com.duorhythm.app.scheduler.BriefingAlarmScheduler.scheduleDailyBriefings(this)
 
         // Cancel all spam workers firing independent notifications at 8:00 AM, 9:00 AM
         try {
@@ -289,7 +289,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        com.duorhythm.app.util.BriefingAlarmScheduler.scheduleDailyBriefings(this)
+        com.duorhythm.app.scheduler.BriefingAlarmScheduler.scheduleDailyBriefings(this)
         if (::binding.isInitialized) {
             ensureOfficialAppLogo()
         }

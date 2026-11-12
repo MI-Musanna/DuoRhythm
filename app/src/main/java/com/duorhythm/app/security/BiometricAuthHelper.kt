@@ -3,10 +3,13 @@ package com.duorhythm.app.security
 import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
-import android.hardware.biometrics.BiometricPrompt
 import android.os.Build
 import android.os.CancellationSignal
 import android.widget.Toast
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 
 object BiometricAuthHelper {
 
@@ -42,6 +45,58 @@ object BiometricAuthHelper {
         return km?.isDeviceSecure == true
     }
 
+    fun isBiometricAvailable(context: Context): Boolean {
+        return try {
+            val biometricManager = BiometricManager.from(context)
+            val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            val canAuth = biometricManager.canAuthenticate(authenticators)
+            canAuth == BiometricManager.BIOMETRIC_SUCCESS ||
+            biometricManager.canAuthenticate(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+            ) == BiometricManager.BIOMETRIC_SUCCESS
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun promptBiometricAuth(
+        activity: FragmentActivity,
+        title: String = "Confirm Identity",
+        subtitle: String = "Scan fingerprint to authorize profile switch",
+        onSuccess: () -> Unit,
+        onErrorOrFallback: () -> Unit
+    ) {
+        if (!isBiometricAvailable(activity)) {
+            onErrorOrFallback()
+            return
+        }
+
+        val executor = ContextCompat.getMainExecutor(activity)
+        val prompt = BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                onSuccess()
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                onErrorOrFallback()
+            }
+
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+            }
+        })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(title)
+            .setSubtitle(subtitle)
+            .setNegativeButtonText("Use PIN / Password")
+            .build()
+
+        prompt.authenticate(promptInfo)
+    }
+
     fun authenticate(
         activity: Activity,
         title: String,
@@ -58,7 +113,7 @@ object BiometricAuthHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             try {
                 val cancellationSignal = CancellationSignal()
-                val prompt = BiometricPrompt.Builder(activity)
+                val prompt = android.hardware.biometrics.BiometricPrompt.Builder(activity)
                     .setTitle(title)
                     .setSubtitle(subtitle)
                     .setNegativeButton(negativeButtonText, activity.mainExecutor) { _, _ ->
@@ -72,8 +127,8 @@ object BiometricAuthHelper {
                 prompt.authenticate(
                     cancellationSignal,
                     activity.mainExecutor,
-                    object : BiometricPrompt.AuthenticationCallback() {
-                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
+                    object : android.hardware.biometrics.BiometricPrompt.AuthenticationCallback() {
+                        override fun onAuthenticationSucceeded(result: android.hardware.biometrics.BiometricPrompt.AuthenticationResult?) {
                             super.onAuthenticationSucceeded(result)
                             activity.runOnUiThread {
                                 onSuccess()
