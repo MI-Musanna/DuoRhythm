@@ -14,6 +14,12 @@ class LifeSyncApp : Application() {
         AppCrashHandler.install(this)
 
         try {
+            com.duorhythm.app.util.ViewAnimationExtensions.installGlobalMotionEngine(this)
+        } catch (e: Exception) {
+            android.util.Log.e("DUO_STARTUP", "Error installing Global Motion Engine", e)
+        }
+
+        try {
             DatabaseMaintenanceWorker.scheduleWeekly(this)
             com.duorhythm.app.util.BriefingScheduler.scheduleDailyBriefing(this)
         } catch (e: Exception) {

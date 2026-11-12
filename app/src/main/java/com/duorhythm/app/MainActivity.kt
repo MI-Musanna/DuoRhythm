@@ -67,6 +67,8 @@ class MainActivity : AppCompatActivity() {
             android.util.Log.e("DUO_MAIN", "Error setting night mode", t)
         }
         super.onCreate(savedInstanceState)
+        com.duorhythm.app.util.ViewAnimationExtensions.installGlobalMotionEngine(application)
+        com.duorhythm.app.util.ViewAnimationExtensions.applySpringRecursively(window.decorView)
         com.duorhythm.app.util.BriefingAlarmScheduler.scheduleDailyBriefings(this)
 
         // Cancel all spam workers firing independent notifications at 8:00 AM, 9:00 AM

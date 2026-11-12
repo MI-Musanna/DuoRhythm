@@ -14,7 +14,7 @@ An offline, zero-telemetry Android suite built for students and independent buil
 
 <p align="center">
   <a href="https://github.com/MI-Musanna/DuoRhythm/releases/latest">
-    <img src="https://img.shields.io/badge/Download_APK-v1.3.4--beta-0284C7?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
+    <img src="https://img.shields.io/badge/Download_APK-v1.3.5--beta-0284C7?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
   </a>
   <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=duorhythm">
     <img src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png" height="28" alt="Get it on Orion Store" />

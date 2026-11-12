@@ -628,6 +628,7 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 AppPreferences.setEveningBriefingTime(this, formatted)
                 binding.tvEveningBriefingTime.text = formatted
+                com.duorhythm.app.util.BriefingAlarmScheduler.saveEveningTime(this, hour, minute)
             }
             BriefingAlarmScheduler.resyncBriefings(this)
             Toast.makeText(this, "Briefing time updated to $formatted", Toast.LENGTH_SHORT).show()

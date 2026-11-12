@@ -32,14 +32,16 @@ class DailyBriefingReceiver : BroadcastReceiver() {
                     // Evening Review for Tomorrow
                     NotificationHelper.showUnifiedDailyBriefing(context, isEveningReview = true)
                 }
-                Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON" -> {
+                Intent.ACTION_BOOT_COMPLETED,
+                Intent.ACTION_MY_PACKAGE_REPLACED,
+                "android.intent.action.MY_PACKAGE_REPLACED",
+                "android.intent.action.QUICKBOOT_POWERON" -> {
                     BriefingAlarmScheduler.scheduleDailyBriefings(context)
                     return
                 }
                 else -> {
-                    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-                    val isEvening = hour >= 18
-                    NotificationHelper.showUnifiedDailyBriefing(context, isEveningReview = isEvening)
+                    // Do not fire unexpected notification on app install/update or unknown action
+                    return
                 }
             }
 

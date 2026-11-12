@@ -45,8 +45,7 @@ class DailyAutomationReceiver : BroadcastReceiver() {
     }
 
     private fun handleMorningBriefing(context: Context) {
-        if (!SmartAutomationManager.isSmartBriefingsEnabled(context)) return
-        com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(context)
+        // Consolidated in BriefingAlarmScheduler & DailyBriefingReceiver
     }
 
     private fun handleEveningBriefing(context: Context) {

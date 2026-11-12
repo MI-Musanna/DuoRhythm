@@ -16,7 +16,6 @@ class DailyBriefingAlarmReceiver : BroadcastReceiver() {
             BriefingScheduler.scheduleDailyBriefing(context)
         } catch (_: Exception) {}
 
-        // Exclusively trigger the modern dual-view briefing
-        NotificationHelper.showUnifiedDailyBriefing(context)
+        // Consolidated in BriefingAlarmScheduler & DailyBriefingReceiver
     }
 }

@@ -21,7 +21,7 @@ import java.util.Locale
 
 object NotificationHelper {
 
-    private const val CHANNEL_ID = "duorhythm_briefing_channel_v4"
+    private const val CHANNEL_ID = "duorhythm_briefing_channel_v5"
     private const val CHANNEL_NAME = "Daily Academic & Work Briefings"
     private const val NOTIF_ID_MORNING = 6001
     private const val NOTIF_ID_EVENING = 8001
@@ -36,7 +36,7 @@ object NotificationHelper {
         val guardPrefs = context.getSharedPreferences(PREFS_NOTIF_GUARD, Context.MODE_PRIVATE)
         val guardKey = if (isEveningReview) "last_evening_$todayStamp" else "last_morning_$todayStamp"
 
-        // Prevent duplicate automated triggers on the same day (10:56 PM, 11:43 PM, 12:08 AM spam fix)
+        // Strict Deduplication Guard: Never fire twice on the same day unless manually tested
         if (!isManualTest && guardPrefs.getBoolean(guardKey, false)) {
             return
         }
@@ -45,7 +45,6 @@ object NotificationHelper {
         val db = DatabaseHelper.getInstance(context)
         val profileId = ProfileManager.getActiveProfileId(context)
 
-        // 1. High-Importance Channel for Status Bar Icon & Heads-Up Visibility
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             val audioAttributes = AudioAttributes.Builder()
@@ -58,7 +57,7 @@ object NotificationHelper {
                 CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Daily class timetable, exams, and dues briefings"
+                description = "Complete daily timetable, exams, and dues briefings"
                 setShowBadge(true)
                 enableLights(true)
                 lightColor = Color.parseColor("#00E5FF")
@@ -102,41 +101,56 @@ object NotificationHelper {
         }
 
         val title = if (isEveningReview) {
-            "Tomorrow's Agenda ($targetShortDate)"
+            "Tomorrow's Briefing ($targetShortDate)"
         } else {
-            "Today's Agenda ($targetShortDate)"
+            "Today's Briefing ($targetShortDate)"
         }
 
         val collapsedSummary = if (classes.isNotEmpty()) {
             val first = classes.first()
-            "Next: ${first.subjectName} (${first.startTime} • R:${first.roomNo}) + ${classes.size - 1} more"
+            "${first.startTime} ${first.subjectName} (R:${first.roomNo}) • ${classes.size} Classes, ${exams.size} Exams"
         } else {
-            "${classes.size} classes • ${exams.size} exams • ${dueSubs.size} dues"
+            "${classes.size} Classes • ${exams.size} Exams • ${dueSubs.size} Dues"
         }
 
-        // Build Rich Multi-Line InboxStyle (Never auto-vanishes on Android 14/15!)
-        val inboxStyle = NotificationCompat.InboxStyle()
-            .setBigContentTitle(title)
-            .setSummaryText("${classes.size} Classes • ${exams.size} Exams • ${dueSubs.size} Dues")
+        // Build Full-Capacity BigTextStyle (Displays ALL classes + ALL exams + ALL bills with zero cutoff!)
+        val fullBody = StringBuilder()
 
+        fullBody.append("CLASSES (${classes.size}):\n")
         if (classes.isEmpty()) {
-            inboxStyle.addLine("• No classes scheduled")
+            fullBody.append("• No classes scheduled\n")
         } else {
             classes.forEach { cls ->
                 val tag = if (cls.type.contains("PRACTICAL", ignoreCase = true)) "[LAB]" else "[LEC]"
-                val room = if (cls.roomNo.isNotBlank()) " • R:${cls.roomNo}" else ""
-                inboxStyle.addLine("$tag ${cls.startTime} - ${cls.subjectName}$room")
+                val room = if (cls.roomNo.isNotBlank()) " (R:${cls.roomNo})" else ""
+                fullBody.append("• ${cls.startTime} - ${cls.subjectName} $tag$room\n")
             }
         }
 
-        exams.forEach { ex ->
-            val room = if (ex.room.isNotBlank()) " • R:${ex.room}" else ""
-            inboxStyle.addLine("EXAM (${ex.dueTime}): ${ex.title}$room")
+        fullBody.append("\nEXAMS & ASSESSMENTS (${exams.size}):\n")
+        if (exams.isEmpty()) {
+            fullBody.append("• No exams scheduled\n")
+        } else {
+            exams.forEach { ex ->
+                val room = if (ex.room.isNotBlank()) " (R:${ex.room})" else ""
+                fullBody.append("• ${ex.dueTime} - ${ex.title}$room\n")
+            }
         }
 
-        dueSubs.forEach { sub ->
-            inboxStyle.addLine("BILL DUE: ${sub.title} (৳${sub.amount})")
+        fullBody.append("\nBILLS & SUBSCRIPTIONS (${dueSubs.size}):\n")
+        if (dueSubs.isEmpty()) {
+            fullBody.append("• All recurring bills clear")
+        } else {
+            dueSubs.forEachIndexed { index, sub ->
+                val suffix = if (index < dueSubs.size - 1) "\n" else ""
+                fullBody.append("• ${sub.title}: ৳${sub.amount}$suffix")
+            }
         }
+
+        val bigTextStyle = NotificationCompat.BigTextStyle()
+            .setBigContentTitle(title)
+            .setSummaryText("${classes.size} Classes • ${exams.size} Exams • ${dueSubs.size} Dues")
+            .bigText(fullBody.toString().trim())
 
         val openIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -153,7 +167,7 @@ object NotificationHelper {
             .setColor(Color.parseColor("#00E5FF"))
             .setContentTitle(title)
             .setContentText(collapsedSummary)
-            .setStyle(inboxStyle)
+            .setStyle(bigTextStyle)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
