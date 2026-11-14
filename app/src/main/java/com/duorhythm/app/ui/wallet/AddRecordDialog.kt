@@ -59,6 +59,24 @@ class AddRecordDialog(
         val currentSymbol = ratesList.find { it.code == currentCurrency }?.symbol ?: "৳"
         dialogBinding.tilTxAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
 
+        // Force crisp bright white text on Title & all inputs (fixes dark-on-dark invisible typing)
+        try {
+            val whiteColor = Color.parseColor("#F8FAFC")
+            val hintColor = Color.parseColor("#94A3B8")
+            dialogBinding.etTxTitle.setTextColor(whiteColor)
+            dialogBinding.etTxTitle.setHintTextColor(hintColor)
+            dialogBinding.etTxAmount.setTextColor(whiteColor)
+            dialogBinding.etTxAmount.setHintTextColor(hintColor)
+            dialogBinding.etTxNotes.setTextColor(whiteColor)
+            dialogBinding.etTxNotes.setHintTextColor(hintColor)
+            dialogBinding.actvTxCategory.setTextColor(whiteColor)
+            dialogBinding.actvTxCategory.setHintTextColor(hintColor)
+            dialogBinding.actvTxCard.setTextColor(whiteColor)
+            dialogBinding.actvTxCard.setHintTextColor(hintColor)
+            dialogBinding.actvTxToAccount.setTextColor(whiteColor)
+            dialogBinding.actvTxToAccount.setHintTextColor(hintColor)
+        } catch (_: Exception) {}
+
         selectedType = initialType
 
         // 2. Observe / Load Master Categories

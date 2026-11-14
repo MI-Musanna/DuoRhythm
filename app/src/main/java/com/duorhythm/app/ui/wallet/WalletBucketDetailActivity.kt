@@ -671,6 +671,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
         dialogBinding.btnSummaryCloseIcon.setOnClickListener { dialog.dismiss() }
         dialogBinding.btnSummaryClose.setOnClickListener { dialog.dismiss() }
+        dialogBinding.btnEditTransaction.setOnClickListener {
+            dialog.dismiss()
+            showEditTransactionModal(tx)
+        }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
         dialog.show()
@@ -1248,6 +1252,17 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         val dialogBinding = DialogAddTransactionBinding.inflate(layoutInflater)
         dialogBinding.tilTxAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
 
+        val whiteColor = Color.parseColor("#F8FAFC")
+        val hintColor = Color.parseColor("#94A3B8")
+        dialogBinding.etTxTitle.setTextColor(whiteColor)
+        dialogBinding.etTxTitle.setHintTextColor(hintColor)
+        dialogBinding.etTxAmount.setTextColor(whiteColor)
+        dialogBinding.etTxAmount.setHintTextColor(hintColor)
+        dialogBinding.etTxNotes.setTextColor(whiteColor)
+        dialogBinding.etTxNotes.setHintTextColor(hintColor)
+        dialogBinding.actvTxCategory.setTextColor(whiteColor)
+        dialogBinding.actvTxCategory.setHintTextColor(hintColor)
+
         var txType = tx.type
         val isIncome = (txType == "INCOME")
         dialogBinding.toggleTxType.check(if (isIncome) R.id.btnTypeIncome else R.id.btnTypeExpense)
@@ -1329,6 +1344,157 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         dialog.show()
         com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
         dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+
+    fun loadAccountData() {
+        loadBucketData()
+    }
+
+    // BALANCE-SAFE TRANSACTION EDITOR: Reverses old ledger impact, applies edited values, and syncs account balance
+    private fun showEditTransactionModal(tx: com.duorhythm.app.data.model.TransactionItem) {
+        val ctx = this
+        val root = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 36, 48, 24)
+            setBackgroundColor(android.graphics.Color.parseColor("#0D1322"))
+        }
+
+        val header = android.widget.TextView(ctx).apply {
+            text = "Edit Transaction Record"
+            textSize = 18f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(android.graphics.Color.parseColor("#F8FAFC"))
+        }
+        root.addView(header)
+
+        // Type Toggle (INCOME / EXPENSE)
+        var selectedType = if (tx.type.equals("INCOME", ignoreCase = true)) "INCOME" else "EXPENSE"
+        val toggleRow = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            setPadding(0, 24, 0, 16)
+        }
+        val btnInc = com.google.android.material.button.MaterialButton(ctx).apply {
+            text = "▲ INCOME"
+            layoutParams = android.widget.LinearLayout.LayoutParams(0, 110, 1f).apply { marginEnd = 12 }
+        }
+        val btnExp = com.google.android.material.button.MaterialButton(ctx).apply {
+            text = "▼ EXPENSE"
+            layoutParams = android.widget.LinearLayout.LayoutParams(0, 110, 1f).apply { marginStart = 12 }
+        }
+        fun refreshTypeButtons() {
+            if (selectedType == "INCOME") {
+                btnInc.setBackgroundColor(android.graphics.Color.parseColor("#10B981"))
+                btnInc.setTextColor(android.graphics.Color.parseColor("#060B14"))
+                btnExp.setBackgroundColor(android.graphics.Color.parseColor("#1E293B"))
+                btnExp.setTextColor(android.graphics.Color.parseColor("#94A3B8"))
+            } else {
+                btnExp.setBackgroundColor(android.graphics.Color.parseColor("#EF4444"))
+                btnExp.setTextColor(android.graphics.Color.WHITE)
+                btnInc.setBackgroundColor(android.graphics.Color.parseColor("#1E293B"))
+                btnInc.setTextColor(android.graphics.Color.parseColor("#94A3B8"))
+            }
+        }
+        refreshTypeButtons()
+        btnInc.setOnClickListener { selectedType = "INCOME"; refreshTypeButtons() }
+        btnExp.setOnClickListener { selectedType = "EXPENSE"; refreshTypeButtons() }
+        toggleRow.addView(btnInc)
+        toggleRow.addView(btnExp)
+        root.addView(toggleRow)
+
+        fun createStyledInput(hintText: String, initialValue: String, inputTypeFlag: Int): android.widget.EditText {
+            return android.widget.EditText(ctx).apply {
+                hint = hintText
+                setText(initialValue)
+                inputType = inputTypeFlag
+                setTextColor(android.graphics.Color.parseColor("#F8FAFC"))
+                setHintTextColor(android.graphics.Color.parseColor("#94A3B8"))
+                setBackgroundResource(android.R.drawable.edit_text)
+                backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1E293B"))
+                setPadding(32, 28, 32, 28)
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = 16 }
+            }
+        }
+
+        val etAmount = createStyledInput("Amount ($currentCurrency)", String.format(java.util.Locale.US, "%.2f", tx.amount), android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL)
+        val etTitle = createStyledInput("Title / Name", tx.title, android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
+        val etCategory = createStyledInput("Category", tx.category, android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+        val etNotes = createStyledInput("Notes (Optional)", tx.notes ?: "", android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES)
+
+        root.addView(etAmount)
+        root.addView(etTitle)
+        root.addView(etCategory)
+        root.addView(etNotes)
+
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(ctx)
+            .setView(root)
+            .setPositiveButton("SAVE CHANGES", null)
+            .setNegativeButton("CANCEL", null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            root.setBackgroundColor(android.graphics.Color.parseColor("#0D1322"))
+            val saveBtn = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+            saveBtn.setTextColor(android.graphics.Color.parseColor("#00E5FF"))
+            saveBtn.setOnClickListener {
+                val newAmount = etAmount.text.toString().trim().toDoubleOrNull()
+                if (newAmount == null || newAmount <= 0.0) {
+                    com.duorhythm.app.util.ViewAnimationExtensions.shakeError(etAmount)
+                    etAmount.error = "Enter valid amount"
+                    return@setOnClickListener
+                }
+                val newTitle = etTitle.text.toString().trim().ifEmpty { etCategory.text.toString().trim().ifEmpty { tx.title } }
+                val newCat = etCategory.text.toString().trim().ifEmpty { tx.category }
+                val newNotes = etNotes.text.toString().trim()
+
+                try {
+                    val dbHelper = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(ctx)
+                    val wdb = dbHelper.writableDatabase
+                    wdb.beginTransaction()
+                    try {
+                        // 1. Reverse old transaction's balance effect
+                        val oldDelta = if (tx.type.equals("INCOME", ignoreCase = true)) -tx.amount else tx.amount
+                        // 2. Apply new transaction's balance effect
+                        val newDelta = if (selectedType == "INCOME") newAmount else -newAmount
+                        val netAdjustment = oldDelta + newDelta
+
+                        wdb.execSQL(
+                            "UPDATE transactions SET type = ?, amount = ?, title = ?, category = ?, notes = ? WHERE id = ?",
+                            arrayOf(selectedType, newAmount, newTitle, newCat, newNotes, tx.id)
+                        )
+                        val targetId = if (tx.bucketId > 0) tx.bucketId else tx.cardId
+                        if (targetId > 0) {
+                            try {
+                                wdb.execSQL(
+                                    "UPDATE wallet_buckets SET balance = balance + ? WHERE id = ?",
+                                    arrayOf(netAdjustment, targetId)
+                                )
+                            } catch (_: Exception) {}
+                            try {
+                                wdb.execSQL(
+                                    "UPDATE accounts SET balance = balance + ? WHERE id = ?",
+                                    arrayOf(netAdjustment, targetId)
+                                )
+                            } catch (_: Exception) {}
+                        }
+                        wdb.setTransactionSuccessful()
+                    } finally {
+                        wdb.endTransaction()
+                    }
+                    loadAccountData()
+                    com.duorhythm.app.ui.wallet.WalletDataSyncManager.notifyChanged()
+                    android.widget.Toast.makeText(ctx, "Transaction updated & balance synced", android.widget.Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(ctx, "Update failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 }
 

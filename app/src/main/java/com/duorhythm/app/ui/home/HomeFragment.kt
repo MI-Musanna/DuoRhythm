@@ -279,6 +279,20 @@ class HomeFragment : Fragment() {
         if (_binding == null || !isAdded) return
         val context = context ?: return
 
+        // UNIFIED CONTAINER TRANSITION: Eliminates vertical jumping between Study Portal and Work Hub
+        try {
+            val rootFeed = (binding.root as? android.view.ViewGroup)?.getChildAt(0) as? android.view.ViewGroup
+                ?: (binding.root as? android.view.ViewGroup)
+            if (rootFeed != null) {
+                val autoTransition = androidx.transition.AutoTransition().apply {
+                    duration = 250L
+                    ordering = androidx.transition.TransitionSet.ORDERING_TOGETHER
+                    interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator()
+                }
+                androidx.transition.TransitionManager.beginDelayedTransition(rootFeed, autoTransition)
+            }
+        } catch (_: Exception) {}
+
         // SLIDING PILL SMOOTH MOTION
         try {
             val toggleGroup = binding.btnStudentMode.parent as? android.view.ViewGroup

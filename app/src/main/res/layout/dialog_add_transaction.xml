@@ -83,6 +83,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
+                android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8"
                 android:textSize="18sp"
                 android:textStyle="bold" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -110,7 +112,8 @@
                     android:inputType="none"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:textColor="@color/text_primary"
+                    android:textColor="#F8FAFC"
+                    android:textColorHint="#94A3B8"
                     android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -131,7 +134,8 @@
                     android:inputType="none"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:textColor="@color/text_primary"
+                    android:textColor="#F8FAFC"
+                    android:textColorHint="#94A3B8"
                     android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -153,7 +157,8 @@
                     android:maxLines="1"
                     android:singleLine="true"
                     android:imeOptions="actionDone"
-                    android:textColor="@color/text_primary"
+                    android:textColor="#F8FAFC"
+                    android:textColorHint="#94A3B8"
                     android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
@@ -208,6 +213,7 @@
                 android:paddingVertical="14dp"
                 android:inputType="textCapSentences"
                 android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8"
                 android:textSize="14sp"
                 android:completionThreshold="1" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -224,7 +230,9 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etTxNotes"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 6. Save Button -->

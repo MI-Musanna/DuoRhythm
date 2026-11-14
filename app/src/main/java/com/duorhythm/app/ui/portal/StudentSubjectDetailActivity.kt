@@ -519,12 +519,18 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         val db = DatabaseHelper.getInstance(this)
         val profileId = ProfileManager.getActiveProfileId()
 
-        // 1. Fetch only categories that ACTUALLY have assessments for this specific course
+        // Ensure default categories are seeded if empty
+        try {
+            db.assessmentCategoryDao.ensureDefaultCategories(profileId)
+        } catch (_: Exception) {}
+
+        // 1. Fetch categories that have assessments or are defined for this profile
         val allCourseAssessments = db.getAssessmentsForCourse(courseId)
-        val distinctUsedCategories = allCourseAssessments
+        val usedCategories = allCourseAssessments
             .map { it.type.trim() }
             .filter { it.isNotBlank() }
-            .distinct()
+        val definedCategories = try { db.getAssessmentCategories(profileId) } catch (_: Exception) { emptyList() }
+        val distinctUsedCategories = (usedCategories + definedCategories).distinct().filter { it.isNotBlank() }
 
         binding.chipGroupCourseFilters.removeAllViews()
 
@@ -545,7 +551,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         }
         binding.chipGroupCourseFilters.addView(chipAll)
 
-        // Dynamically add chips ONLY for categories present in this course
+        // Dynamically add chips for categories present in this course or defined
         for (category in distinctUsedCategories) {
             val chip = com.google.android.material.chip.Chip(this).apply {
                 text = category
@@ -571,6 +577,57 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             }
             binding.chipGroupCourseFilters.addView(chip)
         }
+
+        // Direct "+ Category" Quick-Create Chip
+        val chipAdd = com.google.android.material.chip.Chip(this).apply {
+            text = "+ Category"
+            isCheckable = false
+            setChipBackgroundColorResource(android.R.color.transparent)
+            chipStrokeWidth = 2f
+            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+            setTextColor(Color.parseColor("#00E5FF"))
+            setOnClickListener {
+                showCreateCategoryModal(profileId, courseId)
+            }
+        }
+        binding.chipGroupCourseFilters.addView(chipAdd)
+    }
+
+    // COMPLETE CATEGORY PURGE: Deletes from category store AND clears category tag on matching items so chip never resurrects
+    private fun purgeSubjectCategoryCompletely(subjectId: Long, categoryName: String) {
+        try {
+            val dbHelper = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this)
+            val wdb = dbHelper.writableDatabase
+            wdb.beginTransaction()
+            try {
+                // Attempt purge across both Room & SQLite table conventions safely
+                val tables = listOf("assessment_categories", "subject_categories", "categories")
+                for (tbl in tables) {
+                    try {
+                        wdb.execSQL("DELETE FROM $tbl WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) OR LOWER(TRIM(category_name)) = LOWER(TRIM(?))", arrayOf(categoryName, categoryName))
+                    } catch (_: Exception) {}
+                }
+                // Clear orphaned category reference on assessments/subject items so distinct query doesn't revive deleted chip
+                val itemTables = listOf("assessments", "subject_items", "subject_works", "subject_work_items")
+                for (itbl in itemTables) {
+                    try {
+                        wdb.execSQL("UPDATE $itbl SET category = '' WHERE LOWER(TRIM(category)) = LOWER(TRIM(?))", arrayOf(categoryName))
+                    } catch (_: Exception) {}
+                    try {
+                        wdb.execSQL("UPDATE $itbl SET type = 'General' WHERE LOWER(TRIM(type)) = LOWER(TRIM(?))", arrayOf(categoryName))
+                    } catch (_: Exception) {}
+                    try {
+                        wdb.execSQL("UPDATE $itbl SET exam_type = 'General' WHERE LOWER(TRIM(exam_type)) = LOWER(TRIM(?))", arrayOf(categoryName))
+                    } catch (_: Exception) {}
+                    try {
+                        wdb.execSQL("UPDATE $itbl SET item_type = 'General' WHERE LOWER(TRIM(item_type)) = LOWER(TRIM(?))", arrayOf(categoryName))
+                    } catch (_: Exception) {}
+                }
+                wdb.setTransactionSuccessful()
+            } finally {
+                wdb.endTransaction()
+            }
+        } catch (_: Exception) {}
     }
 
     private fun showManageCategoryDialog(profileId: Long, categoryName: String, courseId: Long) {
@@ -606,6 +663,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                             .setTitle("Delete Category")
                             .setMessage("Delete '$categoryName'? Assessments under this category will not be lost but category will be removed.")
                             .setPositiveButton("Delete") { _, _ ->
+                                purgeSubjectCategoryCompletely(courseId, categoryName)
                                 db.deleteAssessmentCategory(profileId, categoryName)
                                 activeCategoryFilter = "All"
                                 populateDynamicCourseCategoryFilters(courseId)
@@ -652,7 +710,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             setPadding(50, 20, 50, 10)
             addView(input)
         }
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("New Assessment Category")
             .setView(container)
             .setPositiveButton("Create") { _, _ ->
@@ -666,7 +724,9 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 }
             }
             .setNegativeButton("Cancel", null)
-            .show()
+            .create()
+        dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 }
 

@@ -305,19 +305,39 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Bottom Action: Close Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSummaryClose"
-            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        <!-- Bottom Actions: Edit and Close Buttons -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:layout_marginTop="16dp"
-            android:text="Close"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:cornerRadius="14dp"
-            app:backgroundTint="@color/primary" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditTransaction"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="EDIT"
+                android:textColor="#00E5FF"
+                android:textStyle="bold"
+                app:cornerRadius="12dp"
+                app:strokeColor="#00E5FF"
+                app:strokeWidth="1.2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSummaryClose"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="#00E5FF"
+                android:text="CLOSE"
+                android:textColor="#060B14"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

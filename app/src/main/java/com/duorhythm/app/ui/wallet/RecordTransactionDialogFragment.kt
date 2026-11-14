@@ -38,6 +38,26 @@ class RecordTransactionDialogFragment : DialogFragment() {
         return addRecordDialog.create()
     }
 
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        try {
+            val whiteColor = android.graphics.Color.parseColor("#F8FAFC")
+            val hintColor = android.graphics.Color.parseColor("#94A3B8")
+            view.findViewById<android.widget.EditText>(com.duorhythm.app.R.id.etTransactionTitle)?.apply {
+                setTextColor(whiteColor)
+                setHintTextColor(hintColor)
+            }
+            view.findViewById<android.widget.EditText>(com.duorhythm.app.R.id.etTxTitle)?.apply {
+                setTextColor(whiteColor)
+                setHintTextColor(hintColor)
+            }
+            view.findViewById<android.widget.EditText>(com.duorhythm.app.R.id.etTxAmount)?.apply {
+                setTextColor(whiteColor)
+                setHintTextColor(hintColor)
+            }
+        } catch (_: Exception) {}
+    }
+
     private fun setupCategoryDropdownAdapter(categories: List<CategoryEntity>) {
         val adapter = CategoryDropdownAdapter(
             categories = categories,
