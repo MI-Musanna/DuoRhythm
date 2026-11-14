@@ -53,6 +53,14 @@ class ClassesAdapter(
 
     override fun getItemCount(): Int = classesList.size
 
+    fun removeItemAnimated(position: Int) {
+        if (position in 0 until classesList.size) {
+            classesList.removeAt(position)
+            notifyItemRemoved(position)
+            notifyItemRangeChanged(position, classesList.size - position)
+        }
+    }
+
     inner class ClassViewHolder(private val binding: ItemClassScheduleBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

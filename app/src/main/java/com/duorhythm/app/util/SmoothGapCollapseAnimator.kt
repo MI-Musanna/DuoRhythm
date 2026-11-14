@@ -7,16 +7,13 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 
-/**
- * Slides deleted rows out cleanly while smoothly collapsing trailing rows upward at 60/120fps.
- */
 class SmoothGapCollapseAnimator : DefaultItemAnimator() {
 
     init {
-        removeDuration = 210L
-        moveDuration = 260L
+        removeDuration = 220L
+        moveDuration = 280L
         addDuration = 220L
-        changeDuration = 200L
+        changeDuration = 180L
         supportsChangeAnimations = false
     }
 
@@ -25,11 +22,11 @@ class SmoothGapCollapseAnimator : DefaultItemAnimator() {
         view.animate().cancel()
         dispatchRemoveStarting(holder)
 
-        val slideDistance = (view.width.takeIf { it > 0 } ?: 300) * 0.22f
+        val slideOutX = (view.width.takeIf { it > 0 } ?: 320) * 0.25f
         view.animate()
             .alpha(0f)
-            .translationX(slideDistance)
-            .scaleY(0.92f)
+            .translationX(slideOutX)
+            .scaleY(0.90f)
             .setDuration(removeDuration)
             .setInterpolator(DecelerateInterpolator(1.6f))
             .setListener(object : AnimatorListenerAdapter() {
@@ -50,7 +47,7 @@ class SmoothGapCollapseAnimator : DefaultItemAnimator() {
             })
             .start()
 
-        return false
+        return true
     }
 
     override fun animateMove(
@@ -92,6 +89,6 @@ class SmoothGapCollapseAnimator : DefaultItemAnimator() {
             })
             .start()
 
-        return false
+        return true
     }
 }

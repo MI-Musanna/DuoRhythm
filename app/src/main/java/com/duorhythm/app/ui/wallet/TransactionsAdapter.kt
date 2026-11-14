@@ -111,6 +111,16 @@ class TransactionsAdapter(
 
     override fun getItemCount(): Int = transactions.size
 
+    fun removeItemAnimated(position: Int) {
+        if (position in 0 until transactions.size) {
+            val mutable = transactions.toMutableList()
+            mutable.removeAt(position)
+            transactions = mutable
+            notifyItemRemoved(position)
+            notifyItemRangeChanged(position, transactions.size - position)
+        }
+    }
+
     inner class TxViewHolder(private val binding: ItemTransactionBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

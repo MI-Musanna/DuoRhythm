@@ -25,6 +25,16 @@ class ClientOrdersAdapter(
 
     override fun getItemCount(): Int = orders.size
 
+    fun removeItemAnimated(position: Int) {
+        if (position in 0 until orders.size) {
+            val mutable = orders.toMutableList()
+            mutable.removeAt(position)
+            orders = mutable
+            notifyItemRemoved(position)
+            notifyItemRangeChanged(position, orders.size - position)
+        }
+    }
+
     fun updateList(newOrders: List<ClientOrder>) {
         orders = newOrders
         notifyDataSetChanged()

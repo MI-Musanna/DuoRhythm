@@ -335,6 +335,40 @@ object ViewAnimationExtensions {
         )
     }
 
+    /**
+     * Scroll-driven collapsing large header for RecyclerView screens (Portal, Tasks, Wallet, Details).
+     */
+    @JvmStatic
+    fun attachCollapsingLargeTitle(
+        recyclerView: RecyclerView?,
+        largeHeaderContainer: View?,
+        compactToolbarTitle: View? = null,
+        collapseThresholdDp: Float = 72f
+    ) {
+        if (recyclerView == null || largeHeaderContainer == null) return
+        val thresholdPx = collapseThresholdDp * recyclerView.resources.displayMetrics.density
+        var totalScrollY = 0
+
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                totalScrollY = (totalScrollY + dy).coerceAtLeast(0)
+                val progress = (totalScrollY / thresholdPx).coerceIn(0f, 1f)
+                val scale = 1f - (0.22f * progress)
+
+                largeHeaderContainer.pivotX = 0f
+                largeHeaderContainer.pivotY = largeHeaderContainer.height / 2f
+                largeHeaderContainer.scaleX = scale
+                largeHeaderContainer.scaleY = scale
+                largeHeaderContainer.alpha = (1f - (progress * 0.85f)).coerceIn(0.15f, 1f)
+                largeHeaderContainer.translationY = -progress * (10f * rv.resources.displayMetrics.density)
+
+                compactToolbarTitle?.let { toolbarTitle ->
+                    toolbarTitle.alpha = ((progress - 0.35f) / 0.65f).coerceIn(0f, 1f)
+                }
+            }
+        })
+    }
+
     @JvmStatic
     fun shakeError(
         view: View,

@@ -83,6 +83,23 @@ class TasksAdapter(
 
     override fun getItemCount(): Int = tasks.size
 
+    fun removeItemAnimated(position: Int) {
+        if (position in 0 until tasks.size) {
+            val mutable = tasks.toMutableList()
+            mutable.removeAt(position)
+            tasks = mutable
+            notifyItemRemoved(position)
+            notifyItemRangeChanged(position, tasks.size - position)
+        }
+    }
+
+    fun removeItemAnimated(task: TaskItem) {
+        val index = tasks.indexOfFirst { it.id == task.id }
+        if (index >= 0) {
+            removeItemAnimated(index)
+        }
+    }
+
     inner class TaskViewHolder(private val binding: ItemTaskBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

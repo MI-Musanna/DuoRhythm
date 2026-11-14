@@ -97,6 +97,30 @@ class PortalFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Phase 2: RecyclerView Scroll-Driven Collapsing Large Header
+        try {
+            fun findFirstRv(vg: android.view.ViewGroup?): androidx.recyclerview.widget.RecyclerView? {
+                if (vg == null) return null
+                for (i in 0 until vg.childCount) {
+                    val c = vg.getChildAt(i)
+                    if (c is androidx.recyclerview.widget.RecyclerView) return c
+                    if (c is android.view.ViewGroup) findFirstRv(c)?.let { return it }
+                }
+                return null
+            }
+            val rv = findFirstRv(view as? android.view.ViewGroup)
+            val res = view.resources
+            val pkg = view.context.packageName
+            fun findViewByName(name: String): android.view.View? {
+                val id = res.getIdentifier(name, "id", pkg)
+                return if (id != 0) view.findViewById(id) else null
+            }
+            val sectionHeader = findViewByName("tvSectionTitle")
+                ?: findViewByName("tvPortalTitle")
+                ?: findViewByName("blurPortalToggle")
+                ?: (rv?.parent as? android.view.ViewGroup)?.getChildAt(0)
+            com.duorhythm.app.util.ViewAnimationExtensions.attachCollapsingLargeTitle(rv, sectionHeader)
+        } catch (_: Exception) {}
         com.duorhythm.app.util.ViewAnimationExtensions.applySpringToAllButtons(view)
         try {
             dbHelper = DatabaseHelper.getInstance(requireContext())

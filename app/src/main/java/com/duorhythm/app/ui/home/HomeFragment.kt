@@ -334,21 +334,15 @@ class HomeFragment : Fragment() {
             // Bind Work Orders into Next-Up Carousel
             if (activeOrders.isNotEmpty()) {
                 binding.viewPagerNextUp.visibility = View.VISIBLE
-                binding.dotsIndicatorNextUp.visibility = View.VISIBLE
+                binding.dotsIndicatorNextUp.visibility = View.GONE
                 binding.tvNoClassesScheduled.visibility = View.GONE
 
                 val adapter = WorkOrdersCarouselAdapter(activeOrders) { order ->
                     openOrderDetails(order)
                 }
                 binding.viewPagerNextUp.adapter = adapter
+                configureNextUpDepthCarousel(binding.viewPagerNextUp)
                 binding.viewPagerNextUp.setCurrentItem(0, false)
-                binding.wormDotsIndicator.attachToViewPager2(binding.viewPagerNextUp)
-
-                tabLayoutMediator = com.google.android.material.tabs.TabLayoutMediator(
-                    binding.dotsIndicatorNextUp,
-                    binding.viewPagerNextUp
-                ) { _, _ -> }
-                tabLayoutMediator?.attach()
             } else {
                 binding.viewPagerNextUp.visibility = View.GONE
                 binding.dotsIndicatorNextUp.visibility = View.GONE
@@ -437,7 +431,7 @@ class HomeFragment : Fragment() {
 
         if (displayClasses.isNotEmpty()) {
             binding.viewPagerNextUp.visibility = View.VISIBLE
-            binding.dotsIndicatorNextUp.visibility = View.VISIBLE
+            binding.dotsIndicatorNextUp.visibility = View.GONE
             binding.tvNoClassesScheduled.visibility = View.GONE
 
             tabLayoutMediator?.detach()
@@ -447,14 +441,8 @@ class HomeFragment : Fragment() {
                 (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
             }
             binding.viewPagerNextUp.adapter = adapter
+            configureNextUpDepthCarousel(binding.viewPagerNextUp)
             binding.viewPagerNextUp.setCurrentItem(0, false)
-            binding.wormDotsIndicator.attachToViewPager2(binding.viewPagerNextUp)
-
-            tabLayoutMediator = com.google.android.material.tabs.TabLayoutMediator(
-                binding.dotsIndicatorNextUp,
-                binding.viewPagerNextUp
-            ) { _, _ -> }
-            tabLayoutMediator?.attach()
         } else {
             binding.viewPagerNextUp.visibility = View.GONE
             binding.dotsIndicatorNextUp.visibility = View.GONE
@@ -729,32 +717,72 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun configureNextUpDepthCarousel(pager: androidx.viewpager2.widget.ViewPager2) {
+        try {
+            pager.clipToPadding = true
+            pager.clipChildren = true
+            pager.setPadding(0, pager.paddingTop, 0, pager.paddingBottom)
+            pager.offscreenPageLimit = 2
+            (pager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView)?.apply {
+                clipToPadding = true
+                clipChildren = true
+                overScrollMode = android.view.View.OVER_SCROLL_NEVER
+            }
+
+            // Full-width Depth-Deck Card Motion: incoming card rises smoothly from behind without awkward half-cut edges
+            pager.setPageTransformer { page, position ->
+                val absPos = kotlin.math.abs(position).coerceIn(0f, 1f)
+                when {
+                    position < -1f || position > 1f -> {
+                        page.alpha = 0f
+                    }
+                    position <= 0f -> {
+                        // Active/outgoing card slides smoothly with slight scale-down
+                        page.alpha = 1f - (absPos * 0.35f)
+                        page.translationX = 0f
+                        val scale = 1f - (absPos * 0.05f)
+                        page.scaleX = scale
+                        page.scaleY = scale
+                    }
+                    else -> {
+                        // Incoming card emerges smoothly from depth behind active card
+                        page.alpha = 1f - (absPos * 0.45f)
+                        page.translationX = -page.width * position * 0.18f
+                        val scale = 0.94f + (1f - absPos) * 0.06f
+                        page.scaleX = scale
+                        page.scaleY = scale
+                    }
+                }
+            }
+
+            // Attach or dynamically inject WormDotsIndicatorView below pager for BOTH Student & Work modes
+            val parentGroup = pager.parent as? android.view.ViewGroup
+            var dots = view?.findViewById<com.duorhythm.app.ui.views.WormDotsIndicatorView>(com.duorhythm.app.R.id.wormDotsIndicator)
+            if (dots == null && parentGroup != null) {
+                dots = com.duorhythm.app.ui.views.WormDotsIndicatorView(requireContext()).apply {
+                    id = com.duorhythm.app.R.id.wormDotsIndicator
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                        (18f * resources.displayMetrics.density).toInt()
+                    ).apply {
+                        gravity = android.view.Gravity.CENTER_HORIZONTAL
+                        topMargin = (8f * resources.displayMetrics.density).toInt()
+                    }
+                }
+                val idx = parentGroup.indexOfChild(pager)
+                parentGroup.addView(dots, idx + 1)
+            }
+            dots?.attachToViewPager2(pager)
+        } catch (_: Exception) {}
+    }
+
     private fun setupNextUpCarousel() {
         if (_binding == null) return
+        binding.dotsIndicatorNextUp.visibility = View.GONE
         binding.dotsIndicatorNextUp.setOnTouchListener { _, _ -> true }
 
         val pager = binding.viewPagerNextUp
-        val padEnd = (44f * resources.displayMetrics.density).toInt()
-        pager.clipToPadding = false
-        pager.clipChildren = false
-        pager.setPadding(pager.paddingLeft, pager.paddingTop, padEnd, pager.paddingBottom)
-        pager.offscreenPageLimit = 2
-        (pager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView)?.apply {
-            clipToPadding = false
-            clipChildren = false
-            overScrollMode = android.view.View.OVER_SCROLL_NEVER
-        }
-
-        val transformer = androidx.viewpager2.widget.CompositePageTransformer().apply {
-            addTransformer(androidx.viewpager2.widget.MarginPageTransformer((10f * resources.displayMetrics.density).toInt()))
-            addTransformer { page, position ->
-                val absPos = kotlin.math.abs(position).coerceIn(0f, 1f)
-                page.scaleY = 0.93f + (1f - absPos) * 0.07f
-                page.alpha = 0.72f + (1f - absPos) * 0.28f
-            }
-        }
-        pager.setPageTransformer(transformer)
-        binding.wormDotsIndicator.attachToViewPager2(pager)
+        configureNextUpDepthCarousel(pager)
 
         binding.btnNextUpPrev.setOnClickListener {
             val current = binding.viewPagerNextUp.currentItem
@@ -1008,6 +1036,9 @@ class HomeFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        try {
+            binding.wormDotsIndicator.detach()
+        } catch (_: Exception) {}
         WalletDataSyncManager.unregister(walletSyncListener)
         super.onDestroyView()
         _binding = null

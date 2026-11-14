@@ -22,7 +22,7 @@ class WormDotsIndicatorView @JvmOverloads constructor(
     private val dotSpacing = 8f * density
 
     private val inactivePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#3394A3B8")
+        color = Color.parseColor("#3D94A3B8")
         style = Paint.Style.FILL
     }
 
@@ -37,6 +37,7 @@ class WormDotsIndicatorView @JvmOverloads constructor(
     private var currentOffset: Float = 0f
 
     private var attachedPager: ViewPager2? = null
+    private var observedAdapter: RecyclerView.Adapter<*>? = null
     private var pageCallback: ViewPager2.OnPageChangeCallback? = null
     private var adapterObserver: RecyclerView.AdapterDataObserver? = null
 
@@ -59,16 +60,23 @@ class WormDotsIndicatorView @JvmOverloads constructor(
             }
         }
         pageCallback = callback
-        viewPager.registerOnPageChangeCallback(callback)
+        try {
+            viewPager.registerOnPageChangeCallback(callback)
+        } catch (_: Exception) {}
 
         viewPager.adapter?.let { adapter ->
+            observedAdapter = adapter
             val observer = object : RecyclerView.AdapterDataObserver() {
                 override fun onChanged() = syncCountFromAdapter(viewPager)
                 override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = syncCountFromAdapter(viewPager)
                 override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = syncCountFromAdapter(viewPager)
+                override fun onItemRangeChanged(positionStart: Int, itemCount: Int) = syncCountFromAdapter(viewPager)
+                override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) = syncCountFromAdapter(viewPager)
             }
             adapterObserver = observer
-            adapter.registerAdapterDataObserver(observer)
+            try {
+                adapter.registerAdapterDataObserver(observer)
+            } catch (_: Exception) {}
         }
     }
 
@@ -94,7 +102,7 @@ class WormDotsIndicatorView @JvmOverloads constructor(
         } else {
             0
         }
-        val desiredHeight = (dotDiameter + (6f * density) + paddingTop + paddingBottom).toInt()
+        val desiredHeight = (dotDiameter + (8f * density) + paddingTop + paddingBottom).toInt()
         setMeasuredDimension(
             resolveSize(desiredWidth, widthMeasureSpec),
             resolveSize(desiredHeight, heightMeasureSpec)
@@ -117,7 +125,7 @@ class WormDotsIndicatorView @JvmOverloads constructor(
         val step = dotDiameter + dotSpacing
         val baseCenter = startX + dotRadius + (currentPosition * step)
 
-        // Elastic worm stretch math: leading edge stretches first, trailing edge catches up
+        // Elastic worm stretch: leading head stretches toward next dot, trailing tail snaps smoothly
         val headProgress = (currentOffset * 2f).coerceIn(0f, 1f)
         val tailProgress = ((currentOffset - 0.5f) * 2f).coerceIn(0f, 1f)
 
@@ -133,11 +141,16 @@ class WormDotsIndicatorView @JvmOverloads constructor(
         canvas.drawRoundRect(wormRect, dotRadius, dotRadius, activeWormPaint)
     }
 
-    private fun detach() {
-        pageCallback?.let { attachedPager?.unregisterOnPageChangeCallback(it) }
-        adapterObserver?.let { attachedPager?.adapter?.unregisterAdapterDataObserver(it) }
+    fun detach() {
+        try {
+            pageCallback?.let { attachedPager?.unregisterOnPageChangeCallback(it) }
+        } catch (_: Exception) {}
+        try {
+            adapterObserver?.let { observedAdapter?.unregisterAdapterDataObserver(it) }
+        } catch (_: Exception) {}
         pageCallback = null
         adapterObserver = null
+        observedAdapter = null
         attachedPager = null
     }
 
