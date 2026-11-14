@@ -21,7 +21,7 @@ class AboutBottomSheetDialog(context: Context) : BottomSheetDialog(context) {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             binding.tvAboutVersion.text = "v${pInfo.versionName}"
         } catch (_: Exception) {
-            binding.tvAboutVersion.text = "v1.3.8-beta"
+            binding.tvAboutVersion.text = "v1.4.0-beta"
         }
 
         binding.btnCloseAbout.setOnClickListener {

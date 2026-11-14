@@ -149,14 +149,25 @@
             android:id="@+id/viewPagerNextUp"
             android:layout_width="match_parent"
             android:layout_height="124dp"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:paddingEnd="44dp" />
+
+        <com.duorhythm.app.ui.views.WormDotsIndicatorView
+            android:id="@+id/wormDotsIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="16dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="4dp" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/dotsIndicatorNextUp"
             android:layout_width="wrap_content"
-            android:layout_height="10dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="6dp"
             android:background="@android:color/transparent"
             android:clickable="false"
             android:focusable="false"

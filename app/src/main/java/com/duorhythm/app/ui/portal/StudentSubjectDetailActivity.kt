@@ -93,6 +93,24 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         setupRecyclerView()
         setupListeners()
         loadSubject()
+
+        // Phase 2: Scroll-Driven Collapsing Large Title
+        try {
+            val root = window.decorView as? android.view.ViewGroup
+            fun findNestedScroll(vg: android.view.ViewGroup?): androidx.core.widget.NestedScrollView? {
+                if (vg == null) return null
+                for (i in 0 until vg.childCount) {
+                    val c = vg.getChildAt(i)
+                    if (c is androidx.core.widget.NestedScrollView) return c
+                    if (c is android.view.ViewGroup) findNestedScroll(c)?.let { return it }
+                }
+                return null
+            }
+            val nsv = findNestedScroll(root)
+            val heroTitle = binding.tvDetailSubjectTitle
+            val toolbarTitle = binding.toolbarSubject
+            com.duorhythm.app.util.ViewAnimationExtensions.attachCollapsingLargeTitle(nsv, heroTitle, toolbarTitle)
+        } catch (_: Exception) {}
     }
 
     private fun setupRecyclerView() {

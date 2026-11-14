@@ -342,6 +342,7 @@ class HomeFragment : Fragment() {
                 }
                 binding.viewPagerNextUp.adapter = adapter
                 binding.viewPagerNextUp.setCurrentItem(0, false)
+                binding.wormDotsIndicator.attachToViewPager2(binding.viewPagerNextUp)
 
                 tabLayoutMediator = com.google.android.material.tabs.TabLayoutMediator(
                     binding.dotsIndicatorNextUp,
@@ -351,6 +352,7 @@ class HomeFragment : Fragment() {
             } else {
                 binding.viewPagerNextUp.visibility = View.GONE
                 binding.dotsIndicatorNextUp.visibility = View.GONE
+                binding.wormDotsIndicator.visibility = View.GONE
                 binding.tvNoClassesScheduled.visibility = View.VISIBLE
                 binding.tvNoClassesScheduled.text = "No pending client deliverables • All clear"
             }
@@ -446,6 +448,7 @@ class HomeFragment : Fragment() {
             }
             binding.viewPagerNextUp.adapter = adapter
             binding.viewPagerNextUp.setCurrentItem(0, false)
+            binding.wormDotsIndicator.attachToViewPager2(binding.viewPagerNextUp)
 
             tabLayoutMediator = com.google.android.material.tabs.TabLayoutMediator(
                 binding.dotsIndicatorNextUp,
@@ -455,6 +458,7 @@ class HomeFragment : Fragment() {
         } else {
             binding.viewPagerNextUp.visibility = View.GONE
             binding.dotsIndicatorNextUp.visibility = View.GONE
+            binding.wormDotsIndicator.visibility = View.GONE
             binding.tvNoClassesScheduled.visibility = View.VISIBLE
             binding.tvNoClassesScheduled.text = "No upcoming lectures scheduled"
         }
@@ -728,6 +732,29 @@ class HomeFragment : Fragment() {
     private fun setupNextUpCarousel() {
         if (_binding == null) return
         binding.dotsIndicatorNextUp.setOnTouchListener { _, _ -> true }
+
+        val pager = binding.viewPagerNextUp
+        val padEnd = (44f * resources.displayMetrics.density).toInt()
+        pager.clipToPadding = false
+        pager.clipChildren = false
+        pager.setPadding(pager.paddingLeft, pager.paddingTop, padEnd, pager.paddingBottom)
+        pager.offscreenPageLimit = 2
+        (pager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView)?.apply {
+            clipToPadding = false
+            clipChildren = false
+            overScrollMode = android.view.View.OVER_SCROLL_NEVER
+        }
+
+        val transformer = androidx.viewpager2.widget.CompositePageTransformer().apply {
+            addTransformer(androidx.viewpager2.widget.MarginPageTransformer((10f * resources.displayMetrics.density).toInt()))
+            addTransformer { page, position ->
+                val absPos = kotlin.math.abs(position).coerceIn(0f, 1f)
+                page.scaleY = 0.93f + (1f - absPos) * 0.07f
+                page.alpha = 0.72f + (1f - absPos) * 0.28f
+            }
+        }
+        pager.setPageTransformer(transformer)
+        binding.wormDotsIndicator.attachToViewPager2(pager)
 
         binding.btnNextUpPrev.setOnClickListener {
             val current = binding.viewPagerNextUp.currentItem
