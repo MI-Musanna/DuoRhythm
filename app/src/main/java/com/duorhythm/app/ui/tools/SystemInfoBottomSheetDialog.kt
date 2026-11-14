@@ -51,7 +51,7 @@ class SystemInfoBottomSheetDialog(context: Context) : BottomSheetDialog(context)
             binding.tvDiagPackageName.text = context.packageName
 
             // Database info
-            val dbFile = context.getDatabasePath("lifesync_db.db")
+            val dbFile = context.getDatabasePath("duorhythm.db")
             if (dbFile != null && dbFile.exists()) {
                 val dbSizeKb = (dbFile.length() / 1024).coerceAtLeast(1)
                 binding.tvDiagDbEngine.text = "SQLite (Healthy • 0 corrupted)"

@@ -140,7 +140,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
-            val backupPrefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+            val backupPrefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             if (backupPrefs.getBoolean("pref_auto_backup_enabled", backupPrefs.getBoolean(com.duorhythm.app.worker.LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, false))) {
                 val intervalHours = backupPrefs.getInt("pref_auto_backup_interval_hours", 24)
                 com.duorhythm.app.worker.AutoBackupWorker.schedulePeriodicBackup(this, intervalHours)

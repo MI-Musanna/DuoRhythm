@@ -4,12 +4,14 @@ import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.db.DatabaseMaintenanceWorker
+import java.io.File
 
-class LifeSyncApp : Application() {
+class DuoRhythmApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
         instance = this
+        migrateLegacyStorageIfNeeded()
 
         AppCrashHandler.install(this)
 
@@ -40,11 +42,11 @@ class LifeSyncApp : Application() {
 
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityStarted(activity: android.app.Activity) {
-                com.duorhythm.app.security.LifeSyncSecurityManager.onActivityStarted()
+                com.duorhythm.app.security.DuoRhythmSecurityManager.onActivityStarted()
             }
 
             override fun onActivityStopped(activity: android.app.Activity) {
-                com.duorhythm.app.security.LifeSyncSecurityManager.onActivityStopped()
+                com.duorhythm.app.security.DuoRhythmSecurityManager.onActivityStopped()
             }
 
             override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {}
@@ -55,8 +57,40 @@ class LifeSyncApp : Application() {
         })
     }
 
+    private fun migrateLegacyStorageIfNeeded() {
+        try {
+            val oldDb = getDatabasePath("lifesync.db")
+            val newDb = getDatabasePath("duorhythm.db")
+            if (oldDb.exists() && !newDb.exists()) {
+                oldDb.copyTo(newDb, overwrite = false)
+                listOf("-wal", "-shm").forEach { suffix ->
+                    val sidecar = File(oldDb.path + suffix)
+                    if (sidecar.exists()) sidecar.copyTo(File(newDb.path + suffix), overwrite = false)
+                }
+            }
+            val oldPrefs = getSharedPreferences("lifesync_prefs", MODE_PRIVATE)
+            val newPrefs = getSharedPreferences("duorhythm_prefs", MODE_PRIVATE)
+            if (oldPrefs.all.isNotEmpty() && newPrefs.all.isEmpty()) {
+                val editor = newPrefs.edit()
+                for ((k, v) in oldPrefs.all) {
+                    when (v) {
+                        is String -> editor.putString(k, v)
+                        is Int -> editor.putInt(k, v)
+                        is Boolean -> editor.putBoolean(k, v)
+                        is Long -> editor.putLong(k, v)
+                        is Float -> editor.putFloat(k, v)
+                    }
+                }
+                editor.apply()
+            }
+        } catch (_: Exception) {}
+    }
+
     companion object {
-        lateinit var instance: LifeSyncApp
+        lateinit var instance: DuoRhythmApp
             private set
     }
 }
+
+typealias LifeSyncApp = DuoRhythmApp
+typealias DuoApplication = DuoRhythmApp

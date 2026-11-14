@@ -4,7 +4,7 @@ import android.content.Context
 import java.util.Calendar
 
 object AppSettings {
-    const val PREFS_NAME = "lifesync_prefs"
+    const val PREFS_NAME = "duorhythm_prefs"
     const val KEY_START_OF_WEEK = "start_of_week"
 
     const val START_OF_WEEK_SATURDAY = Calendar.SATURDAY // 7

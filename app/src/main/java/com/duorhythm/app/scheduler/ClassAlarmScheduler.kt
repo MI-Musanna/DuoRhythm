@@ -27,7 +27,7 @@ object ClassAlarmScheduler {
     const val EXTRA_END_TIME = "extra_end_time"
     const val EXTRA_DAY_OF_WEEK = "extra_day_of_week"
 
-    const val PREFS_NAME = "lifesync_prefs"
+    const val PREFS_NAME = "duorhythm_prefs"
     const val KEY_IN_CLASS_DND = "in_class_dnd"
     const val KEY_SAVED_RINGER_MODE = "saved_ringer_mode"
 

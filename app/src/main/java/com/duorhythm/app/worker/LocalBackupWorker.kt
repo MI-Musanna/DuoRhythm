@@ -28,7 +28,7 @@ class LocalBackupWorker(
 
     companion object {
         const val UNIQUE_WORK_NAME = "DuoRhythm_LocalAutoBackup"
-        const val PREFS_NAME = "lifesync_prefs"
+        const val PREFS_NAME = "duorhythm_prefs"
         const val KEY_AUTO_BACKUP_ENABLED = "key_local_auto_backup_enabled"
         const val KEY_AUTO_BACKUP_INTERVAL = "key_local_auto_backup_interval" // "DAILY", "WEEKLY", "MONTHLY"
 

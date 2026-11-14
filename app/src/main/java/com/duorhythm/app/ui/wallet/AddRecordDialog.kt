@@ -53,7 +53,7 @@ class AddRecordDialog(
         val buckets = dbHelper.getAllWalletBuckets(activeProfileId)
         dialogBinding = DialogAddTransactionBinding.inflate(LayoutInflater.from(context))
 
-        val prefs = context.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val currentCurrency = prefs.getString("selected_currency", "BDT") ?: "BDT"
         val ratesList = dbHelper.getAllCurrencyRates()
         val currentSymbol = ratesList.find { it.code == currentCurrency }?.symbol ?: "৳"
@@ -75,6 +75,12 @@ class AddRecordDialog(
             dialogBinding.actvTxCard.setHintTextColor(hintColor)
             dialogBinding.actvTxToAccount.setTextColor(whiteColor)
             dialogBinding.actvTxToAccount.setHintTextColor(hintColor)
+
+            val strokeCsl = androidx.core.content.ContextCompat.getColorStateList(
+                context,
+                com.duorhythm.app.R.color.selector_box_stroke_cyan
+            )
+            strokeCsl?.let { dialogBinding.tilTransactionTitle.setBoxStrokeColorStateList(it) }
         } catch (_: Exception) {}
 
         selectedType = initialType
@@ -381,7 +387,7 @@ class AddRecordDialog(
             val newId = dbHelper.insertTransaction(tx)
             val savedTx = tx.copy(id = newId)
 
-            val prefs = context.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+            val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             if (chosenBucket != null) {
                 prefs.edit().putLong("last_used_wallet_account_id", chosenBucket.id).apply()
             }

@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ScheduleViewModel(application: Application = com.duorhythm.app.LifeSyncApp.instance) : AndroidViewModel(application) {
+class ScheduleViewModel(application: Application = com.duorhythm.app.DuoRhythmApp.instance) : AndroidViewModel(application) {
 
     private val dbHelper = DatabaseHelper.getInstance(application)
 

@@ -20,7 +20,7 @@ object ProfileManager {
 
     fun getActiveProfileId(context: Context? = null): Long {
         cachedActiveProfileId?.let { return it }
-        val ctx = context ?: try { com.duorhythm.app.LifeSyncApp.instance } catch (_: Throwable) { null }
+        val ctx = context ?: try { com.duorhythm.app.DuoRhythmApp.instance } catch (_: Throwable) { null }
         if (ctx == null) return 1L
         val id = try {
             getPrefs(ctx).getLong(KEY_ACTIVE_PROFILE_ID, 1L)

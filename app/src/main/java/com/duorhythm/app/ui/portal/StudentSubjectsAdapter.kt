@@ -1,5 +1,6 @@
 package com.duorhythm.app.ui.portal
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -99,9 +100,18 @@ class StudentSubjectsAdapter(
             }
 
             // Dynamic Subject Progress based on completed tasks/assessments
-            val progressPercentage = progressMap[subject.id] ?: 0
-            binding.pbSubjectProgress.progress = progressPercentage
-            binding.tvSubjectProgress.text = "$progressPercentage% Progress"
+            val showProgressBar = binding.root.context
+                .getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+                .getBoolean("show_course_progress_bar", false)
+
+            if (showProgressBar) {
+                binding.layoutSubjectProgress.visibility = View.VISIBLE
+                val progressPercentage = progressMap[subject.id] ?: 0
+                binding.pbSubjectProgress.progress = progressPercentage
+                binding.tvSubjectProgress.text = "$progressPercentage% Progress"
+            } else {
+                binding.layoutSubjectProgress.visibility = View.GONE
+            }
 
             binding.tvSubjectNotes.text = if (subject.notes.isNotBlank()) subject.notes else "Syllabus active • Tap to view homework and practicals."
 

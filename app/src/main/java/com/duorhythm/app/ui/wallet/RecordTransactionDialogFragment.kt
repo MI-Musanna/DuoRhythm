@@ -55,6 +55,15 @@ class RecordTransactionDialogFragment : DialogFragment() {
                 setTextColor(whiteColor)
                 setHintTextColor(hintColor)
             }
+            val strokeColorStateList = androidx.core.content.ContextCompat.getColorStateList(
+                view.context,
+                com.duorhythm.app.R.color.selector_box_stroke_cyan
+            )
+            strokeColorStateList?.let { csl ->
+                view.findViewById<com.google.android.material.textfield.TextInputLayout>(
+                    com.duorhythm.app.R.id.tilTransactionTitle
+                )?.setBoxStrokeColorStateList(csl)
+            }
         } catch (_: Exception) {}
     }
 

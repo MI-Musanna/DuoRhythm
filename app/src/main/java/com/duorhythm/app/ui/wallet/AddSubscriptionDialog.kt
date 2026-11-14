@@ -35,7 +35,7 @@ class AddSubscriptionDialog : DialogFragment {
     }
 
     fun show() {
-        val ctx = customContext ?: try { com.duorhythm.app.LifeSyncApp.instance } catch (_: Throwable) { null }
+        val ctx = customContext ?: try { com.duorhythm.app.DuoRhythmApp.instance } catch (_: Throwable) { null }
         var current: Context? = ctx
         while (current != null) {
             if (current is androidx.fragment.app.FragmentActivity) {

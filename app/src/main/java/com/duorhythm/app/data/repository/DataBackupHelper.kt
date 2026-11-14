@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
-import com.duorhythm.app.LifeSyncApp
+import com.duorhythm.app.DuoRhythmApp
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.util.ImageUtils
 import org.json.JSONArray
@@ -19,7 +19,7 @@ object DataBackupHelper {
         context: Context? = null,
         includeAttachments: Boolean = false
     ): String {
-        val ctx = context ?: LifeSyncApp.instance
+        val ctx = context ?: DuoRhythmApp.instance
         val dbHelper = DatabaseHelper.getInstance(ctx)
 
         // Export full database JSON with meta header

@@ -140,7 +140,7 @@ class ContactsAdapter(
                             try {
                                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
-                                    putExtra(Intent.EXTRA_TEXT, "Hello from LifeSync!")
+                                    putExtra(Intent.EXTRA_TEXT, "Hello from DuoRhythm!")
                                     `package` = "org.telegram.messenger"
                                 }
                                 context.startActivity(shareIntent)

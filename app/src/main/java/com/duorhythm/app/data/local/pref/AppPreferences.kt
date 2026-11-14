@@ -3,7 +3,7 @@ package com.duorhythm.app.data.local.pref
 import android.content.Context
 
 object AppPreferences {
-    const val PREFS_NAME = "lifesync_prefs"
+    const val PREFS_NAME = "duorhythm_prefs"
 
     const val KEY_CLASS_LEAD_MINUTES = "pref_class_lead_minutes"
     const val DEFAULT_CLASS_LEAD_MINUTES = 15

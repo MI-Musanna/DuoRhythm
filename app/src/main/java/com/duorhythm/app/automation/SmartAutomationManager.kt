@@ -20,17 +20,17 @@ import java.util.Locale
 
 object SmartAutomationManager {
 
-    const val PREFS_NAME = "lifesync_prefs"
+    const val PREFS_NAME = "duorhythm_prefs"
 
     const val KEY_AUTO_SILENT_CLASSES = "key_auto_silent_classes"
     const val KEY_EXPENSE_DETECTION = "key_expense_detection"
     const val KEY_SMART_BRIEFINGS = "key_smart_briefings"
     const val KEY_SUBSCRIPTION_ALERTS = "key_subscription_alerts"
 
-    const val CHANNEL_EXPENSE_DETECTION = "lifesync_expense_detection"
-    const val CHANNEL_BRIEFINGS = "lifesync_briefings_channel"
-    const val CHANNEL_SUBSCRIPTIONS = "lifesync_subscriptions_channel"
-    const val CHANNEL_DND = "lifesync_dnd_channel"
+    const val CHANNEL_EXPENSE_DETECTION = "duorhythm_expense_detection"
+    const val CHANNEL_BRIEFINGS = "duorhythm_briefings_channel"
+    const val CHANNEL_SUBSCRIPTIONS = "duorhythm_subscriptions_channel"
+    const val CHANNEL_DND = "duorhythm_dnd_channel"
 
     const val REQUEST_CODE_MORNING = 31001
     const val REQUEST_CODE_EVENING = 31002

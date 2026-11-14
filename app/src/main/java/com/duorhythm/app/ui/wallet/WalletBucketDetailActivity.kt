@@ -105,7 +105,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
     }
 
     private fun setupCurrency() {
-        val prefs = getSharedPreferences("lifesync_prefs", MODE_PRIVATE)
+        val prefs = getSharedPreferences("duorhythm_prefs", MODE_PRIVATE)
         val defaultCurrency = if (isBangladeshLocale()) "BDT" else "USD"
         currentCurrency = prefs.getString("selected_currency", defaultCurrency) ?: defaultCurrency
         val rates = dbHelper.getAllCurrencyRates()

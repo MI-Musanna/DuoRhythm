@@ -28,7 +28,7 @@ class AutoBackupWorker(
 
     companion object {
         const val UNIQUE_WORK_NAME = "DUORHYTHM_AUTO_BACKUP"
-        const val PREFS_NAME = "lifesync_prefs"
+        const val PREFS_NAME = "duorhythm_prefs"
         const val KEY_AUTO_BACKUP_ENABLED = "pref_auto_backup_enabled"
         const val KEY_AUTO_BACKUP_INTERVAL_HOURS = "pref_auto_backup_interval_hours"
         const val KEY_BACKUP_INCLUDE_ATTACHMENTS = "pref_backup_include_attachments"

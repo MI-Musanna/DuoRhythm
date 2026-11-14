@@ -6,16 +6,23 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.duorhythm.app.databinding.DialogAboutLifesyncBinding
+import com.duorhythm.app.databinding.DialogAboutDuorhythmBinding
 
 class AboutBottomSheetDialog(context: Context) : BottomSheetDialog(context) {
 
-    private lateinit var binding: DialogAboutLifesyncBinding
+    private lateinit var binding: DialogAboutDuorhythmBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DialogAboutLifesyncBinding.inflate(layoutInflater)
+        binding = DialogAboutDuorhythmBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        try {
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            binding.tvAboutVersion.text = "v${pInfo.versionName}"
+        } catch (_: Exception) {
+            binding.tvAboutVersion.text = "v1.3.8-beta"
+        }
 
         binding.btnCloseAbout.setOnClickListener {
             dismiss()

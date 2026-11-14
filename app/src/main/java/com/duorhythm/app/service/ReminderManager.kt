@@ -18,7 +18,7 @@ import java.util.Locale
 
 object ReminderManager {
 
-    const val CHANNEL_ID = "lifesync_reminders_channel"
+    const val CHANNEL_ID = "duorhythm_reminders_channel"
     const val CHANNEL_NAME = "Class & Exam Reminders"
     const val ACTION_REMINDER = "com.duorhythm.app.ACTION_REMINDER"
 
@@ -27,7 +27,7 @@ object ReminderManager {
     const val EXTRA_TITLE = "extra_reminder_title"
     const val EXTRA_MESSAGE = "extra_reminder_message"
 
-    private const val PREFS_NAME = "lifesync_prefs"
+    private const val PREFS_NAME = "duorhythm_prefs"
     private const val KEY_REMINDERS_ENABLED = "key_reminders_enabled"
 
     fun isRemindersEnabled(context: Context): Boolean {

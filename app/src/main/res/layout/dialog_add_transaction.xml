@@ -199,7 +199,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:hint="Title (Optional - defaults to Category)"
-            app:boxStrokeColor="#00E5FF"
+            app:boxStrokeColor="@color/selector_box_stroke_cyan"
             app:boxStrokeWidth="1dp"
             app:boxStrokeWidthFocused="1.5dp"
             app:hintTextColor="#00E5FF">

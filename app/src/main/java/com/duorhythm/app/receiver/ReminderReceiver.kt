@@ -26,7 +26,7 @@ class ReminderReceiver : BroadcastReceiver() {
         if (action == ReminderManager.ACTION_REMINDER) {
             if (!ReminderManager.isRemindersEnabled(context)) return
 
-            val title = intent.getStringExtra(ReminderManager.EXTRA_TITLE) ?: "LifeSync Reminder"
+            val title = intent.getStringExtra(ReminderManager.EXTRA_TITLE) ?: "DuoRhythm Reminder"
             val message = intent.getStringExtra(ReminderManager.EXTRA_MESSAGE) ?: "Upcoming schedule item"
             val type = intent.getStringExtra(ReminderManager.EXTRA_TYPE) ?: "CLASS"
             val itemId = intent.getLongExtra(ReminderManager.EXTRA_ID, -1L)

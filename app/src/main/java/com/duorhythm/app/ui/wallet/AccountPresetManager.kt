@@ -13,7 +13,7 @@ data class AccountPreset(
 )
 
 object AccountPresetManager {
-    private const val PREFS_NAME = "lifesync_prefs"
+    private const val PREFS_NAME = "duorhythm_prefs"
     private const val KEY_CUSTOM_PRESETS = "custom_account_presets_json_v1"
 
     val DEFAULT_ICON_PRESETS = listOf(

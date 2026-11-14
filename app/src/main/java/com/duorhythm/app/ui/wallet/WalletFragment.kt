@@ -30,7 +30,7 @@ import com.duorhythm.app.databinding.DialogAddTransactionBinding
 import com.duorhythm.app.databinding.FragmentWalletBinding
 import com.duorhythm.app.MainActivity
 import com.duorhythm.app.data.local.pref.AppPreferences
-import com.duorhythm.app.security.LifeSyncSecurityManager
+import com.duorhythm.app.security.DuoRhythmSecurityManager
 import com.duorhythm.app.ui.common.AppIconRegistry
 import com.duorhythm.app.ui.common.ColorPickerHelper
 import com.duorhythm.app.util.AnimationUtils
@@ -69,7 +69,7 @@ class WalletFragment : Fragment() {
         try {
             ViewModelProvider(requireActivity())[WalletViewModel::class.java]
         } catch (_: Throwable) {
-            val app = activity?.application ?: com.duorhythm.app.LifeSyncApp.instance
+            val app = activity?.application ?: com.duorhythm.app.DuoRhythmApp.instance
             ViewModelProvider.AndroidViewModelFactory.getInstance(app).create(WalletViewModel::class.java)
         }
     }
@@ -170,13 +170,13 @@ class WalletFragment : Fragment() {
             binding.tvTotalBalance.text = "••••••"
             binding.tvAccountsSummary.text = "••••••"
 
-            LifeSyncSecurityManager.authenticate(
+            DuoRhythmSecurityManager.authenticate(
                 requireActivity(),
                 title = "Unlock DuoRhythm Wallet",
                 subtitle = "Authenticate to access financial buckets & balances",
                 onSuccess = {
                     WalletSessionManager.isWalletUnlockedForSession = true
-                    LifeSyncSecurityManager.setSessionUnlocked(true)
+                    DuoRhythmSecurityManager.setSessionUnlocked(true)
                     loadData()
                 },
                 onError = { _ ->
@@ -233,7 +233,7 @@ class WalletFragment : Fragment() {
     }
 
     private fun setupCurrencySelector() {
-        val prefs = requireContext().getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = requireContext().getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         ratesList = dbHelper.getAllCurrencyRates()
 
         val defaultCurrency = if (isBangladeshLocale()) "BDT" else "USD"
@@ -261,7 +261,7 @@ class WalletFragment : Fragment() {
     }
 
     private fun showCurrencyChooserDialog() {
-        val prefs = requireContext().getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = requireContext().getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         ratesList = dbHelper.getAllCurrencyRates()
         val labels = ratesList.map { rate ->
             val name = getCurrencyFullName(rate.code)
@@ -450,13 +450,13 @@ class WalletFragment : Fragment() {
         )
 
         binding.btnUnlockWallet.setOnClickListener {
-            LifeSyncSecurityManager.authenticate(
+            DuoRhythmSecurityManager.authenticate(
                 requireActivity(),
                 title = "Unlock DuoRhythm Wallet",
                 subtitle = "Authenticate to access financial buckets & balances",
                 onSuccess = {
                     WalletSessionManager.isWalletUnlockedForSession = true
-                    LifeSyncSecurityManager.setSessionUnlocked(true)
+                    DuoRhythmSecurityManager.setSessionUnlocked(true)
                     loadData()
                     Toast.makeText(requireContext(), "Wallet Unlocked", Toast.LENGTH_SHORT).show()
                 },
@@ -468,15 +468,15 @@ class WalletFragment : Fragment() {
 
         binding.btnToggleLockWallet.setOnClickListener {
             val ctx = requireContext()
-            val isEnabled = AppPreferences.isWalletBiometricLocked(ctx) || LifeSyncSecurityManager.isLockEnabled(ctx)
+            val isEnabled = AppPreferences.isWalletBiometricLocked(ctx) || DuoRhythmSecurityManager.isLockEnabled(ctx)
             if (isEnabled) {
-                if (WalletSessionManager.isWalletUnlockedForSession || LifeSyncSecurityManager.isSessionUnlocked()) {
+                if (WalletSessionManager.isWalletUnlockedForSession || DuoRhythmSecurityManager.isSessionUnlocked()) {
                     AlertDialog.Builder(ctx)
                         .setTitle("Lock Wallet")
                         .setMessage("Lock DuoRhythm wallet screen immediately?")
                         .setPositiveButton("Lock Now") { _, _ ->
                             WalletSessionManager.isWalletUnlockedForSession = false
-                            LifeSyncSecurityManager.lockSession()
+                            DuoRhythmSecurityManager.lockSession()
                             loadData()
                             Toast.makeText(ctx, "Wallet Locked", Toast.LENGTH_SHORT).show()
                         }
@@ -490,7 +490,7 @@ class WalletFragment : Fragment() {
                     .setTitle("Enable Biometric Lock")
                     .setMessage("Protect your buckets, balances, and records with biometric unlock or device PIN?")
                     .setPositiveButton("Enable") { _, _ ->
-                        LifeSyncSecurityManager.authenticate(
+                        DuoRhythmSecurityManager.authenticate(
                             requireActivity(),
                             title = "Verify Identity",
                             subtitle = "Confirm credentials to enable security lock",
@@ -522,7 +522,7 @@ class WalletFragment : Fragment() {
             }
 
             val isLocked = (AppPreferences.isWalletBiometricLocked(ctx) && !WalletSessionManager.isWalletUnlockedForSession) ||
-                           (LifeSyncSecurityManager.isLockEnabled(ctx) && !LifeSyncSecurityManager.isSessionUnlocked())
+                           (DuoRhythmSecurityManager.isLockEnabled(ctx) && !DuoRhythmSecurityManager.isSessionUnlocked())
 
             if (isLocked) {
                 binding.layoutWalletLocked.visibility = View.VISIBLE
@@ -1079,7 +1079,7 @@ class WalletFragment : Fragment() {
             return
         }
 
-        val prefs = requireContext().getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = requireContext().getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val lastUsedBucketId = prefs.getLong("last_used_wallet_account_id", -1L)
 
         val dialogBinding = DialogAddTransactionBinding.inflate(layoutInflater)

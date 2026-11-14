@@ -244,8 +244,7 @@ class HomeFragment : Fragment() {
             binding.layoutWorkMilestonesContainer.crossfade(!isStudent)
             binding.layoutStudentOverview.crossfade(isStudent)
             binding.layoutWorkOverview.crossfade(!isStudent)
-            binding.cardStudyPortal.crossfade(isStudent)
-            binding.cardWorkPortal.crossfade(!isStudent)
+            binding.cardStudyPortal.visibility = View.VISIBLE
 
             if (isStudent) {
                 binding.btnStudentMode.setBackgroundResource(R.drawable.bg_pill_blue)
@@ -311,6 +310,7 @@ class HomeFragment : Fragment() {
         // 1. Detach existing dots indicator mediator to avoid stale dot counts
         tabLayoutMediator?.detach()
         tabLayoutMediator = null
+        binding.cardStudyPortal.visibility = View.VISIBLE
 
         if (isWorkMode) {
             // --- WORK MODE ---
@@ -642,7 +642,7 @@ class HomeFragment : Fragment() {
         if (_binding == null || !isAdded || !::dbHelper.isInitialized) return
         try {
             val ctx = context ?: return
-            val prefs = ctx.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+            val prefs = ctx.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             val defaultCurrency = if (isBangladeshLocale()) "BDT" else "USD"
             val selectedCurrency = prefs.getString("selected_currency", defaultCurrency) ?: defaultCurrency
             val ratesList = dbHelper.getAllCurrencyRates()

@@ -16,7 +16,7 @@ import java.util.Locale
 
 object BackupService {
 
-    private const val PREFS_BACKUP = "lifesync_backup_prefs"
+    private const val PREFS_BACKUP = "duorhythm_backup_prefs"
     private const val KEY_LAST_BACKUP = "key_last_backup_time"
 
     fun getLastBackupTimestamp(context: Context): String {
@@ -62,7 +62,7 @@ object BackupService {
             val json = db.exportDatabaseToJson()
 
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val fileName = "LifeSync_Backup_$timeStamp.json"
+            val fileName = "DuoRhythm_Backup_$timeStamp.json"
             val backupDir = File(context.cacheDir, "backups").apply { mkdirs() }
             val file = File(backupDir, fileName)
 
@@ -86,10 +86,10 @@ object BackupService {
         return Intent(Intent.ACTION_SEND).apply {
             type = "application/json"
             putExtra(Intent.EXTRA_STREAM, contentUri)
-            putExtra(Intent.EXTRA_SUBJECT, "LifeSync Backup - ${backupFile.name}")
+            putExtra(Intent.EXTRA_SUBJECT, "DuoRhythm Backup - ${backupFile.name}")
             putExtra(
                 Intent.EXTRA_TEXT,
-                "Backup of LifeSync database (Transactions, Tasks, Schedules, Subjects, Orders, Notes, Buckets, Contacts)."
+                "Backup of DuoRhythm database (Transactions, Tasks, Schedules, Subjects, Orders, Notes, Buckets, Contacts)."
             )
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
@@ -119,7 +119,7 @@ object BackupService {
             )
             val hasValidTables = requiredTableAny.any { root.has(it) }
             if (!hasValidTables) {
-                return Pair(false, "Corrupted or incompatible backup: No recognized LifeSync tables found.")
+                return Pair(false, "Corrupted or incompatible backup: No recognized DuoRhythm tables found.")
             }
 
             val db = DatabaseHelper.getInstance(context)

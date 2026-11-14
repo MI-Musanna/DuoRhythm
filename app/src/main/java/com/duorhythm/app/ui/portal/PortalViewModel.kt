@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class PortalViewModel(
-    private val databaseHelper: DatabaseHelper = DatabaseHelper.getInstance(com.duorhythm.app.LifeSyncApp.instance)
+    private val databaseHelper: DatabaseHelper = DatabaseHelper.getInstance(com.duorhythm.app.DuoRhythmApp.instance)
 ) : ViewModel() {
     private val vmJob = SupervisorJob()
     val viewModelScope = CoroutineScope(Dispatchers.Main.immediate + vmJob)

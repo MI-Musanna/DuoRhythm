@@ -10,9 +10,9 @@ import android.os.CancellationSignal
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 
-object LifeSyncSecurityManager {
+object DuoRhythmSecurityManager {
 
-    private const val PREFS_NAME = "lifesync_prefs"
+    private const val PREFS_NAME = "duorhythm_prefs"
     private const val KEY_LOCK_ENABLED = "key_biometric_lock_enabled"
 
     private const val SESSION_TIMEOUT_MS = 5 * 60 * 1000L // 5 minutes
@@ -96,7 +96,7 @@ object LifeSyncSecurityManager {
 
     fun authenticate(
         activity: Activity,
-        title: String = "LifeSync Security",
+        title: String = "DuoRhythm Security",
         subtitle: String = "Unlock with biometric or device PIN",
         onSuccess: () -> Unit,
         onError: (String) -> Unit
@@ -245,3 +245,5 @@ object LifeSyncSecurityManager {
         }
     }
 }
+
+typealias LifeSyncSecurityManager = DuoRhythmSecurityManager

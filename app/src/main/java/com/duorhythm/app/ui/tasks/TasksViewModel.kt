@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class TasksViewModel(application: Application = com.duorhythm.app.LifeSyncApp.instance) : AndroidViewModel(application) {
+class TasksViewModel(application: Application = com.duorhythm.app.DuoRhythmApp.instance) : AndroidViewModel(application) {
 
     private val dbHelper = DatabaseHelper.getInstance(application)
 

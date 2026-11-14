@@ -22,7 +22,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     val context: Context get() = appContext
 
     companion object {
-        const val DATABASE_NAME = "lifesync.db"
+        const val DATABASE_NAME = "duorhythm.db"
         const val DATABASE_VERSION = 9
 
         @Volatile
@@ -349,7 +349,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         db.execSQL("DELETE FROM subscriptions")
                         db.execSQL("DELETE FROM transactions")
                         db.execSQL("DELETE FROM cards")
-                        appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                        appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                             .edit()
                             .remove("cash_funds_usd")
                             .putBoolean("clean_zero_state_v5_applied", true)
@@ -460,7 +460,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 db.execSQL("UPDATE accounts SET balance = balance + " + totalToRefund + " WHERE name = 'Cash' OR is_default = 1")
                 db.execSQL("UPDATE wallet_buckets SET balance = balance + " + totalToRefund + " WHERE name = 'Cash' OR is_default = 1")
             } else {
-                val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                val prefs = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                 if (!prefs.getBoolean("emergency_refund_3050_applied_v1", false)) {
                     db.execSQL("UPDATE accounts SET balance = balance + 3050.0 WHERE name = 'Cash' OR is_default = 1")
                     db.execSQL("UPDATE wallet_buckets SET balance = balance + 3050.0 WHERE name = 'Cash' OR is_default = 1")
@@ -514,7 +514,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } catch (_: Exception) {}
 
         // One-time fallback wipe to ensure 100% clean zero state
-        val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         if (!prefs.getBoolean("clean_zero_state_v5_applied", false)) {
             try {
                 db.execSQL("DELETE FROM wallet_buckets")
@@ -615,7 +615,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.execSQL("DELETE FROM transaction_categories WHERE is_default = 1")
             db.execSQL("DELETE FROM transaction_categories WHERE name IN ('Food', 'Transport', 'Bills', 'Freelance', 'Salary', 'Shopping', 'Education', 'Entertainment', 'Work Orders', 'Other')")
         } catch (_: Exception) {}
-        val catPrefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val catPrefs = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         if (!catPrefs.getBoolean("clean_zero_categories_wiped_v2", false)) {
             try {
                 db.execSQL("DELETE FROM transaction_categories WHERE is_default = 1")
@@ -791,7 +791,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
             }
             if (legacyCash <= 0.0) {
-                val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                val prefs = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                 legacyCash = prefs.getString("cash_funds_usd", null)?.toDoubleOrNull() ?: 0.0
             }
 
@@ -831,7 +831,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 put("value", "0.0")
             }
             db.insertWithOnConflict("app_settings", null, clearCv, SQLiteDatabase.CONFLICT_REPLACE)
-            val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+            val prefs = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             prefs.edit().remove("cash_funds_usd").apply()
         } catch (_: Exception) {}
     }
@@ -847,7 +847,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
         } catch (_: Exception) {}
         // Fallback check in SharedPreferences for smooth migration
-        val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val legacy = prefs.getString("cash_funds_usd", null)?.toDoubleOrNull()
         if (legacy != null) {
             setCashFundsUSD(legacy)
@@ -866,7 +866,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.insertWithOnConflict("app_settings", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
         } catch (_: Exception) {}
         // Also persist in SharedPreferences for safety
-        appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             .edit().putString("cash_funds_usd", usd.toString()).apply()
     }
 
@@ -880,7 +880,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
             }
         } catch (_: Exception) {}
-        val prefs = appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         return prefs.getBoolean("work_portal_enabled", true)
     }
 
@@ -893,7 +893,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
             db.insertWithOnConflict("app_settings", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
         } catch (_: Exception) {}
-        appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             .edit().putBoolean("work_portal_enabled", enabled).apply()
     }
 
@@ -1028,7 +1028,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.execSQL("DELETE FROM notes")
             db.execSQL("DELETE FROM contacts_groups")
             db.execSQL("DELETE FROM app_settings")
-            appContext.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+            appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                 .edit().remove("cash_funds_usd").apply()
             db.setTransactionSuccessful()
         } finally {

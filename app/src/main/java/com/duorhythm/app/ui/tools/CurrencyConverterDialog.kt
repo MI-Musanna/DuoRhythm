@@ -123,7 +123,7 @@ class CurrencyConverterDialog(context: Context) : BottomSheetDialog(context) {
             ratesList = existing.toMutableList()
         }
 
-        val prefs = context.getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val saved = prefs.getString("selected_currency", "USD") ?: "USD"
         activeCode = if (ratesList.any { it.code == saved }) saved else ratesList.firstOrNull()?.code ?: "USD"
         val search = if (::binding.isInitialized) binding.etCurrencySearch.text?.toString().orEmpty() else ""

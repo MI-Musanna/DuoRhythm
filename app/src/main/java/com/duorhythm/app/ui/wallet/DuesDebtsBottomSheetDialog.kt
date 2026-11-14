@@ -299,7 +299,7 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
             val bucketNames = buckets.map { it.name }
             val bucketAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, bucketNames)
             dialogBinding.actvSettleAccount.setAdapter(bucketAdapter)
-            val prefs = requireContext().getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+            val prefs = requireContext().getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             val lastUsedBucketId = prefs.getLong("last_used_wallet_account_id", -1L)
             val defaultBucket = buckets.find { it.id == lastUsedBucketId } ?: buckets.first()
             dialogBinding.actvSettleAccount.setText(defaultBucket.name, false)

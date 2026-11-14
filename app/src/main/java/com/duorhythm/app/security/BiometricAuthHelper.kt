@@ -20,6 +20,7 @@ object BiometricAuthHelper {
         val isBiometricEnabled = defaultPrefs.getBoolean("pref_biometric_enabled", false) ||
                 lifesyncPrefs.getBoolean("key_biometric_lock_enabled", false) ||
                 lifesyncPrefs.getBoolean("pref_biometric_enabled", false) ||
+                duorhythmPrefs.getBoolean("key_biometric_lock_enabled", false) ||
                 duorhythmPrefs.getBoolean("pref_biometric_enabled", false)
 
         if (!isBiometricEnabled) return false

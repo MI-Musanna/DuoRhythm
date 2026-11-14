@@ -142,7 +142,7 @@ class PortalFragment : Fragment() {
             android.util.Log.e("PortalFragment", "Error attaching scroll dismiss", e)
         }
         try {
-            val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)
+            val prefs = requireContext().getSharedPreferences("duorhythm_prefs", android.content.Context.MODE_PRIVATE)
             var isCoursesCollapsed = prefs.getBoolean("pref_courses_collapsed", false)
             updateCoursesCollapseState(isCoursesCollapsed, animate = false)
 
@@ -359,7 +359,7 @@ class PortalFragment : Fragment() {
         binding.togglePortalProfile.addOnButtonCheckedListener { group, checkedId, isChecked ->
             if (!isChecked || isSwitchingMode) return@addOnButtonCheckedListener
 
-            val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)
+            val prefs = requireContext().getSharedPreferences("duorhythm_prefs", android.content.Context.MODE_PRIVATE)
             val workCurrentlyEnabled = prefs.getBoolean("pref_work_portal", dbHelper.isWorkPortalEnabled())
 
             if (checkedId == R.id.btnProfileWork) {
@@ -546,7 +546,7 @@ class PortalFragment : Fragment() {
         if (_binding == null || !isAdded || !::dbHelper.isInitialized || isSwitchingMode) return
         isSwitchingMode = true
         try {
-            val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)
+            val prefs = requireContext().getSharedPreferences("duorhythm_prefs", android.content.Context.MODE_PRIVATE)
             val workEnabled = prefs.getBoolean("pref_work_portal", dbHelper.isWorkPortalEnabled())
             if (!workEnabled) {
                 isStudentProfile = true
@@ -646,7 +646,7 @@ class PortalFragment : Fragment() {
             binding.rvEnrolledCourses.visibility = View.GONE
             binding.layoutEmptyStudentSubjects.visibility = View.VISIBLE
         } else {
-            val isCollapsed = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE).getBoolean("pref_courses_collapsed", false)
+            val isCollapsed = requireContext().getSharedPreferences("duorhythm_prefs", android.content.Context.MODE_PRIVATE).getBoolean("pref_courses_collapsed", false)
             binding.rvEnrolledCourses.visibility = if (isCollapsed) View.GONE else View.VISIBLE
             binding.layoutEmptyStudentSubjects.visibility = View.GONE
         }
@@ -1350,7 +1350,7 @@ class PortalFragment : Fragment() {
         activeOrderDialogBinding = dialogBinding
         pendingOrderAttachmentPath = ""
 
-        val prefs = requireContext().getSharedPreferences("lifesync_prefs", android.content.Context.MODE_PRIVATE)
+        val prefs = requireContext().getSharedPreferences("duorhythm_prefs", android.content.Context.MODE_PRIVATE)
         val defaultCurr = if (java.util.Locale.getDefault().country.equals("BD", ignoreCase = true)) "BDT" else "USD"
         val currCode = prefs.getString("selected_currency", defaultCurr) ?: defaultCurr
         val rateObj = dbHelper.getAllCurrencyRates().find { it.code == currCode }

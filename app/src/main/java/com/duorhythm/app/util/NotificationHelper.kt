@@ -21,7 +21,7 @@ import java.util.Locale
 
 object NotificationHelper {
 
-    private const val CHANNEL_ID = "duorhythm_briefing_channel_v6"
+    private const val CHANNEL_ID = "duorhythm_briefing_channel_v7"
     private const val CHANNEL_NAME = "Daily Academic & Work Briefings"
     private const val NOTIF_ID_MORNING = 6001
     private const val NOTIF_ID_EVENING = 8001
@@ -92,6 +92,48 @@ object NotificationHelper {
         val exams = db.getUpcomingExamsForWidget(profileId).filter { it.dueDate == targetDateStr }
         val subs = db.getSubscriptions(profileId)
 
+        val pendingTasks = mutableListOf<Triple<String, String, String>>()
+        try {
+            val cursor = db.readableDatabase.rawQuery(
+                "SELECT title, type, priority FROM tasks WHERE profile_id = ? AND is_completed = 0 ORDER BY id DESC LIMIT 6",
+                arrayOf(profileId.toString())
+            )
+            cursor.use { c ->
+                val titleIdx = c.getColumnIndex("title")
+                val typeIdx = c.getColumnIndex("type")
+                val priorityIdx = c.getColumnIndex("priority")
+                while (c.moveToNext()) {
+                    val tTitle = if (titleIdx != -1) c.getString(titleIdx) ?: "" else ""
+                    val tType = if (typeIdx != -1) c.getString(typeIdx) ?: "TASK" else "TASK"
+                    val tPriority = if (priorityIdx != -1) c.getString(priorityIdx) ?: "NORMAL" else "NORMAL"
+                    if (tTitle.isNotBlank()) {
+                        pendingTasks.add(Triple(tTitle, tType, tPriority))
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+
+        val activeWorkOrders = mutableListOf<Triple<String, String, String>>()
+        try {
+            val cursor = db.readableDatabase.rawQuery(
+                "SELECT title, client_name, deadline FROM work_orders WHERE profile_id = ? AND status != 'COMPLETED' ORDER BY id DESC LIMIT 4",
+                arrayOf(profileId.toString())
+            )
+            cursor.use { c ->
+                val titleIdx = c.getColumnIndex("title")
+                val clientIdx = c.getColumnIndex("client_name")
+                val deadlineIdx = c.getColumnIndex("deadline")
+                while (c.moveToNext()) {
+                    val oTitle = if (titleIdx != -1) c.getString(titleIdx) ?: "" else ""
+                    val oClient = if (clientIdx != -1) c.getString(clientIdx) ?: "" else ""
+                    val oDeadline = if (deadlineIdx != -1) c.getString(deadlineIdx) ?: "" else ""
+                    if (oTitle.isNotBlank()) {
+                        activeWorkOrders.add(Triple(oTitle, oClient, oDeadline))
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+
         val currentDay = cal.get(Calendar.DAY_OF_MONTH)
         val maxDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
         val dueSubs = subs.filter { sub ->
@@ -108,12 +150,12 @@ object NotificationHelper {
 
         val collapsedSummary = if (classes.isNotEmpty()) {
             val first = classes.first()
-            "${first.startTime} ${first.subjectName} (R:${first.roomNo}) • ${classes.size} Classes, ${exams.size} Exams"
+            "${first.startTime} ${first.subjectName} (R:${first.roomNo}) • ${classes.size} Classes, ${pendingTasks.size} Tasks"
         } else {
-            "${classes.size} Classes • ${exams.size} Exams • ${dueSubs.size} Dues"
+            "${classes.size} Classes • ${pendingTasks.size} Tasks • ${activeWorkOrders.size} Orders"
         }
 
-        // BigTextStyle displays ALL classes, exams, and dues without truncating at 5 lines
+        // BigTextStyle displays ALL classes, exams, tasks, work orders, and dues without truncating
         val fullBody = StringBuilder()
         fullBody.append("CLASSES (${classes.size}):\n")
         if (classes.isEmpty()) {
@@ -136,6 +178,28 @@ object NotificationHelper {
             }
         }
 
+        fullBody.append("\nTASKS & GOALS (${pendingTasks.size}):\n")
+        if (pendingTasks.isEmpty()) {
+            fullBody.append("• All pending tasks & goals clear\n")
+        } else {
+            pendingTasks.forEach { (taskTitle, taskType, taskPriority) ->
+                val priorityTag = if (taskPriority.equals("HIGH", ignoreCase = true)) " [HIGH]" else ""
+                val typeTag = if (taskType.equals("GOAL", ignoreCase = true)) "[GOAL] " else ""
+                fullBody.append("• $typeTag$taskTitle$priorityTag\n")
+            }
+        }
+
+        fullBody.append("\nWORK PORTAL (${activeWorkOrders.size}):\n")
+        if (activeWorkOrders.isEmpty()) {
+            fullBody.append("• No active client deliverables\n")
+        } else {
+            activeWorkOrders.forEach { (orderTitle, clientName, deadline) ->
+                val clientStr = if (clientName.isNotBlank()) " ($clientName)" else ""
+                val deadlineStr = if (deadline.isNotBlank()) " • Due: $deadline" else ""
+                fullBody.append("• $orderTitle$clientStr$deadlineStr\n")
+            }
+        }
+
         fullBody.append("\nBILLS & DUES (${dueSubs.size}):\n")
         if (dueSubs.isEmpty()) {
             fullBody.append("• All recurring bills clear")
@@ -148,7 +212,7 @@ object NotificationHelper {
 
         val bigTextStyle = NotificationCompat.BigTextStyle()
             .setBigContentTitle(title)
-            .setSummaryText("${classes.size} Classes • ${exams.size} Exams • ${dueSubs.size} Dues")
+            .setSummaryText("${classes.size} Classes • ${pendingTasks.size} Tasks • ${activeWorkOrders.size} Orders")
             .bigText(fullBody.toString().trim())
 
         val openIntent = Intent(context, MainActivity::class.java).apply {

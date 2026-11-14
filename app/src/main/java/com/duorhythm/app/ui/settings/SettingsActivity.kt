@@ -48,7 +48,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import android.widget.CheckBox
 import java.util.Calendar
-import com.duorhythm.app.security.LifeSyncSecurityManager
+import com.duorhythm.app.security.DuoRhythmSecurityManager
 import com.duorhythm.app.util.NotificationHelper
 import com.duorhythm.app.worker.LocalBackupWorker
 import com.duorhythm.app.worker.AutoBackupWorker
@@ -142,7 +142,7 @@ class SettingsActivity : AppCompatActivity() {
         uri?.let { destinationUri ->
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                    val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                     val includeAttachments = prefs.getBoolean("pref_backup_include_attachments", false)
                     val backupJson = DataBackupHelper.generateSelectedProfilesBackupJson(
                         selectedSlots,
@@ -381,7 +381,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.switchAutoLinkAttendance.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
-                getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                     .edit().putBoolean("pref_auto_link_attendance", isChecked).apply()
                 AppSettings.setAutoTrackAttendanceEnabled(this, isChecked)
             }
@@ -391,7 +391,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.switchRunningBalance.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
-                getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                     .edit().putBoolean("pref_show_running_balance", isChecked).apply()
                 AppSettings.setShowRunningBalanceEnabled(this, isChecked)
             }
@@ -423,7 +423,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshShowRunningBalanceUI() {
         binding.switchRunningBalance.setOnCheckedChangeListener(null)
-        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val isEnabled = prefs.getBoolean("pref_show_running_balance", AppSettings.isShowRunningBalanceEnabled(this))
         binding.switchRunningBalance.isChecked = isEnabled
         binding.switchRunningBalance.setOnCheckedChangeListener { _, isChecked ->
@@ -436,7 +436,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshAutoTrackAttendanceUI() {
         binding.switchAutoLinkAttendance.setOnCheckedChangeListener(null)
-        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val isEnabled = prefs.getBoolean("pref_auto_link_attendance", AppSettings.isAutoTrackAttendanceEnabled(this))
         binding.switchAutoLinkAttendance.isChecked = isEnabled
         binding.switchAutoLinkAttendance.setOnCheckedChangeListener { _, isChecked ->
@@ -552,7 +552,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
-            val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+            val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             if (!switchLeadActive.isChecked) {
                 if (isClassMode) {
                     AppPreferences.setClassLeadMinutes(this, 0)
@@ -663,7 +663,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupAutoBackup() {
-        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val isEnabled = prefs.getBoolean("pref_auto_backup_enabled", prefs.getBoolean(LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, false))
         val savedHours = prefs.getInt("pref_auto_backup_interval_hours", 24)
 
@@ -699,7 +699,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showBackupIntervalDialog() {
-        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val currentHours = prefs.getInt("pref_auto_backup_interval_hours", 24)
         val selectedIndex = backupIntervalHours.indexOf(currentHours).let { if (it >= 0) it else 2 }
 
@@ -724,7 +724,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun syncAutoBackupState() {
-        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val isEnabled = prefs.getBoolean("pref_auto_backup_enabled", prefs.getBoolean(LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, false))
         val intervalHours = prefs.getInt("pref_auto_backup_interval_hours", 24)
 
@@ -742,7 +742,7 @@ class SettingsActivity : AppCompatActivity() {
         val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnCancelBackupDialog)
         val btnConfirm = dialogView.findViewById<MaterialButton>(R.id.btnConfirmExportBackup)
 
-        val prefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val includeAttachments = prefs.getBoolean("pref_backup_include_attachments", false)
         switchInclude.isChecked = includeAttachments
 
@@ -827,7 +827,7 @@ class SettingsActivity : AppCompatActivity() {
                 .setMessage("Erase all tasks, schedule, and ledger records? This cannot be undone.")
                 .setPositiveButton("Reset All") { _, _ ->
                     dbHelper.clearAllUserData()
-                    getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+                    getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                         .edit().remove("cash_funds_usd").apply()
                     Toast.makeText(this, "All data has been reset", Toast.LENGTH_SHORT).show()
                 }
@@ -925,6 +925,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowClassDnd.setOnClickListener {
             binding.switchClassDnd.toggle()
         }
+        binding.rowShowCourseProgress.setOnClickListener {
+            binding.switchShowCourseProgress.toggle()
+        }
         binding.rowSubscriptionAlerts.setOnClickListener {
             binding.switchSubscriptionAlerts.toggle()
         }
@@ -985,7 +988,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun syncSwitchStates() {
-        val backupPrefs = getSharedPreferences("lifesync_prefs", Context.MODE_PRIVATE)
+        val backupPrefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
 
         // Include Attachments in Backup
         binding.switchIncludeAttachments.setOnCheckedChangeListener(null)
@@ -1048,6 +1051,16 @@ class SettingsActivity : AppCompatActivity() {
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
 
+        // Card 2: Academic - Show Course Progress Bar
+        binding.switchShowCourseProgress.setOnCheckedChangeListener(null)
+        val showCourseProgress = backupPrefs.getBoolean("show_course_progress_bar", false)
+        binding.switchShowCourseProgress.isChecked = showCourseProgress
+        binding.switchShowCourseProgress.setOnCheckedChangeListener { _, isChecked ->
+            if (!isHydratingUI) {
+                backupPrefs.edit().putBoolean("show_course_progress_bar", isChecked).apply()
+            }
+        }
+
         // Card 3: Financial - Show Running Balance
         refreshShowRunningBalanceUI()
         refreshShowBalanceTrailUI()
@@ -1094,7 +1107,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchWalletBiometric.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
             if (isChecked) {
-                LifeSyncSecurityManager.authenticate(
+                DuoRhythmSecurityManager.authenticate(
                     this,
                     title = "Verify Identity",
                     subtitle = "Confirm credentials to lock wallet",

@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class WalletViewModel(application: Application = com.duorhythm.app.LifeSyncApp.instance) : AndroidViewModel(application) {
+class WalletViewModel(application: Application = com.duorhythm.app.DuoRhythmApp.instance) : AndroidViewModel(application) {
 
     private val dbHelper = DatabaseHelper.getInstance(application)
     private val subscriptionDao: SubscriptionDao = dbHelper.subscriptionDao

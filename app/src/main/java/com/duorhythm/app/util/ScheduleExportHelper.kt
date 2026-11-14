@@ -18,7 +18,7 @@ import androidx.core.content.FileProvider
 import com.duorhythm.app.data.model.AssessmentEntity
 import com.duorhythm.app.data.model.ClassEntity
 import com.duorhythm.app.data.local.db.DatabaseHelper
-import com.duorhythm.app.LifeSyncApp
+import com.duorhythm.app.DuoRhythmApp
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -51,7 +51,7 @@ object ScheduleExportHelper {
     }
 
     fun renderTimetableCanvas(weeklyClasses: Map<String, List<ClassEntity>>): Bitmap {
-        return generateWeeklyScheduleBitmap(LifeSyncApp.instance, weeklyClasses)
+        return generateWeeklyScheduleBitmap(DuoRhythmApp.instance, weeklyClasses)
     }
 
     fun generateWeeklyScheduleBitmap(context: Context, weeklyClasses: Map<String, List<ClassEntity>>): Bitmap {

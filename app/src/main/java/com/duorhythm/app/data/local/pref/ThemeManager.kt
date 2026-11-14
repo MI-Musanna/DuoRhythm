@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 
 object ThemeManager {
-    const val PREFS_NAME = "lifesync_prefs"
+    const val PREFS_NAME = "duorhythm_prefs"
     const val KEY_THEME_MODE = "app_theme_mode"
 
     const val THEME_SYSTEM = "system"
