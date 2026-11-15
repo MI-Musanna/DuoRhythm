@@ -83,20 +83,24 @@ class TasksAdapter(
 
     override fun getItemCount(): Int = tasks.size
 
-    fun removeItemAnimated(position: Int) {
-        if (position in 0 until tasks.size) {
+    fun removeItemAnimated(task: com.duorhythm.app.data.model.TaskItem) {
+        masterTaskList = masterTaskList.filter { it.id != task.id }
+        val idx = tasks.indexOfFirst { it.id == task.id }
+        if (idx != -1) {
             val mutable = tasks.toMutableList()
-            mutable.removeAt(position)
+            mutable.removeAt(idx)
             tasks = mutable
-            notifyItemRemoved(position)
-            notifyItemRangeChanged(position, tasks.size - position)
+            notifyItemRemoved(idx)
+            if (idx < tasks.size) {
+                notifyItemRangeChanged(idx, tasks.size - idx)
+            }
         }
     }
 
-    fun removeItemAnimated(task: TaskItem) {
-        val index = tasks.indexOfFirst { it.id == task.id }
-        if (index >= 0) {
-            removeItemAnimated(index)
+    fun removeItemAnimated(position: Int) {
+        if (position in 0 until tasks.size) {
+            val item = tasks[position]
+            removeItemAnimated(item)
         }
     }
 

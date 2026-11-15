@@ -341,6 +341,7 @@ class HomeFragment : Fragment() {
                     openOrderDetails(order)
                 }
                 binding.viewPagerNextUp.adapter = adapter
+                binding.wormDotsIndicator.visibility = if (adapter.itemCount > 1) View.VISIBLE else View.GONE
                 configureNextUpDepthCarousel(binding.viewPagerNextUp)
                 binding.viewPagerNextUp.setCurrentItem(0, false)
             } else {
@@ -441,6 +442,7 @@ class HomeFragment : Fragment() {
                 (activity as? MainActivity)?.selectNavTab(R.id.menu_schedule)
             }
             binding.viewPagerNextUp.adapter = adapter
+            binding.wormDotsIndicator.visibility = if (adapter.itemCount > 1) View.VISIBLE else View.GONE
             configureNextUpDepthCarousel(binding.viewPagerNextUp)
             binding.viewPagerNextUp.setCurrentItem(0, false)
         } else {
@@ -729,50 +731,26 @@ class HomeFragment : Fragment() {
                 overScrollMode = android.view.View.OVER_SCROLL_NEVER
             }
 
-            // Full-width Depth-Deck Card Motion: incoming card rises smoothly from behind without awkward half-cut edges
-            pager.setPageTransformer { page, position ->
-                val absPos = kotlin.math.abs(position).coerceIn(0f, 1f)
-                when {
-                    position < -1f || position > 1f -> {
-                        page.alpha = 0f
-                    }
-                    position <= 0f -> {
-                        // Active/outgoing card slides smoothly with slight scale-down
-                        page.alpha = 1f - (absPos * 0.35f)
-                        page.translationX = 0f
-                        val scale = 1f - (absPos * 0.05f)
-                        page.scaleX = scale
-                        page.scaleY = scale
-                    }
-                    else -> {
-                        // Incoming card emerges smoothly from depth behind active card
-                        page.alpha = 1f - (absPos * 0.45f)
-                        page.translationX = -page.width * position * 0.18f
-                        val scale = 0.94f + (1f - absPos) * 0.06f
-                        page.scaleX = scale
-                        page.scaleY = scale
-                    }
+            // Clean side-by-side card separation with subtle depth scale (ZERO card overlap)
+            val gapPx = (12f * resources.displayMetrics.density).toInt()
+            val composite = androidx.viewpager2.widget.CompositePageTransformer().apply {
+                addTransformer(androidx.viewpager2.widget.MarginPageTransformer(gapPx))
+                addTransformer { page, position ->
+                    val absPos = kotlin.math.abs(position).coerceIn(0f, 1f)
+                    page.translationX = 0f
+                    val scale = 0.96f + (1f - absPos) * 0.04f
+                    page.scaleX = scale
+                    page.scaleY = scale
+                    page.alpha = 0.82f + (1f - absPos) * 0.18f
                 }
             }
+            pager.setPageTransformer(composite)
 
-            // Attach or dynamically inject WormDotsIndicatorView below pager for BOTH Student & Work modes
-            val parentGroup = pager.parent as? android.view.ViewGroup
-            var dots = view?.findViewById<com.duorhythm.app.ui.views.WormDotsIndicatorView>(com.duorhythm.app.R.id.wormDotsIndicator)
-            if (dots == null && parentGroup != null) {
-                dots = com.duorhythm.app.ui.views.WormDotsIndicatorView(requireContext()).apply {
-                    id = com.duorhythm.app.R.id.wormDotsIndicator
-                    layoutParams = android.widget.LinearLayout.LayoutParams(
-                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
-                        (18f * resources.displayMetrics.density).toInt()
-                    ).apply {
-                        gravity = android.view.Gravity.CENTER_HORIZONTAL
-                        topMargin = (8f * resources.displayMetrics.density).toInt()
-                    }
-                }
-                val idx = parentGroup.indexOfChild(pager)
-                parentGroup.addView(dots, idx + 1)
-            }
-            dots?.attachToViewPager2(pager)
+            // Sync Elastic Worm Stretch Dots for BOTH Student & Work modes
+            val count = pager.adapter?.itemCount ?: 0
+            binding.dotsIndicatorNextUp.visibility = View.GONE
+            binding.wormDotsIndicator.visibility = if (count > 1) View.VISIBLE else View.GONE
+            binding.wormDotsIndicator.attachToViewPager2(pager)
         } catch (_: Exception) {}
     }
 
