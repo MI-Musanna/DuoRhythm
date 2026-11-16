@@ -96,6 +96,18 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         setupMiniCharts()
         setupListeners()
         loadBucketData()
+        setupSpeedDial()
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.speedDialBucketDetail.isExpanded) {
+                    binding.speedDialBucketDetail.collapse()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
 
         // Phase 2: Scroll-Driven Collapsing Large Title
         try {
@@ -111,8 +123,23 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             }
             val nsv = findNestedScroll(root)
             val heroTitle = binding.tvBucketBalanceAmount
-            val toolbarTitle = binding.tvBucketTitleHeader
-            com.duorhythm.app.util.ViewAnimationExtensions.attachCollapsingLargeTitle(nsv, heroTitle, toolbarTitle)
+            val thresholdPx = 68f * resources.displayMetrics.density
+            nsv?.setOnScrollChangeListener(
+                androidx.core.widget.NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
+                    val progress = (scrollY / thresholdPx).coerceIn(0f, 1f)
+                    val scale = 1f - (0.28f * progress)
+                    heroTitle.pivotX = 0f
+                    heroTitle.pivotY = heroTitle.height / 2f
+                    heroTitle.scaleX = scale
+                    heroTitle.scaleY = scale
+                    heroTitle.alpha = (1f - (progress * 0.85f)).coerceIn(0.15f, 1f)
+                    if (progress > 0.55f) {
+                        binding.tvBucketTitleHeader.text = "${currentBucket?.name ?: "Account"} • ${binding.tvBucketBalanceAmount.text}"
+                    } else {
+                        binding.tvBucketTitleHeader.text = currentBucket?.name ?: "Account Details"
+                    }
+                }
+            )
         } catch (_: Exception) {}
     }
 
@@ -158,8 +185,15 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                     .setMessage("Remove '${tx.title}' (${currentSymbol}${String.format(Locale.US, "%.2f", tx.amount)})?")
                     .setPositiveButton("Delete") { _, _ ->
                         dbHelper.deleteTransaction(tx.id)
-                        loadBucketData()
-                        WalletDataSyncManager.notifyChanged()
+                        val idx = allBucketTransactionsCache.indexOfFirst { it.id == tx.id }
+                        if (idx != -1) {
+                            allBucketTransactionsCache = allBucketTransactionsCache.filterNot { it.id == tx.id }
+                            transactionsAdapter.removeItemAnimated(tx.id)
+                        }
+                        binding.rvBucketTransactions.postDelayed({
+                            loadBucketData()
+                            WalletDataSyncManager.notifyChanged()
+                        }, 260L)
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -175,8 +209,20 @@ class WalletBucketDetailActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        binding.btnBackBucketDetail.setOnClickListener { finish() }
-        binding.btnBucketBack.setOnClickListener { finish() }
+        binding.btnBackBucketDetail.setOnClickListener {
+            if (binding.speedDialBucketDetail.isExpanded) {
+                binding.speedDialBucketDetail.collapse()
+            } else {
+                finish()
+            }
+        }
+        binding.btnBucketBack.setOnClickListener {
+            if (binding.speedDialBucketDetail.isExpanded) {
+                binding.speedDialBucketDetail.collapse()
+            } else {
+                finish()
+            }
+        }
 
         binding.btnAddTransaction.setOnClickListener {
             showAddTransactionDialog()
@@ -458,7 +504,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         val convertedBalance = bucket.balance
         binding.tvBucketTotalBalance.text = String.format(
             Locale.US,
-            "%s%.2f",
+            "%s%,.2f",
             currentSymbol,
             convertedBalance
         )
@@ -494,8 +540,8 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         // Calculate Inflow & Outflow for this bucket (100% Pure Raw Values)
         val income = dbHelper.getBucketIncome(bucket.id)
         val expense = dbHelper.getBucketExpenses(bucket.id)
-        binding.tvBucketInflow.text = String.format(Locale.US, "+%s%.2f", currentSymbol, income)
-        binding.tvBucketOutflow.text = String.format(Locale.US, "-%s%.2f", currentSymbol, expense)
+        binding.tvBucketInflow.text = String.format(Locale.US, "+%s%,.2f", currentSymbol, income)
+        binding.tvBucketOutflow.text = String.format(Locale.US, "-%s%,.2f", currentSymbol, expense)
 
         // Calculate chronological running balances for each transaction (Previous Balance before transaction)
         val allBucketTransactions = dbHelper.getTransactionsByBucket(bucket.id, null)
@@ -1513,6 +1559,24 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         }
         dialog.show()
         com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
+    }
+
+    private fun setupSpeedDial() {
+        try {
+            (binding.btnAddTransaction.parent as? View)?.visibility = View.GONE
+            binding.speedDialBucketDetail.setBottomOffsetDp(24f)
+            binding.speedDialBucketDetail.setItems(listOf(
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Tx", com.duorhythm.app.R.drawable.ic_wallet, "#00E5FF") {
+                    showAddTransactionDialog()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#38BDF8") {
+                    showAddTransactionDialog()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Adjust Balance", com.duorhythm.app.R.drawable.ic_edit, "#F59E0B") {
+                    showAdjustOrResetBalanceDialog()
+                }
+            ))
+        } catch (_: Exception) {}
     }
 }
 

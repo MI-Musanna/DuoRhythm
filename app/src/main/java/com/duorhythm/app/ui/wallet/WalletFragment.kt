@@ -648,9 +648,9 @@ class WalletFragment : Fragment() {
             val totalExpenses = dbHelper.getTotalExpenses(monthPrefix)
 
             val formattedNetBalance = if (totalNet < 0) {
-                String.format(Locale.US, "-%s%.2f", currentSymbol, kotlin.math.abs(totalNet))
+                String.format(Locale.US, "-%s%,.2f", currentSymbol, kotlin.math.abs(totalNet))
             } else {
-                String.format(Locale.US, "%s%.2f", currentSymbol, totalNet)
+                String.format(Locale.US, "%s%,.2f", currentSymbol, totalNet)
             }
             binding.tvTotalBalance.text = formattedNetBalance
             binding.tvTotalNetWorth.text = formattedNetBalance
@@ -1313,6 +1313,8 @@ class WalletFragment : Fragment() {
     private fun setupSpeedDial() {
         try {
             binding.btnAddBucket.visibility = View.GONE
+            binding.btnCurrencyBadge.visibility = View.GONE
+            (binding.btnHeroRecordTx.parent as? View)?.visibility = View.GONE
             binding.speedDialWallet.setItems(listOf(
                 com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Tx", com.duorhythm.app.R.drawable.ic_wallet, "#00E5FF") {
                     binding.btnHeroRecordTx.performClick()

@@ -281,7 +281,8 @@ class PortalFragment : Fragment() {
                         dbHelper.deleteSubjectWorkItem(entity.id)
                         com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(requireContext(), entity.id)
                         com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(requireContext())
-                        loadStudentData()
+                        unifiedAssessmentsAdapter.removeItemAnimated(entity)
+                        binding.tvScheduledCountBadge.text = "${unifiedAssessmentsAdapter.masterItemCount} Scheduled"
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -566,6 +567,7 @@ class PortalFragment : Fragment() {
             }
 
             updateToggleStyle(isStudentProfile)
+            syncPortalSpeedDialForMode()
 
             if (isStudentProfile) {
                 binding.layoutStudentPortal.visibility = View.VISIBLE
@@ -682,7 +684,9 @@ class PortalFragment : Fragment() {
                 teacher = pair.second.teacher
             )
         }
+        populateDynamicExamFilterChips()
         assessmentAdapter.setMasterData(allAssessmentEntities)
+        assessmentAdapter.updateCategoryFilter(if (selectedAssessmentFilter.equals("ALL", true)) "All" else selectedAssessmentFilter)
         binding.tvScheduledCountBadge.text = "${allAssessmentEntities.size} Scheduled"
         context?.let { ctx ->
             com.duorhythm.app.widget.ExamCountdownWidget.pushUpdate(ctx)
@@ -1531,26 +1535,135 @@ class PortalFragment : Fragment() {
     }
 
     private fun setupSpeedDial() {
+        syncPortalSpeedDialForMode()
+    }
+
+    private fun syncPortalSpeedDialForMode() {
+        if (_binding == null || !isAdded) return
         try {
             binding.btnAddSubject.visibility = View.GONE
             binding.btnScheduleAssessment.visibility = View.GONE
             binding.btnStudentAddContact.visibility = View.GONE
             binding.btnNewClientOrderPortal.visibility = View.GONE
             binding.btnWorkAddContact.visibility = View.GONE
-            binding.speedDialPortal.setItems(listOf(
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Course", com.duorhythm.app.R.drawable.ic_school, "#00E5FF") {
-                    showAddSubjectDialog()
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Schedule Exam", com.duorhythm.app.R.drawable.ic_quiz, "#F59E0B") {
-                    showAddExamDialog("Semester Final Exam")
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Work Order", com.duorhythm.app.R.drawable.ic_work, "#10B981") {
-                    showCreateOrderDialog()
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#38BDF8") {
-                    showAddContactDialog(isStudentProfile)
+
+            if (isStudentProfile) {
+                binding.speedDialPortal.setItems(listOf(
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Course", com.duorhythm.app.R.drawable.ic_school, "#00E5FF") {
+                        showAddSubjectDialog()
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Schedule Exam", com.duorhythm.app.R.drawable.ic_quiz, "#F59E0B") {
+                        showAddExamDialog("")
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#38BDF8") {
+                        showAddContactDialog(true)
+                    }
+                ))
+            } else {
+                binding.speedDialPortal.setItems(listOf(
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Order", com.duorhythm.app.R.drawable.ic_work, "#10B981") {
+                        showCreateOrderDialog()
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#38BDF8") {
+                        showAddContactDialog(false)
+                    }
+                ))
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun populateDynamicExamFilterChips() {
+        if (_binding == null || !isAdded || !::dbHelper.isInitialized) return
+        try {
+            val profileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId()
+            try { dbHelper.assessmentCategoryDao.ensureDefaultCategories(profileId) } catch (_: Exception) {}
+            val categories = dbHelper.getAssessmentCategories(profileId)
+
+            binding.cgAssessmentFilters.removeAllViews()
+
+            val chipAll = com.google.android.material.chip.Chip(requireContext()).apply {
+                text = "All"
+                isCheckable = true
+                isChecked = selectedAssessmentFilter.equals("ALL", ignoreCase = true)
+                setOnClickListener {
+                    selectedAssessmentFilter = "ALL"
+                    assessmentAdapter.updateCategoryFilter("All")
+                    populateDynamicExamFilterChips()
                 }
-            ))
+            }
+            binding.cgAssessmentFilters.addView(chipAll)
+
+            for (cat in categories) {
+                val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                    text = cat
+                    isCheckable = true
+                    isChecked = selectedAssessmentFilter.equals(cat, ignoreCase = true)
+                    setOnClickListener {
+                        selectedAssessmentFilter = cat
+                        assessmentAdapter.updateCategoryFilter(cat)
+                        populateDynamicExamFilterChips()
+                    }
+                    setOnLongClickListener {
+                        val opts = arrayOf("✏️ Rename Category", "🗑️ Delete Category")
+                        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Category: $cat")
+                            .setItems(opts) { _, which ->
+                                if (which == 0) {
+                                    val inp = android.widget.EditText(requireContext()).apply { setText(cat) }
+                                    com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                                        .setTitle("Rename Category")
+                                        .setView(inp)
+                                        .setPositiveButton("Save") { _, _ ->
+                                            val newName = inp.text.toString().trim()
+                                            if (newName.isNotBlank()) {
+                                                dbHelper.updateAssessmentCategory(profileId, cat, newName)
+                                                selectedAssessmentFilter = newName
+                                                populateDynamicExamFilterChips()
+                                                loadStudentData()
+                                            }
+                                        }
+                                        .setNegativeButton("Cancel", null)
+                                        .show()
+                                } else {
+                                    dbHelper.deleteAssessmentCategory(profileId, cat)
+                                    selectedAssessmentFilter = "ALL"
+                                    assessmentAdapter.updateCategoryFilter("All")
+                                    populateDynamicExamFilterChips()
+                                    loadStudentData()
+                                }
+                            }
+                            .show()
+                        true
+                    }
+                }
+                binding.cgAssessmentFilters.addView(chip)
+            }
+
+            val chipAdd = com.google.android.material.chip.Chip(requireContext()).apply {
+                text = "+ Category"
+                isCheckable = false
+                setChipStrokeColorResource(com.duorhythm.app.R.color.accent_cyan_primary)
+                chipStrokeWidth = 2f
+                setTextColor(android.graphics.Color.parseColor("#00E5FF"))
+                setOnClickListener {
+                    val inp = android.widget.EditText(requireContext()).apply { hint = "Category Name" }
+                    com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("New Exam Category")
+                        .setView(inp)
+                        .setPositiveButton("Create") { _, _ ->
+                            val newCat = inp.text.toString().trim()
+                            if (newCat.isNotBlank()) {
+                                dbHelper.addAssessmentCategory(profileId, newCat)
+                                selectedAssessmentFilter = newCat
+                                populateDynamicExamFilterChips()
+                                assessmentAdapter.updateCategoryFilter(newCat)
+                            }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            }
+            binding.cgAssessmentFilters.addView(chipAdd)
         } catch (_: Exception) {}
     }
 

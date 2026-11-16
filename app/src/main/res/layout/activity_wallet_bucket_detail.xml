@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_root_obsidian"
@@ -288,3 +292,10 @@
             android:layout_height="0dp" />
     </LinearLayout>
 </LinearLayout>
+
+    <com.duorhythm.app.ui.views.SpeedDialFabView
+        android:id="@+id/speedDialBucketDetail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

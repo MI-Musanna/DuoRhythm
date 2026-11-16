@@ -9,24 +9,20 @@ import androidx.recyclerview.widget.RecyclerView
 
 class SmoothGapCollapseAnimator : DefaultItemAnimator() {
 
-    private val activeRemoveHolders = ArrayList<RecyclerView.ViewHolder>()
-    private val activeMoveHolders = ArrayList<RecyclerView.ViewHolder>()
-
     init {
-        removeDuration = 220L
-        moveDuration = 280L
-        addDuration = 220L
-        changeDuration = 180L
+        removeDuration = 210L
+        moveDuration = 260L
+        addDuration = 210L
+        changeDuration = 160L
         supportsChangeAnimations = false
     }
 
     override fun animateRemove(holder: RecyclerView.ViewHolder): Boolean {
         val view = holder.itemView
         view.animate().cancel()
-        activeRemoveHolders.add(holder)
         dispatchRemoveStarting(holder)
 
-        val slideOutX = (view.width.takeIf { it > 0 } ?: 320) * 0.28f
+        val slideOutX = (view.width.takeIf { it > 0 } ?: 320) * 0.30f
         view.animate()
             .alpha(0f)
             .translationX(slideOutX)
@@ -39,18 +35,14 @@ class SmoothGapCollapseAnimator : DefaultItemAnimator() {
                     view.alpha = 1f
                     view.translationX = 0f
                     view.scaleY = 1f
-                    activeRemoveHolders.remove(holder)
                     dispatchRemoveFinished(holder)
-                    if (!isRunning) dispatchAnimationsFinished()
                 }
 
                 override fun onAnimationCancel(animation: Animator) {
                     view.alpha = 1f
                     view.translationX = 0f
                     view.scaleY = 1f
-                    activeRemoveHolders.remove(holder)
                     dispatchRemoveFinished(holder)
-                    if (!isRunning) dispatchAnimationsFinished()
                 }
             })
             .start()
@@ -73,9 +65,9 @@ class SmoothGapCollapseAnimator : DefaultItemAnimator() {
             return false
         }
         view.animate().cancel()
+        view.alpha = 1f
         view.translationX = -deltaX.toFloat()
         view.translationY = -deltaY.toFloat()
-        activeMoveHolders.add(holder)
         dispatchMoveStarting(holder)
 
         view.animate()
@@ -86,27 +78,21 @@ class SmoothGapCollapseAnimator : DefaultItemAnimator() {
             .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     view.animate().setListener(null)
+                    view.alpha = 1f
                     view.translationX = 0f
                     view.translationY = 0f
-                    activeMoveHolders.remove(holder)
                     dispatchMoveFinished(holder)
-                    if (!isRunning) dispatchAnimationsFinished()
                 }
 
                 override fun onAnimationCancel(animation: Animator) {
+                    view.alpha = 1f
                     view.translationX = 0f
                     view.translationY = 0f
-                    activeMoveHolders.remove(holder)
                     dispatchMoveFinished(holder)
-                    if (!isRunning) dispatchAnimationsFinished()
                 }
             })
             .start()
 
         return false
-    }
-
-    override fun isRunning(): Boolean {
-        return super.isRunning() || activeRemoveHolders.isNotEmpty() || activeMoveHolders.isNotEmpty()
     }
 }

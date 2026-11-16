@@ -56,8 +56,9 @@ class ScheduleAssessmentDialog(
             binding.btnSaveAssessment.text = "Update Assessment"
         }
 
-        // 1. Assessment Types
-        val dbCategories = dbHelper.assessmentCategoryDao.getCategoriesByProfile(profileId).map { it.name }
+        // 1. Assessment Types (Synced with user's dynamic categories)
+        try { dbHelper.assessmentCategoryDao.ensureDefaultCategories(profileId) } catch (_: Exception) {}
+        val dbCategories = dbHelper.getAssessmentCategories(profileId)
         val types = mutableListOf<String>()
         if (dbCategories.isNotEmpty()) {
             types.addAll(dbCategories)
@@ -142,7 +143,13 @@ class ScheduleAssessmentDialog(
                             if (text.isNotEmpty()) {
                                 dbHelper.addAssessmentCategory(profileId, text)
                                 selectedCategory = text
+                                if (!types.contains(text)) {
+                                    types.add(0, text)
+                                    typeAdapter.notifyDataSetChanged()
+                                }
+                                binding.spAssessmentType.setSelection(types.indexOf(text).coerceAtLeast(0))
                                 populateCategoryChips()
+                                onSaved()
                             }
                         }
                         .setNegativeButton("Cancel", null)

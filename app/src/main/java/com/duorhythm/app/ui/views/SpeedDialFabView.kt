@@ -19,10 +19,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.duorhythm.app.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
- * Unified Speed-Dial Fan-Out Floating Action Button (+ -> x) that blooms 3-4 action pills
- * in a radial arc around the bottom-right corner across all screens.
+ * Quarter-Circle Radial Speed-Dial FAB (+ -> x) blooming in a clean circular arc
+ * around the bottom-right corner with guaranteed clickable close toggle.
  */
 class SpeedDialFabView @JvmOverloads constructor(
     context: Context,
@@ -40,7 +42,7 @@ class SpeedDialFabView @JvmOverloads constructor(
     private val density = resources.displayMetrics.density
     private val scrimView: View
     private val mainFab: FloatingActionButton
-    private val itemContainers = mutableListOf<LinearLayout>()
+    private val nodeViews = mutableListOf<LinearLayout>()
     var isExpanded = false
         private set
     private var bottomOffsetDp = 92f
@@ -48,21 +50,20 @@ class SpeedDialFabView @JvmOverloads constructor(
     init {
         clipChildren = false
         clipToPadding = false
-        elevation = 16f * density
-        isClickable = false
-        isFocusable = false
+        elevation = 20f * density
 
-        // Full-screen translucent scrim when expanded
         scrimView = View(context).apply {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-            setBackgroundColor(Color.parseColor("#B806080F"))
+            setBackgroundColor(Color.parseColor("#BD06080F"))
             alpha = 0f
             visibility = GONE
+            isClickable = true
+            isFocusable = true
+            elevation = 10f * density
             setOnClickListener { collapse() }
         }
         addView(scrimView)
 
-        // Main circular cyan FAB (+)
         mainFab = FloatingActionButton(context).apply {
             layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
                 gravity = Gravity.BOTTOM or Gravity.END
@@ -72,7 +73,9 @@ class SpeedDialFabView @JvmOverloads constructor(
             setImageResource(R.drawable.ic_add)
             imageTintList = ColorStateList.valueOf(Color.parseColor("#06080F"))
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
-            compatElevation = 8f * density
+            compatElevation = 24f * density
+            elevation = 24f * density
+            translationZ = 24f * density
             setOnClickListener {
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 if (isExpanded) collapse() else expand()
@@ -83,7 +86,7 @@ class SpeedDialFabView @JvmOverloads constructor(
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         if (!isExpanded) {
-            // When collapsed, only handle touch if it's on mainFab
+            // When collapsed, only handle touches directly over the circular FAB
             if (ev != null) {
                 val fabRect = Rect()
                 mainFab.getGlobalVisibleRect(fabRect)
@@ -101,20 +104,27 @@ class SpeedDialFabView @JvmOverloads constructor(
             lp.bottomMargin = (dp * density).toInt()
             mainFab.layoutParams = lp
         }
+        nodeViews.forEach { node ->
+            (node.layoutParams as? LayoutParams)?.let { lp ->
+                lp.bottomMargin = ((dp + 4f) * density).toInt()
+                node.layoutParams = lp
+            }
+        }
     }
 
     fun setItems(items: List<SpeedDialItem>) {
         if (isExpanded) collapse(immediate = true)
-        itemContainers.forEach { removeView(it) }
-        itemContainers.clear()
+        nodeViews.forEach { removeView(it) }
+        nodeViews.clear()
 
-        // Arc offsets fanning upward and leftward around the bottom-right FAB
-        val arcOffsetsDp = listOf(
-            Pair(0f, -72f),
-            Pair(-24f, -134f),
-            Pair(-48f, -196f),
-            Pair(-68f, -258f)
-        )
+        val count = items.take(4).size
+        if (count == 0) return
+
+        // Quarter-circle arc angles from 94 deg (top of FAB) to 176 deg (left of FAB)
+        val radiusPx = (if (count >= 4) 132f else 116f) * density
+        val startAngleDeg = 94.0
+        val endAngleDeg = 176.0
+        val stepDeg = if (count > 1) (endAngleDeg - startAngleDeg) / (count - 1) else 0.0
 
         items.take(4).forEachIndexed { index, item ->
             val accentColor = try {
@@ -123,117 +133,128 @@ class SpeedDialFabView @JvmOverloads constructor(
                 Color.parseColor("#00E5FF")
             }
 
-            val row = LinearLayout(context).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
+            val angleRad = Math.toRadians(startAngleDeg + (index * stepDeg))
+            // Polar coordinates in top-left quadrant relative to bottom-right FAB
+            val targetX = (cos(angleRad) * radiusPx).toFloat()
+            val targetY = (-sin(angleRad) * radiusPx).toFloat()
+
+            val nodeColumn = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_HORIZONTAL
                 visibility = GONE
                 alpha = 0f
-                scaleX = 0.75f
-                scaleY = 0.75f
-                elevation = 14f * density
-
-                val (arcX, arcY) = arcOffsetsDp.getOrElse(index) { Pair(-48f, -72f * (index + 1)) }
-                tag = Pair(arcX * density, arcY * density)
+                scaleX = 0.6f
+                scaleY = 0.6f
+                elevation = 16f * density
+                tag = Pair(targetX, targetY)
 
                 layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
                     gravity = Gravity.BOTTOM or Gravity.END
-                    marginEnd = (24f * density).toInt()
-                    bottomMargin = ((bottomOffsetDp + 6f) * density).toInt()
+                    marginEnd = (22f * density).toInt()
+                    bottomMargin = ((bottomOffsetDp + 4f) * density).toInt()
                 }
 
-                // Labeled Glass Pill
-                val pillBg = GradientDrawable().apply {
-                    shape = GradientDrawable.RECTANGLE
-                    cornerRadius = 16f * density
-                    setColor(Color.parseColor("#0F172A"))
-                    setStroke((1.2f * density).toInt(), accentColor)
-                }
-
-                val labelView = TextView(context).apply {
-                    text = item.label
-                    setTextColor(Color.parseColor("#F8FAFC"))
-                    textSize = 12.5f
-                    typeface = Typeface.DEFAULT_BOLD
-                    background = pillBg
-                    setPadding(
-                        (14f * density).toInt(),
-                        (8f * density).toInt(),
-                        (14f * density).toInt(),
-                        (8f * density).toInt()
-                    )
-                }
-
-                // Mini Circular Icon Badge
+                // Circular glowing mini-FAB node
                 val circleBg = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(accentColor)
+                    setColor(Color.parseColor("#0D1526"))
+                    setStroke((1.5f * density).toInt(), accentColor)
                 }
 
-                val iconFrame = FrameLayout(context).apply {
+                val iconCircle = FrameLayout(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
-                        (42f * density).toInt(),
-                        (42f * density).toInt()
-                    ).apply {
-                        marginStart = (10f * density).toInt()
-                    }
+                        (46f * density).toInt(),
+                        (46f * density).toInt()
+                    )
                     background = circleBg
+                    elevation = 6f * density
 
                     val iv = ImageView(context).apply {
                         layoutParams = LayoutParams(
-                            (20f * density).toInt(),
-                            (20f * density).toInt(),
+                            (21f * density).toInt(),
+                            (21f * density).toInt(),
                             Gravity.CENTER
                         )
                         setImageResource(item.iconRes)
-                        imageTintList = ColorStateList.valueOf(Color.parseColor("#06080F"))
+                        imageTintList = ColorStateList.valueOf(accentColor)
                     }
                     addView(iv)
                 }
 
-                addView(labelView)
-                addView(iconFrame)
+                // Compact label badge directly beneath the circular node
+                val badgeBg = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    cornerRadius = 10f * density
+                    setColor(Color.parseColor("#E60B1220"))
+                    setStroke((1f * density).toInt(), Color.parseColor("#3394A3B8"))
+                }
+
+                val labelBadge = TextView(context).apply {
+                    text = item.label
+                    setTextColor(Color.parseColor("#F8FAFC"))
+                    textSize = 10f
+                    typeface = Typeface.DEFAULT_BOLD
+                    background = badgeBg
+                    maxLines = 1
+                    setPadding(
+                        (7f * density).toInt(),
+                        (2.5f * density).toInt(),
+                        (7f * density).toInt(),
+                        (2.5f * density).toInt()
+                    )
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        topMargin = (4f * density).toInt()
+                    }
+                }
+
+                addView(iconCircle)
+                addView(labelBadge)
 
                 setOnClickListener {
                     performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     collapse()
-                    postDelayed({ item.onClick() }, 130L)
+                    postDelayed({ item.onClick() }, 140L)
                 }
             }
 
-            itemContainers.add(row)
-            // Insert below mainFab so mainFab stays on top
-            addView(row, indexOfChild(mainFab))
+            nodeViews.add(nodeColumn)
+            addView(nodeColumn, indexOfChild(mainFab))
         }
+        mainFab.bringToFront()
     }
 
     fun expand() {
-        if (isExpanded || itemContainers.isEmpty()) return
+        if (isExpanded || nodeViews.isEmpty()) return
         isExpanded = true
 
         scrimView.visibility = VISIBLE
         scrimView.animate().alpha(1f).setDuration(200L).start()
 
+        mainFab.bringToFront()
         mainFab.animate()
             .rotation(45f)
-            .scaleX(1.06f)
-            .scaleY(1.06f)
-            .setDuration(240L)
+            .scaleX(1.05f)
+            .scaleY(1.05f)
+            .setDuration(230L)
             .setInterpolator(OvershootInterpolator(2.2f))
             .start()
 
-        itemContainers.forEachIndexed { index, row ->
-            val (targetX, targetY) = (row.tag as? Pair<Float, Float>) ?: Pair(0f, -72f * density * (index + 1))
-            row.visibility = VISIBLE
-            row.animate().cancel()
-            row.animate()
-                .translationX(targetX)
-                .translationY(targetY)
+        nodeViews.forEachIndexed { index, node ->
+            val (tx, ty) = (node.tag as? Pair<Float, Float>) ?: Pair(0f, -80f * density)
+            node.visibility = VISIBLE
+            node.animate().cancel()
+            node.animate()
+                .translationX(tx)
+                .translationY(ty)
                 .alpha(1f)
                 .scaleX(1f)
                 .scaleY(1f)
-                .setStartDelay(index * 32L)
+                .setStartDelay(index * 28L)
                 .setDuration(250L)
-                .setInterpolator(OvershootInterpolator(1.75f))
+                .setInterpolator(OvershootInterpolator(1.7f))
                 .start()
         }
     }
@@ -248,13 +269,13 @@ class SpeedDialFabView @JvmOverloads constructor(
             mainFab.rotation = 0f
             mainFab.scaleX = 1f
             mainFab.scaleY = 1f
-            itemContainers.forEach { row ->
-                row.visibility = GONE
-                row.translationX = 0f
-                row.translationY = 0f
-                row.alpha = 0f
-                row.scaleX = 0.75f
-                row.scaleY = 0.75f
+            nodeViews.forEach { node ->
+                node.visibility = GONE
+                node.translationX = 0f
+                node.translationY = 0f
+                node.alpha = 0f
+                node.scaleX = 0.6f
+                node.scaleY = 0.6f
             }
             return
         }
@@ -273,18 +294,18 @@ class SpeedDialFabView @JvmOverloads constructor(
             .setInterpolator(OvershootInterpolator(2.0f))
             .start()
 
-        itemContainers.forEach { row ->
-            row.animate().cancel()
-            row.animate()
+        nodeViews.forEach { node ->
+            node.animate().cancel()
+            node.animate()
                 .translationX(0f)
                 .translationY(0f)
                 .alpha(0f)
-                .scaleX(0.75f)
-                .scaleY(0.75f)
+                .scaleX(0.6f)
+                .scaleY(0.6f)
                 .setStartDelay(0L)
                 .setDuration(170L)
                 .setInterpolator(DecelerateInterpolator(1.5f))
-                .withEndAction { if (!isExpanded) row.visibility = GONE }
+                .withEndAction { if (!isExpanded) node.visibility = GONE }
                 .start()
         }
     }

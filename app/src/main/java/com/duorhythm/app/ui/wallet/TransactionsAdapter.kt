@@ -31,6 +31,7 @@ class TransactionsAdapter(
 ) : RecyclerView.Adapter<TransactionsAdapter.TxViewHolder>() {
 
     var currentAccountBalance: Double = 0.0
+    private var suppressEntryAnimUntil: Long = 0L
 
     fun updateData(
         newTransactions: List<TransactionItem>,
@@ -53,6 +54,17 @@ class TransactionsAdapter(
         notifyDataSetChanged()
     }
 
+    fun removeItemAnimated(txId: Long) {
+        suppressEntryAnimUntil = System.currentTimeMillis() + 600L
+        val idx = transactions.indexOfFirst { it.id == txId }
+        if (idx != -1) {
+            val mutable = transactions.toMutableList()
+            mutable.removeAt(idx)
+            transactions = mutable
+            notifyItemRemoved(idx)
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TxViewHolder {
         val binding = ItemTransactionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return TxViewHolder(binding)
@@ -61,7 +73,12 @@ class TransactionsAdapter(
     override fun onBindViewHolder(holder: TxViewHolder, position: Int) {
         val item = transactions[position]
         holder.bind(item)
-        AnimationUtils.animateItemEntry(holder.itemView, position)
+        if (System.currentTimeMillis() > suppressEntryAnimUntil) {
+            AnimationUtils.animateItemEntry(holder.itemView, position)
+        } else {
+            holder.itemView.alpha = 1f
+            holder.itemView.translationY = 0f
+        }
 
         // DYNAMIC RUNNING LEDGER ENGINE: Reconstructs exact balance trails mathematically
         try {

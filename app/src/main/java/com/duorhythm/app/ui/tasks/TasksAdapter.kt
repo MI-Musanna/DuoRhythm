@@ -23,6 +23,7 @@ class TasksAdapter(
     private var masterTaskList: List<TaskEntity> = emptyList()
     private var currentFilterType: String = "All"
     private var currentSearchQuery: String = ""
+    private var suppressEntryAnimUntil: Long = 0L
 
     fun setMasterTasks(list: List<TaskEntity>) {
         masterTaskList = list
@@ -78,12 +79,18 @@ class TasksAdapter(
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         holder.bind(tasks[position])
-        AnimationUtils.animateItemEntry(holder.itemView, position)
+        if (System.currentTimeMillis() > suppressEntryAnimUntil) {
+            AnimationUtils.animateItemEntry(holder.itemView, position)
+        } else {
+            holder.itemView.alpha = 1f
+            holder.itemView.translationY = 0f
+        }
     }
 
     override fun getItemCount(): Int = tasks.size
 
     fun removeItemAnimated(task: com.duorhythm.app.data.model.TaskItem) {
+        suppressEntryAnimUntil = System.currentTimeMillis() + 600L
         masterTaskList = masterTaskList.filter { it.id != task.id }
         val idx = tasks.indexOfFirst { it.id == task.id }
         if (idx != -1) {
@@ -91,9 +98,6 @@ class TasksAdapter(
             mutable.removeAt(idx)
             tasks = mutable
             notifyItemRemoved(idx)
-            if (idx < tasks.size) {
-                notifyItemRangeChanged(idx, tasks.size - idx)
-            }
         }
     }
 

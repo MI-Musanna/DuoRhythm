@@ -46,14 +46,13 @@ class AssessmentAdapter(
 
     private fun applyFilters() {
         val filtered = masterList.filter { item ->
-            val matchesCategory = when (currentCategory) {
-                "All" -> true
-                "Finals" -> item.category.contains("Final", ignoreCase = true)
-                "Midterms" -> item.category.contains("Midterm", ignoreCase = true)
-                "Quizzes / CT" -> item.category.contains("CT", ignoreCase = true) || item.category.contains("Quiz", ignoreCase = true) || item.category.contains("QT", ignoreCase = true)
-                "Lab Exams" -> item.category.contains("Lab", ignoreCase = true)
-                "Viva" -> item.category.contains("Viva", ignoreCase = true)
-                else -> item.category.equals(currentCategory, ignoreCase = true)
+            val matchesCategory = if (currentCategory.equals("All", ignoreCase = true)) {
+                true
+            } else {
+                item.category.equals(currentCategory, ignoreCase = true) ||
+                item.type.equals(currentCategory, ignoreCase = true) ||
+                item.category.contains(currentCategory, ignoreCase = true) ||
+                item.type.contains(currentCategory, ignoreCase = true)
             }
 
             val matchesQuery = if (currentSearchQuery.isEmpty()) {
@@ -213,6 +212,18 @@ class AssessmentAdapter(
             binding.root.setOnClickListener {
                 onItemClick?.invoke(item)
             }
+        }
+    }
+
+    fun removeItemAnimated(entity: AssessmentEntity) {
+        masterList = masterList.filter { it.id != entity.id }
+        val idx = items.indexOfFirst { it.id == entity.id }
+        if (idx != -1) {
+            val mutable = items.toMutableList()
+            mutable.removeAt(idx)
+            items = mutable
+            notifyItemRemoved(idx)
+            onFilterApplied?.invoke(items)
         }
     }
 }
