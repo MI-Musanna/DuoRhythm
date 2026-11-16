@@ -72,7 +72,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Amount">
+            android:hint="Amount"
+            app:boxStrokeColor="@color/selector_box_stroke_cyan">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDueAmount"
@@ -80,7 +81,9 @@
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold" 
+                android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 3. Person's Name Input -->
@@ -89,13 +92,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="Person's Name *">
+            android:hint="Person's Name *"
+            app:boxStrokeColor="@color/selector_box_stroke_cyan">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDuePersonName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textCapWords" />
+                android:inputType="textCapWords" 
+                android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 4. Contact / Phone Number (Optional) -->
@@ -104,13 +110,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="Phone / Contact (Optional)">
+            android:hint="Phone / Contact (Optional)"
+            app:boxStrokeColor="@color/selector_box_stroke_cyan">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDueContact"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="phone" />
+                android:inputType="phone" 
+                android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 5. Due Date (Optional) -->
@@ -120,7 +129,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="Due Date (Optional)">
+            android:hint="Due Date (Optional)"
+            app:boxStrokeColor="@color/selector_box_stroke_cyan">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDueDate"
@@ -128,7 +138,9 @@
                 android:layout_height="wrap_content"
                 android:focusable="false"
                 android:clickable="true"
-                android:cursorVisible="false" />
+                android:cursorVisible="false" 
+                android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 6. Notes (Optional) -->
@@ -137,13 +149,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="Notes / Purpose (Optional)">
+            android:hint="Notes / Purpose (Optional)"
+            app:boxStrokeColor="@color/selector_box_stroke_cyan">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDueNotes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textCapSentences" />
+                android:inputType="textCapSentences" 
+                android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 7. Save Button -->

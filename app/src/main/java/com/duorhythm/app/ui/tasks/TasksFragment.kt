@@ -68,6 +68,7 @@ class TasksFragment : Fragment() {
             setupListeners()
             populateCategoryChips()
             loadTasks()
+            setupSpeedDial()
 
             ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
                 try {
@@ -170,7 +171,6 @@ class TasksFragment : Fragment() {
         binding.rvTasks.layoutManager = LinearLayoutManager(requireContext())
         binding.rvTasks.adapter = tasksAdapter
         binding.rvTasks.itemAnimator = com.duorhythm.app.util.SmoothGapCollapseAnimator()
-        binding.rvTasks.postDelayed({ _binding?.rvTasks?.layoutAnimation = null }, 450L)
         AnimationUtils.applySlideUpLayoutAnimation(binding.rvTasks)
     }
 
@@ -469,7 +469,7 @@ class TasksFragment : Fragment() {
                 binding.categoryFilterScrollView.visibility = View.VISIBLE
                 binding.tvTasksTitle.text = "My Tasks"
                 binding.fabAddTask.visibility = View.GONE
-                binding.btnNewTaskTop.visibility = View.VISIBLE
+                binding.btnNewTaskTop.visibility = View.GONE
                 binding.btnAddGoal.visibility = View.GONE
             } else if (checkedId == R.id.btnTabGoals) {
                 currentTab = TaskTab.GOALS
@@ -481,10 +481,13 @@ class TasksFragment : Fragment() {
                 binding.tvTasksTitle.text = "Milestone Goals"
                 binding.fabAddTask.visibility = View.GONE
                 binding.btnNewTaskTop.visibility = View.GONE
-                binding.btnAddGoal.visibility = View.VISIBLE
+                binding.btnAddGoal.visibility = View.GONE
             }
             loadTasks()
         }
+
+        binding.btnNewTaskTop.visibility = View.GONE
+        binding.btnAddGoal.visibility = View.GONE
 
         binding.btnNewTaskTop.setOnClickListener { showCreateTaskDialog(isGoal = (currentTab == TaskTab.GOALS)) }
         binding.fabAddTask.setOnClickListener { showCreateTaskDialog(isGoal = (currentTab == TaskTab.GOALS)) }
@@ -735,6 +738,27 @@ class TasksFragment : Fragment() {
         }
 
         dialog.show()
+    }
+
+    private fun setupSpeedDial() {
+        try {
+            binding.btnNewTaskTop.visibility = View.GONE
+            binding.btnAddGoal.visibility = View.GONE
+            binding.fabAddTask.visibility = View.GONE
+            binding.speedDialTasks.setItems(listOf(
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#00E5FF") {
+                    binding.toggleTasksGoals.check(com.duorhythm.app.R.id.btnTabTasks)
+                    showCreateTaskDialog(isGoal = false)
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Goal", com.duorhythm.app.R.drawable.ic_target, "#F59E0B") {
+                    binding.toggleTasksGoals.check(com.duorhythm.app.R.id.btnTabGoals)
+                    showCreateTaskDialog(isGoal = true)
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Category", com.duorhythm.app.R.drawable.ic_category, "#38BDF8") {
+                    binding.btnAddCustomCategory.performClick()
+                }
+            ))
+        } catch (_: Exception) {}
     }
 
     override fun onDestroyView() {

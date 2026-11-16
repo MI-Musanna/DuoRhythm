@@ -499,4 +499,9 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <com.duorhythm.app.ui.views.SpeedDialFabView
+        android:id="@+id/speedDialSubjectDetail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

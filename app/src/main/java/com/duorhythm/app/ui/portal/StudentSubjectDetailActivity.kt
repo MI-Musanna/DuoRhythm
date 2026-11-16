@@ -82,7 +82,24 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         subjectId = intent.getLongExtra(EXTRA_SUBJECT_ID, -1)
 
         setSupportActionBar(binding.toolbarSubject)
-        binding.toolbarSubject.setNavigationOnClickListener { finish() }
+        binding.toolbarSubject.setNavigationOnClickListener {
+            if (binding.speedDialSubjectDetail.isExpanded) {
+                binding.speedDialSubjectDetail.collapse()
+            } else {
+                finish()
+            }
+        }
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.speedDialSubjectDetail.isExpanded) {
+                    binding.speedDialSubjectDetail.collapse()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
 
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
@@ -93,8 +110,9 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         setupRecyclerView()
         setupListeners()
         loadSubject()
+        setupSpeedDial()
 
-        // Phase 2: Scroll-Driven Collapsing Large Title
+        // Phase 2: Smooth Scroll-Driven Collapsing Subject Header
         try {
             val root = window.decorView as? android.view.ViewGroup
             fun findNestedScroll(vg: android.view.ViewGroup?): androidx.core.widget.NestedScrollView? {
@@ -108,8 +126,19 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             }
             val nsv = findNestedScroll(root)
             val heroTitle = binding.tvDetailSubjectTitle
-            val toolbarTitle = binding.toolbarSubject
-            com.duorhythm.app.util.ViewAnimationExtensions.attachCollapsingLargeTitle(nsv, heroTitle, toolbarTitle)
+            val thresholdPx = 72f * resources.displayMetrics.density
+            nsv?.setOnScrollChangeListener(
+                androidx.core.widget.NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
+                    val progress = (scrollY / thresholdPx).coerceIn(0f, 1f)
+                    val scale = 1f - (0.24f * progress)
+                    heroTitle.pivotX = 0f
+                    heroTitle.pivotY = heroTitle.height / 2f
+                    heroTitle.scaleX = scale
+                    heroTitle.scaleY = scale
+                    heroTitle.alpha = (1f - (progress * 0.75f)).coerceIn(0.25f, 1f)
+                    binding.appBarSubject.elevation = (2f + progress * 8f) * resources.displayMetrics.density
+                }
+            )
         } catch (_: Exception) {}
     }
 
@@ -206,6 +235,38 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun setupSpeedDial() {
+        try {
+            binding.btnAddTaskExam.visibility = View.GONE
+            binding.btnAddMaterial.visibility = View.GONE
+            binding.speedDialSubjectDetail.setBottomOffsetDp(24f)
+            binding.speedDialSubjectDetail.setItems(listOf(
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem(
+                    label = "Add Task / Exam",
+                    iconRes = R.drawable.ic_quiz,
+                    accentHex = "#00E5FF"
+                ) {
+                    showAddItemDialog()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem(
+                    label = "Add Document",
+                    iconRes = R.drawable.ic_article,
+                    accentHex = "#38BDF8"
+                ) {
+                    pickMaterialLauncher.launch("*/*")
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem(
+                    label = "New Category",
+                    iconRes = R.drawable.ic_category,
+                    accentHex = "#F59E0B"
+                ) {
+                    val profileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(this)
+                    showCreateCategoryModal(profileId, subjectId)
+                }
+            ))
+        } catch (_: Exception) {}
     }
 
     private fun loadSubject() {

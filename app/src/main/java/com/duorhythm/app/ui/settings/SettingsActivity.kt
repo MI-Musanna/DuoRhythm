@@ -928,6 +928,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowShowCourseProgress.setOnClickListener {
             binding.switchShowCourseProgress.toggle()
         }
+        binding.rowExamReminders.setOnClickListener {
+            binding.switchExamReminders.toggle()
+        }
         binding.rowSubscriptionAlerts.setOnClickListener {
             binding.switchSubscriptionAlerts.toggle()
         }
@@ -1058,6 +1061,26 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchShowCourseProgress.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
                 backupPrefs.edit().putBoolean("show_course_progress_bar", isChecked).apply()
+            }
+        }
+
+        // Card 2: Academic - Exam & Quiz Reminders (Opt-in)
+        binding.switchExamReminders.setOnCheckedChangeListener(null)
+        val duoPrefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        val examReminders = duoPrefs.getBoolean("pref_exam_reminders_enabled", false)
+        binding.switchExamReminders.isChecked = examReminders
+        binding.switchExamReminders.setOnCheckedChangeListener { _, isChecked ->
+            if (!isHydratingUI) {
+                duoPrefs.edit().putBoolean("pref_exam_reminders_enabled", isChecked).apply()
+                backupPrefs.edit().putBoolean("pref_exam_reminders_enabled", isChecked).apply()
+                if (!isChecked) {
+                    try {
+                        val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this)
+                        db.getAllExams().forEach { pair ->
+                            com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(this, pair.first.id)
+                        }
+                    } catch (_: Exception) {}
+                }
             }
         }
 

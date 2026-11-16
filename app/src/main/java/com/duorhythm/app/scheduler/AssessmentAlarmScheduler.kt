@@ -29,6 +29,12 @@ object AssessmentAlarmScheduler {
     }
 
     fun scheduleAssessmentAlarms(context: Context, assessment: AssessmentEntity) {
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        val examRemindersEnabled = prefs.getBoolean("pref_exam_reminders_enabled", false)
+        if (!examRemindersEnabled) {
+            cancelAlarmsForAssessment(context, assessment.id)
+            return
+        }
         if (assessment.status == "DONE" || assessment.date.isBlank()) return
         val examStartMs = parseExamStartMs(assessment.date, assessment.time) ?: return
         val (title, body) = buildAssessmentNotification(assessment)

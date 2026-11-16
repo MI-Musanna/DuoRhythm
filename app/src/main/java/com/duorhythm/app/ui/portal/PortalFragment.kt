@@ -110,11 +110,13 @@ class PortalFragment : Fragment() {
         }
         try {
             setupListeners()
+            setupSpeedDial()
         } catch (e: Throwable) {
             android.util.Log.e("PortalFragment", "Error in setupListeners", e)
         }
         try {
             parentFragmentManager.setFragmentResultListener("REQUEST_PORTAL_TAB", viewLifecycleOwner) { _, bundle ->
+                if (_binding == null || !isAdded || !::dbHelper.isInitialized) return@setFragmentResultListener
                 val targetTab = bundle.getInt("TARGET_TAB", 0)
                 if (targetTab == 1) {
                     if (!isStudentProfile) {
@@ -1526,6 +1528,30 @@ class PortalFragment : Fragment() {
         }
         binding.rvEnrolledCourses.visibility = if (isCollapsed) View.GONE else View.VISIBLE
         binding.ivChevronCourses.animate().rotation(if (isCollapsed) -90f else 0f).setDuration(200).start()
+    }
+
+    private fun setupSpeedDial() {
+        try {
+            binding.btnAddSubject.visibility = View.GONE
+            binding.btnScheduleAssessment.visibility = View.GONE
+            binding.btnStudentAddContact.visibility = View.GONE
+            binding.btnNewClientOrderPortal.visibility = View.GONE
+            binding.btnWorkAddContact.visibility = View.GONE
+            binding.speedDialPortal.setItems(listOf(
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Course", com.duorhythm.app.R.drawable.ic_school, "#00E5FF") {
+                    showAddSubjectDialog()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Schedule Exam", com.duorhythm.app.R.drawable.ic_quiz, "#F59E0B") {
+                    showAddExamDialog("Semester Final Exam")
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Work Order", com.duorhythm.app.R.drawable.ic_work, "#10B981") {
+                    showCreateOrderDialog()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#38BDF8") {
+                    showAddContactDialog(isStudentProfile)
+                }
+            ))
+        } catch (_: Exception) {}
     }
 
     override fun onDestroyView() {

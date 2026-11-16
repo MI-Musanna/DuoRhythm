@@ -83,7 +83,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:hint="Account to Credit/Debit">
+        android:hint="Account to Credit/Debit"
+            app:boxStrokeColor="@color/selector_box_stroke_cyan">
 
         <AutoCompleteTextView
             android:id="@+id/actvSettleAccount"
@@ -102,13 +103,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:hint="Settlement Note (Optional)">
+        android:hint="Settlement Note (Optional)"
+            app:boxStrokeColor="@color/selector_box_stroke_cyan">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etSettleNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textCapSentences" />
+            android:inputType="textCapSentences" 
+                android:textColor="#F8FAFC"
+                android:textColorHint="#94A3B8"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton

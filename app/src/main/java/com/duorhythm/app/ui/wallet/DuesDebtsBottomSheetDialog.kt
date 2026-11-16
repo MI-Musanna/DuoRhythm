@@ -153,6 +153,18 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
     private fun showAddDueDebtDialog() {
         val dialogBinding = DialogAddDueDebtBinding.inflate(layoutInflater)
         dialogBinding.tilDueAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
+        val whiteText = Color.parseColor("#F8FAFC")
+        val slateHint = Color.parseColor("#94A3B8")
+        listOf(
+            dialogBinding.etDueAmount,
+            dialogBinding.etDuePersonName,
+            dialogBinding.etDueContact,
+            dialogBinding.etDueDate,
+            dialogBinding.etDueNotes
+        ).forEach { et ->
+            et.setTextColor(whiteText)
+            et.setHintTextColor(slateHint)
+        }
 
         var selectedType = "LENT"
         dialogBinding.toggleDueType.check(R.id.btnTypeLent)

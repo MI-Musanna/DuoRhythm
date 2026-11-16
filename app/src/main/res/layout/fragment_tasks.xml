@@ -368,7 +368,6 @@
             android:layout_height="0dp"
             android:clipToPadding="false"
             android:paddingBottom="92dp"
-            android:layoutAnimation="@anim/layout_animation_slide_up"
             tools:listitem="@layout/item_task"
             app:layout_constraintTop_toBottomOf="@id/categoryFilterScrollView"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -538,5 +537,10 @@
         app:iconTint="@color/white"
         app:backgroundTint="#0284C7"
         app:elevation="6dp" />
+
+    <com.duorhythm.app.ui.views.SpeedDialFabView
+        android:id="@+id/speedDialTasks"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -120,9 +120,29 @@ class HomeFragment : Fragment() {
 
             setupListeners()
             loadDashboardData()
+            setupSpeedDial()
         } catch (e: Throwable) {
             e.printStackTrace()
         }
+    }
+
+    private fun setupSpeedDial() {
+        try {
+            binding.speedDialHome.setItems(listOf(
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Quick Note", com.duorhythm.app.R.drawable.ic_notes, "#00E5FF") {
+                    showAddNoteDialog()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Money", com.duorhythm.app.R.drawable.ic_wallet, "#10B981") {
+                    com.duorhythm.app.ui.wallet.RecordTransactionDialogFragment.newInstance().show(parentFragmentManager, "RECORD_TX_HOME")
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#38BDF8") {
+                    (activity as? com.duorhythm.app.MainActivity)?.selectNavTab(com.duorhythm.app.R.id.menu_tasks)
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Schedule Exam", com.duorhythm.app.R.drawable.ic_quiz, "#F59E0B") {
+                    com.duorhythm.app.ui.portal.ScheduleAssessmentDialog(requireContext(), parentFragmentManager, onSaved = { loadDashboardData() }).show()
+                }
+            ))
+        } catch (_: Exception) {}
     }
 
     override fun onResume() {

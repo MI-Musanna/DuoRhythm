@@ -105,6 +105,7 @@ class WalletFragment : Fragment() {
             setupRecyclerViews()
             setupCurrencySelector()
             setupListeners()
+            setupSpeedDial()
 
             val rootView = activity?.window?.decorView?.findViewById<ViewGroup>(android.R.id.content)
                 ?: (binding.root as? ViewGroup)
@@ -1307,6 +1308,26 @@ class WalletFragment : Fragment() {
         com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
         dialogBinding.etTxAmount.requestFocus()
         dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    }
+
+    private fun setupSpeedDial() {
+        try {
+            binding.btnAddBucket.visibility = View.GONE
+            binding.speedDialWallet.setItems(listOf(
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Tx", com.duorhythm.app.R.drawable.ic_wallet, "#00E5FF") {
+                    binding.btnHeroRecordTx.performClick()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#38BDF8") {
+                    binding.btnHeroTransfer.performClick()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Dues / Debts", com.duorhythm.app.R.drawable.ic_analytics, "#10B981") {
+                    binding.btnHeroDuesDebts.performClick()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Account", com.duorhythm.app.R.drawable.ic_add, "#F59E0B") {
+                    binding.btnAddBucket.performClick()
+                }
+            ))
+        } catch (_: Exception) {}
     }
 
     override fun onDestroyView() {

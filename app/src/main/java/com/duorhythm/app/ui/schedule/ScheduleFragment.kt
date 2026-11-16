@@ -65,6 +65,7 @@ class ScheduleFragment : Fragment() {
             timetableRepository = TimetableRepository(requireContext())
             setupRecyclerViews()
             setupListeners()
+            setupSpeedDial()
             setupCalendarDateStrip()
             loadData()
 
@@ -392,6 +393,23 @@ class ScheduleFragment : Fragment() {
             TimetableGlanceWidget.pushUpdate(requireContext())
             Toast.makeText(requireContext(), "Class schedule updated", Toast.LENGTH_SHORT).show()
         }.show()
+    }
+
+    private fun setupSpeedDial() {
+        try {
+            binding.btnAddClass.visibility = View.GONE
+            binding.speedDialSchedule.setItems(listOf(
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Class", com.duorhythm.app.R.drawable.ic_calendar, "#00E5FF") {
+                    binding.btnAddClass.performClick()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Schedule Exam", com.duorhythm.app.R.drawable.ic_quiz, "#F59E0B") {
+                    com.duorhythm.app.ui.portal.ScheduleAssessmentDialog(requireContext(), parentFragmentManager, onSaved = {}).show()
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Export Routine", com.duorhythm.app.R.drawable.ic_export, "#38BDF8") {
+                    binding.btnExportSchedule.performClick()
+                }
+            ))
+        } catch (_: Exception) {}
     }
 
     override fun onDestroyView() {
