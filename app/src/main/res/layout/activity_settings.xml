@@ -313,6 +313,76 @@
                             android:layout_marginBottom="10dp"
                             android:background="@color/card_stroke" />
 
+                                                <!-- Tri-State Master Notification Switch (All / Mixed / Muted) -->
+                        <LinearLayout
+                            android:id="@+id/rowMasterNotifications"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="54dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Master Notifications"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:id="@+id/badgeMasterNotifState"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="8dp"
+                                        android:background="@drawable/bg_pill_dark"
+                                        android:paddingHorizontal="7dp"
+                                        android:paddingVertical="2dp"
+                                        android:text="MIXED (3/5)"
+                                        android:textColor="#F59E0B"
+                                        android:textSize="9.5sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/tvMasterNotifSubtitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Tap anywhere to enable or mute all 5 reminder channels"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="11.5sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchMasterNotifications"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="8dp"
+                            android:background="@color/card_stroke" />
+
                         <!-- Row: First Day of the Week -->
                         <LinearLayout
                             android:id="@+id/itemStartOfWeek"
@@ -370,7 +440,11 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="10dp">
+                            android:paddingVertical="10dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -723,7 +797,11 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="10dp">
+                            android:paddingVertical="10dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -804,6 +882,72 @@
                                 app:tint="@color/text_muted" />
                         </LinearLayout>
 
+                        <!-- Segmented Control: Quick Class Lead-Time Presets (Acts Immediately) -->
+                        <com.google.android.material.button.MaterialButtonToggleGroup
+                            android:id="@+id/toggleClassLeadPresets"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnLead5m"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="5m"
+                                android:textColor="#CBD5E1"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                app:strokeColor="#2A3B60" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnLead10m"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="10m"
+                                android:textColor="#CBD5E1"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                app:strokeColor="#2A3B60" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnLead15m"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="15m"
+                                android:textColor="#CBD5E1"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                app:strokeColor="#2A3B60" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnLead30m"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="30m"
+                                android:textColor="#CBD5E1"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                app:strokeColor="#2A3B60" />
+                        </com.google.android.material.button.MaterialButtonToggleGroup>
+
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
@@ -817,7 +961,11 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="10dp">
+                            android:paddingVertical="10dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -905,7 +1053,11 @@
                             android:layout_marginTop="8dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="8dp">
+                            android:paddingVertical="8dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -932,6 +1084,55 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial
                                 android:id="@+id/switchExamReminders"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="8dp"
+                            android:background="@color/card_stroke" />
+
+                        <!-- Instant Switch Row: Task & Goal Deadline Alerts -->
+                        <LinearLayout
+                            android:id="@+id/rowTaskReminders"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="48dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="10dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Task &amp; Goal Deadline Alerts"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Remind at 9:00 AM on due dates with Mark Done &amp; Snooze actions"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchTaskReminders"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp" />
@@ -1133,7 +1334,11 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="10dp">
+                            android:paddingVertical="10dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -1178,7 +1383,11 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="10dp">
+                            android:paddingVertical="10dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -1305,7 +1514,11 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="10dp">
+                            android:paddingVertical="10dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -1477,7 +1690,11 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingVertical="10dp">
+                            android:paddingVertical="10dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
 
                             <LinearLayout
                                 android:layout_width="0dp"

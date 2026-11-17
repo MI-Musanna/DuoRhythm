@@ -37,6 +37,11 @@ object TaskAlarmScheduler {
     }
 
     fun scheduleTaskReminder(context: Context, task: TaskItem) {
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        if (!prefs.getBoolean("pref_task_reminders_enabled", true)) {
+            cancelTaskReminder(context, task.id)
+            return
+        }
         if (task.isCompleted) {
             cancelTaskReminder(context, task.id)
             return
@@ -119,4 +124,22 @@ object TaskAlarmScheduler {
         }
         return null
     }
+
+
+    fun resyncAllTaskReminders(context: Context) {
+        try {
+            val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(context)
+            val enabled = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+                .getBoolean("pref_task_reminders_enabled", true)
+            val tasks = db.getAllTasks("ALL")
+            for (t in tasks) {
+                if (enabled && !t.isCompleted) {
+                    scheduleTaskReminder(context, t)
+                } else {
+                    cancelTaskReminder(context, t.id)
+                }
+            }
+        } catch (_: Exception) {}
+    }
+    
 }

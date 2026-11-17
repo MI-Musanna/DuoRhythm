@@ -204,7 +204,7 @@
         <!-- Dynamic Assessment & Exam Alarm Receiver (Disabled individual alerts) -->
         <receiver
             android:name=".receiver.AssessmentAlarmReceiver"
-            android:enabled="false"
+            android:enabled="true"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.duorhythm.app.ACTION_ASSESSMENT_ALERT" />
@@ -334,6 +334,17 @@
             </intent-filter>
         </receiver>
 
+    
+        <!-- Interactive Notification Actions ([Mark Done], [Snooze]) -->
+        <receiver
+            android:name=".receiver.NotificationActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_NOTIF_MARK_TASK_DONE" />
+                <action android:name="com.duorhythm.app.ACTION_NOTIF_SNOOZE_ALERT" />
+            </intent-filter>
+        </receiver>
+        
     </application>
 
 </manifest>

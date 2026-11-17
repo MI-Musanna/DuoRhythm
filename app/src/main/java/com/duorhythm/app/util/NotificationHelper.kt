@@ -32,6 +32,9 @@ object NotificationHelper {
         isEveningReview: Boolean = false,
         isManualTest: Boolean = false
     ) {
+        if (!isManualTest && !com.duorhythm.app.automation.SmartAutomationManager.isSmartBriefingsEnabled(context)) {
+            return
+        }
         val todayStamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Calendar.getInstance().time)
         val guardPrefs = context.getSharedPreferences(PREFS_NOTIF_GUARD, Context.MODE_PRIVATE)
         val guardKey = if (isEveningReview) "last_evening_$todayStamp" else "last_morning_$todayStamp"
@@ -90,7 +93,7 @@ object NotificationHelper {
 
         val classes = db.getClassesForIsoDay(profileId, targetIsoDay)
         val exams = db.getUpcomingExamsForWidget(profileId).filter { it.dueDate == targetDateStr }
-        val subs = db.getSubscriptions(profileId)
+        val subs = if (com.duorhythm.app.automation.SmartAutomationManager.isSubscriptionAlertsEnabled(context)) db.getSubscriptions(profileId) else emptyList()
 
         val pendingTasks = mutableListOf<Triple<String, String, String>>()
         try {

@@ -295,4 +295,37 @@ class DuoRhythmFullAppAuditTest {
         assertTrue("Progress value must remain clamped within max", pb.progress <= 100)
     }
 
+
+
+    @Test
+    fun audit09_notificationOptInGuardsAndActionIntents() {
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("pref_task_reminders_enabled", false).apply()
+
+        val task = TaskItem(
+            id = 555L,
+            profileId = 1L,
+            title = "Opt-In Task",
+            description = "",
+            category = "Study",
+            dueDate = "2026-12-25",
+            priority = "HIGH",
+            isCompleted = false,
+            isGoal = false,
+            progress = 0
+        )
+        com.duorhythm.app.scheduler.TaskAlarmScheduler.scheduleTaskReminder(context, task)
+
+        val snoozeIntent = android.content.Intent(context, com.duorhythm.app.receiver.NotificationActionReceiver::class.java).apply {
+            action = com.duorhythm.app.receiver.NotificationActionReceiver.ACTION_SNOOZE_ALERT
+            putExtra(com.duorhythm.app.receiver.NotificationActionReceiver.EXTRA_ITEM_ID, 555L)
+            putExtra(com.duorhythm.app.receiver.NotificationActionReceiver.EXTRA_ALERT_TYPE, "TASK")
+            putExtra(com.duorhythm.app.receiver.NotificationActionReceiver.EXTRA_SNOOZE_MINUTES, 10)
+        }
+        assertEquals(
+            com.duorhythm.app.receiver.NotificationActionReceiver.ACTION_SNOOZE_ALERT,
+            snoozeIntent.action
+        )
+    }
+
 }

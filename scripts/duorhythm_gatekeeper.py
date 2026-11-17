@@ -45,6 +45,10 @@ for kt_path in glob.glob("app/src/main/java/com/duorhythm/app/**/*.kt", recursiv
             if lp_match and any(int(v) >= 16 for v in lp_match.groups()):
                 errors.append(f"[RAW-PX] {kt_path}:{line_no}: Hardcoded raw pixel LayoutParams detected ({lp_match.group(0)}). Convert to density-scaled dp.")
 
+
+    if "SettingsActivity.kt" in kt_path and "!buttonView.isPressed" in code:
+        errors.append(f"[UX-SWITCH-BUG] {kt_path}: '!buttonView.isPressed' blocks full-row switch taps from persisting.")
+
 print("=== DUORHYTHM STATIC GATEKEEPER AUDIT REPORT ===")
 if warnings:
     for w in warnings:

@@ -127,6 +127,22 @@ class ClassAlarmReceiver : BroadcastReceiver() {
         }
 
         val notifId = if (classId > 0) (classId.toInt() + 10000) else 1001
+        val snoozeIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+            action = NotificationActionReceiver.ACTION_SNOOZE_ALERT
+            putExtra(NotificationActionReceiver.EXTRA_NOTIF_ID, notifId)
+            putExtra(NotificationActionReceiver.EXTRA_ITEM_ID, if (classId > 0) classId else 1001L)
+            putExtra(NotificationActionReceiver.EXTRA_ALERT_TYPE, "CLASS")
+            putExtra(NotificationActionReceiver.EXTRA_TITLE, subjectName)
+            putExtra(NotificationActionReceiver.EXTRA_BODY, startTime)
+            putExtra(NotificationActionReceiver.EXTRA_SNOOZE_MINUTES, 5)
+        }
+        val snoozePi = PendingIntent.getBroadcast(
+            context,
+            notifId + 500,
+            snoozeIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        builder.addAction(R.drawable.ic_schedule, "Snooze 5m", snoozePi)
         nm.notify(notifId, builder.build())
     }
 

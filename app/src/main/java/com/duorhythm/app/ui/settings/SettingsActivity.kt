@@ -277,11 +277,13 @@ class SettingsActivity : AppCompatActivity() {
     fun indexSettings() {
         searchableItems.clear()
         // Preferences / General
+        searchableItems.add(SettingSearchItem("Master Notifications", "Enable or mute all 5 reminder channels", binding.rowMasterNotifications, binding.cardPreferencesGeneral, binding.layoutPreferencesGeneralContent, binding.ivChevronGeneral))
         searchableItems.add(SettingSearchItem("First Day of the Week", "Saturday start calendar configuration", binding.rowFirstDayOfWeek, binding.cardPreferencesGeneral, binding.layoutPreferencesGeneralContent, binding.ivChevronGeneral))
         searchableItems.add(SettingSearchItem("Smart Daily Briefings", "Configurable morning agenda & evening recap alarms", binding.rowDailyBriefings, binding.cardPreferencesGeneral, binding.layoutPreferencesGeneralContent, binding.ivChevronGeneral))
 
         // Academic & Schedule
         searchableItems.add(SettingSearchItem("Auto-link Attendance to Courses", "Automatically add newly created subjects to timetable", binding.rowAutoLinkAttendance, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+        searchableItems.add(SettingSearchItem("Task & Goal Deadline Alerts", "Remind on task & goal due dates", binding.rowTaskReminders, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Class & Exam Alarms", "System alarm reminders before scheduled lectures", binding.rowClassAlarms, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Class Reminder Lead Time", "Custom minutes before lecture", binding.rowClassLeadTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Auto-Silent During Classes (DND)", "Silences ringer during scheduled lectures", binding.rowClassDnd, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
@@ -476,6 +478,36 @@ class SettingsActivity : AppCompatActivity() {
         binding.tvClassLeadSubtitle.text = AppPreferences.getClassLeadMinutesDisplayLabel(classMinutes)
         val orderHours = AppPreferences.getOrderLeadHours(this)
         binding.tvClientLeadSubtitle.text = AppPreferences.getOrderLeadHoursDisplayLabel(orderHours)
+
+        val wasHydrating = isHydratingUI
+        isHydratingUI = true
+        try {
+            val targetId = when (classMinutes) {
+                5 -> R.id.btnLead5m
+                10 -> R.id.btnLead10m
+                15 -> R.id.btnLead15m
+                30 -> R.id.btnLead30m
+                else -> View.NO_ID
+            }
+            if (targetId != View.NO_ID) {
+                binding.toggleClassLeadPresets.check(targetId)
+            } else {
+                binding.toggleClassLeadPresets.clearChecked()
+            }
+            val presetButtons = listOf(
+                Pair(R.id.btnLead5m, binding.btnLead5m),
+                Pair(R.id.btnLead10m, binding.btnLead10m),
+                Pair(R.id.btnLead15m, binding.btnLead15m),
+                Pair(R.id.btnLead30m, binding.btnLead30m)
+            )
+            for ((id, btn) in presetButtons) {
+                val selected = (id == targetId)
+                btn.backgroundTintList = ColorStateList.valueOf(if (selected) Color.parseColor("#0284C7") else Color.TRANSPARENT)
+                btn.setTextColor(if (selected) Color.WHITE else Color.parseColor("#94A3B8"))
+            }
+        } finally {
+            isHydratingUI = wasHydrating
+        }
     }
 
     private fun refreshBriefingScheduleSubtitle() {
@@ -631,6 +663,7 @@ class SettingsActivity : AppCompatActivity() {
                 com.duorhythm.app.scheduler.BriefingAlarmScheduler.saveEveningTime(this, hour, minute)
             }
             BriefingAlarmScheduler.resyncBriefings(this)
+            refreshMasterNotificationTriState()
             Toast.makeText(this, "Briefing time updated to $formatted", Toast.LENGTH_SHORT).show()
         }
 
@@ -672,7 +705,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.tvBackupInterval.text = getBackupIntervalLabel(savedHours)
 
         binding.switchAutoBackup.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             prefs.edit()
                 .putBoolean("pref_auto_backup_enabled", isChecked)
                 .putBoolean(LocalBackupWorker.KEY_AUTO_BACKUP_ENABLED, isChecked)
@@ -916,6 +949,32 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowClientLeadTime.setOnClickListener {
             showCustomLeadTimeDialog(isClassMode = false)
         }
+        
+        binding.rowMasterNotifications.setOnClickListener {
+            binding.switchMasterNotifications.toggle()
+        }
+        binding.rowTaskReminders.setOnClickListener {
+            binding.switchTaskReminders.toggle()
+        }
+        binding.toggleClassLeadPresets.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isHydratingUI || !isChecked) return@addOnButtonCheckedListener
+            val mins = when (checkedId) {
+                R.id.btnLead5m -> 5
+                R.id.btnLead10m -> 10
+                R.id.btnLead15m -> 15
+                R.id.btnLead30m -> 30
+                else -> return@addOnButtonCheckedListener
+            }
+            AppPreferences.setClassLeadMinutes(this, mins)
+            getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+                .edit().putBoolean("pref_class_reminder_enabled", true).apply()
+            ReminderManager.setRemindersEnabled(this, true)
+            refreshLeadTimesUI()
+            syncSwitchStates()
+            AlarmSyncManager.resyncAll(this)
+            Toast.makeText(this, "Class reminder set to $mins minutes before", Toast.LENGTH_SHORT).show()
+        }
+    
         binding.rowDailyBriefings.setOnClickListener {
             binding.switchDailyBriefings.toggle()
         }
@@ -997,7 +1056,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchIncludeAttachments.setOnCheckedChangeListener(null)
         binding.switchIncludeAttachments.isChecked = backupPrefs.getBoolean("pref_backup_include_attachments", false)
         binding.switchIncludeAttachments.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             backupPrefs.edit().putBoolean("pref_backup_include_attachments", isChecked).apply()
         }
 
@@ -1009,10 +1068,11 @@ class SettingsActivity : AppCompatActivity() {
         binding.tvMorningBriefingTime.text = AppPreferences.getMorningBriefingTime(this)
         binding.tvEveningBriefingTime.text = AppPreferences.getEveningBriefingTime(this)
         binding.switchDailyBriefings.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             SmartAutomationManager.setSmartBriefingsEnabled(this, isChecked)
             binding.layoutBriefingTimes.visibility = if (isChecked) View.VISIBLE else View.GONE
             BriefingAlarmScheduler.resyncBriefings(this)
+            refreshMasterNotificationTriState()
             val msg = if (isChecked) "Daily briefings enabled" else "Daily briefings disabled"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
@@ -1031,9 +1091,10 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchClassAlarms.setOnCheckedChangeListener(null)
         binding.switchClassAlarms.isChecked = ReminderManager.isRemindersEnabled(this)
         binding.switchClassAlarms.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             ReminderManager.setRemindersEnabled(this, isChecked)
             AlarmSyncManager.resyncAll(this)
+            refreshMasterNotificationTriState()
             val msg = if (isChecked) "Class alarms enabled" else "Class alarms disabled"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
@@ -1043,7 +1104,7 @@ class SettingsActivity : AppCompatActivity() {
         val isDnd = backupPrefs.getBoolean("pref_class_dnd_enabled", SmartAutomationManager.isAutoSilentClassesEnabled(this))
         binding.switchClassDnd.isChecked = isDnd
         binding.switchClassDnd.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             backupPrefs.edit().putBoolean("pref_class_dnd_enabled", isChecked).apply()
             if (isChecked) {
                 com.duorhythm.app.util.ClassSessionNotificationManager.checkAndPromptDndPermission(this)
@@ -1080,10 +1141,32 @@ class SettingsActivity : AppCompatActivity() {
                             com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(this, pair.first.id)
                         }
                     } catch (_: Exception) {}
+                } else {
+                    try {
+                        dbHelper.getAllExams().forEach { pair ->
+                            val entity = database.entities.AssessmentEntity.fromSubjectWorkItem(pair.first, pair.second.name, pair.second.code, pair.second.teacher)
+                            com.duorhythm.app.scheduler.AssessmentAlarmScheduler.scheduleAssessmentAlarms(this, entity)
+                        }
+                    } catch (_: Exception) {}
                 }
+                refreshMasterNotificationTriState()
             }
         }
 
+        
+        // Card 2: Academic - Task & Goal Deadline Alerts
+        binding.switchTaskReminders.setOnCheckedChangeListener(null)
+        val taskRemEnabled = duoPrefs.getBoolean("pref_task_reminders_enabled", true)
+        binding.switchTaskReminders.isChecked = taskRemEnabled
+        binding.switchTaskReminders.setOnCheckedChangeListener { _, isChecked ->
+            if (!isHydratingUI) {
+                duoPrefs.edit().putBoolean("pref_task_reminders_enabled", isChecked).apply()
+                com.duorhythm.app.scheduler.TaskAlarmScheduler.resyncAllTaskReminders(this)
+                refreshMasterNotificationTriState()
+                Toast.makeText(this, if (isChecked) "Task & goal alerts enabled" else "Task & goal alerts disabled", Toast.LENGTH_SHORT).show()
+            }
+        }
+    
         // Card 3: Financial - Show Running Balance
         refreshShowRunningBalanceUI()
         refreshShowBalanceTrailUI()
@@ -1092,8 +1175,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchSubscriptionAlerts.setOnCheckedChangeListener(null)
         binding.switchSubscriptionAlerts.isChecked = SmartAutomationManager.isSubscriptionAlertsEnabled(this)
         binding.switchSubscriptionAlerts.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             SmartAutomationManager.setSubscriptionAlertsEnabled(this, isChecked)
+            refreshMasterNotificationTriState()
             val msg = if (isChecked) "Subscription alerts & auto-log enabled" else "Subscription alerts disabled"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
@@ -1102,7 +1186,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchAutoSmsDetection.setOnCheckedChangeListener(null)
         binding.switchAutoSmsDetection.isChecked = SmartAutomationManager.isExpenseDetectionEnabled(this)
         binding.switchAutoSmsDetection.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             if (isChecked && !SmartAutomationManager.isNotificationListenerEnabled(this)) {
                 PermissionRationaleDialogs.showNotificationListenerRationale(this)
             }
@@ -1117,7 +1201,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchWorkPortal.isChecked = isWorkEnabled
         binding.rowClientLeadTime.visibility = if (isWorkEnabled) View.VISIBLE else View.GONE
         binding.switchWorkPortal.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             dbHelper.setWorkPortalEnabled(isChecked)
             binding.rowClientLeadTime.visibility = if (isChecked) View.VISIBLE else View.GONE
             val msg = if (isChecked) "Work Portal module enabled" else "Work Portal disabled (Student Mode only)"
@@ -1128,7 +1212,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchWalletBiometric.setOnCheckedChangeListener(null)
         binding.switchWalletBiometric.isChecked = AppPreferences.isWalletBiometricLocked(this)
         binding.switchWalletBiometric.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isHydratingUI || !buttonView.isPressed) return@setOnCheckedChangeListener
+            if (isHydratingUI) return@setOnCheckedChangeListener
             if (isChecked) {
                 DuoRhythmSecurityManager.authenticate(
                     this,
@@ -1150,6 +1234,7 @@ class SettingsActivity : AppCompatActivity() {
                 Toast.makeText(this, "Wallet Biometric Lock Disabled", Toast.LENGTH_SHORT).show()
             }
         }
+        refreshMasterNotificationTriState()
     }
 
     private fun setupBackupSnapshotsView() {
@@ -1227,4 +1312,98 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
     }
+
+
+    private fun refreshMasterNotificationTriState() {
+        val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        val states = listOf(
+            SmartAutomationManager.isSmartBriefingsEnabled(this),
+            ReminderManager.isRemindersEnabled(this),
+            prefs.getBoolean("pref_exam_reminders_enabled", false),
+            prefs.getBoolean("pref_task_reminders_enabled", true),
+            SmartAutomationManager.isSubscriptionAlertsEnabled(this)
+        )
+        val activeCount = states.count { it }
+        val totalCount = states.size
+
+        val wasHydrating = isHydratingUI
+        isHydratingUI = true
+        try {
+            binding.switchMasterNotifications.setOnCheckedChangeListener(null)
+            when (activeCount) {
+                totalCount -> {
+                    binding.switchMasterNotifications.isChecked = true
+                    binding.switchMasterNotifications.alpha = 1.0f
+                    binding.badgeMasterNotifState.text = "ALL ACTIVE ($totalCount/$totalCount)"
+                    binding.badgeMasterNotifState.setTextColor(Color.parseColor("#10B981"))
+                    binding.tvMasterNotifSubtitle.text = "All 5 notification channels active • Tap to mute all"
+                }
+                0 -> {
+                    binding.switchMasterNotifications.isChecked = false
+                    binding.switchMasterNotifications.alpha = 1.0f
+                    binding.badgeMasterNotifState.text = "ALL MUTED (0/$totalCount)"
+                    binding.badgeMasterNotifState.setTextColor(Color.parseColor("#64748B"))
+                    binding.tvMasterNotifSubtitle.text = "All notifications muted • Tap to activate all 5 channels"
+                }
+                else -> {
+                    binding.switchMasterNotifications.isChecked = false
+                    binding.switchMasterNotifications.alpha = 0.78f
+                    binding.badgeMasterNotifState.text = "MIXED ($activeCount/$totalCount)"
+                    binding.badgeMasterNotifState.setTextColor(Color.parseColor("#F59E0B"))
+                    binding.tvMasterNotifSubtitle.text = "$activeCount of $totalCount channels active • Tap to enable all"
+                }
+            }
+            binding.switchMasterNotifications.setOnCheckedChangeListener { _, isChecked ->
+                if (isHydratingUI) return@setOnCheckedChangeListener
+                applyMasterNotificationState(enableAll = isChecked)
+            }
+        } finally {
+            isHydratingUI = wasHydrating
+        }
+    }
+
+    private fun applyMasterNotificationState(enableAll: Boolean) {
+        val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean("pref_exam_reminders_enabled", enableAll)
+            .putBoolean("pref_task_reminders_enabled", enableAll)
+            .apply()
+
+        SmartAutomationManager.setSmartBriefingsEnabled(this, enableAll)
+        ReminderManager.setRemindersEnabled(this, enableAll)
+        SmartAutomationManager.setSubscriptionAlertsEnabled(this, enableAll)
+
+        if (enableAll) {
+            BriefingAlarmScheduler.resyncBriefings(this)
+            refreshMasterNotificationTriState()
+            AlarmSyncManager.resyncAll(this)
+            com.duorhythm.app.scheduler.TaskAlarmScheduler.resyncAllTaskReminders(this)
+            try {
+                dbHelper.getAllExams().forEach { pair ->
+                    val entity = database.entities.AssessmentEntity.fromSubjectWorkItem(
+                        pair.first, pair.second.name, pair.second.code, pair.second.teacher
+                    )
+                    com.duorhythm.app.scheduler.AssessmentAlarmScheduler.scheduleAssessmentAlarms(this, entity)
+                }
+            } catch (_: Exception) {}
+        } else {
+            AlarmSyncManager.cancelAllClassLeadAlarms(this)
+            com.duorhythm.app.scheduler.TaskAlarmScheduler.resyncAllTaskReminders(this)
+            try {
+                dbHelper.getAllExams().forEach { pair ->
+                    com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(this, pair.first.id)
+                }
+            } catch (_: Exception) {}
+        }
+
+        isHydratingUI = true
+        syncSwitchStates()
+        isHydratingUI = false
+        Toast.makeText(
+            this,
+            if (enableAll) "All 5 notification channels enabled" else "All notification channels muted",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+    
 }
