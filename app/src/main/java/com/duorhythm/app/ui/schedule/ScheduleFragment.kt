@@ -402,11 +402,13 @@ class ScheduleFragment : Fragment() {
                 com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Class", com.duorhythm.app.R.drawable.ic_calendar, "#00E5FF") {
                     binding.btnAddClass.performClick()
                 },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Schedule Exam", com.duorhythm.app.R.drawable.ic_quiz, "#F59E0B") {
-                    com.duorhythm.app.ui.portal.ScheduleAssessmentDialog(requireContext(), parentFragmentManager, onSaved = {}).show()
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Export Routine", com.duorhythm.app.R.drawable.ic_export, "#38BDF8") {
-                    binding.btnExportSchedule.performClick()
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Class Types", com.duorhythm.app.R.drawable.ic_category, "#38BDF8") {
+                    try {
+                        val pid = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+                        com.duorhythm.app.ui.schedule.ManageClassTypesDialog(requireContext(), pid) {
+                            loadData()
+                        }.show()
+                    } catch (_: Exception) {}
                 }
             ))
         } catch (_: Exception) {}

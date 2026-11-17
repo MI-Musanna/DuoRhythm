@@ -1557,6 +1557,9 @@ class PortalFragment : Fragment() {
                     },
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#38BDF8") {
                         showAddContactDialog(true)
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Group Link", com.duorhythm.app.R.drawable.ic_portal, "#10B981") {
+                        showAddGroupLinkDialog(true)
                     }
                 ))
             } else {
@@ -1566,6 +1569,9 @@ class PortalFragment : Fragment() {
                     },
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#38BDF8") {
                         showAddContactDialog(false)
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Channel Link", com.duorhythm.app.R.drawable.ic_portal, "#00E5FF") {
+                        showAddGroupLinkDialog(false)
                     }
                 ))
             }

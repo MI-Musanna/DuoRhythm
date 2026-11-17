@@ -19,13 +19,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.duorhythm.app.R
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Center-anchored Quarter-Circle Radial Speed-Dial FAB (+ -> x) with mathematically equal
- * chord spacing and zero tile/label overlap across 2, 3, or 4 action items.
+ * Custom Quarter-Circle Radial Speed-Dial FAB (+ -> x) using a pure FrameLayout circular button
+ * with explicit touch hit-testing so the close (X) toggle works 100% reliably on every ROM.
  */
 class SpeedDialFabView @JvmOverloads constructor(
     context: Context,
@@ -42,26 +41,29 @@ class SpeedDialFabView @JvmOverloads constructor(
 
     private val density = resources.displayMetrics.density
     private val scrimView: View
-    private val mainFab: FloatingActionButton
+    private val mainFabButton: FrameLayout
+    private val mainFabIcon: ImageView
     private val nodeViews = mutableListOf<LinearLayout>()
+    private val hitRect = Rect()
+
     var isExpanded = false
         private set
     private var bottomOffsetDp = 92f
 
-    // Fixed uniform node box (88dp wide) centered directly over the 56dp FAB center (48dp from right edge)
-    private val nodeBoxWidthDp = 88f
-    private val fabMarginEndDp = 20f
     private val fabSizeDp = 56f
+    private val fabMarginEndDp = 20f
+    private val nodeBoxWidthDp = 88f
     private val alignedNodeMarginEndDp = fabMarginEndDp + (fabSizeDp / 2f) - (nodeBoxWidthDp / 2f) // 4dp
 
     init {
         clipChildren = false
         clipToPadding = false
-        elevation = 20f * density
+        elevation = 24f * density
 
+        // Full-screen translucent scrim
         scrimView = View(context).apply {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-            setBackgroundColor(Color.parseColor("#C206080F"))
+            setBackgroundColor(Color.parseColor("#C406080F"))
             alpha = 0f
             visibility = GONE
             isClickable = true
@@ -71,35 +73,61 @@ class SpeedDialFabView @JvmOverloads constructor(
         }
         addView(scrimView)
 
-        mainFab = FloatingActionButton(context).apply {
-            layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+        // Pure FrameLayout Circular Cyan FAB (zero FloatingActionButton rotated contentRect bug)
+        val fabBg = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(Color.parseColor("#00E5FF"))
+            setStroke((1.5f * density).toInt(), Color.parseColor("#80FFFFFF"))
+        }
+
+        mainFabIcon = ImageView(context).apply {
+            layoutParams = LayoutParams(
+                (26f * density).toInt(),
+                (26f * density).toInt(),
+                Gravity.CENTER
+            )
+            setImageResource(R.drawable.ic_add)
+            imageTintList = ColorStateList.valueOf(Color.parseColor("#06080F"))
+        }
+
+        mainFabButton = FrameLayout(context).apply {
+            layoutParams = LayoutParams(
+                (fabSizeDp * density).toInt(),
+                (fabSizeDp * density).toInt()
+            ).apply {
                 gravity = Gravity.BOTTOM or Gravity.END
                 marginEnd = (fabMarginEndDp * density).toInt()
                 bottomMargin = (bottomOffsetDp * density).toInt()
             }
-            setImageResource(R.drawable.ic_add)
-            imageTintList = ColorStateList.valueOf(Color.parseColor("#06080F"))
-            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
-            compatElevation = 24f * density
-            elevation = 24f * density
-            translationZ = 24f * density
+            background = fabBg
+            isClickable = true
+            isFocusable = true
+            elevation = 32f * density
+            translationZ = 32f * density
+            addView(mainFabIcon)
             setOnClickListener {
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 if (isExpanded) collapse() else expand()
             }
         }
-        addView(mainFab)
+        addView(mainFabButton)
     }
 
-    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (!isExpanded) {
-            // When collapsed, only handle touches directly over the circular FAB
-            if (ev != null) {
-                val fabRect = Rect()
-                mainFab.getGlobalVisibleRect(fabRect)
-                if (!fabRect.contains(ev.rawX.toInt(), ev.rawY.toInt())) {
-                    return false
-                }
+            // When collapsed, only handle touches directly over the circular FAB button
+            val fabRect = Rect()
+            mainFabButton.getGlobalVisibleRect(fabRect)
+            if (!fabRect.contains(ev.rawX.toInt(), ev.rawY.toInt())) {
+                return false
+            }
+        } else if (ev.action == MotionEvent.ACTION_UP) {
+            // Explicit safety override: tapping mainFabButton (X) while expanded ALWAYS collapses immediately
+            mainFabButton.getHitRect(hitRect)
+            if (hitRect.contains(ev.x.toInt(), ev.y.toInt())) {
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                collapse()
+                return true
             }
         }
         return super.dispatchTouchEvent(ev)
@@ -107,9 +135,9 @@ class SpeedDialFabView @JvmOverloads constructor(
 
     fun setBottomOffsetDp(dp: Float) {
         bottomOffsetDp = dp
-        (mainFab.layoutParams as? LayoutParams)?.let { lp ->
+        (mainFabButton.layoutParams as? LayoutParams)?.let { lp ->
             lp.bottomMargin = (dp * density).toInt()
-            mainFab.layoutParams = lp
+            mainFabButton.layoutParams = lp
         }
         nodeViews.forEach { node ->
             (node.layoutParams as? LayoutParams)?.let { lp ->
@@ -128,11 +156,10 @@ class SpeedDialFabView @JvmOverloads constructor(
         val count = limited.size
         if (count == 0) return
 
-        // Calibrated polar radius guarantees >= 74dp center-to-center chord distance (zero overlap)
         val radiusPx = when (count) {
             4 -> 154f * density
             3 -> 132f * density
-            else -> 112f * density
+            else -> 110f * density
         }
         val startAngleDeg = 92.0
         val endAngleDeg = 178.0
@@ -168,7 +195,6 @@ class SpeedDialFabView @JvmOverloads constructor(
                     bottomMargin = ((bottomOffsetDp + 2f) * density).toInt()
                 }
 
-                // Circular glowing mini-FAB node (42dp)
                 val circleBg = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
                     setColor(Color.parseColor("#0D1526"))
@@ -195,7 +221,6 @@ class SpeedDialFabView @JvmOverloads constructor(
                     addView(iv)
                 }
 
-                // Compact uniform label badge directly beneath the circular node
                 val badgeBg = GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
                     cornerRadius = 9f * density
@@ -232,14 +257,14 @@ class SpeedDialFabView @JvmOverloads constructor(
                 setOnClickListener {
                     performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     collapse()
-                    postDelayed({ item.onClick() }, 140L)
+                    postDelayed({ item.onClick() }, 130L)
                 }
             }
 
             nodeViews.add(nodeColumn)
-            addView(nodeColumn, indexOfChild(mainFab))
+            addView(nodeColumn, indexOfChild(mainFabButton))
         }
-        mainFab.bringToFront()
+        mainFabButton.bringToFront()
     }
 
     fun expand() {
@@ -249,13 +274,17 @@ class SpeedDialFabView @JvmOverloads constructor(
         scrimView.visibility = VISIBLE
         scrimView.animate().alpha(1f).setDuration(200L).start()
 
-        mainFab.bringToFront()
-        mainFab.animate()
+        mainFabButton.bringToFront()
+        mainFabIcon.animate()
             .rotation(45f)
-            .scaleX(1.05f)
-            .scaleY(1.05f)
-            .setDuration(230L)
+            .setDuration(220L)
             .setInterpolator(OvershootInterpolator(2.2f))
+            .start()
+        mainFabButton.animate()
+            .scaleX(1.06f)
+            .scaleY(1.06f)
+            .setDuration(220L)
+            .setInterpolator(OvershootInterpolator(2.0f))
             .start()
 
         nodeViews.forEachIndexed { index, node ->
@@ -269,7 +298,7 @@ class SpeedDialFabView @JvmOverloads constructor(
                 .scaleX(1f)
                 .scaleY(1f)
                 .setStartDelay(index * 26L)
-                .setDuration(250L)
+                .setDuration(240L)
                 .setInterpolator(OvershootInterpolator(1.65f))
                 .start()
         }
@@ -282,9 +311,9 @@ class SpeedDialFabView @JvmOverloads constructor(
         if (immediate) {
             scrimView.visibility = GONE
             scrimView.alpha = 0f
-            mainFab.rotation = 0f
-            mainFab.scaleX = 1f
-            mainFab.scaleY = 1f
+            mainFabIcon.rotation = 0f
+            mainFabButton.scaleX = 1f
+            mainFabButton.scaleY = 1f
             nodeViews.forEach { node ->
                 node.visibility = GONE
                 node.translationX = 0f
@@ -302,11 +331,15 @@ class SpeedDialFabView @JvmOverloads constructor(
             .withEndAction { if (!isExpanded) scrimView.visibility = GONE }
             .start()
 
-        mainFab.animate()
+        mainFabIcon.animate()
             .rotation(0f)
+            .setDuration(200L)
+            .setInterpolator(OvershootInterpolator(2.0f))
+            .start()
+        mainFabButton.animate()
             .scaleX(1f)
             .scaleY(1f)
-            .setDuration(210L)
+            .setDuration(200L)
             .setInterpolator(OvershootInterpolator(2.0f))
             .start()
 

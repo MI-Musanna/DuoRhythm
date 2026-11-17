@@ -127,22 +127,94 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupSpeedDial() {
+        syncHomeSpeedDial(isWorkMode = false)
+    }
+
+    private fun syncHomeSpeedDial(isWorkMode: Boolean) {
+        if (_binding == null || !isAdded) return
         try {
-            binding.speedDialHome.setItems(listOf(
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Quick Note", com.duorhythm.app.R.drawable.ic_notes, "#00E5FF") {
-                    showAddNoteDialog()
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Money", com.duorhythm.app.R.drawable.ic_wallet, "#10B981") {
-                    com.duorhythm.app.ui.wallet.RecordTransactionDialogFragment.newInstance().show(parentFragmentManager, "RECORD_TX_HOME")
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#38BDF8") {
-                    (activity as? com.duorhythm.app.MainActivity)?.selectNavTab(com.duorhythm.app.R.id.menu_tasks)
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Schedule Exam", com.duorhythm.app.R.drawable.ic_quiz, "#F59E0B") {
-                    com.duorhythm.app.ui.portal.ScheduleAssessmentDialog(requireContext(), parentFragmentManager, onSaved = { loadDashboardData() }).show()
-                }
-            ))
+            if (isWorkMode) {
+                binding.speedDialHome.setItems(listOf(
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Order", com.duorhythm.app.R.drawable.ic_work, "#10B981") {
+                        val dlg = com.duorhythm.app.ui.work.CreateWorkOrderDialogFragment()
+                        dlg.setOnOrderSavedListener { loadDashboardData() }
+                        dlg.show(parentFragmentManager, "HOME_WORK_ORDER")
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Money", com.duorhythm.app.R.drawable.ic_wallet, "#00E5FF") {
+                        com.duorhythm.app.ui.wallet.RecordTransactionDialogFragment.newInstance().show(parentFragmentManager, "HOME_TX")
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Quick Note", com.duorhythm.app.R.drawable.ic_notes, "#38BDF8") {
+                        showAddNoteDialog()
+                    }
+                ))
+            } else {
+                binding.speedDialHome.setItems(listOf(
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#00E5FF") {
+                        showQuickTaskOrGoalModal(isGoal = false)
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Goal", com.duorhythm.app.R.drawable.ic_target, "#F59E0B") {
+                        showQuickTaskOrGoalModal(isGoal = true)
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Money", com.duorhythm.app.R.drawable.ic_wallet, "#10B981") {
+                        com.duorhythm.app.ui.wallet.RecordTransactionDialogFragment.newInstance().show(parentFragmentManager, "HOME_TX")
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Quick Note", com.duorhythm.app.R.drawable.ic_notes, "#38BDF8") {
+                        showAddNoteDialog()
+                    }
+                ))
+            }
         } catch (_: Exception) {}
+    }
+
+    private fun showQuickTaskOrGoalModal(isGoal: Boolean) {
+        try {
+            val dialogBinding = com.duorhythm.app.databinding.DialogAddTaskBinding.inflate(layoutInflater)
+            dialogBinding.tvTaskDialogHeader.text = if (isGoal) "Set a New Milestone Goal" else "Create New Task"
+            dialogBinding.tilTaskTitle.hint = if (isGoal) "Goal Title" else "Task Title"
+            dialogBinding.btnSaveTask.text = if (isGoal) "Create Goal" else "Save Task"
+            dialogBinding.cbIsGoal.isChecked = isGoal
+            dialogBinding.layoutGoalStartDate.visibility = if (isGoal) View.VISIBLE else View.GONE
+
+            val categories = dbHelper.getTaskCategories().ifEmpty { listOf("General") }
+            dialogBinding.spTaskCategory.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories)
+            val priorities = listOf("HIGH", "MEDIUM", "LOW", "NONE")
+            dialogBinding.spTaskPriority.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, priorities)
+
+            val dialog = AlertDialog.Builder(requireContext()).setView(dialogBinding.root).create()
+            dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+
+            dialogBinding.btnSaveTask.setOnClickListener {
+                val title = dialogBinding.etTaskTitle.text?.toString()?.trim().orEmpty()
+                if (title.isEmpty()) {
+                    Toast.makeText(requireContext(), "Title is required", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val desc = dialogBinding.etTaskDescription.text?.toString()?.trim().orEmpty()
+                val markedGoal = dialogBinding.cbIsGoal.isChecked
+                val category = categories.getOrNull(dialogBinding.spTaskCategory.selectedItemPosition) ?: "General"
+                val priority = priorities[dialogBinding.spTaskPriority.selectedItemPosition]
+                val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
+                val item = com.duorhythm.app.data.model.TaskItem(
+                    profileId = activeProfileId,
+                    title = title,
+                    description = desc,
+                    category = category,
+                    priority = priority,
+                    isCompleted = false,
+                    isGoal = markedGoal,
+                    progress = 0
+                )
+                val newId = dbHelper.insertTask(item)
+                com.duorhythm.app.scheduler.TaskAlarmScheduler.scheduleTaskReminder(requireContext(), item.copy(id = newId))
+                dialog.dismiss()
+                loadDashboardData()
+                Toast.makeText(requireContext(), if (markedGoal) "Goal created!" else "Task created!", Toast.LENGTH_SHORT).show()
+            }
+            dialog.show()
+            com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
+        } catch (_: Exception) {
+            (activity as? MainActivity)?.selectNavTab(R.id.menu_tasks)
+        }
     }
 
     override fun onResume() {
@@ -331,6 +403,7 @@ class HomeFragment : Fragment() {
         tabLayoutMediator?.detach()
         tabLayoutMediator = null
         binding.cardStudyPortal.visibility = View.VISIBLE
+        syncHomeSpeedDial(isWorkMode)
 
         if (isWorkMode) {
             // --- WORK MODE ---

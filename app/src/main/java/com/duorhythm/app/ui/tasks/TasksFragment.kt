@@ -572,6 +572,7 @@ class TasksFragment : Fragment() {
                 binding.layoutEmptyGoals.visibility = View.GONE
             }
         }
+        syncTasksSpeedDial()
     }
 
     fun loadTasks() {
@@ -742,24 +743,40 @@ class TasksFragment : Fragment() {
     }
 
     private fun setupSpeedDial() {
+        syncTasksSpeedDial()
+    }
+
+    private fun syncTasksSpeedDial() {
+        if (_binding == null || !isAdded) return
         try {
             binding.btnNewTaskTop.visibility = View.GONE
             binding.btnAddGoal.visibility = View.GONE
             binding.btnAddCustomCategory.visibility = View.GONE
             binding.fabAddTask.visibility = View.GONE
-            binding.speedDialTasks.setItems(listOf(
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#00E5FF") {
-                    binding.toggleTasksGoals.check(com.duorhythm.app.R.id.btnTabTasks)
-                    showCreateTaskDialog(isGoal = false)
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Goal", com.duorhythm.app.R.drawable.ic_target, "#F59E0B") {
-                    binding.toggleTasksGoals.check(com.duorhythm.app.R.id.btnTabGoals)
-                    showCreateTaskDialog(isGoal = true)
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Category", com.duorhythm.app.R.drawable.ic_category, "#38BDF8") {
-                    binding.btnAddCustomCategory.performClick()
-                }
-            ))
+            if (currentTab == TaskTab.TASKS) {
+                binding.speedDialTasks.setItems(listOf(
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#00E5FF") {
+                        showCreateTaskDialog(isGoal = false)
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Goal", com.duorhythm.app.R.drawable.ic_target, "#F59E0B") {
+                        binding.toggleTasksGoals.check(com.duorhythm.app.R.id.btnTabGoals)
+                        showCreateTaskDialog(isGoal = true)
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Category", com.duorhythm.app.R.drawable.ic_category, "#38BDF8") {
+                        binding.btnAddCustomCategory.performClick()
+                    }
+                ))
+            } else {
+                binding.speedDialTasks.setItems(listOf(
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Goal", com.duorhythm.app.R.drawable.ic_target, "#F59E0B") {
+                        showCreateTaskDialog(isGoal = true)
+                    },
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#00E5FF") {
+                        binding.toggleTasksGoals.check(com.duorhythm.app.R.id.btnTabTasks)
+                        showCreateTaskDialog(isGoal = false)
+                    }
+                ))
+            }
         } catch (_: Exception) {}
     }
 

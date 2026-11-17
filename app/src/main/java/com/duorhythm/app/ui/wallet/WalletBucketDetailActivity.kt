@@ -1115,15 +1115,20 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         binding.btnTypeTransfer.strokeColor = android.content.res.ColorStateList.valueOf(transferStroke)
     }
 
-    private fun showAddTransactionDialog() {
+    private fun showAddTransactionDialog(initialMode: String = "INCOME") {
         val bucket = currentBucket ?: return
         val allBuckets = dbHelper.getAllWalletBuckets()
         val dialogBinding = DialogAddTransactionBinding.inflate(layoutInflater)
         dialogBinding.tilTxAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
 
-        var txType = "INCOME"
-        dialogBinding.toggleTxType.check(R.id.btnTypeIncome)
-        applyToggleStyles(dialogBinding, "INCOME")
+        var txType = initialMode
+        val initBtnId = when (initialMode) {
+            "EXPENSE" -> R.id.btnTypeExpense
+            "TRANSFER" -> R.id.btnTypeTransfer
+            else -> R.id.btnTypeIncome
+        }
+        dialogBinding.toggleTxType.check(initBtnId)
+        applyToggleStyles(dialogBinding, initialMode)
 
         val categoryHelper = TransactionCategoryHelper(
             context = this,
@@ -1566,14 +1571,14 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             (binding.btnAddTransaction.parent as? View)?.visibility = View.GONE
             binding.speedDialBucketDetail.setBottomOffsetDp(24f)
             binding.speedDialBucketDetail.setItems(listOf(
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Tx", com.duorhythm.app.R.drawable.ic_wallet, "#00E5FF") {
-                    showAddTransactionDialog()
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Income", com.duorhythm.app.R.drawable.ic_wallet, "#10B981") {
+                    showAddTransactionDialog("INCOME")
+                },
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Expense", com.duorhythm.app.R.drawable.ic_wallet, "#F43F5E") {
+                    showAddTransactionDialog("EXPENSE")
                 },
                 com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#38BDF8") {
-                    showAddTransactionDialog()
-                },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Adjust Balance", com.duorhythm.app.R.drawable.ic_edit, "#F59E0B") {
-                    showAdjustOrResetBalanceDialog()
+                    showAddTransactionDialog("TRANSFER")
                 }
             ))
         } catch (_: Exception) {}
