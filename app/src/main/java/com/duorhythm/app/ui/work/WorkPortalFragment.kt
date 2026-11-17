@@ -229,25 +229,27 @@ class WorkPortalFragment : Fragment() {
 
         val container = view.findViewById<LinearLayout>(R.id.layoutBucketListContainer)
         val orderAmount = order.amount.toDoubleOrNull() ?: 0.0
+        val d = resources.displayMetrics.density
 
         for (acc in accounts) {
             val card = MaterialCardView(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { setMargins(0, 0, 0, 16) }
+                ).apply { setMargins(0, 0, 0, (8f * d).toInt()) }
                 setCardBackgroundColor(Color.parseColor("#0D1322"))
-                radius = 24f
+                radius = 12f * d
                 strokeWidth = 2
                 strokeColor = Color.parseColor("#18243C")
 
                 val row = LinearLayout(requireContext()).apply {
                     orientation = LinearLayout.HORIZONTAL
-                    setPadding(32, 28, 32, 28)
+                    setPadding((16f * d).toInt(), (14f * d).toInt(), (16f * d).toInt(), (14f * d).toInt())
                     gravity = android.view.Gravity.CENTER_VERTICAL
 
                     val icon = ImageView(requireContext()).apply {
-                        layoutParams = LinearLayout.LayoutParams(48, 48)
+                        val iconDp = (24f * d).toInt()
+                        layoutParams = LinearLayout.LayoutParams(iconDp, iconDp)
                         setImageResource(R.drawable.ic_wallet)
                         imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
                     }
@@ -256,7 +258,7 @@ class WorkPortalFragment : Fragment() {
                     val textCol = LinearLayout(requireContext()).apply {
                         orientation = LinearLayout.VERTICAL
                         layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                            marginStart = 24
+                            marginStart = (12f * d).toInt()
                         }
                         val tvName = TextView(requireContext()).apply {
                             text = acc.name

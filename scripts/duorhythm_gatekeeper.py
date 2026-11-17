@@ -32,6 +32,19 @@ for kt_path in glob.glob("app/src/main/java/com/duorhythm/app/**/*.kt", recursiv
     if "WormDotsIndicatorView.kt" in kt_path and "observedAdapter" not in code:
         errors.append(f"[CRASH-RISK] {kt_path}: Missing tracked observedAdapter reference (causes IllegalStateException on mode switch).")
 
+
+    # Check for hardcoded raw pixel values (>= 16) in setPadding or LayoutParams without density scaling
+    if "/ui/" in kt_path.replace("\\", "/"):
+        for line_no, line in enumerate(code.splitlines(), start=1):
+            if "density" in line or "dp" in line.lower():
+                continue
+            pad_match = re.search(r'\.setPadding\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)', line)
+            if pad_match and any(int(v) >= 16 for v in pad_match.groups()):
+                errors.append(f"[RAW-PX] {kt_path}:{line_no}: Hardcoded raw pixel padding detected ({pad_match.group(0)}). Convert to density-scaled dp.")
+            lp_match = re.search(r'LayoutParams\(\s*(\d+)\s*,\s*(\d+)', line)
+            if lp_match and any(int(v) >= 16 for v in lp_match.groups()):
+                errors.append(f"[RAW-PX] {kt_path}:{line_no}: Hardcoded raw pixel LayoutParams detected ({lp_match.group(0)}). Convert to density-scaled dp.")
+
 print("=== DUORHYTHM STATIC GATEKEEPER AUDIT REPORT ===")
 if warnings:
     for w in warnings:

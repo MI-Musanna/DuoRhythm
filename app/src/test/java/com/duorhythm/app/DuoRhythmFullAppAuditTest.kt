@@ -225,4 +225,74 @@ class DuoRhythmFullAppAuditTest {
         // Must exit cleanly without scheduling unsolicited 8:00 AM alarms
         AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, exam)
     }
+
+
+    @Test
+    fun audit06_portalDynamicAssessmentCategoryFilteringAndRemoval() {
+        val adapter = com.duorhythm.app.ui.portal.AssessmentAdapter()
+        val finalExam = database.entities.AssessmentEntity(
+            id = 101L,
+            profileId = 1L,
+            subjectId = 10L,
+            subjectName = "Physics 2",
+            courseCode = "25922",
+            type = "Semester Final Exam",
+            title = "Final Examination",
+            date = "2026-12-15",
+            time = "10:00 AM",
+            room = "502",
+            syllabus = "Full Syllabus",
+            teacher = "Fariha Ahmed",
+            status = "PENDING",
+            attachmentUri = null,
+            attachmentName = null
+        )
+        val labReport = finalExam.copy(
+            id = 102L,
+            type = "Lab Report",
+            title = "Optics Practical"
+        )
+
+        adapter.setMasterData(listOf(finalExam, labReport))
+        assertEquals("All filter must display both items", 2, adapter.itemCount)
+
+        adapter.updateCategoryFilter("Lab Report")
+        assertEquals("Custom category filter must match custom type", 1, adapter.itemCount)
+
+        adapter.updateCategoryFilter("All")
+        adapter.removeItemAnimated(finalExam)
+        assertEquals("Animated assessment removal must leave 1 item", 1, adapter.itemCount)
+    }
+
+    @Test
+    fun audit07_rollingCurrencyDigitsAndBiometricMaskProtection() {
+        val tv = android.widget.TextView(context)
+        com.duorhythm.app.util.ViewAnimationExtensions.animateCurrencyRoll(tv, 21865.0, "৳")
+        assertEquals("৳21,865.00", tv.text.toString())
+
+        // Simulate biometric lock mask active -> rolling animation must NOT leak real balance
+        tv.text = "••••••"
+        com.duorhythm.app.util.ViewAnimationExtensions.animateCurrencyRoll(tv, 99999.0, "৳")
+        assertEquals("••••••", tv.text.toString())
+    }
+
+    @Test
+    fun audit08_confettiOverlayAndSmoothProgressBounds() {
+        val confetti = com.duorhythm.app.ui.views.ConfettiOverlayView(context)
+        confetti.measure(
+            View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(2200, View.MeasureSpec.EXACTLY)
+        )
+        confetti.layout(0, 0, 1080, 2200)
+        confetti.startBurst(540f, 900f)
+        assertFalse("Confetti overlay must never intercept user touches", confetti.isClickable)
+
+        val pb = android.widget.ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = 20
+        }
+        com.duorhythm.app.util.ViewAnimationExtensions.animateProgressSmooth(pb, 150)
+        assertTrue("Progress value must remain clamped within max", pb.progress <= 100)
+    }
+
 }
