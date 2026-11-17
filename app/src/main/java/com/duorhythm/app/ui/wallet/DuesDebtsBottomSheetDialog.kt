@@ -349,6 +349,7 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
                 dialog.dismiss()
                 loadData()
                 WalletDataSyncManager.notifyChanged()
+                if (isLent) { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity) }
                 Toast.makeText(requireContext(), "Settled with ${item.personName}", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), "Failed to settle record", Toast.LENGTH_SHORT).show()

@@ -203,6 +203,17 @@ class TasksAdapter(
             }
 
             binding.cbTaskCompleted.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    binding.cbTaskCompleted.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+                    binding.cbTaskCompleted.scaleX = 0.72f
+                    binding.cbTaskCompleted.scaleY = 0.72f
+                    binding.cbTaskCompleted.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(260L)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(2.6f))
+                        .start()
+                }
                 onToggleCompleted(task, isChecked)
             }
 

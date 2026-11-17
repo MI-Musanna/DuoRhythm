@@ -189,7 +189,7 @@ class ScheduleAssessmentDialog(
                 } else if (types[position] == "+ Custom Type") {
                     val input = EditText(context).apply {
                         hint = "e.g. Assessment Defense"
-                        setPadding(48, 32, 48, 32)
+                        val d = context.resources.displayMetrics.density; setPadding((18f * d).toInt(), (12f * d).toInt(), (18f * d).toInt(), (12f * d).toInt())
                     }
                     MaterialAlertDialogBuilder(context)
                         .setTitle("Add Custom Assessment Type")

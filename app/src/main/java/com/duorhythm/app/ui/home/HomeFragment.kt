@@ -751,7 +751,7 @@ class HomeFragment : Fragment() {
             } else {
                 currentSymbol + numberFormat.format(totalRawBalance)
             }
-            binding.tvFinanceBalanceMain.text = formattedBalance
+            com.duorhythm.app.util.ViewAnimationExtensions.animateCurrencyRoll(binding.tvFinanceBalanceMain, totalRawBalance, currentSymbol)
 
             // Monthly Income and Expense: e.g. +৳2,000.00 / -৳1,700.00
             val formattedIncome = numberFormat.format(monthlyIncome)

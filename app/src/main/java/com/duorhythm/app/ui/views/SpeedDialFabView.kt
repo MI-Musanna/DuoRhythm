@@ -184,7 +184,7 @@ class SpeedDialFabView @JvmOverloads constructor(
                 scaleX = 0.6f
                 scaleY = 0.6f
                 elevation = 16f * density
-                tag = Pair(targetX, targetY)
+                tag = Triple(targetX, targetY, angleRad)
 
                 layoutParams = LayoutParams(
                     (nodeBoxWidthDp * density).toInt(),
@@ -287,8 +287,19 @@ class SpeedDialFabView @JvmOverloads constructor(
             .setInterpolator(OvershootInterpolator(2.0f))
             .start()
 
+        val liveWidth = if (width > 0) width.toFloat() else resources.displayMetrics.widthPixels.toFloat()
+        val maxSafeRadius = (liveWidth - (88f * density)).coerceAtLeast(96f * density)
+        val baseRadius = when (nodeViews.size) {
+            4 -> 154f * density
+            3 -> 132f * density
+            else -> 110f * density
+        }
+        val safeRadius = minOf(baseRadius, maxSafeRadius)
+
         nodeViews.forEachIndexed { index, node ->
-            val (tx, ty) = (node.tag as? Pair<Float, Float>) ?: Pair(0f, -80f * density)
+            val triple = node.tag as? Triple<Float, Float, Double>
+            val tx = if (triple != null) (kotlin.math.cos(triple.third) * safeRadius).toFloat() else 0f
+            val ty = if (triple != null) (-kotlin.math.sin(triple.third) * safeRadius).toFloat() else (-80f * density)
             node.visibility = VISIBLE
             node.animate().cancel()
             node.animate()

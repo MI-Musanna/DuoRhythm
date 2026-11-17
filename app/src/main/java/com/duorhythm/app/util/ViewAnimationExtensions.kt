@@ -387,4 +387,73 @@ object ViewAnimationExtensions {
             }
             .start()
     }
+
+    private const val TAG_LAST_BALANCE_VALUE = 0x7F0A9901
+    private const val TAG_BALANCE_ANIMATOR = 0x7F0A9902
+
+    /**
+     * Phase 3: Odometer-style rolling digit transition for currency balance TextViews.
+     * Skips animation if biometric lock mask is active or if delta is negligible.
+     */
+    @JvmStatic
+    fun animateCurrencyRoll(
+        textView: android.widget.TextView?,
+        targetAmount: Double,
+        symbol: String
+    ) {
+        if (textView == null) return
+        val currentText = textView.text?.toString().orEmpty()
+        if (currentText.contains("•")) return
+
+        val formatter = java.text.NumberFormat.getNumberInstance(java.util.Locale.US).apply {
+            minimumFractionDigits = 2
+            maximumFractionDigits = 2
+        }
+
+        fun formatVal(v: Double): String {
+            return if (v < 0.0) {
+                "-$symbol" + formatter.format(kotlin.math.abs(v))
+            } else {
+                symbol + formatter.format(v)
+            }
+        }
+
+        val prevValue = textView.getTag(TAG_LAST_BALANCE_VALUE) as? Double
+        (textView.getTag(TAG_BALANCE_ANIMATOR) as? android.animation.ValueAnimator)?.cancel()
+
+        if (prevValue == null || kotlin.math.abs(targetAmount - prevValue) < 0.01) {
+            textView.text = formatVal(targetAmount)
+            textView.setTag(TAG_LAST_BALANCE_VALUE, targetAmount)
+            return
+        }
+
+        val animator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 520L
+            interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator()
+            addUpdateListener { anim ->
+                val frac = anim.animatedFraction
+                val interpolated = prevValue + ((targetAmount - prevValue) * frac)
+                textView.text = formatVal(interpolated)
+            }
+        }
+        textView.setTag(TAG_BALANCE_ANIMATOR, animator)
+        textView.setTag(TAG_LAST_BALANCE_VALUE, targetAmount)
+        animator.start()
+    }
+
+    /**
+     * Phase 3: Smoothly interpolates ProgressBar changes instead of abrupt snapping.
+     */
+    @JvmStatic
+    fun animateProgressSmooth(progressBar: android.widget.ProgressBar?, targetProgress: Int) {
+        if (progressBar == null) return
+        val clamped = targetProgress.coerceIn(0, progressBar.max)
+        val current = progressBar.progress
+        if (current == clamped) return
+        android.animation.ObjectAnimator.ofInt(progressBar, "progress", current, clamped).apply {
+            duration = 360L
+            interpolator = android.view.animation.DecelerateInterpolator()
+            start()
+        }
+    }
 }

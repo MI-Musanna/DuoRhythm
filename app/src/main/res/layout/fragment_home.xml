@@ -207,7 +207,8 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardFinanceGlance"
                 android:layout_width="0dp"
-                android:layout_height="96dp"
+                android:layout_height="wrap_content"
+                android:minHeight="96dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
                 app:cardBackgroundColor="#0D1322"
@@ -216,9 +217,11 @@
                 app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="96dp"
+                    android:orientation="vertical"
                     android:padding="12dp">
 
                     <LinearLayout
@@ -247,27 +250,32 @@
                         android:id="@+id/tvFinanceBalanceMain"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/hFin"
                         android:layout_marginTop="6dp"
                         android:textColor="#F8FAFC"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
                     <TextView
                         android:id="@+id/tvFinanceDeltaSub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
+                        android:layout_marginTop="4dp"
                         android:text="Net Total"
                         android:textColor="#10B981"
                         android:textSize="9.5sp" />
-                </RelativeLayout>
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardMissionsGlance"
                 android:layout_width="0dp"
-                android:layout_height="96dp"
+                android:layout_height="wrap_content"
+                android:minHeight="96dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
                 app:cardBackgroundColor="#0D1322"
@@ -276,9 +284,11 @@
                 app:strokeColor="#18243C"
                 app:strokeWidth="1dp">
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="96dp"
+                    android:orientation="vertical"
                     android:padding="12dp">
 
                     <LinearLayout
@@ -320,22 +330,26 @@
                         android:id="@+id/tvMissionsTitleCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_below="@id/hMis"
                         android:layout_marginTop="6dp"
                         android:text="3 Active"
                         android:textColor="#F8FAFC"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
                     <TextView
                         android:id="@+id/tvMissionsSubtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
+                        android:layout_marginTop="4dp"
                         android:text="Tasks on agenda"
                         android:textColor="#475569"
                         android:textSize="9.5sp" />
-                </RelativeLayout>
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 

@@ -159,7 +159,7 @@ class TasksFragment : Fragment() {
                                 val done = remaining.count { it.isCompleted || (task.isGoal && it.progress >= 100) }
                                 val pct = if (total > 0) ((done * 100) / total) else 0
                                 binding.tvTaskProgressPercent.text = "$pct%"
-                                binding.pbTasksLinear.progress = pct
+                                com.duorhythm.app.util.ViewAnimationExtensions.animateProgressSmooth(binding.pbTasksLinear, pct)
                                 binding.tvTaskCountCompleted.text = "$done of $total Done"
                             }
                         }, 300L)
@@ -297,6 +297,7 @@ class TasksFragment : Fragment() {
             }
             dialog.dismiss()
             loadTasks()
+            if (progress == 100) { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity) }
             val msg = if (progress == 100) "Goal achieved (100%)!" else "Goal updated ($progress%)"
             Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
         }
@@ -436,7 +437,7 @@ class TasksFragment : Fragment() {
             val input = android.widget.EditText(requireContext()).apply {
                 hint = "Category Name (e.g. Exams, Research)"
                 setSingleLine(true)
-                setPadding(48, 32, 48, 32)
+                val pH = (18f * resources.displayMetrics.density).toInt(); val pV = (12f * resources.displayMetrics.density).toInt(); setPadding(pH, pV, pH, pV)
             }
             AlertDialog.Builder(requireContext())
                 .setTitle("Create Custom Category")
@@ -593,7 +594,7 @@ class TasksFragment : Fragment() {
                 val taskPercent = if (totalTasks > 0) ((completedTasks * 100) / totalTasks) else 0
 
                 binding.tvTaskProgressPercent.text = "$taskPercent%"
-                binding.pbTasksLinear.progress = taskPercent
+                com.duorhythm.app.util.ViewAnimationExtensions.animateProgressSmooth(binding.pbTasksLinear, taskPercent)
                 binding.tvTaskCountCompleted.text = "$completedTasks of $totalTasks Done"
 
                 binding.tvGoalProgressHeader.text = "Task Progress"
@@ -621,7 +622,7 @@ class TasksFragment : Fragment() {
                 } else 0
 
                 binding.tvTaskProgressPercent.text = "$goalPercent%"
-                binding.pbTasksLinear.progress = goalPercent
+                com.duorhythm.app.util.ViewAnimationExtensions.animateProgressSmooth(binding.pbTasksLinear, goalPercent)
                 binding.tvTaskCountCompleted.text = "$completedGoals of $totalGoals Done"
 
                 binding.tvGoalProgressHeader.text = "Goal Progress"

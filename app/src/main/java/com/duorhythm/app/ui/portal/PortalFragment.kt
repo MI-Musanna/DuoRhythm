@@ -867,11 +867,11 @@ class PortalFragment : Fragment() {
 
                 val row = android.widget.LinearLayout(requireContext()).apply {
                     orientation = android.widget.LinearLayout.HORIZONTAL
-                    setPadding(32, 28, 32, 28)
+                    val d = resources.displayMetrics.density; setPadding((14f * d).toInt(), (12f * d).toInt(), (14f * d).toInt(), (12f * d).toInt())
                     gravity = android.view.Gravity.CENTER_VERTICAL
 
                     val icon = android.widget.ImageView(requireContext()).apply {
-                        layoutParams = android.widget.LinearLayout.LayoutParams(48, 48)
+                        layoutParams = android.widget.LinearLayout.LayoutParams((24f * resources.displayMetrics.density).toInt(), (24f * resources.displayMetrics.density).toInt())
                         setImageResource(R.drawable.ic_wallet)
                         imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
                     }
@@ -919,6 +919,7 @@ class PortalFragment : Fragment() {
                         amount = orderAmount
                     )
                     if (success) {
+                        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                         Toast.makeText(requireContext(), "৳${order.amount} deposited into ${acc.name}! Order Completed.", Toast.LENGTH_LONG).show()
                         setupWorkPortalView()
                     }

@@ -652,7 +652,7 @@ class WalletFragment : Fragment() {
             } else {
                 String.format(Locale.US, "%s%,.2f", currentSymbol, totalNet)
             }
-            binding.tvTotalBalance.text = formattedNetBalance
+            com.duorhythm.app.util.ViewAnimationExtensions.animateCurrencyRoll(binding.tvTotalBalance, totalNet, currentSymbol)
             binding.tvTotalNetWorth.text = formattedNetBalance
             binding.btnCurrencyBadge.text = "$currentCurrency ($currentSymbol)"
 
@@ -1299,6 +1299,7 @@ class WalletFragment : Fragment() {
                 dialog.dismiss()
                 loadData()
                 WalletDataSyncManager.notifyChanged()
+                if (txType == "INCOME") { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity) }
                 Toast.makeText(requireContext(), "$txType recorded in ${selectedBucket.name}", Toast.LENGTH_SHORT).show()
             }
         }

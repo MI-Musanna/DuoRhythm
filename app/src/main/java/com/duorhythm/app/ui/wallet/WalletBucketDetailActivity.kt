@@ -502,11 +502,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         binding.tvBucketDetailTitle.text = bucket.name
 
         val convertedBalance = bucket.balance
-        binding.tvBucketTotalBalance.text = String.format(
-            Locale.US,
-            "%s%,.2f",
-            currentSymbol,
-            convertedBalance
+        com.duorhythm.app.util.ViewAnimationExtensions.animateCurrencyRoll(
+            binding.tvBucketTotalBalance,
+            convertedBalance,
+            currentSymbol
         )
 
         // Populate Linked Payment Methods Chips with accent tint
@@ -1305,6 +1304,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 dialog.dismiss()
                 loadBucketData()
                 WalletDataSyncManager.notifyChanged()
+                if (txType == "INCOME") { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this) }
                 Toast.makeText(this, "Recorded to ${bucket.name}", Toast.LENGTH_SHORT).show()
             }
         }
@@ -1422,9 +1422,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
     // BALANCE-SAFE TRANSACTION EDITOR: Reverses old ledger impact, applies edited values, and syncs account balance
     private fun showEditTransactionModal(tx: com.duorhythm.app.data.model.TransactionItem) {
         val ctx = this
+        val d = resources.displayMetrics.density
         val root = android.widget.LinearLayout(ctx).apply {
             orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(48, 36, 48, 24)
+            setPadding((20f * d).toInt(), (16f * d).toInt(), (20f * d).toInt(), (12f * d).toInt())
             setBackgroundColor(android.graphics.Color.parseColor("#0D1322"))
         }
 
@@ -1444,11 +1445,11 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         }
         val btnInc = com.google.android.material.button.MaterialButton(ctx).apply {
             text = "▲ INCOME"
-            layoutParams = android.widget.LinearLayout.LayoutParams(0, 110, 1f).apply { marginEnd = 12 }
+            layoutParams = android.widget.LinearLayout.LayoutParams(0, (44f * d).toInt(), 1f).apply { marginEnd = (6f * d).toInt() }
         }
         val btnExp = com.google.android.material.button.MaterialButton(ctx).apply {
             text = "▼ EXPENSE"
-            layoutParams = android.widget.LinearLayout.LayoutParams(0, 110, 1f).apply { marginStart = 12 }
+            layoutParams = android.widget.LinearLayout.LayoutParams(0, (44f * d).toInt(), 1f).apply { marginStart = (6f * d).toInt() }
         }
         fun refreshTypeButtons() {
             if (selectedType == "INCOME") {
@@ -1479,7 +1480,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 setHintTextColor(android.graphics.Color.parseColor("#94A3B8"))
                 setBackgroundResource(android.R.drawable.edit_text)
                 backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1E293B"))
-                setPadding(32, 28, 32, 28)
+                setPadding((14f * d).toInt(), (12f * d).toInt(), (14f * d).toInt(), (12f * d).toInt())
                 layoutParams = android.widget.LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
