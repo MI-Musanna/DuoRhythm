@@ -9,6 +9,11 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
+        all {
+            if (it instanceof MavenArtifactRepository) {
+                it.metadataSources.ignoreGradleMetadataRedirection()
+            }
+        }
         maven { url = uri('/root/maven/localMvnRepository') }
         google()
         mavenCentral()

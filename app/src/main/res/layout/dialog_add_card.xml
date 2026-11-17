@@ -25,7 +25,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etCardName"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -38,7 +39,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etBankName"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
@@ -59,6 +61,7 @@
                 android:id="@+id/etCardNumber"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
                 android:inputType="number"
                 android:maxLength="4" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -82,7 +85,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etHolderName"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -97,6 +101,7 @@
             android:id="@+id/etCardBalance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
             android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
 

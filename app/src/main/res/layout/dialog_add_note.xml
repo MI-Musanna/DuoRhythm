@@ -47,7 +47,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etNoteTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Spinner
@@ -69,6 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="120dp"
             android:gravity="top"
+            android:textColor="@color/text_primary"
             android:inputType="textMultiLine" />
     </com.google.android.material.textfield.TextInputLayout>
 

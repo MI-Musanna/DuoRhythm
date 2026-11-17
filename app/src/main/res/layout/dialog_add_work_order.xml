@@ -25,7 +25,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etOrderTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -38,7 +39,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etOrderClient"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
@@ -59,6 +61,7 @@
                 android:id="@+id/etOrderQuantity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -74,6 +77,7 @@
                 android:id="@+id/etOrderUnitPrice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
@@ -95,7 +99,8 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etOrderStartDate"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -109,7 +114,8 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etOrderEndDate"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
@@ -123,7 +129,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etOrderNotes"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Attach file / image button -->

@@ -28,7 +28,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etGoalTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Start Date container -->
@@ -55,6 +56,7 @@
                 android:id="@+id/etGoalStartDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
                 android:clickable="true"
                 android:cursorVisible="false"
                 android:focusable="false" />
@@ -96,6 +98,7 @@
                 android:id="@+id/etGoalTargetDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
                 android:clickable="true"
                 android:cursorVisible="false"
                 android:focusable="false" />
@@ -163,7 +166,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etGoalDescription"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
