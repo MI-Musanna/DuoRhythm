@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
@@ -23,8 +24,8 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Quarter-Circle Radial Speed-Dial FAB (+ -> x) blooming in a clean circular arc
- * around the bottom-right corner with guaranteed clickable close toggle.
+ * Center-anchored Quarter-Circle Radial Speed-Dial FAB (+ -> x) with mathematically equal
+ * chord spacing and zero tile/label overlap across 2, 3, or 4 action items.
  */
 class SpeedDialFabView @JvmOverloads constructor(
     context: Context,
@@ -47,6 +48,12 @@ class SpeedDialFabView @JvmOverloads constructor(
         private set
     private var bottomOffsetDp = 92f
 
+    // Fixed uniform node box (88dp wide) centered directly over the 56dp FAB center (48dp from right edge)
+    private val nodeBoxWidthDp = 88f
+    private val fabMarginEndDp = 20f
+    private val fabSizeDp = 56f
+    private val alignedNodeMarginEndDp = fabMarginEndDp + (fabSizeDp / 2f) - (nodeBoxWidthDp / 2f) // 4dp
+
     init {
         clipChildren = false
         clipToPadding = false
@@ -54,7 +61,7 @@ class SpeedDialFabView @JvmOverloads constructor(
 
         scrimView = View(context).apply {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-            setBackgroundColor(Color.parseColor("#BD06080F"))
+            setBackgroundColor(Color.parseColor("#C206080F"))
             alpha = 0f
             visibility = GONE
             isClickable = true
@@ -67,7 +74,7 @@ class SpeedDialFabView @JvmOverloads constructor(
         mainFab = FloatingActionButton(context).apply {
             layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
                 gravity = Gravity.BOTTOM or Gravity.END
-                marginEnd = (20f * density).toInt()
+                marginEnd = (fabMarginEndDp * density).toInt()
                 bottomMargin = (bottomOffsetDp * density).toInt()
             }
             setImageResource(R.drawable.ic_add)
@@ -106,7 +113,7 @@ class SpeedDialFabView @JvmOverloads constructor(
         }
         nodeViews.forEach { node ->
             (node.layoutParams as? LayoutParams)?.let { lp ->
-                lp.bottomMargin = ((dp + 4f) * density).toInt()
+                lp.bottomMargin = ((dp + 2f) * density).toInt()
                 node.layoutParams = lp
             }
         }
@@ -117,16 +124,21 @@ class SpeedDialFabView @JvmOverloads constructor(
         nodeViews.forEach { removeView(it) }
         nodeViews.clear()
 
-        val count = items.take(4).size
+        val limited = items.take(4)
+        val count = limited.size
         if (count == 0) return
 
-        // Quarter-circle arc angles from 94 deg (top of FAB) to 176 deg (left of FAB)
-        val radiusPx = (if (count >= 4) 132f else 116f) * density
-        val startAngleDeg = 94.0
-        val endAngleDeg = 176.0
+        // Calibrated polar radius guarantees >= 74dp center-to-center chord distance (zero overlap)
+        val radiusPx = when (count) {
+            4 -> 154f * density
+            3 -> 132f * density
+            else -> 112f * density
+        }
+        val startAngleDeg = 92.0
+        val endAngleDeg = 178.0
         val stepDeg = if (count > 1) (endAngleDeg - startAngleDeg) / (count - 1) else 0.0
 
-        items.take(4).forEachIndexed { index, item ->
+        limited.forEachIndexed { index, item ->
             val accentColor = try {
                 Color.parseColor(item.accentHex)
             } catch (_: Exception) {
@@ -134,7 +146,6 @@ class SpeedDialFabView @JvmOverloads constructor(
             }
 
             val angleRad = Math.toRadians(startAngleDeg + (index * stepDeg))
-            // Polar coordinates in top-left quadrant relative to bottom-right FAB
             val targetX = (cos(angleRad) * radiusPx).toFloat()
             val targetY = (-sin(angleRad) * radiusPx).toFloat()
 
@@ -148,13 +159,16 @@ class SpeedDialFabView @JvmOverloads constructor(
                 elevation = 16f * density
                 tag = Pair(targetX, targetY)
 
-                layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                layoutParams = LayoutParams(
+                    (nodeBoxWidthDp * density).toInt(),
+                    LayoutParams.WRAP_CONTENT
+                ).apply {
                     gravity = Gravity.BOTTOM or Gravity.END
-                    marginEnd = (22f * density).toInt()
-                    bottomMargin = ((bottomOffsetDp + 4f) * density).toInt()
+                    marginEnd = (alignedNodeMarginEndDp * density).toInt()
+                    bottomMargin = ((bottomOffsetDp + 2f) * density).toInt()
                 }
 
-                // Circular glowing mini-FAB node
+                // Circular glowing mini-FAB node (42dp)
                 val circleBg = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
                     setColor(Color.parseColor("#0D1526"))
@@ -163,16 +177,16 @@ class SpeedDialFabView @JvmOverloads constructor(
 
                 val iconCircle = FrameLayout(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
-                        (46f * density).toInt(),
-                        (46f * density).toInt()
+                        (42f * density).toInt(),
+                        (42f * density).toInt()
                     )
                     background = circleBg
                     elevation = 6f * density
 
                     val iv = ImageView(context).apply {
                         layoutParams = LayoutParams(
-                            (21f * density).toInt(),
-                            (21f * density).toInt(),
+                            (19f * density).toInt(),
+                            (19f * density).toInt(),
                             Gravity.CENTER
                         )
                         setImageResource(item.iconRes)
@@ -181,32 +195,34 @@ class SpeedDialFabView @JvmOverloads constructor(
                     addView(iv)
                 }
 
-                // Compact label badge directly beneath the circular node
+                // Compact uniform label badge directly beneath the circular node
                 val badgeBg = GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
-                    cornerRadius = 10f * density
-                    setColor(Color.parseColor("#E60B1220"))
-                    setStroke((1f * density).toInt(), Color.parseColor("#3394A3B8"))
+                    cornerRadius = 9f * density
+                    setColor(Color.parseColor("#F00B1220"))
+                    setStroke((1f * density).toInt(), Color.parseColor("#3894A3B8"))
                 }
 
                 val labelBadge = TextView(context).apply {
                     text = item.label
                     setTextColor(Color.parseColor("#F8FAFC"))
-                    textSize = 10f
+                    textSize = 9.5f
                     typeface = Typeface.DEFAULT_BOLD
                     background = badgeBg
                     maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                    gravity = Gravity.CENTER
                     setPadding(
-                        (7f * density).toInt(),
-                        (2.5f * density).toInt(),
-                        (7f * density).toInt(),
-                        (2.5f * density).toInt()
+                        (6f * density).toInt(),
+                        (2f * density).toInt(),
+                        (6f * density).toInt(),
+                        (2f * density).toInt()
                     )
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
-                        topMargin = (4f * density).toInt()
+                        topMargin = (3f * density).toInt()
                     }
                 }
 
@@ -252,9 +268,9 @@ class SpeedDialFabView @JvmOverloads constructor(
                 .alpha(1f)
                 .scaleX(1f)
                 .scaleY(1f)
-                .setStartDelay(index * 28L)
+                .setStartDelay(index * 26L)
                 .setDuration(250L)
-                .setInterpolator(OvershootInterpolator(1.7f))
+                .setInterpolator(OvershootInterpolator(1.65f))
                 .start()
         }
     }
