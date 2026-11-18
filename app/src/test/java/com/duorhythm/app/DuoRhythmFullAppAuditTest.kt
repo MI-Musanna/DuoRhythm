@@ -328,4 +328,76 @@ class DuoRhythmFullAppAuditTest {
         )
     }
 
+
+
+    @Test
+    fun audit10_notificationBadgeSevenRulesAndZeroIconDrift() {
+        val badge = com.duorhythm.app.ui.views.NotificationBadgeView(context)
+
+        // Rule 1: 0 -> GONE, 150 -> "99+"
+        badge.setCount(0)
+        assertEquals(View.GONE, badge.visibility)
+
+        badge.setCount(3)
+        assertEquals(View.VISIBLE, badge.visibility)
+        assertEquals("3", badge.text.toString())
+
+        // Rule 6: Count Up, Never Blink (3 -> 4 keeps VISIBLE and updates cleanly)
+        badge.setCount(4)
+        assertEquals(View.VISIBLE, badge.visibility)
+        assertEquals("4", badge.text.toString())
+
+        badge.setCount(150)
+        assertEquals("99+", badge.text.toString())
+
+        // Rules 3 & 4: Status dot suppresses count text (one signal per item)
+        badge.setStatusDot(true)
+        assertEquals(View.VISIBLE, badge.visibility)
+        assertEquals("", badge.text.toString())
+        assertEquals(
+            com.duorhythm.app.ui.views.NotificationBadgeView.BadgeMode.STATUS_DOT,
+            badge.getMode()
+        )
+
+        // Rule 5: Open It, Clear It
+        badge.clear()
+        assertEquals(View.GONE, badge.visibility)
+        assertEquals(0, badge.getCount())
+
+        // Rule 2: Corner pinning & zero icon drift across 1 vs 99+
+        val density = context.resources.displayMetrics.density
+        val container = android.widget.FrameLayout(context)
+        val icon = android.widget.ImageView(context).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                (24 * density).toInt(),
+                (24 * density).toInt(),
+                android.view.Gravity.CENTER
+            )
+        }
+        val pinnedBadge = com.duorhythm.app.ui.views.NotificationBadgeView(context).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.TOP or android.view.Gravity.END
+            )
+        }
+        container.addView(icon)
+        container.addView(pinnedBadge)
+
+        val wSpec = View.MeasureSpec.makeMeasureSpec((30 * density).toInt(), View.MeasureSpec.EXACTLY)
+        val hSpec = View.MeasureSpec.makeMeasureSpec((28 * density).toInt(), View.MeasureSpec.EXACTLY)
+
+        pinnedBadge.setCount(1)
+        container.measure(wSpec, hSpec)
+        container.layout(0, 0, (30 * density).toInt(), (28 * density).toInt())
+        val leftAtOne = icon.left
+        val topAtOne = icon.top
+
+        pinnedBadge.setCount(250)
+        container.measure(wSpec, hSpec)
+        container.layout(0, 0, (30 * density).toInt(), (28 * density).toInt())
+        assertEquals("Icon left coordinate must not drift when badge expands to 99+", leftAtOne, icon.left)
+        assertEquals("Icon top coordinate must not drift when badge expands to 99+", topAtOne, icon.top)
+    }
+
 }

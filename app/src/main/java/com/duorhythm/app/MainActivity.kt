@@ -57,6 +57,8 @@ class MainActivity : AppCompatActivity() {
     private var selectedTabId = R.id.nav_home
     private var selectedPosition = MainPagerAdapter.INDEX_HOME
     private var hasInitializedTabs = false
+    private val clearedTabBadgesThisSession = mutableSetOf<Int>()
+    private var lastBadgeDayStamp = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
@@ -748,4 +750,91 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
+
+    /**
+     * Rules 3, 4, 5 & 7: Decision-only badge engine.
+     * - Tasks: Actionable due-today / overdue uncompleted tasks (Count Badge)
+     * - Portal: Upcoming exams today/tomorrow (Student) or urgent orders (Work) (Count Badge)
+     * - Wallet: Unpaid overdue / due-today Dues & Debts (Count Badge)
+     * - Schedule: Live ongoing class session indicator (Status Dot only, no digits)
+     * - Home: Never badged
+     */
+    fun refreshNavigationBadges() {
+        if (!::binding.isInitialized) return
+        try {
+            val todayCal = java.util.Calendar.getInstance()
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+            val todayStr = sdf.format(todayCal.time)
+            todayCal.add(java.util.Calendar.DAY_OF_YEAR, 1)
+            val tomorrowStr = sdf.format(todayCal.time)
+
+            if (todayStr != lastBadgeDayStamp) {
+                clearedTabBadgesThisSession.clear()
+                lastBadgeDayStamp = todayStr
+            }
+
+            val currentTabPos = binding.mainViewPager.currentItem
+            clearedTabBadgesThisSession.add(currentTabPos)
+
+            val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this)
+            val profileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(this)
+
+            // 1. Tasks Badge (Actionable due today or overdue)
+            if (clearedTabBadgesThisSession.contains(MainPagerAdapter.INDEX_TASKS)) {
+                binding.badgeNavTasks.clear()
+            } else {
+                val urgentTasks = try {
+                    db.getAllTasks("ALL").count { task ->
+                        !task.isCompleted && !task.dueDate.isNullOrBlank() && task.dueDate!! <= todayStr
+                    }
+                } catch (_: Exception) { 0 }
+                binding.badgeNavTasks.setCount(urgentTasks)
+            }
+
+            // 2. Portal Badge (Exams today/tomorrow in Student mode; active orders in Work mode)
+            if (clearedTabBadgesThisSession.contains(MainPagerAdapter.INDEX_PORTAL)) {
+                binding.badgeNavPortal.clear()
+            } else {
+                val urgentPortalCount = try {
+                    if (isStudent) {
+                        db.getUpcomingExamsForWidget(profileId).count { ex ->
+                            ex.dueDate == todayStr || ex.dueDate == tomorrowStr
+                        }
+                    } else {
+                        db.getAllWorkOrders().count { order ->
+                            !order.status.equals("COMPLETED", ignoreCase = true) &&
+                                order.endDate.isNotBlank() && order.endDate <= tomorrowStr
+                        }
+                    }
+                } catch (_: Exception) { 0 }
+                binding.badgeNavPortal.setCount(urgentPortalCount)
+            }
+
+            // 3. Wallet Badge (Unpaid overdue or due-today Dues & Debts)
+            if (clearedTabBadgesThisSession.contains(MainPagerAdapter.INDEX_WALLET)) {
+                binding.badgeNavWallet.clear()
+            } else {
+                val urgentDues = try {
+                    db.getAllDuesDebts().count { due ->
+                        due.status.equals("UNPAID", ignoreCase = true) &&
+                            due.dueDate.isNotBlank() && due.dueDate <= todayStr
+                    }
+                } catch (_: Exception) { 0 }
+                binding.badgeNavWallet.setCount(urgentDues)
+            }
+
+            // 4. Schedule Status Dot (Passive live class indicator — never a count badge)
+            if (clearedTabBadgesThisSession.contains(MainPagerAdapter.INDEX_SCHEDULE)) {
+                binding.badgeNavSchedule.clear()
+            } else {
+                val isLiveClass = getSharedPreferences(
+                    com.duorhythm.app.scheduler.ClassAlarmScheduler.PREFS_NAME,
+                    Context.MODE_PRIVATE
+                ).getBoolean(com.duorhythm.app.scheduler.ClassAlarmScheduler.KEY_IN_CLASS_DND, false)
+                binding.badgeNavSchedule.setStatusDot(isLiveClass)
+            }
+        } catch (_: Exception) {}
+    }
+    
 }

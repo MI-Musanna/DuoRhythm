@@ -204,13 +204,29 @@
             android:paddingTop="10dp"
             android:paddingBottom="10dp">
 
-            <ImageView
-                android:id="@+id/ivNavWallet"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@string/nav_wallet"
-                android:src="@drawable/ic_wallet"
-                app:tint="#64748B" />
+            <FrameLayout
+                android:layout_width="30dp"
+                android:layout_height="28dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <ImageView
+                    android:id="@+id/ivNavWallet"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/nav_wallet"
+                    android:src="@drawable/ic_wallet"
+                    app:tint="#64748B" />
+
+                <com.duorhythm.app.ui.views.NotificationBadgeView
+                    android:id="@+id/badgeNavWallet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:translationX="5dp"
+                    android:translationY="-3dp" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/tvNavWallet"
@@ -244,13 +260,29 @@
             android:paddingTop="10dp"
             android:paddingBottom="10dp">
 
-            <ImageView
-                android:id="@+id/ivNavTasks"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@string/nav_tasks"
-                android:src="@drawable/ic_tasks"
-                app:tint="#64748B" />
+            <FrameLayout
+                android:layout_width="30dp"
+                android:layout_height="28dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <ImageView
+                    android:id="@+id/ivNavTasks"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/nav_tasks"
+                    android:src="@drawable/ic_tasks"
+                    app:tint="#64748B" />
+
+                <com.duorhythm.app.ui.views.NotificationBadgeView
+                    android:id="@+id/badgeNavTasks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:translationX="5dp"
+                    android:translationY="-3dp" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/tvNavTasks"
@@ -326,13 +358,29 @@
             android:paddingTop="10dp"
             android:paddingBottom="10dp">
 
-            <ImageView
-                android:id="@+id/ivNavSchedule"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@string/nav_schedule"
-                android:src="@drawable/ic_schedule"
-                app:tint="#64748B" />
+            <FrameLayout
+                android:layout_width="30dp"
+                android:layout_height="28dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <ImageView
+                    android:id="@+id/ivNavSchedule"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/nav_schedule"
+                    android:src="@drawable/ic_schedule"
+                    app:tint="#64748B" />
+
+                <com.duorhythm.app.ui.views.NotificationBadgeView
+                    android:id="@+id/badgeNavSchedule"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:translationX="5dp"
+                    android:translationY="-3dp" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/tvNavSchedule"
@@ -366,13 +414,29 @@
             android:paddingTop="10dp"
             android:paddingBottom="10dp">
 
-            <ImageView
-                android:id="@+id/ivNavPortal"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@string/nav_portal"
-                android:src="@drawable/ic_portal"
-                app:tint="#64748B" />
+            <FrameLayout
+                android:layout_width="30dp"
+                android:layout_height="28dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <ImageView
+                    android:id="@+id/ivNavPortal"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/nav_portal"
+                    android:src="@drawable/ic_portal"
+                    app:tint="#64748B" />
+
+                <com.duorhythm.app.ui.views.NotificationBadgeView
+                    android:id="@+id/badgeNavPortal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:translationX="5dp"
+                    android:translationY="-3dp" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/tvNavPortal"
