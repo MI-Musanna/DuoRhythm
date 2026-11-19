@@ -281,6 +281,7 @@ class PortalFragment : Fragment() {
                         dbHelper.deleteSubjectWorkItem(entity.id)
                         com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(requireContext(), entity.id)
                         com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(requireContext())
+                        com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_PORTAL)
                         unifiedAssessmentsAdapter.removeItemAnimated(entity)
                         binding.tvScheduledCountBadge.text = "${unifiedAssessmentsAdapter.masterItemCount} Scheduled"
                     }

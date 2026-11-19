@@ -22,7 +22,7 @@ class AssessmentAlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
-        if (!prefs.getBoolean("pref_exam_reminders_enabled", false)) return
+        if (!prefs.getBoolean("pref_exam_reminders_enabled", true)) return
 
         val assessmentId = intent.getLongExtra(EXTRA_ASSESSMENT_ID, System.currentTimeMillis())
         val title = intent.getStringExtra(EXTRA_TITLE) ?: "Upcoming Exam Alert"

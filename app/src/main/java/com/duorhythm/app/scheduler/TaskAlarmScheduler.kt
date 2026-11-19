@@ -100,31 +100,83 @@ object TaskAlarmScheduler {
         pendingIntent.cancel()
     }
 
-    private fun parseDueDateTime(dueDateStr: String): Long? {
-        val formats = listOf(
+    fun parseDueDateTime(dueDateStr: String): Long? {
+        val clean = dueDateStr.trim()
+        if (clean.isBlank()) return null
+        val now = System.currentTimeMillis()
+
+        // 1. Timed formats (15m heads-up or short-window fallback)
+        val timedFormats = listOf(
             "yyyy-MM-dd HH:mm",
             "yyyy-MM-dd hh:mm a",
-            "yyyy-MM-dd"
+            "yyyy-MM-dd h:mm a",
+            "dd-MM-yyyy HH:mm",
+            "dd-MM-yyyy hh:mm a",
+            "dd/MM/yyyy HH:mm",
+            "dd/MM/yyyy hh:mm a"
         )
-        for (fmt in formats) {
+        for (fmt in timedFormats) {
             try {
                 val sdf = SimpleDateFormat(fmt, Locale.US)
-                val date = sdf.parse(dueDateStr)
+                val date = sdf.parse(clean)
                 if (date != null) {
-                    val cal = Calendar.getInstance().apply { time = date }
-                    // If only date was provided, default reminder to 9:00 AM on due day
-                    if (fmt == "yyyy-MM-dd") {
-                        cal.set(Calendar.HOUR_OF_DAY, 9)
-                        cal.set(Calendar.MINUTE, 0)
-                        cal.set(Calendar.SECOND, 0)
+                    val exactMs = date.time
+                    val headsUpMs = exactMs - (15 * 60 * 1000L)
+                    return when {
+                        headsUpMs > now -> headsUpMs
+                        exactMs > now -> if (exactMs - 60_000L > now) exactMs - 60_000L else exactMs
+                        else -> null
                     }
-                    return cal.timeInMillis
                 }
             } catch (_: Exception) {}
         }
+
+        // 2. Date-only formats (9:00 AM date trigger with 6:00 PM same-day fallback)
+        val dateOnlyFormats = listOf(
+            "yyyy-MM-dd",
+            "yyyy/MM/dd",
+            "dd-MM-yyyy",
+            "dd/MM/yyyy",
+            "MM/dd/yyyy"
+        )
+        for (fmt in dateOnlyFormats) {
+            try {
+                val sdf = SimpleDateFormat(fmt, Locale.US)
+                val date = sdf.parse(clean)
+                if (date != null) {
+                    val cal = Calendar.getInstance().apply {
+                        time = date
+                        set(Calendar.HOUR_OF_DAY, 9)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    val at9Am = cal.timeInMillis
+                    if (at9Am > now) {
+                        return at9Am
+                    }
+
+                    // Check if date is today -> fallback to 6:00 PM (18:00)
+                    val todayCal = Calendar.getInstance()
+                    val isToday = (cal.get(Calendar.YEAR) == todayCal.get(Calendar.YEAR) &&
+                            cal.get(Calendar.DAY_OF_YEAR) == todayCal.get(Calendar.DAY_OF_YEAR))
+                    if (isToday) {
+                        cal.set(Calendar.HOUR_OF_DAY, 18)
+                        cal.set(Calendar.MINUTE, 0)
+                        cal.set(Calendar.SECOND, 0)
+                        cal.set(Calendar.MILLISECOND, 0)
+                        val at6Pm = cal.timeInMillis
+                        if (at6Pm > now) {
+                            return at6Pm
+                        }
+                    }
+                    return null
+                }
+            } catch (_: Exception) {}
+        }
+
         return null
     }
-
 
     fun resyncAllTaskReminders(context: Context) {
         try {
@@ -141,5 +193,4 @@ object TaskAlarmScheduler {
             }
         } catch (_: Exception) {}
     }
-    
 }

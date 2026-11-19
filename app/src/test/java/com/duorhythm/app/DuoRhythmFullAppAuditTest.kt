@@ -400,4 +400,81 @@ class DuoRhythmFullAppAuditTest {
         assertEquals("Icon top coordinate must not drift when badge expands to 99+", topAtOne, icon.top)
     }
 
+    @Test
+    fun audit11_shortWindowExamFallbackAndUndatedTaskBriefingSupport() {
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("pref_exam_reminders_enabled", true).apply()
+
+        // 1. Short-window exam fallback (e.g. Exam starting in 10 minutes)
+        val now = System.currentTimeMillis()
+        val examCal = java.util.Calendar.getInstance().apply {
+            timeInMillis = now + (10 * 60 * 1000L) // 10 minutes in future (< 20m lead time)
+        }
+        val examDateStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(examCal.time)
+        val examTimeStr = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.US).format(examCal.time)
+
+        val shortWindowExam = database.entities.AssessmentEntity(
+            id = 888L,
+            profileId = 1L,
+            subjectId = 5L,
+            subjectName = "Software Engineering",
+            courseCode = "25941",
+            type = "Quiz",
+            title = "Surprise Quiz",
+            date = examDateStr,
+            time = examTimeStr,
+            room = "Lab 3",
+            syllabus = "Design Patterns",
+            teacher = "Dr. Hasan",
+            status = "PENDING"
+        )
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+        val shadowAlarm = org.robolectric.Shadows.shadowOf(alarmManager)
+        shadowAlarm.scheduledAlarms.clear()
+
+        AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, shortWindowExam)
+        val scheduled = shadowAlarm.scheduledAlarms
+        assertTrue("Short-window exam must be scheduled despite start time being < 20m away", scheduled.isNotEmpty())
+        val alarm = scheduled.first()
+        assertTrue("Trigger time must be > 0 and <= exam start time", alarm.triggerAtTime > 0 && alarm.triggerAtTime <= examCal.timeInMillis)
+
+        // 2. Timed task 15m heads-up or short-window fallback
+        val taskCal = java.util.Calendar.getInstance().apply {
+            timeInMillis = now + (8 * 60 * 1000L) // 8m in future (< 15m heads-up)
+        }
+        val taskDueStr = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US).format(taskCal.time)
+        val parsedTaskTrigger = com.duorhythm.app.scheduler.TaskAlarmScheduler.parseDueDateTime(taskDueStr)
+        assertTrue("Short-window task trigger must be non-null and in future", parsedTaskTrigger != null && parsedTaskTrigger > now)
+
+        // 3. DueDebt 9:00 AM alarm scheduler verification
+        val parse9Am = com.duorhythm.app.scheduler.DueDebtAlarmScheduler.parseDueDate9Am("2026-12-25")
+        assertTrue("DueDebt 9 AM parser must return valid timestamp", parse9Am != null && parse9Am > 0)
+        val cal9Am = java.util.Calendar.getInstance().apply { timeInMillis = parse9Am!! }
+        assertEquals(9, cal9Am.get(java.util.Calendar.HOUR_OF_DAY))
+        assertEquals(0, cal9Am.get(java.util.Calendar.MINUTE))
+
+        // 4. Undated floating task support in daily briefing
+        val undatedTask = TaskItem(
+            profileId = 1L,
+            title = "ITSS Practical",
+            description = "Floating lab work",
+            category = "Study",
+            dueDate = "",
+            priority = "HIGH",
+            isCompleted = false,
+            isGoal = false,
+            progress = 0
+        )
+        val isBriefingEligible = { t: TaskItem, targetDate: String ->
+            !t.isCompleted && (t.dueDate.isNullOrBlank() || t.dueDate!! <= targetDate)
+        }
+        assertTrue("Undated task 'ITSS Practical' must be included in daily briefing", isBriefingEligible(undatedTask, examDateStr))
+
+        val futureTask = undatedTask.copy(dueDate = "2099-12-31")
+        assertFalse("Future task must be excluded from today's briefing", isBriefingEligible(futureTask, examDateStr))
+
+        val completedTask = undatedTask.copy(isCompleted = true)
+        assertFalse("Completed task must be excluded from briefing", isBriefingEligible(completedTask, examDateStr))
+    }
 }

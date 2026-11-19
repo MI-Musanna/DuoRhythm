@@ -338,6 +338,15 @@ object AlarmSyncManager {
             for (order in orders) {
                 scheduleOrderAlarms(context, order)
             }
+
+            // Resync assessments & exams
+            AssessmentAlarmScheduler.resyncAllAssessments(context)
+
+            // Resync tasks & milestones
+            TaskAlarmScheduler.resyncAllTaskReminders(context)
+
+            // Resync dues & debts
+            DueDebtAlarmScheduler.resyncAllDuesDebts(context)
         } catch (e: Exception) {
             e.printStackTrace()
         }

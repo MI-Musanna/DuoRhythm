@@ -40,6 +40,14 @@ import com.duorhythm.app.widget.ScheduleWidgetProvider
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        private var instanceRef: java.lang.ref.WeakReference<MainActivity>? = null
+
+        fun notifyBadgeDataChanged(tabIndex: Int = -1) {
+            instanceRef?.get()?.notifyBadgeDataChanged(tabIndex)
+        }
+    }
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var pagerAdapter: MainPagerAdapter
     private var isStudent = true
@@ -69,6 +77,7 @@ class MainActivity : AppCompatActivity() {
             android.util.Log.e("DUO_MAIN", "Error setting night mode", t)
         }
         super.onCreate(savedInstanceState)
+        instanceRef = java.lang.ref.WeakReference(this)
         com.duorhythm.app.util.ViewAnimationExtensions.installGlobalMotionEngine(application)
         com.duorhythm.app.util.ViewAnimationExtensions.applySpringRecursively(window.decorView)
         com.duorhythm.app.scheduler.BriefingAlarmScheduler.scheduleDailyBriefings(this)
@@ -798,9 +807,30 @@ class MainActivity : AppCompatActivity() {
             } else {
                 val urgentPortalCount = try {
                     if (isStudent) {
-                        db.getUpcomingExamsForWidget(profileId).count { ex ->
+                        val seenExamKeys = mutableSetOf<String>()
+                        var examCount = 0
+
+                        val widgetExams = db.getUpcomingExamsForWidget(profileId).filter { ex ->
                             ex.dueDate == todayStr || ex.dueDate == tomorrowStr
                         }
+                        for (wEx in widgetExams) {
+                            val key = "${wEx.title.lowercase().trim()}_${wEx.dueDate}"
+                            if (seenExamKeys.add(key)) examCount++
+                        }
+
+                        val workItemExams = db.getAllExams(profileId = profileId).filter { (item, _) ->
+                            item.status != "DONE" && (
+                                item.endDate == todayStr || item.endDate == tomorrowStr ||
+                                item.startDate == todayStr || item.startDate == tomorrowStr
+                            )
+                        }
+                        for ((item, _) in workItemExams) {
+                            val d = item.endDate.ifBlank { item.startDate }
+                            val key = "${item.title.lowercase().trim()}_$d"
+                            if (seenExamKeys.add(key)) examCount++
+                        }
+
+                        examCount
                     } else {
                         db.getAllWorkOrders().count { order ->
                             !order.status.equals("COMPLETED", ignoreCase = true) &&
@@ -836,5 +866,20 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (_: Exception) {}
     }
-    
+
+    fun notifyBadgeDataChanged(tabIndex: Int = -1) {
+        if (tabIndex in 0..4) {
+            clearedTabBadgesThisSession.remove(tabIndex)
+        }
+        runOnUiThread {
+            refreshNavigationBadges()
+        }
+    }
+
+    override fun onDestroy() {
+        if (instanceRef?.get() === this) {
+            instanceRef = null
+        }
+        super.onDestroy()
+    }
 }

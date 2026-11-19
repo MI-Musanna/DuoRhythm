@@ -229,6 +229,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- Dynamic Due & Debt Alarm Receiver -->
+        <receiver
+            android:name=".receiver.DueDebtAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.duorhythm.app.ACTION_DUE_DEBT_ALERT" />
+            </intent-filter>
+        </receiver>
+
         <!-- Boot & App Update Receiver (Class Alarms & Subscription Scheduler Resync) -->
         <receiver
             android:name=".receiver.BootReceiver"

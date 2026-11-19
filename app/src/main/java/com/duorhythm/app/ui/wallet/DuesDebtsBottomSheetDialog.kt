@@ -264,7 +264,11 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
                 createdAt = today
             )
 
-            dbHelper.insertDueDebt(item)
+            val insertedId = dbHelper.insertDueDebt(item)
+            if (insertedId > 0) {
+                com.duorhythm.app.scheduler.DueDebtAlarmScheduler.scheduleDueDebtAlarm(requireContext(), item.copy(id = insertedId))
+            }
+            com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_WALLET)
             dialog.dismiss()
             loadData()
             WalletDataSyncManager.notifyChanged()
@@ -346,6 +350,8 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
             )
 
             if (settled) {
+                com.duorhythm.app.scheduler.DueDebtAlarmScheduler.cancelDueDebtAlarm(requireContext(), item.id)
+                com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_WALLET)
                 dialog.dismiss()
                 loadData()
                 WalletDataSyncManager.notifyChanged()
@@ -367,6 +373,8 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
             .setMessage("Remove record for '${item.personName}' (${CurrencyUtils.formatRawCurrency(item.amount, currentSymbol)})?")
             .setPositiveButton("Delete") { _, _ ->
                 dbHelper.deleteDueDebt(item.id)
+                com.duorhythm.app.scheduler.DueDebtAlarmScheduler.cancelDueDebtAlarm(requireContext(), item.id)
+                com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_WALLET)
                 loadData()
                 WalletDataSyncManager.notifyChanged()
                 Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()

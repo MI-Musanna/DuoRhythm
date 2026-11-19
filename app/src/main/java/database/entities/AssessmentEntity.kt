@@ -85,5 +85,27 @@ data class AssessmentEntity(
                 attachmentName = item.attachmentName
             )
         }
+
+        fun fromLocalEntity(
+            item: com.duorhythm.app.data.local.entity.AssessmentEntity,
+            subjectName: String = "",
+            courseCode: String = ""
+        ): AssessmentEntity {
+            return AssessmentEntity(
+                id = item.id,
+                profileId = item.profileId,
+                subjectId = item.courseId,
+                subjectName = subjectName,
+                courseCode = courseCode,
+                type = item.type,
+                title = item.title,
+                date = item.dueDate,
+                time = item.dueTime,
+                room = item.room,
+                syllabus = item.syllabus,
+                teacher = item.instructor,
+                status = item.status
+            )
+        }
     }
 }

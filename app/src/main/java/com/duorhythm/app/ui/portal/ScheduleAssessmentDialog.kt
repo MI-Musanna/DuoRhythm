@@ -526,6 +526,7 @@ class ScheduleAssessmentDialog(
                 Toast.makeText(context, "Assessment scheduled with smart notifications!", Toast.LENGTH_SHORT).show()
             }
 
+            com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_PORTAL)
             dialog.dismiss()
             onSaved()
         }

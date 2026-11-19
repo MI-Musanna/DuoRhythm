@@ -1128,7 +1128,7 @@ class SettingsActivity : AppCompatActivity() {
         // Card 2: Academic - Exam & Quiz Reminders (Opt-in)
         binding.switchExamReminders.setOnCheckedChangeListener(null)
         val duoPrefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
-        val examReminders = duoPrefs.getBoolean("pref_exam_reminders_enabled", false)
+        val examReminders = duoPrefs.getBoolean("pref_exam_reminders_enabled", true)
         binding.switchExamReminders.isChecked = examReminders
         binding.switchExamReminders.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
@@ -1319,7 +1319,7 @@ class SettingsActivity : AppCompatActivity() {
         val states = listOf(
             SmartAutomationManager.isSmartBriefingsEnabled(this),
             ReminderManager.isRemindersEnabled(this),
-            prefs.getBoolean("pref_exam_reminders_enabled", false),
+            prefs.getBoolean("pref_exam_reminders_enabled", true),
             prefs.getBoolean("pref_task_reminders_enabled", true),
             SmartAutomationManager.isSubscriptionAlertsEnabled(this)
         )

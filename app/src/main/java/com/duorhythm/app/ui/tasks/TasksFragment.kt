@@ -635,6 +635,7 @@ class TasksFragment : Fragment() {
 
                 updateEmptyState()
             }
+            com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_TASKS)
         } catch (e: Throwable) {
             e.printStackTrace()
         }

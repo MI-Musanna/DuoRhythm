@@ -42,6 +42,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
                         DatabaseHelper.getInstance(context).updateTaskCompletion(taskId, true)
                         TaskAlarmScheduler.cancelTaskReminder(context, taskId)
                         AcademicHubWidget.pushUpdate(context)
+                        com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_TASKS)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -71,6 +72,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
                         putExtra(AlarmSyncManager.EXTRA_SUBJECT_NAME, title)
                         putExtra(AlarmSyncManager.EXTRA_START_TIME, body)
                         putExtra(AlarmSyncManager.EXTRA_LEAD_MINUTES, snoozeMins)
+                    }
+                    "DUE_DEBT" -> Intent(context, DueDebtAlarmReceiver::class.java).apply {
+                        this.action = DueDebtAlarmReceiver.ACTION_DUE_DEBT_ALERT
+                        putExtra(DueDebtAlarmReceiver.EXTRA_DUE_DEBT_ID, itemId)
+                        putExtra(DueDebtAlarmReceiver.EXTRA_PERSON_NAME, title)
+                        putExtra(DueDebtAlarmReceiver.EXTRA_NOTES, body)
                     }
                     else -> Intent(context, TaskAlarmReceiver::class.java).apply {
                         this.action = TaskAlarmReceiver.ACTION_TASK_ALERT
