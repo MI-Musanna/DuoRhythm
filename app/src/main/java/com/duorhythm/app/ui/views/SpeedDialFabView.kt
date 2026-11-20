@@ -113,6 +113,7 @@ class SpeedDialFabView @JvmOverloads constructor(
             }
         }
         addView(mainFabButton)
+        com.duorhythm.app.util.DuoMotionHelper.attachZeroMsPressFeedback(mainFabButton)
 
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
             val sysBottom = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()).bottom
@@ -159,6 +160,7 @@ class SpeedDialFabView @JvmOverloads constructor(
     fun syncWorkspaceAccent(isWorkMode: Boolean) {
         val hex = if (isWorkMode) "#10B981" else "#38BDF8"
         mainFabBg.setColor(Color.parseColor(hex))
+        com.duorhythm.app.util.DuoMotionHelper.applyModeAccentGlow(mainFabButton, isWorkMode)
         mainFabButton.invalidate()
     }
 

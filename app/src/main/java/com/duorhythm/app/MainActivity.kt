@@ -391,7 +391,13 @@ class MainActivity : AppCompatActivity() {
     fun setAppWorkspaceMode(isWorkMode: Boolean) {
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         prefs.edit().putBoolean("is_work_mode", isWorkMode).apply()
+        getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+            .edit().putBoolean("is_work_mode", isWorkMode).apply()
         isStudent = !isWorkMode
+        syncAllSpeedDialFabs(isWorkMode)
+        if (::binding.isInitialized) {
+            com.duorhythm.app.util.DuoMotionHelper.triggerCircularReveal(binding.mainViewPager)
+        }
 
         val currentPos = binding.mainViewPager.currentItem
         if (currentPos == MainPagerAdapter.INDEX_HOME) {

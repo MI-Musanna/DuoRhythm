@@ -567,4 +567,28 @@ class DuoRhythmFullAppAuditTest {
         assertTrue("SpeedDialFabView must support dual-mode accent sync", true)
     }
 
+    @Test
+    fun audit16_deterministicAvatarScaleAndMotionHelpers() {
+        // 1. Verify deterministic name hashing & 2-letter vs 1-letter (<= 20dp) rules
+        val c1 = com.duorhythm.app.util.DeterministicAvatarHelper.colorForName("Mahdi Islam Musanna")
+        val c2 = com.duorhythm.app.util.DeterministicAvatarHelper.colorForName("mahdi islam musanna")
+        assertEquals("Same name must always hash to identical avatar color", c1, c2)
+
+        assertEquals("MM", com.duorhythm.app.util.DeterministicAvatarHelper.extractInitials("Mahdi Islam Musanna", 32))
+        assertEquals("M", com.duorhythm.app.util.DeterministicAvatarHelper.extractInitials("Mahdi Islam Musanna", 20))
+
+        // 2. Verify 3-size avatar tokens (24dp / 32dp / 40dp) & 48dp touch target in dimens.xml
+        val density = context.resources.displayMetrics.density
+        assertEquals(24f, context.resources.getDimension(R.dimen.avatar_size_row) / density, 0.1f)
+        assertEquals(32f, context.resources.getDimension(R.dimen.avatar_size_card) / density, 0.1f)
+        assertEquals(40f, context.resources.getDimension(R.dimen.avatar_size_profile) / density, 0.1f)
+        assertEquals(48f, context.resources.getDimension(R.dimen.touch_target_min) / density, 0.1f)
+
+        // 3. Verify dark-mode photo dimming & 0ms press listener attachment
+        val iv = android.widget.ImageView(context)
+        com.duorhythm.app.util.DuoMotionHelper.applyDarkPhotoDimming(iv, hasPhoto = true)
+        assertEquals(0.85f, iv.alpha, 0.01f)
+        com.duorhythm.app.util.DuoMotionHelper.attachZeroMsPressFeedback(iv)
+        com.duorhythm.app.util.DuoMotionHelper.playValidationShake(iv)
+    }
 }

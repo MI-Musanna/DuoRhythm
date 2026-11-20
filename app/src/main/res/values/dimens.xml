@@ -11,4 +11,9 @@
     <dimen name="radius_card_main">16dp</dimen>
     <dimen name="radius_card_compact">14dp</dimen>
     <dimen name="radius_pill">999dp</dimen>
+    <!-- Strict 3-Size Avatar Scale & Accessible Touch Target -->
+    <dimen name="avatar_size_row">24dp</dimen>
+    <dimen name="avatar_size_card">32dp</dimen>
+    <dimen name="avatar_size_profile">40dp</dimen>
+    <dimen name="touch_target_min">48dp</dimen>
 </resources>
