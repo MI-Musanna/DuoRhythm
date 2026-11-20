@@ -37,7 +37,7 @@
             android:background="@drawable/bg_widget_pill_badge"
             android:paddingHorizontal="8dp"
             android:paddingVertical="3dp"
-            android:textColor="#00E5FF"
+            android:textColor="#38BDF8"
             android:textSize="10sp"
             android:textStyle="bold" />
 

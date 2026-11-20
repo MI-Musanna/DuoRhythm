@@ -42,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:format12Hour="a"
-                    android:textColor="#00E5FF"
+                    android:textColor="#38BDF8"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -80,7 +80,7 @@
                 android:layout_height="16dp"
                 android:layout_gravity="center"
                 android:indeterminate="true"
-                android:indeterminateTint="#00E5FF"
+                android:indeterminateTint="#38BDF8"
                 android:visibility="gone" />
         </FrameLayout>
     </RelativeLayout>
@@ -137,7 +137,7 @@
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1.5dp"
                         android:text="NEXT UP"
-                        android:textColor="#00E5FF"
+                        android:textColor="#38BDF8"
                         android:textSize="8.5sp"
                         android:textStyle="bold" />
 

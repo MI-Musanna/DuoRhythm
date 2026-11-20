@@ -68,7 +68,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:text="NEXT UP"
-                        android:textColor="#00E5FF"
+                        android:textColor="#38BDF8"
                         android:textSize="9sp"
                         android:textStyle="bold" />
 
@@ -192,7 +192,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:text="TODAY"
-                        android:textColor="#00E5FF"
+                        android:textColor="#38BDF8"
                         android:textSize="9sp"
                         android:textStyle="bold" />
 

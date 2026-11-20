@@ -137,9 +137,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#121A2D"
+                app:cardBackgroundColor="#151C2C"
                 app:cardCornerRadius="16dp"
-                app:strokeColor="#243352"
+                app:strokeColor="#2D3B55"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -158,7 +158,7 @@
                             android:layout_width="22dp"
                             android:layout_height="22dp"
                             android:src="@drawable/ic_update_sparkle"
-                            app:tint="#00E5FF" />
+                            app:tint="#38BDF8" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -178,7 +178,7 @@
                             android:paddingHorizontal="8dp"
                             android:paddingVertical="3dp"
                             android:text="v1.0.4-beta"
-                            android:textColor="#00E5FF"
+                            android:textColor="#38BDF8"
                             android:textSize="10sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -223,7 +223,7 @@
                             android:textColor="#94A3B8"
                             android:textSize="11.5sp"
                             app:cornerRadius="20dp"
-                            app:strokeColor="#243352" />
+                            app:strokeColor="#2D3B55" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -513,11 +513,11 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="10dp"
                                 android:text="Test Morning Notification"
-                                android:textColor="#00E5FF"
+                                android:textColor="#38BDF8"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
                                 app:icon="@drawable/ic_schedule"
-                                app:iconTint="#00E5FF"
+                                app:iconTint="#38BDF8"
                                 app:strokeColor="#2E38BDF8"
                                 app:strokeWidth="1dp"
                                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -545,7 +545,7 @@
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
                                 android:src="@drawable/ic_tasks"
-                                app:tint="#00E5FF" />
+                                app:tint="#38BDF8" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -1713,7 +1713,7 @@
                                 android:textColor="@color/white"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
-                                app:backgroundTint="#0284C7"
+                                app:backgroundTint="#0EA5E9"
                                 app:cornerRadius="12dp"
                                 app:icon="@drawable/ic_backup"
                                 app:iconSize="16dp"
@@ -1881,7 +1881,7 @@
                                 android:layout_width="22dp"
                                 android:layout_height="22dp"
                                 android:src="@drawable/ic_history"
-                                app:tint="#00E5FF" />
+                                app:tint="#38BDF8" />
 
                             <LinearLayout
                                 android:layout_width="0dp"

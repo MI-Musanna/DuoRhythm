@@ -172,10 +172,10 @@
             android:layout_marginTop="4dp"
             android:visibility="gone"
             android:text="➕ Add New Category"
-            android:textColor="#0284C7"
+            android:textColor="#0EA5E9"
             app:chipIcon="@drawable/ic_add"
-            app:chipIconTint="#0284C7"
-            app:chipStrokeColor="#0284C7"
+            app:chipIconTint="#0EA5E9"
+            app:chipStrokeColor="#0EA5E9"
             app:chipStrokeWidth="1dp" />
 
         <!-- Hidden legacy spinners for zero-regression ViewBinding safety -->
@@ -202,7 +202,7 @@
             app:boxStrokeColor="@color/selector_box_stroke_cyan"
             app:boxStrokeWidth="1dp"
             app:boxStrokeWidthFocused="1.5dp"
-            app:hintTextColor="#00E5FF">
+            app:hintTextColor="#38BDF8">
 
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:id="@+id/etTransactionTitle"

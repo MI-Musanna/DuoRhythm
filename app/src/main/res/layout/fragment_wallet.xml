@@ -13,7 +13,7 @@
     android:fillViewport="true"
     android:clipToPadding="false"
     android:paddingBottom="100dp"
-    android:background="#080C16">
+    android:background="#0B0F17">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -65,7 +65,7 @@
                 android:contentDescription="Manage Transaction Categories"
                 android:tooltipText="Manage Transaction Categories"
                 android:src="@drawable/ic_category"
-                app:tint="#00E5FF" />
+                app:tint="#38BDF8" />
 
             <!-- Quick Converter Tool -->
             <ImageButton
@@ -105,9 +105,9 @@
                 android:textColor="#CBD5E1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:backgroundTint="#18233C"
+                app:backgroundTint="#1F293D"
                 app:cornerRadius="18dp"
-                app:strokeColor="#2A3B60"
+                app:strokeColor="#2D3B55"
                 app:strokeWidth="1dp" />
 
             <!-- Security Shield -->
@@ -251,7 +251,7 @@
                         android:textColor="@color/white"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0284C7"
+                        app:backgroundTint="#0EA5E9"
                         app:cornerRadius="16dp" />
 
                 </LinearLayout>
@@ -350,7 +350,7 @@
                                 android:layout_height="10dp"
                                 android:layout_marginEnd="4dp"
                                 android:src="@drawable/ic_shield_check"
-                                app:tint="#0284C7" />
+                                app:tint="#0EA5E9" />
 
                             <TextView
                                 android:id="@+id/tvAccountsSummary"
@@ -398,7 +398,7 @@
                             android:textColor="@color/white"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            app:backgroundTint="#0284C7"
+                            app:backgroundTint="#0EA5E9"
                             app:cornerRadius="10dp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -688,7 +688,7 @@
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0284C7"
+                        app:backgroundTint="#0EA5E9"
                         app:cornerRadius="14dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

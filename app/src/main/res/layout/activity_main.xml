@@ -14,7 +14,7 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#080C16"
+        android:background="#0B0F17"
         app:elevation="0dp">
 
         <FrameLayout
@@ -99,8 +99,8 @@
                     android:contentDescription="Focus Suite"
                     android:padding="8dp"
                     android:src="@drawable/ic_toolbox"
-                    android:tint="#00E5FF"
-                    app:tint="#00E5FF" />
+                    android:tint="#38BDF8"
+                    app:tint="#38BDF8" />
 
                 <!-- Profile Switcher Action Icon -->
                 <ImageButton

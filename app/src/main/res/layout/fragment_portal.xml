@@ -13,7 +13,7 @@
     android:fillViewport="true"
     android:clipToPadding="false"
     android:paddingBottom="96dp"
-    android:background="#080C16">
+    android:background="#0B0F17">
 
     <LinearLayout
         android:id="@+id/rootLayout"
@@ -117,7 +117,7 @@
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0284C7"
+                        app:backgroundTint="#0EA5E9"
                         app:strokeWidth="0dp"
                         app:cornerRadius="16dp" />
 
@@ -256,16 +256,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:text="Enrolled Courses"
-                        android:textColor="#F8FAFC"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAddSubject"
                         style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
@@ -273,9 +263,9 @@
                         android:layout_height="36dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:backgroundTint="#00E5FF"
+                        android:backgroundTint="#38BDF8"
                         android:text="+ ADD COURSE"
-                        android:textColor="#080C16"
+                        android:textColor="#0B0F17"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         app:cornerRadius="18dp" />
@@ -522,7 +512,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_chevron_down"
-                    app:tint="#00E5FF" />
+                    app:tint="#38BDF8" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -603,7 +593,7 @@
                         android:textColor="@color/white"
                         android:textSize="13sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0284C7"
+                        app:backgroundTint="#0EA5E9"
                         app:cornerRadius="16dp" />
 
                     <View
@@ -655,7 +645,7 @@
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="3dp"
-                        android:textColor="#00E5FF"
+                        android:textColor="#38BDF8"
                         android:textSize="10sp"
                         android:textStyle="bold" />
 
@@ -857,7 +847,7 @@
                         android:textColor="@color/white"
                         android:textSize="11sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0284C7"
+                        app:backgroundTint="#0EA5E9"
                         app:cornerRadius="12dp" />
 
                     <com.google.android.material.button.MaterialButton
@@ -904,7 +894,7 @@
                             android:textColor="@color/white"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            app:backgroundTint="#0284C7"
+                            app:backgroundTint="#0EA5E9"
                             app:strokeWidth="0dp"
                             app:cornerRadius="16dp" />
 
@@ -1039,7 +1029,7 @@
                     android:layout_centerVertical="true"
                     android:backgroundTint="#10B981"
                     android:text="+ NEW ORDER"
-                    android:textColor="#080C16"
+                    android:textColor="#0B0F17"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     app:cornerRadius="18dp" />

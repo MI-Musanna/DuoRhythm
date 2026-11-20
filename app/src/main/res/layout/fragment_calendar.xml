@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#080C16"
+    android:background="#0B0F17"
     android:fillViewport="true">
 
     <LinearLayout

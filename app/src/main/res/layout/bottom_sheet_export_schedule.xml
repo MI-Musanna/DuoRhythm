@@ -51,7 +51,7 @@
             android:contentDescription="Export History"
             android:padding="8dp"
             android:src="@drawable/ic_history"
-            app:tint="#00E5FF" />
+            app:tint="#38BDF8" />
     </RelativeLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -183,16 +183,16 @@
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
-            android:strokeColor="#00E5FF"
+            android:strokeColor="#38BDF8"
             android:text="SHARE"
-            android:textColor="#00E5FF" />
+            android:textColor="#38BDF8" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveSchedule"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
-            android:backgroundTint="#00E5FF"
+            android:backgroundTint="#38BDF8"
             android:text="SAVE IMAGE"
             android:textColor="#0F172A"
             android:textStyle="bold" />

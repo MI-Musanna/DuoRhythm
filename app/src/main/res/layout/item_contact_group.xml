@@ -165,7 +165,7 @@
                 android:textSize="11sp"
                 android:textStyle="bold"
                 app:backgroundTint="#0C4A6E"
-                app:strokeColor="#0284C7"
+                app:strokeColor="#0EA5E9"
                 app:strokeWidth="1dp"
                 app:cornerRadius="10dp" />
 
@@ -182,7 +182,7 @@
                 android:textColor="#38BDF8"
                 android:textSize="11sp"
                 android:visibility="gone"
-                app:strokeColor="#0284C7"
+                app:strokeColor="#0EA5E9"
                 app:cornerRadius="10dp" />
         </LinearLayout>
     </LinearLayout>

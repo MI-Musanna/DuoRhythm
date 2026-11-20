@@ -8,7 +8,7 @@
     app:cardBackgroundColor="#131B2E"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
-    app:strokeColor="#243352"
+    app:strokeColor="#2D3B55"
     app:strokeWidth="1dp">
 
     <RelativeLayout
@@ -31,7 +31,7 @@
                 android:layout_gravity="center"
                 android:contentDescription="Class Schedule"
                 android:src="@drawable/ic_schedule"
-                app:tint="#00E5FF" />
+                app:tint="#38BDF8" />
         </FrameLayout>
 
         <!-- Schedule Button (Right Side) -->
@@ -87,7 +87,7 @@
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
                     android:text="NEXT UP"
-                    android:textColor="#00E5FF"
+                    android:textColor="#38BDF8"
                     android:textSize="8sp"
                     android:textStyle="bold" />
 

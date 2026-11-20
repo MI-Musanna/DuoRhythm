@@ -413,7 +413,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="18dp"
-            android:backgroundTint="#0284C7"
+            android:backgroundTint="#0EA5E9"
             android:text="Clean System Cache"
             android:textColor="@color/white"
             android:textSize="14sp"

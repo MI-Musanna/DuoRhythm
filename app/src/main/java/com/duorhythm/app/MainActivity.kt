@@ -516,21 +516,21 @@ class MainActivity : AppCompatActivity() {
     private fun updateSubtitleForPosition(position: Int) {
         if (!::binding.isInitialized) return
         val (newTitle, newSub, accentHex) = when {
-            isToolsActive -> Triple("Focus Suite", "Concentration & Study Tools", "#00E5FF")
-            position == MainPagerAdapter.INDEX_WALLET -> Triple("Wallet & Accounts", "Net Worth & Cash Flow", "#10B981")
-            position == MainPagerAdapter.INDEX_TASKS -> Triple("Tasks & Goals", "Daily Action & Milestones", "#A855F7")
+            isToolsActive -> Triple("Focus Suite", "Concentration & Study Tools", "#38BDF8")
+            position == MainPagerAdapter.INDEX_WALLET -> Triple("Wallet & Accounts", "Net Worth & Cash Flow", "#34D399")
+            position == MainPagerAdapter.INDEX_TASKS -> Triple("Tasks & Goals", "Daily Action & Milestones", "#38BDF8")
             position == MainPagerAdapter.INDEX_HOME -> Triple(
                 "DuoRhythm",
                 if (isStudent) "Personal Dashboard" else "Executive Work Hub",
-                if (isStudent) "#00E5FF" else "#10B981"
+                if (isStudent) "#38BDF8" else "#34D399"
             )
             position == MainPagerAdapter.INDEX_SCHEDULE -> Triple("Timetable", "Weekly Class Routine", "#38BDF8")
             position == MainPagerAdapter.INDEX_PORTAL -> Triple(
                 if (isStudent) "Academic Portal" else "Work Portal",
                 if (isStudent) "Courses, Exams & Directory" else "Client Orders & Deliverables",
-                if (isStudent) "#00E5FF" else "#10B981"
+                if (isStudent) "#38BDF8" else "#34D399"
             )
-            else -> Triple("DuoRhythm", "Personal Dashboard", "#00E5FF")
+            else -> Triple("DuoRhythm", "Personal Dashboard", "#38BDF8")
         }
 
         animateHeaderIdentity(newTitle, newSub, accentHex)
@@ -844,7 +844,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateHeaderSuiteVisuals(isToolsActive: Boolean) {
         try {
             binding.btnQuickTools.setBackgroundResource(R.drawable.bg_header_action_button)
-            binding.btnQuickTools.imageTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+            binding.btnQuickTools.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
         } catch (e: Exception) {
             e.printStackTrace()
         }

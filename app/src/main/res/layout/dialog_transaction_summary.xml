@@ -320,10 +320,10 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="EDIT"
-                android:textColor="#00E5FF"
+                android:textColor="#38BDF8"
                 android:textStyle="bold"
                 app:cornerRadius="12dp"
-                app:strokeColor="#00E5FF"
+                app:strokeColor="#38BDF8"
                 app:strokeWidth="1.2dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -332,7 +332,7 @@
                 android:layout_height="48dp"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:backgroundTint="#00E5FF"
+                android:backgroundTint="#38BDF8"
                 android:text="CLOSE"
                 android:textColor="#060B14"
                 android:textStyle="bold"
