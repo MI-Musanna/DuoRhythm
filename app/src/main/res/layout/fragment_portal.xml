@@ -68,7 +68,7 @@
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:text="Work"
-                    android:textColor="#475569"
+                    android:textColor="@color/text_on_canvas_muted"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     app:backgroundTint="@android:color/transparent"

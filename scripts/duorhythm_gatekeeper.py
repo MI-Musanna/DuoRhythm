@@ -18,6 +18,12 @@ for xml_path in glob.glob("app/src/main/res/layout/*.xml"):
             if "android:textColor=" not in attrs:
                 errors.append(f"[UI-CONTRAST] {xml_path}: Input field missing explicit android:textColor (causes black text on dark glass dialogs).")
 
+
+    # Audit XML layouts for sub-4.5:1 dark-on-dark hardcoded text colors (#475569, #334155, #1E293B)
+    for bad_hex in ["#475569", "#334155", "#1E293B"]:
+        if f'android:textColor="{bad_hex}"' in content:
+            errors.append(f"[WCAG-CONTRAST] {xml_path}: Hardcoded low-contrast textColor '{bad_hex}' (< 4.5:1 on dark card). Use @color/text_on_canvas_muted.")
+
 # 2. Audit Kotlin UI & Scheduler files for known crash & layout regressions
 for kt_path in glob.glob("app/src/main/java/com/duorhythm/app/**/*.kt", recursive=True):
     with open(kt_path, "r", encoding="utf-8") as f:

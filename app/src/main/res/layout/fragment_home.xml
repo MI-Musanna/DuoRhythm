@@ -118,7 +118,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="@dimen/spacing_between_sections"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -192,7 +192,7 @@
             android:background="@drawable/bg_card_dark"
             android:gravity="center"
             android:text="All lectures finished • Rest and recharge"
-            android:textColor="#475569"
+            android:textColor="@color/text_on_canvas_muted"
             android:textSize="12.5sp"
             android:visibility="gone" />
 
@@ -201,7 +201,7 @@
             android:id="@+id/layoutOverviewSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/spacing_between_sections"
             android:orientation="horizontal">
 
             <com.google.android.material.card.MaterialCardView
@@ -347,7 +347,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="Tasks on agenda"
-                        android:textColor="#475569"
+                        android:textColor="@color/text_on_canvas_muted"
                         android:textSize="9.5sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -358,7 +358,7 @@
             android:id="@+id/cardStudyPortal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/spacing_between_cards"
             app:cardBackgroundColor="#0D1322"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
@@ -439,7 +439,7 @@
             android:id="@+id/cardQuickNotesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/spacing_between_cards"
             app:cardBackgroundColor="#0D1322"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
@@ -524,7 +524,7 @@
                         android:background="@drawable/bg_pill_dark"
                         android:padding="10dp"
                         android:text="Tap + NOTE to jot down formulas or lecture memos..."
-                        android:textColor="#475569"
+                        android:textColor="@color/text_on_canvas_muted"
                         android:textSize="11.5sp"
                         android:visibility="gone" />
 
@@ -535,7 +535,7 @@
                         android:background="@drawable/bg_pill_dark"
                         android:padding="10dp"
                         android:text="Tap + NOTE to jot down formulas or lecture memos..."
-                        android:textColor="#475569"
+                        android:textColor="@color/text_on_canvas_muted"
                         android:textSize="11.5sp"
                         android:visibility="gone" />
                 </LinearLayout>
@@ -546,7 +546,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="@dimen/spacing_between_sections"
             android:text="Quick Actions"
             android:textColor="#94A3B8"
             android:textSize="12sp"

@@ -114,7 +114,7 @@
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="0dp"
                 android:text="Work"
-                android:textColor="#475569"
+                android:textColor="@color/text_on_canvas_muted"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 app:backgroundTint="@android:color/transparent"

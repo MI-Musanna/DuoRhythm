@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Grouping Rhythm: 8dp Inside a Group, 24dp Between Separate Sections -->
+    <dimen name="spacing_inside_tight">4dp</dimen>
+    <dimen name="spacing_inside_group">8dp</dimen>
+    <dimen name="spacing_card_padding">16dp</dimen>
+    <dimen name="spacing_between_cards">14dp</dimen>
+    <dimen name="spacing_between_sections">24dp</dimen>
+
+    <!-- Corner Radii -->
+    <dimen name="radius_card_main">16dp</dimen>
+    <dimen name="radius_card_compact">14dp</dimen>
+    <dimen name="radius_pill">999dp</dimen>
+</resources>

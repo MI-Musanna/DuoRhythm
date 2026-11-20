@@ -492,4 +492,42 @@ class DuoRhythmFullAppAuditTest {
         )
         assertTrue("Seamless cyber header drawable must exist", headerBg != null)
     }
+
+
+    private fun relativeLuminance(colorInt: Int): Double {
+        fun channel(c: Int): Double {
+            val s = c / 255.0
+            return if (s <= 0.03928) s / 12.92 else Math.pow((s + 0.055) / 1.055, 2.4)
+        }
+        val r = channel(android.graphics.Color.red(colorInt))
+        val g = channel(android.graphics.Color.green(colorInt))
+        val b = channel(android.graphics.Color.blue(colorInt))
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+
+    private fun contrastRatio(fg: Int, bg: Int): Double {
+        val l1 = relativeLuminance(fg)
+        val l2 = relativeLuminance(bg)
+        val lighter = Math.max(l1, l2)
+        val darker = Math.min(l1, l2)
+        return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    @Test
+    fun audit13_wcagContrastAndGroupingSpacingTokens() {
+        val cardBg = androidx.core.content.ContextCompat.getColor(context, R.color.bg_surface)
+        val primaryText = androidx.core.content.ContextCompat.getColor(context, R.color.text_on_canvas_primary)
+        val secondaryText = androidx.core.content.ContextCompat.getColor(context, R.color.text_on_canvas_secondary)
+        val mutedText = androidx.core.content.ContextCompat.getColor(context, R.color.text_on_canvas_muted)
+
+        assertTrue("Primary text contrast must exceed 4.5:1", contrastRatio(primaryText, cardBg) >= 4.5)
+        assertTrue("Secondary text contrast must exceed 4.5:1", contrastRatio(secondaryText, cardBg) >= 4.5)
+        assertTrue("Muted text contrast must exceed 4.5:1", contrastRatio(mutedText, cardBg) >= 4.5)
+
+        val insideDp = context.resources.getDimension(R.dimen.spacing_inside_group) / context.resources.displayMetrics.density
+        val betweenDp = context.resources.getDimension(R.dimen.spacing_between_sections) / context.resources.displayMetrics.density
+        assertEquals(8f, insideDp, 0.1f)
+        assertEquals(24f, betweenDp, 0.1f)
+    }
+
 }
