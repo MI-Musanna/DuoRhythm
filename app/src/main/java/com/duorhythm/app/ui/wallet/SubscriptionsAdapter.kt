@@ -106,7 +106,7 @@ class SubscriptionsAdapter(
                 binding.tvStatusBadge.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22EF4444"))
                 binding.btnMarkPaid.text = "MARK PAID"
                 binding.btnMarkPaid.setTextColor(Color.parseColor("#0F172A"))
-                binding.btnMarkPaid.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+                binding.btnMarkPaid.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
             }
 
             binding.root.setOnClickListener {

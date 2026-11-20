@@ -131,7 +131,7 @@ class CalendarAdapter(
             if (!item.isCurrentMonth) {
                 tvDayNumber.setTextColor(Color.parseColor("#4B5563"))
             } else if (item.isSelected) {
-                tvDayNumber.setTextColor(Color.parseColor("#38BDF8"))
+                tvDayNumber.setTextColor(Color.parseColor("#2DD4BF"))
             } else if (item.isToday) {
                 tvDayNumber.setTextColor(Color.parseColor("#F59E0B"))
             } else {

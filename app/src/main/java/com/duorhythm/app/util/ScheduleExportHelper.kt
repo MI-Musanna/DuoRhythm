@@ -70,7 +70,7 @@ object ScheduleExportHelper {
         canvas.drawRect(0f, 0f, width.toFloat(), totalHeight.toFloat(), bgPaint)
 
         val brandPaint = Paint().apply {
-            color = Color.parseColor("#00E5FF")
+            color = Color.parseColor("#2DD4BF")
             textSize = 40f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
@@ -85,7 +85,7 @@ object ScheduleExportHelper {
         canvas.drawText("Verified Semester Schedule • Offline Generated Snapshot", 60f, 135f, subHeaderPaint)
 
         val dayHeaderPaint = Paint().apply {
-            color = Color.parseColor("#38BDF8")
+            color = Color.parseColor("#2DD4BF")
             textSize = 30f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true
@@ -284,7 +284,7 @@ object ScheduleExportHelper {
         canvas.drawRect(0f, 0f, width.toFloat(), totalHeight.toFloat(), bgPaint)
 
         val headerPaint = Paint().apply {
-            color = Color.parseColor("#00E5FF")
+            color = Color.parseColor("#2DD4BF")
             textSize = 42f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             isAntiAlias = true

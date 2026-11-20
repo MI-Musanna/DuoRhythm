@@ -39,7 +39,7 @@ class NextUpClassAdapter(
 
         if (rawType.contains("PRACTICAL") || rawType.contains("LAB")) {
             holder.binding.badgeClassType.text = "PRACTICAL"
-            holder.binding.badgeClassType.setTextColor(Color.parseColor("#38BDF8"))
+            holder.binding.badgeClassType.setTextColor(Color.parseColor("#2DD4BF"))
             holder.binding.badgeClassType.setBackgroundResource(R.drawable.bg_pill_dark)
         } else {
             holder.binding.badgeClassType.text = "LECTURE"

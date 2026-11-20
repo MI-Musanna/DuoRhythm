@@ -151,14 +151,14 @@ class ProfileActivity : AppCompatActivity() {
                     val pad16 = (16 * density).toInt()
                     binding.ivProfileAvatar.setPadding(pad16, pad16, pad16, pad16)
                     binding.ivProfileAvatar.setImageResource(R.drawable.ic_default_profile)
-                    binding.ivProfileAvatar.imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                    binding.ivProfileAvatar.imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
                 }
             } else {
                 val density = resources.displayMetrics.density
                 val pad16 = (16 * density).toInt()
                 binding.ivProfileAvatar.setPadding(pad16, pad16, pad16, pad16)
                 binding.ivProfileAvatar.setImageResource(R.drawable.ic_default_profile)
-                binding.ivProfileAvatar.imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                binding.ivProfileAvatar.imageTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
             }
         }
     }

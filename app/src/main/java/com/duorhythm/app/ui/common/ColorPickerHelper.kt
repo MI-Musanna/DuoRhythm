@@ -24,7 +24,7 @@ object ColorPickerHelper {
         ColorPreset("#A855F7", "Purple"),
         ColorPreset("#6366F1", "Deep Indigo"),
         ColorPreset("#2563EB", "Royal Blue"),
-        ColorPreset("#0EA5E9", "Sky Blue"),
+        ColorPreset("#0D9488", "Sky Blue"),
         ColorPreset("#06B6D4", "Cyan"),
         ColorPreset("#14B8A6", "Teal"),
         ColorPreset("#10B981", "Emerald"),

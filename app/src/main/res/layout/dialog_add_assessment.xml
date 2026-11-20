@@ -195,7 +195,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="Schedule"
-                android:backgroundTint="#38BDF8"
+                android:backgroundTint="#2DD4BF"
                 android:textColor="#000000" />
         </LinearLayout>
     </LinearLayout>

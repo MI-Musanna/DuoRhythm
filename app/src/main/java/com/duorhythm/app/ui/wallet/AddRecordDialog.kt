@@ -140,7 +140,7 @@ class AddRecordDialog(
             )
             dialogBinding.etTxTitle.setAdapter(titleAdapter)
             dialogBinding.etTxTitle.threshold = 1
-            dialogBinding.etTxTitle.setDropDownBackgroundDrawable(ColorDrawable(Color.parseColor("#0D1322")))
+            dialogBinding.etTxTitle.setDropDownBackgroundDrawable(ColorDrawable(Color.parseColor("#14171F")))
 
             // Show suggestions immediately on tap / focus
             dialogBinding.etTxTitle.setOnClickListener {

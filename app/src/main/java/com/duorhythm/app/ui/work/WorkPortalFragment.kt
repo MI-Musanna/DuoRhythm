@@ -237,10 +237,10 @@ class WorkPortalFragment : Fragment() {
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply { setMargins(0, 0, 0, (8f * d).toInt()) }
-                setCardBackgroundColor(Color.parseColor("#0D1322"))
+                setCardBackgroundColor(Color.parseColor("#14171F"))
                 radius = 12f * d
                 strokeWidth = 2
-                strokeColor = Color.parseColor("#18243C")
+                strokeColor = Color.parseColor("#2B303E")
 
                 val row = LinearLayout(requireContext()).apply {
                     orientation = LinearLayout.HORIZONTAL

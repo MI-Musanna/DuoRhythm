@@ -49,7 +49,7 @@ class ClientOrdersAdapter(
             binding.badgeOrderStatus.text = statusUpper
             binding.badgeOrderStatus.setTextColor(
                 when (statusUpper) {
-                    "COMPLETED" -> Color.parseColor("#38BDF8")
+                    "COMPLETED" -> Color.parseColor("#2DD4BF")
                     "IN PROGRESS", "IN_PROGRESS" -> Color.parseColor("#10B981")
                     else -> Color.parseColor("#F59E0B")
                 }

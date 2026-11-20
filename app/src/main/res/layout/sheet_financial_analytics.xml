@@ -194,7 +194,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="◆ Net Flow"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="11sp"
                         android:textStyle="bold" />
 
@@ -231,7 +231,7 @@
                 android:textColor="@color/white"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:backgroundTint="#0EA5E9"
+                app:backgroundTint="#0D9488"
                 app:cornerRadius="12dp" />
 
             <com.google.android.material.button.MaterialButton

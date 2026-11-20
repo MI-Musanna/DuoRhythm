@@ -35,7 +35,7 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:boxStrokeColor="#0EA5E9"
+        app:boxStrokeColor="#0D9488"
         app:boxStrokeWidth="1.5dp"
         app:boxCornerRadiusTopStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"

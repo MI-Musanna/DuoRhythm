@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:text="TODAY • SCHEDULE"
-            android:textColor="#38BDF8"
+            android:textColor="#2DD4BF"
             android:textSize="11sp"
             android:textStyle="bold" />
 
@@ -68,7 +68,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:text="NEXT UP"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="9sp"
                         android:textStyle="bold" />
 
@@ -77,7 +77,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="9sp"
                         android:textStyle="bold" />
                 </RelativeLayout>
@@ -131,7 +131,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="9sp"
                         android:textStyle="bold" />
                 </RelativeLayout>
@@ -192,7 +192,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:text="TODAY"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="9sp"
                         android:textStyle="bold" />
 
@@ -201,7 +201,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="9sp"
                         android:textStyle="bold" />
                 </RelativeLayout>
@@ -247,7 +247,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="9sp"
                         android:textStyle="bold" />
                 </RelativeLayout>

@@ -13,7 +13,7 @@
     android:fillViewport="true"
     android:clipToPadding="false"
     android:paddingBottom="100dp"
-    android:background="#0B0F17">
+    android:background="#0A0B0E">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,6 +38,7 @@
 
                 <TextView
                     android:id="@+id/tvWalletTitle"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.01"
@@ -51,6 +52,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="Money &amp; Ledger Tracker"
+                    android:visibility="gone"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -65,7 +67,7 @@
                 android:contentDescription="Manage Transaction Categories"
                 android:tooltipText="Manage Transaction Categories"
                 android:src="@drawable/ic_category"
-                app:tint="#38BDF8" />
+                app:tint="#2DD4BF" />
 
             <!-- Quick Converter Tool -->
             <ImageButton
@@ -76,7 +78,7 @@
                 android:background="@drawable/bg_header_action_button"
                 android:contentDescription="Live Currency Converter"
                 android:src="@drawable/ic_calculate"
-                app:tint="#38BDF8" />
+                app:tint="#2DD4BF" />
 
             <!-- Currency Badge Pill -->
             <TextView
@@ -105,9 +107,9 @@
                 android:textColor="#CBD5E1"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:backgroundTint="#1F293D"
+                app:backgroundTint="#1E222D"
                 app:cornerRadius="18dp"
-                app:strokeColor="#2D3B55"
+                app:strokeColor="#2B303E"
                 app:strokeWidth="1dp" />
 
             <!-- Security Shield -->
@@ -218,7 +220,7 @@
                             android:layout_height="34dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_wallet"
-                            app:tint="#38BDF8" />
+                            app:tint="#2DD4BF" />
                     </FrameLayout>
 
                     <TextView
@@ -251,7 +253,7 @@
                         android:textColor="@color/white"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0EA5E9"
+                        app:backgroundTint="#0D9488"
                         app:cornerRadius="16dp" />
 
                 </LinearLayout>
@@ -350,7 +352,7 @@
                                 android:layout_height="10dp"
                                 android:layout_marginEnd="4dp"
                                 android:src="@drawable/ic_shield_check"
-                                app:tint="#0EA5E9" />
+                                app:tint="#0D9488" />
 
                             <TextView
                                 android:id="@+id/tvAccountsSummary"
@@ -398,7 +400,7 @@
                             android:textColor="@color/white"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            app:backgroundTint="#0EA5E9"
+                            app:backgroundTint="#0D9488"
                             app:cornerRadius="10dp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -556,7 +558,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Balanced"
-                            android:textColor="#38BDF8"
+                            android:textColor="#2DD4BF"
                             android:textSize="11.5sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -612,7 +614,7 @@
                     android:insetBottom="0dp"
                     android:paddingHorizontal="10dp"
                     android:text="+ ADD"
-                    android:textColor="#38BDF8"
+                    android:textColor="#2DD4BF"
                     android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -656,7 +658,7 @@
                             android:layout_height="24dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_wallet"
-                            app:tint="#38BDF8" />
+                            app:tint="#2DD4BF" />
                     </FrameLayout>
 
                     <TextView
@@ -688,7 +690,7 @@
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0EA5E9"
+                        app:backgroundTint="#0D9488"
                         app:cornerRadius="14dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -811,7 +813,7 @@
                             android:layout_height="16dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_subscription"
-                            app:tint="#38BDF8" />
+                            app:tint="#2DD4BF" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -835,7 +837,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="1dp"
                             android:text="Active Subscriptions: ৳0.00/mo"
-                            android:textColor="#38BDF8"
+                            android:textColor="#2DD4BF"
                             android:textSize="11sp" />
                     </LinearLayout>
 

@@ -35,7 +35,7 @@
                     android:layout_height="18dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_refresh_cw"
-                    app:tint="#38BDF8" />
+                    app:tint="#2DD4BF" />
             </FrameLayout>
 
             <!-- Middle: Title & Metadata Subtitle -->
@@ -77,7 +77,7 @@
                 android:layout_marginStart="8dp"
                 android:gravity="end"
                 android:text="৳1050/mo"
-                android:textColor="#38BDF8"
+                android:textColor="#2DD4BF"
                 android:textSize="15sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -122,7 +122,7 @@
                 android:textColor="#0F172A"
                 android:textSize="10sp"
                 android:textStyle="bold"
-                app:backgroundTint="#38BDF8"
+                app:backgroundTint="#2DD4BF"
                 app:cornerRadius="14dp" />
 
             <ImageButton

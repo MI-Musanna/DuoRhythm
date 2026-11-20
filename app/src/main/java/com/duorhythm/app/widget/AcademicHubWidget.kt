@@ -246,11 +246,11 @@ class AcademicHubWidget : AppWidgetProvider() {
                     if (isC1InProgress) {
                         views.setInt(R.id.rowClass1, "setBackgroundResource", R.drawable.bg_widget_item_class_active)
                         views.setTextViewText(R.id.tvClass1Badge, "● IN PROGRESS")
-                        views.setTextColor(R.id.tvClass1Badge, Color.parseColor("#00E5FF"))
+                        views.setTextColor(R.id.tvClass1Badge, Color.parseColor("#2DD4BF"))
                     } else {
                         views.setInt(R.id.rowClass1, "setBackgroundResource", R.drawable.bg_widget_item_class)
                         views.setTextViewText(R.id.tvClass1Badge, if (!isEveningRollover) "NEXT UP" else "SCHEDULED")
-                        views.setTextColor(R.id.tvClass1Badge, Color.parseColor("#00E5FF"))
+                        views.setTextColor(R.id.tvClass1Badge, Color.parseColor("#2DD4BF"))
                     }
 
                     // Class 2
@@ -269,7 +269,7 @@ class AcademicHubWidget : AppWidgetProvider() {
                         if (isC2InProgress) {
                             views.setInt(R.id.rowClass2, "setBackgroundResource", R.drawable.bg_widget_item_class_active)
                             views.setTextViewText(R.id.tvClass2Badge, "● IN PROGRESS")
-                            views.setTextColor(R.id.tvClass2Badge, Color.parseColor("#00E5FF"))
+                            views.setTextColor(R.id.tvClass2Badge, Color.parseColor("#2DD4BF"))
                         } else {
                             views.setInt(R.id.rowClass2, "setBackgroundResource", R.drawable.bg_widget_item_class)
                             views.setTextViewText(R.id.tvClass2Badge, "UPCOMING")

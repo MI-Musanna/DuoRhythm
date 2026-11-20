@@ -27,7 +27,7 @@ class WormDotsIndicatorView @JvmOverloads constructor(
     }
 
     private val activeWormPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#00E5FF")
+        color = Color.parseColor("#2DD4BF")
         style = Paint.Style.FILL
     }
 

@@ -70,7 +70,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
     private val miniChartColors = listOf(
         Color.parseColor("#10B981"),
-        Color.parseColor("#38BDF8"),
+        Color.parseColor("#2DD4BF"),
         Color.parseColor("#F43F5E"),
         Color.parseColor("#8B5CF6"),
         Color.parseColor("#F59E0B"),
@@ -83,7 +83,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = Color.parseColor("#0A1322")
-            window.navigationBarColor = Color.parseColor("#06080F")
+            window.navigationBarColor = Color.parseColor("#0A0B0E")
         }
         binding = ActivityWalletBucketDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -878,10 +878,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             "tech" to "#06B6D4",          // Teal
             "shopping" to "#EC4899",      // Pink
             "entertainment" to "#A855F7", // Purple
-            "bills" to "#38BDF8",         // Sky
-            "utilities" to "#0EA5E9",
+            "bills" to "#2DD4BF",         // Sky
+            "utilities" to "#0D9488",
             "transport" to "#06B6D4",     // Teal
-            "travel" to "#38BDF8",
+            "travel" to "#2DD4BF",
             "health" to "#EF4444",        // Red/Rose
             "medical" to "#EF4444",
             "education" to "#6366F1",     // Indigo
@@ -896,7 +896,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             "#F59E0B", // Amber
             "#8B5CF6", // Violet
             "#06B6D4", // Teal
-            "#38BDF8", // Sky
+            "#2DD4BF", // Sky
             "#EC4899", // Pink
             "#F97316", // Orange
             "#6366F1"  // Indigo
@@ -948,7 +948,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 val catKey = entry.key.lowercase(Locale.US).trim()
                 val customCat = dbHelper.getTransactionCategoryByName(entry.key)
                 val colorHex = when {
-                    customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0284C7" -> customCat.colorHex
+                    customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0D9488" -> customCat.colorHex
                     defaultCategoryColors.containsKey(catKey) -> defaultCategoryColors[catKey]!!
                     customCat != null && customCat.colorHex.isNotBlank() -> customCat.colorHex
                     else -> expenseFallbackPalette[expIdx % expenseFallbackPalette.size]
@@ -1104,10 +1104,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             if (isNight) Color.parseColor("#0C4A6E") else Color.parseColor("#E0F2FE")
         } else Color.TRANSPARENT
         val transferText = if (mode == "TRANSFER") {
-            if (isNight) Color.parseColor("#38BDF8") else Color.parseColor("#0369A1")
+            if (isNight) Color.parseColor("#2DD4BF") else Color.parseColor("#0369A1")
         } else unselectedText
         val transferStroke = if (mode == "TRANSFER") {
-            if (isNight) Color.parseColor("#0284C7") else Color.parseColor("#0284C7")
+            if (isNight) Color.parseColor("#0D9488") else Color.parseColor("#0D9488")
         } else unselectedStroke
         binding.btnTypeTransfer.setBackgroundColor(transferBg)
         binding.btnTypeTransfer.setTextColor(transferText)
@@ -1210,7 +1210,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             )
             dialogBinding.etTxTitle.setAdapter(titleAdapter)
             dialogBinding.etTxTitle.threshold = 1
-            dialogBinding.etTxTitle.setDropDownBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#0D1322")))
+            dialogBinding.etTxTitle.setDropDownBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#14171F")))
 
             dialogBinding.etTxTitle.setOnClickListener {
                 if (dialogBinding.etTxTitle.text.isNullOrEmpty()) {
@@ -1426,7 +1426,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         val root = android.widget.LinearLayout(ctx).apply {
             orientation = android.widget.LinearLayout.VERTICAL
             setPadding((20f * d).toInt(), (16f * d).toInt(), (20f * d).toInt(), (12f * d).toInt())
-            setBackgroundColor(android.graphics.Color.parseColor("#0D1322"))
+            setBackgroundColor(android.graphics.Color.parseColor("#14171F"))
         }
 
         val header = android.widget.TextView(ctx).apply {
@@ -1506,9 +1506,9 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
         dialog.setOnShowListener {
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-            root.setBackgroundColor(android.graphics.Color.parseColor("#0D1322"))
+            root.setBackgroundColor(android.graphics.Color.parseColor("#14171F"))
             val saveBtn = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
-            saveBtn.setTextColor(android.graphics.Color.parseColor("#00E5FF"))
+            saveBtn.setTextColor(android.graphics.Color.parseColor("#2DD4BF"))
             saveBtn.setOnClickListener {
                 val newAmount = etAmount.text.toString().trim().toDoubleOrNull()
                 if (newAmount == null || newAmount <= 0.0) {
@@ -1578,7 +1578,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Expense", com.duorhythm.app.R.drawable.ic_wallet, "#F43F5E") {
                     showAddTransactionDialog("EXPENSE")
                 },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#38BDF8") {
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#2DD4BF") {
                     showAddTransactionDialog("TRANSFER")
                 }
             ))

@@ -44,7 +44,7 @@ class NotificationBadgeView @JvmOverloads constructor(
 
     private val statusDotBg = GradientDrawable().apply {
         shape = GradientDrawable.OVAL
-        setColor(Color.parseColor("#00E5FF"))
+        setColor(Color.parseColor("#2DD4BF"))
         setStroke((1.2f * density).toInt(), Color.parseColor("#0A1322"))
     }
 

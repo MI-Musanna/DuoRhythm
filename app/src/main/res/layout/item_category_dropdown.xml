@@ -45,7 +45,7 @@
             android:paddingHorizontal="6dp"
             android:paddingVertical="1dp"
             android:text="INCOME"
-            android:textColor="#38BDF8"
+            android:textColor="#2DD4BF"
             android:textSize="8.5sp"
             android:textStyle="bold"
             android:visibility="gone" />

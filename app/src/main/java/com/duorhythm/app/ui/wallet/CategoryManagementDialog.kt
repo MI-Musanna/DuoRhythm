@@ -166,9 +166,9 @@ object CategoryManagementDialog {
             )
             for ((btn, id) in buttons) {
                 if (id == checkedId) {
-                    btn.setBackgroundColor(Color.parseColor("#0284C7"))
+                    btn.setBackgroundColor(Color.parseColor("#0D9488"))
                     btn.setTextColor(Color.WHITE)
-                    btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                    btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
                 } else {
                     btn.setBackgroundColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
                     btn.setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
@@ -181,14 +181,14 @@ object CategoryManagementDialog {
         }
         updateTypeToggleUi()
 
-        var selectedColor = itemToEdit?.colorHex ?: "#0284C7"
+        var selectedColor = itemToEdit?.colorHex ?: "#0D9488"
         var selectedIcon = itemToEdit?.icon ?: "wallet"
 
         var updateIconsRow: ((String, String) -> Unit)? = null
         var updateColorsRow: ((String) -> Unit)? = null
 
         fun updateUiColors() {
-            val parsedColor = try { Color.parseColor(selectedColor) } catch (_: Exception) { Color.parseColor("#0284C7") }
+            val parsedColor = try { Color.parseColor(selectedColor) } catch (_: Exception) { Color.parseColor("#0D9488") }
             binding.btnSaveCategory.backgroundTintList = ColorStateList.valueOf(parsedColor)
             updateIconsRow?.invoke(selectedIcon, selectedColor)
         }
@@ -311,9 +311,9 @@ object CategoryManagementDialog {
             )
             for ((btn, id) in buttons) {
                 if (id == checkedId) {
-                    btn.setBackgroundColor(Color.parseColor("#0284C7"))
+                    btn.setBackgroundColor(Color.parseColor("#0D9488"))
                     btn.setTextColor(Color.WHITE)
-                    btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                    btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
                 } else {
                     btn.setBackgroundColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
                     btn.setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
@@ -395,7 +395,7 @@ object CategoryManagementDialog {
             try {
                 holder.ivIcon.backgroundTintList = ColorStateList.valueOf(Color.parseColor(item.colorHex))
             } catch (_: Exception) {
-                holder.ivIcon.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#0284C7"))
+                holder.ivIcon.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#0D9488"))
             }
 
             holder.btnEdit.setOnClickListener { onEdit(item) }

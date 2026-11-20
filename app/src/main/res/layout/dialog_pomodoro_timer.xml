@@ -88,7 +88,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="Deep Flow State"
-                android:textColor="#38BDF8"
+                android:textColor="#2DD4BF"
                 android:textSize="11sp" />
         </LinearLayout>
     </FrameLayout>
@@ -119,14 +119,14 @@
             android:text="Reset"
             android:textColor="#94A3B8"
             app:cornerRadius="22dp"
-            app:strokeColor="#2D3B55" />
+            app:strokeColor="#2B303E" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStartTimer"
             android:layout_width="140dp"
             android:layout_height="44dp"
             android:layout_marginStart="14dp"
-            android:backgroundTint="#38BDF8"
+            android:backgroundTint="#2DD4BF"
             android:text="START"
             android:textColor="#0A0F1D"
             android:textSize="13sp"

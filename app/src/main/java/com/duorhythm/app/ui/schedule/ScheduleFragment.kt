@@ -399,10 +399,10 @@ class ScheduleFragment : Fragment() {
         try {
             binding.btnAddClass.visibility = View.GONE
             binding.speedDialSchedule.setItems(listOf(
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Class", com.duorhythm.app.R.drawable.ic_calendar, "#00E5FF") {
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Class", com.duorhythm.app.R.drawable.ic_calendar, "#2DD4BF") {
                     binding.btnAddClass.performClick()
                 },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Class Types", com.duorhythm.app.R.drawable.ic_category, "#38BDF8") {
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Class Types", com.duorhythm.app.R.drawable.ic_category, "#2DD4BF") {
                     try {
                         val pid = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
                         com.duorhythm.app.ui.schedule.ManageClassTypesDialog(requireContext(), pid) {

@@ -49,7 +49,7 @@ class DailyScheduleCarouselAdapter(
 
             if (item.isPlaceholder || item.classItem == null) {
                 binding.tvScheduleStatusBadge.text = "TIMETABLE"
-                binding.tvScheduleStatusBadge.setTextColor(Color.parseColor("#38BDF8"))
+                binding.tvScheduleStatusBadge.setTextColor(Color.parseColor("#2DD4BF"))
                 binding.tvScheduleStatusBadge.setBackgroundResource(R.drawable.bg_badge_timetable)
 
                 binding.tvScheduleTypeBadge.visibility = View.GONE
@@ -72,7 +72,7 @@ class DailyScheduleCarouselAdapter(
                     }
                     ClassStatus.UPCOMING_NEXT -> {
                         binding.tvScheduleStatusBadge.text = "● UPCOMING NEXT"
-                        binding.tvScheduleStatusBadge.setTextColor(Color.parseColor("#38BDF8"))
+                        binding.tvScheduleStatusBadge.setTextColor(Color.parseColor("#2DD4BF"))
                         binding.tvScheduleStatusBadge.setBackgroundResource(R.drawable.bg_badge_timetable)
                     }
                     ClassStatus.COMPLETED -> {

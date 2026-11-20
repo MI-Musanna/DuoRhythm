@@ -171,7 +171,7 @@
         android:id="@+id/btnSaveConfig"
         android:layout_width="match_parent"
         android:layout_height="52dp"
-        android:backgroundTint="#38BDF8"
+        android:backgroundTint="#2DD4BF"
         android:text="APPLY CHANGES &amp; SYNC WIDGET"
         android:textColor="#0A0F1D"
         android:textStyle="bold"

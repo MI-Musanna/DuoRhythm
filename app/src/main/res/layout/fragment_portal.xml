@@ -13,7 +13,7 @@
     android:fillViewport="true"
     android:clipToPadding="false"
     android:paddingBottom="96dp"
-    android:background="#0B0F17">
+    android:background="#0A0B0E">
 
     <LinearLayout
         android:id="@+id/rootLayout"
@@ -54,8 +54,8 @@
                     android:textColor="@color/white"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    app:backgroundTint="#0EA5E9"
-                    app:strokeColor="#38BDF8"
+                    app:backgroundTint="#0D9488"
+                    app:strokeColor="#2DD4BF"
                     app:strokeWidth="1dp"
                     app:cornerRadius="16dp" />
 
@@ -117,7 +117,7 @@
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0EA5E9"
+                        app:backgroundTint="#0D9488"
                         app:strokeWidth="0dp"
                         app:cornerRadius="16dp" />
 
@@ -263,9 +263,9 @@
                         android:layout_height="36dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:backgroundTint="#38BDF8"
+                        android:backgroundTint="#2DD4BF"
                         android:text="+ ADD COURSE"
-                        android:textColor="#0B0F17"
+                        android:textColor="#0A0B0E"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         app:cornerRadius="18dp" />
@@ -317,7 +317,7 @@
                                     android:layout_height="18dp"
                                     android:layout_gravity="center"
                                     android:src="@drawable/ic_school"
-                                    app:tint="#38BDF8" />
+                                    app:tint="#2DD4BF" />
                             </FrameLayout>
 
                             <TextView
@@ -326,7 +326,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="8dp"
                                 android:text="0 Courses"
-                                android:textColor="#38BDF8"
+                                android:textColor="#2DD4BF"
                                 android:textSize="17sp"
                                 android:textStyle="bold" />
 
@@ -512,7 +512,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_chevron_down"
-                    app:tint="#38BDF8" />
+                    app:tint="#2DD4BF" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -559,7 +559,7 @@
                             android:layout_height="28dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_school"
-                            app:tint="#38BDF8" />
+                            app:tint="#2DD4BF" />
                     </FrameLayout>
 
                     <TextView
@@ -593,7 +593,7 @@
                         android:textColor="@color/white"
                         android:textSize="13sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0EA5E9"
+                        app:backgroundTint="#0D9488"
                         app:cornerRadius="16dp" />
 
                     <View
@@ -645,7 +645,7 @@
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="8dp"
                         android:paddingVertical="3dp"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="10sp"
                         android:textStyle="bold" />
 
@@ -656,7 +656,7 @@
                         android:layout_height="36dp"
                         android:paddingHorizontal="6dp"
                         android:text="+ SCHEDULE"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="11sp" />
 
                     <ImageView
@@ -847,7 +847,7 @@
                         android:textColor="@color/white"
                         android:textSize="11sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0EA5E9"
+                        app:backgroundTint="#0D9488"
                         app:cornerRadius="12dp" />
 
                     <com.google.android.material.button.MaterialButton
@@ -894,7 +894,7 @@
                             android:textColor="@color/white"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            app:backgroundTint="#0EA5E9"
+                            app:backgroundTint="#0D9488"
                             app:strokeWidth="0dp"
                             app:cornerRadius="16dp" />
 
@@ -1029,7 +1029,7 @@
                     android:layout_centerVertical="true"
                     android:backgroundTint="#10B981"
                     android:text="+ NEW ORDER"
-                    android:textColor="#0B0F17"
+                    android:textColor="#0A0B0E"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     app:cornerRadius="18dp" />

@@ -246,14 +246,14 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem(
                     label = "Add Task / Exam",
                     iconRes = R.drawable.ic_quiz,
-                    accentHex = "#00E5FF"
+                    accentHex = "#2DD4BF"
                 ) {
                     showAddItemDialog()
                 },
                 com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem(
                     label = "Add Document",
                     iconRes = R.drawable.ic_article,
-                    accentHex = "#38BDF8"
+                    accentHex = "#2DD4BF"
                 ) {
                     pickMaterialLauncher.launch("*/*")
                 },
@@ -620,7 +620,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             isChecked = (activeCategoryFilter == "All")
             setChipBackgroundColorResource(android.R.color.transparent)
             chipStrokeWidth = 2f
-            chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (isChecked) "#00E5FF" else "#1F2F4D"))
+            chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (isChecked) "#2DD4BF" else "#1F2F4D"))
             setTextColor(Color.WHITE)
             setOnClickListener {
                 activeCategoryFilter = "All"
@@ -638,9 +638,9 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 isChecked = (activeCategoryFilter == category)
                 setChipBackgroundColorResource(android.R.color.transparent)
                 chipStrokeWidth = 2f
-                chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (isChecked) "#00E5FF" else "#1F2F4D"))
+                chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (isChecked) "#2DD4BF" else "#1F2F4D"))
                 setTextColor(Color.WHITE)
-                checkedIconTint = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+                checkedIconTint = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
 
                 setOnClickListener {
                     activeCategoryFilter = category
@@ -663,8 +663,8 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             isCheckable = false
             setChipBackgroundColorResource(android.R.color.transparent)
             chipStrokeWidth = 2f
-            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
-            setTextColor(Color.parseColor("#00E5FF"))
+            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+            setTextColor(Color.parseColor("#2DD4BF"))
             setOnClickListener {
                 showCreateCategoryModal(profileId, courseId)
             }

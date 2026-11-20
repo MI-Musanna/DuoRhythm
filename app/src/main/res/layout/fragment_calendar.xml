@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0B0F17"
+    android:background="#0A0B0E"
     android:fillViewport="true">
 
     <LinearLayout
@@ -33,7 +33,7 @@
                     android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_calendar"
-                    app:tint="#38BDF8" />
+                    app:tint="#2DD4BF" />
             </FrameLayout>
 
             <LinearLayout
@@ -107,7 +107,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_schedule"
-                    app:tint="#38BDF8" />
+                    app:tint="#2DD4BF" />
 
                 <LinearLayout
                     android:layout_width="0dp"

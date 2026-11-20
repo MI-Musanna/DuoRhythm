@@ -103,7 +103,7 @@ class ExportAssessmentsBottomSheet : BottomSheetDialogFragment() {
                 chipStrokeWidth = 2f
                 chipStrokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#1F2F4D"))
                 setTextColor(Color.WHITE)
-                checkedIconTint = android.content.res.ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+                checkedIconTint = android.content.res.ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
                         selectedCategories.add(category)

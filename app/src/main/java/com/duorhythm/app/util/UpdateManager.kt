@@ -412,7 +412,7 @@ object UpdateManager {
                 btnStable?.text = "Install"
                 btnStable?.isEnabled = true
                 btnStable?.setBackgroundColor(Color.parseColor("#10B981"))
-                btnStable?.setTextColor(Color.parseColor("#06080F"))
+                btnStable?.setTextColor(Color.parseColor("#0A0B0E"))
                 btnStable?.setOnClickListener {
                     dialog.dismiss()
                     showInAppDownloadDialog(context, stable.downloadUrl, "${stable.tagName}.apk")
@@ -444,7 +444,7 @@ object UpdateManager {
             } else {
                 // Newer beta available -> Active Update Button
                 btnBeta?.text = "UPDATE"
-                btnBeta?.setTextColor(Color.parseColor("#00E5FF"))
+                btnBeta?.setTextColor(Color.parseColor("#2DD4BF"))
                 btnBeta?.setBackgroundResource(R.drawable.bg_pill_blue)
                 btnBeta?.isClickable = true
                 val clickAction = View.OnClickListener {

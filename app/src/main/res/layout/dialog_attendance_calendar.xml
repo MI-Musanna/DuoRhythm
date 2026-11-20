@@ -41,7 +41,7 @@
                     android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_calendar"
-                    app:tint="#38BDF8" />
+                    app:tint="#2DD4BF" />
             </FrameLayout>
 
             <LinearLayout
@@ -122,7 +122,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_schedule"
-                    app:tint="#38BDF8" />
+                    app:tint="#2DD4BF" />
 
                 <LinearLayout
                     android:layout_width="0dp"

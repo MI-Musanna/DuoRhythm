@@ -467,7 +467,7 @@ class PortalFragment : Fragment() {
         binding.toggleStudentDirectoryTab.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
                 isStudentContactsTab = checkedId == R.id.tabStudentContacts
-                val cyanColor = ColorStateList.valueOf(Color.parseColor("#0284C7"))
+                val cyanColor = ColorStateList.valueOf(Color.parseColor("#0D9488"))
                 val transparentColor = ColorStateList.valueOf(Color.TRANSPARENT)
                 if (isStudentContactsTab) {
                     binding.tabStudentContacts.backgroundTintList = cyanColor
@@ -517,7 +517,7 @@ class PortalFragment : Fragment() {
     }
 
     private fun updateStudentSegmentView(checkedId: Int) {
-        val cyanColor = ColorStateList.valueOf(Color.parseColor("#0284C7"))
+        val cyanColor = ColorStateList.valueOf(Color.parseColor("#0D9488"))
         val transparentColor = ColorStateList.valueOf(Color.TRANSPARENT)
         val inactiveColor = Color.parseColor("#64748B")
         val inactiveTint = ColorStateList.valueOf(inactiveColor)
@@ -595,8 +595,8 @@ class PortalFragment : Fragment() {
     private fun updateToggleStyle(isStudent: Boolean) {
         try {
             val density = resources.displayMetrics.density
-            val cyanColor = ColorStateList.valueOf(Color.parseColor("#0284C7"))
-            val cyanStroke = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+            val cyanColor = ColorStateList.valueOf(Color.parseColor("#0D9488"))
+            val cyanStroke = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
             val emeraldColor = ColorStateList.valueOf(Color.parseColor("#10B981"))
             val emeraldStroke = ColorStateList.valueOf(Color.parseColor("#059669"))
             val transparentColor = ColorStateList.valueOf(Color.TRANSPARENT)
@@ -861,10 +861,10 @@ class PortalFragment : Fragment() {
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply { setMargins(0, 0, 0, 16) }
-                setCardBackgroundColor(Color.parseColor("#0D1322"))
+                setCardBackgroundColor(Color.parseColor("#14171F"))
                 radius = 24f
                 strokeWidth = 2
-                strokeColor = Color.parseColor("#18243C")
+                strokeColor = Color.parseColor("#2B303E")
 
                 val row = android.widget.LinearLayout(requireContext()).apply {
                     orientation = android.widget.LinearLayout.HORIZONTAL
@@ -1551,13 +1551,13 @@ class PortalFragment : Fragment() {
 
             if (isStudentProfile) {
                 binding.speedDialPortal.setItems(listOf(
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Course", com.duorhythm.app.R.drawable.ic_school, "#00E5FF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Course", com.duorhythm.app.R.drawable.ic_school, "#2DD4BF") {
                         showAddSubjectDialog()
                     },
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Schedule Exam", com.duorhythm.app.R.drawable.ic_quiz, "#F59E0B") {
                         showAddExamDialog("")
                     },
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#38BDF8") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#2DD4BF") {
                         showAddContactDialog(true)
                     },
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Group Link", com.duorhythm.app.R.drawable.ic_portal, "#10B981") {
@@ -1569,10 +1569,10 @@ class PortalFragment : Fragment() {
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Order", com.duorhythm.app.R.drawable.ic_work, "#10B981") {
                         showCreateOrderDialog()
                     },
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#38BDF8") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Contact", com.duorhythm.app.R.drawable.ic_contacts, "#2DD4BF") {
                         showAddContactDialog(false)
                     },
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Channel Link", com.duorhythm.app.R.drawable.ic_portal, "#00E5FF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Channel Link", com.duorhythm.app.R.drawable.ic_portal, "#2DD4BF") {
                         showAddGroupLinkDialog(false)
                     }
                 ))
@@ -1652,7 +1652,7 @@ class PortalFragment : Fragment() {
                 isCheckable = false
                 setChipStrokeColorResource(com.duorhythm.app.R.color.accent_cyan_primary)
                 chipStrokeWidth = 2f
-                setTextColor(android.graphics.Color.parseColor("#00E5FF"))
+                setTextColor(android.graphics.Color.parseColor("#2DD4BF"))
                 setOnClickListener {
                     val inp = android.widget.EditText(requireContext()).apply { hint = "Category Name" }
                     com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())

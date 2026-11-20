@@ -28,7 +28,7 @@
             android:layout_gravity="center"
             android:contentDescription="Class Schedule"
             android:src="@drawable/ic_schedule"
-            app:tint="#38BDF8" />
+            app:tint="#2DD4BF" />
     </FrameLayout>
 
     <!-- Status Badge (e.g. IN SESSION NOW / UPCOMING NEXT / TIMETABLE) -->
@@ -120,7 +120,7 @@
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
             android:text="Schedule →"
-            android:textColor="#38BDF8"
+            android:textColor="#2DD4BF"
             android:textSize="11sp"
             android:textStyle="bold" />
 

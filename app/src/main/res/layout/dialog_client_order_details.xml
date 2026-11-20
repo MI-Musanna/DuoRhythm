@@ -52,7 +52,7 @@
             android:paddingHorizontal="10dp"
             android:paddingVertical="4dp"
             android:text="IN PROGRESS"
-            android:textColor="#38BDF8"
+            android:textColor="#2DD4BF"
             android:textSize="11sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -90,7 +90,7 @@
             android:layout_height="44dp"
             android:backgroundTint="#10B981"
             android:text="✓ MARK COMPLETE &amp; DEPOSIT"
-            android:textColor="#0B0F17"
+            android:textColor="#0A0B0E"
             android:textSize="12sp"
             android:textStyle="bold"
             app:cornerRadius="22dp" />
@@ -109,7 +109,7 @@
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:text="Edit Order"
-                android:textColor="#38BDF8"
+                android:textColor="#2DD4BF"
                 android:textSize="12sp"
                 app:cornerRadius="20dp"
                 app:strokeColor="#1E3A5F" />

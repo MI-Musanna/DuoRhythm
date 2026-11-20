@@ -22,7 +22,7 @@ class CircleCropOverlayView @JvmOverloads constructor(
     }
 
     private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#38BDF8") // Vibrant cyan ring
+        color = Color.parseColor("#2DD4BF") // Vibrant cyan ring
         style = Paint.Style.STROKE
         strokeWidth = context.resources.displayMetrics.density * 2f
     }

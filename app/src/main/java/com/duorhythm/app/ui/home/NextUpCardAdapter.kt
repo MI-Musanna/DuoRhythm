@@ -42,10 +42,10 @@ class NextUpCardAdapter(
 
             if (isTomorrow) {
                 binding.chipStatus.text = if (position == 0) "NEXT UP" else "UPCOMING"
-                binding.chipStatus.setTextColor(Color.parseColor(if (position == 0) "#00E5FF" else "#94A3B8"))
+                binding.chipStatus.setTextColor(Color.parseColor(if (position == 0) "#2DD4BF" else "#94A3B8"))
             } else {
                 binding.chipStatus.text = if (position == 0) "NEXT UP" else "SCHEDULED"
-                binding.chipStatus.setTextColor(Color.parseColor("#00E5FF"))
+                binding.chipStatus.setTextColor(Color.parseColor("#2DD4BF"))
             }
 
             binding.btnSchedule.setOnClickListener { onScheduleClick() }

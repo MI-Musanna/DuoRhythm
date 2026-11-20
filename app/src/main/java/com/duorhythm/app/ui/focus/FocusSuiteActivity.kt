@@ -18,7 +18,7 @@ class FocusSuiteActivity : AppCompatActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = Color.parseColor("#0A1322")
-            window.navigationBarColor = Color.parseColor("#06080F")
+            window.navigationBarColor = Color.parseColor("#0A0B0E")
         }
 
         binding.btnBackFocus.setOnClickListener { finish() }

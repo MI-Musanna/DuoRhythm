@@ -70,7 +70,7 @@ object NotificationHelper {
                 description = "Full daily timetable, exams, and dues briefings"
                 setShowBadge(true)
                 enableLights(true)
-                lightColor = Color.parseColor("#00E5FF")
+                lightColor = Color.parseColor("#2DD4BF")
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 250, 150, 250)
                 setSound(soundUri, audioAttributes)
@@ -328,7 +328,7 @@ object NotificationHelper {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_duorhythm)
-            .setColor(Color.parseColor("#00E5FF"))
+            .setColor(Color.parseColor("#2DD4BF"))
             .setContentTitle(title)
             .setContentText(collapsedSummary)
             .setStyle(bigTextStyle)

@@ -31,7 +31,7 @@
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_analytics"
-                    app:tint="#38BDF8" />
+                    app:tint="#2DD4BF" />
             </FrameLayout>
 
             <LinearLayout
@@ -238,7 +238,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Net Cashflow"
-                    android:textColor="#38BDF8"
+                    android:textColor="#2DD4BF"
                     android:textSize="10sp"
                     android:textStyle="bold" />
 
@@ -248,7 +248,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:text="৳0.00"
-                    android:textColor="#38BDF8"
+                    android:textColor="#2DD4BF"
                     android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>

@@ -105,10 +105,10 @@ class AddHomeworkDialogFragment : DialogFragment() {
                 isCheckable = true
                 isChecked = (cat == selectedCategory)
                 chipStrokeWidth = 2f
-                chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (cat == selectedCategory) "#00E5FF" else "#1F2F4D"))
+                chipStrokeColor = ColorStateList.valueOf(Color.parseColor(if (cat == selectedCategory) "#2DD4BF" else "#1F2F4D"))
                 setChipBackgroundColorResource(android.R.color.transparent)
                 setTextColor(Color.WHITE)
-                checkedIconTint = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
+                checkedIconTint = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
 
                 // Single tap selects category
                 setOnClickListener {
@@ -130,8 +130,8 @@ class AddHomeworkDialogFragment : DialogFragment() {
             text = "+ Add"
             isCheckable = false
             chipStrokeWidth = 2f
-            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#00E5FF"))
-            setTextColor(Color.parseColor("#00E5FF"))
+            chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+            setTextColor(Color.parseColor("#2DD4BF"))
             setChipBackgroundColorResource(android.R.color.transparent)
             setOnClickListener {
                 showAddCategoryDialog()

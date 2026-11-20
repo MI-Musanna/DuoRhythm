@@ -89,7 +89,7 @@ class DueDebtAlarmReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, SubscriptionAlarmScheduler.CHANNEL_FINANCE_ALERTS)
             .setSmallIcon(R.drawable.ic_stat_duorhythm)
-            .setColor(Color.parseColor("#0284C7"))
+            .setColor(Color.parseColor("#0D9488"))
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))

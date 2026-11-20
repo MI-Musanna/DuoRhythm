@@ -9,7 +9,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0B0F17"
+    android:background="#0A0B0E"
     android:fillViewport="true"
     android:overScrollMode="never">
 
@@ -211,10 +211,10 @@
                 android:minHeight="96dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="#151C2C"
+                app:cardBackgroundColor="#14171F"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#2D3B55"
+                app:strokeColor="#2B303E"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -234,7 +234,7 @@
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_wallet"
-                            app:tint="#38BDF8" />
+                            app:tint="#2DD4BF" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -278,10 +278,10 @@
                 android:minHeight="96dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                app:cardBackgroundColor="#151C2C"
+                app:cardBackgroundColor="#14171F"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#2D3B55"
+                app:strokeColor="#2B303E"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -359,10 +359,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_between_cards"
-            app:cardBackgroundColor="#151C2C"
+            app:cardBackgroundColor="#14171F"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="#2D3B55"
+            app:strokeColor="#2B303E"
             app:strokeWidth="1dp">
 
             <RelativeLayout
@@ -384,7 +384,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_portal"
-                        app:tint="#38BDF8" />
+                        app:tint="#2DD4BF" />
                 </FrameLayout>
 
                 <LinearLayout
@@ -426,10 +426,10 @@
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="0dp"
                     android:text="Portal →"
-                    android:textColor="#38BDF8"
+                    android:textColor="#2DD4BF"
                     android:textSize="11sp"
                     app:cornerRadius="17dp"
-                    app:strokeColor="#2D3B55"
+                    app:strokeColor="#2B303E"
                     app:strokeWidth="1dp" />
             </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -440,10 +440,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_between_cards"
-            app:cardBackgroundColor="#151C2C"
+            app:cardBackgroundColor="#14171F"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="#2D3B55"
+            app:strokeColor="#2B303E"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -468,7 +468,7 @@
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_notes"
-                            app:tint="#38BDF8" />
+                            app:tint="#2DD4BF" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -495,7 +495,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:text="+ NOTE"
-                        android:textColor="#38BDF8"
+                        android:textColor="#2DD4BF"
                         android:textSize="11sp"
                         android:textStyle="bold" />
                 </RelativeLayout>
@@ -564,10 +564,10 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="#151C2C"
+                app:cardBackgroundColor="#14171F"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#2D3B55"
+                app:strokeColor="#2B303E"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -599,10 +599,10 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                app:cardBackgroundColor="#151C2C"
+                app:cardBackgroundColor="#14171F"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#2D3B55"
+                app:strokeColor="#2B303E"
                 app:strokeWidth="1dp">
 
                 <LinearLayout

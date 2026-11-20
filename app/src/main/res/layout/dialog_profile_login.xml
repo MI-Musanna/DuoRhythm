@@ -127,6 +127,6 @@
         android:padding="10dp"
         android:src="@drawable/ic_fingerprint"
         android:contentDescription="Authenticate with Fingerprint"
-        app:tint="#38BDF8" />
+        app:tint="#2DD4BF" />
 
 </LinearLayout>

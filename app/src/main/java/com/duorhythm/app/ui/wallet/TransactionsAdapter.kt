@@ -118,7 +118,7 @@ class TransactionsAdapter(
 
                     // Format clean visual ledger trail (Zero 'Base +' garbage)
                     tvTrail.text = String.format(java.util.Locale.US, "৳%,.0f ➔ ৳%,.0f", prevBal, endBal)
-                    tvTrail.setTextColor(if (isIncome) android.graphics.Color.parseColor("#38BDF8") else android.graphics.Color.parseColor("#94A3B8"))
+                    tvTrail.setTextColor(if (isIncome) android.graphics.Color.parseColor("#2DD4BF") else android.graphics.Color.parseColor("#94A3B8"))
                 } else {
                     tvTrail.visibility = android.view.View.GONE
                 }

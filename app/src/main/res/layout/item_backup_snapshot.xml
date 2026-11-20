@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardBackgroundColor="#151C2C"
+    app:cardBackgroundColor="#14171F"
     app:cardCornerRadius="14dp"
     app:cardElevation="0dp"
-    app:strokeColor="#2D3B55"
+    app:strokeColor="#2B303E"
     app:strokeWidth="1dp">
 
     <RelativeLayout
@@ -80,7 +80,7 @@
                 android:backgroundTint="#13243B"
                 android:paddingHorizontal="10dp"
                 android:text="Restore"
-                android:textColor="#38BDF8"
+                android:textColor="#2DD4BF"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 app:cornerRadius="16dp"

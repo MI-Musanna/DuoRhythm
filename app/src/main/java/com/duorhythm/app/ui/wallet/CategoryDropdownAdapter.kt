@@ -48,7 +48,7 @@ class CategoryDropdownAdapter(
         if (item.type.equals("INCOME", ignoreCase = true)) {
             holder.binding.badgeCategoryType.visibility = View.VISIBLE
             holder.binding.badgeCategoryType.text = "INCOME"
-            holder.binding.badgeCategoryType.setTextColor(Color.parseColor("#38BDF8"))
+            holder.binding.badgeCategoryType.setTextColor(Color.parseColor("#2DD4BF"))
         } else {
             holder.binding.badgeCategoryType.visibility = View.GONE
         }
@@ -70,7 +70,7 @@ class CategoryDropdownAdapter(
                 lower.contains("rocket") -> Color.parseColor("#8C3494")
                 lower.contains("gift") -> Color.parseColor("#EC4899")
                 lower.contains("project") || lower.contains("salary") -> Color.parseColor("#10B981")
-                type.equals("INCOME", ignoreCase = true) -> Color.parseColor("#00E5FF")
+                type.equals("INCOME", ignoreCase = true) -> Color.parseColor("#2DD4BF")
                 else -> Color.parseColor("#A855F7")
             }
         }

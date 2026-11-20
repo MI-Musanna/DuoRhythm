@@ -34,7 +34,7 @@
         android:layout_marginTop="14dp"
         android:max="100"
         android:progress="0"
-        android:progressTint="#38BDF8" />
+        android:progressTint="#2DD4BF" />
 
     <!-- Action Buttons Row -->
     <LinearLayout
@@ -59,9 +59,9 @@
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_marginStart="10dp"
-            android:backgroundTint="#38BDF8"
+            android:backgroundTint="#2DD4BF"
             android:text="INSTALL NOW"
-            android:textColor="#0B0F17"
+            android:textColor="#0A0B0E"
             android:textSize="12sp"
             android:textStyle="bold"
             android:visibility="gone"

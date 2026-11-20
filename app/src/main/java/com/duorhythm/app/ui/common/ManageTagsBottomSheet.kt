@@ -33,7 +33,7 @@ import kotlinx.coroutines.withContext
 data class TagItem(
     val id: Long,
     val name: String,
-    val colorHex: String = "#0284C7",
+    val colorHex: String = "#0D9488",
     val isDefault: Boolean = false
 )
 
@@ -52,7 +52,7 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
     private lateinit var adapter: TagsAdapter
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    private var selectedNewColorHex: String = "#0284C7"
+    private var selectedNewColorHex: String = "#0D9488"
 
     companion object {
         const val TAG = "ManageTagsBottomSheet"
@@ -78,7 +78,7 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
         super.onCreate(savedInstanceState)
         profileId = arguments?.getLong(ARG_PROFILE_ID, 1L) ?: 1L
         isClassTypeMode = arguments?.getBoolean(ARG_IS_CLASS_TYPE_MODE, true) ?: true
-        selectedNewColorHex = if (isClassTypeMode) "#0284C7" else "#8B5CF6"
+        selectedNewColorHex = if (isClassTypeMode) "#0D9488" else "#8B5CF6"
     }
 
     override fun onCreateView(

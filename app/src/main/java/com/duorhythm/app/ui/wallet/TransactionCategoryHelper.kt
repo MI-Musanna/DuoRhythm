@@ -363,11 +363,11 @@ class AutoCompleteCategoryAdapter(
             -1L -> {
                 // "+ Add New Category" / "➕ Create '$name'"
                 tvName?.text = item.name
-                tvName?.setTextColor(Color.parseColor("#0284C7"))
+                tvName?.setTextColor(Color.parseColor("#0D9488"))
                 tvName?.typeface = Typeface.DEFAULT_BOLD
                 ivIcon?.visibility = View.VISIBLE
                 ivIcon?.setImageResource(R.drawable.ic_add)
-                ivIcon?.imageTintList = ColorStateList.valueOf(Color.parseColor("#0284C7"))
+                ivIcon?.imageTintList = ColorStateList.valueOf(Color.parseColor("#0D9488"))
                 tvBadge?.visibility = View.GONE
                 btnEdit?.visibility = View.GONE
                 btnDelete?.visibility = View.GONE
@@ -407,7 +407,7 @@ class AutoCompleteCategoryAdapter(
                     tvBadge?.text = item.type
                     tvBadge?.visibility = View.VISIBLE
                     if (item.type.equals("INCOME", ignoreCase = true)) {
-                        tvBadge?.setTextColor(Color.parseColor("#38BDF8"))
+                        tvBadge?.setTextColor(Color.parseColor("#2DD4BF"))
                     }
                 } else {
                     tvBadge?.visibility = View.GONE

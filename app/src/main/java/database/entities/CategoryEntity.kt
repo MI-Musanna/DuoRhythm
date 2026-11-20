@@ -14,7 +14,7 @@ data class CategoryEntity(
     @ColumnInfo(name = "is_default")
     val is_default: Int = 0,
     @ColumnInfo(name = "color_hex")
-    val color_hex: String = "#0284C7",
+    val color_hex: String = "#0D9488",
     val icon: String = "category"
 ) {
     val isDefault: Boolean get() = is_default == 1

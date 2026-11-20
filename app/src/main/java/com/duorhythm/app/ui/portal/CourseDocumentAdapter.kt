@@ -49,12 +49,12 @@ class CourseDocumentAdapter(
                 .ifEmpty { item.title.substringAfterLast('.', "").lowercase() }
 
             val (badgeText, badgeColor, iconRes) = when (ext) {
-                "pdf" -> Triple("PDF", Color.parseColor("#0284C7"), R.drawable.ic_file_pdf)
+                "pdf" -> Triple("PDF", Color.parseColor("#0D9488"), R.drawable.ic_file_pdf)
                 "jpg", "jpeg", "png", "webp", "gif" -> Triple("IMG", Color.parseColor("#7C3AED"), R.drawable.ic_file_image)
                 "txt", "doc", "docx", "rtf" -> Triple("DOC", Color.parseColor("#D97706"), R.drawable.ic_file_text)
                 else -> {
                     when {
-                        item.type == "PDF_DOCUMENT" -> Triple("PDF", Color.parseColor("#0284C7"), R.drawable.ic_file_pdf)
+                        item.type == "PDF_DOCUMENT" -> Triple("PDF", Color.parseColor("#0D9488"), R.drawable.ic_file_pdf)
                         item.type == "IMAGE_NOTE" -> Triple("IMG", Color.parseColor("#7C3AED"), R.drawable.ic_file_image)
                         else -> {
                             val upper = ext.uppercase().takeIf { it.isNotBlank() && it.length <= 5 } ?: "FILE"

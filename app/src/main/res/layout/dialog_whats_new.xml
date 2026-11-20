@@ -28,7 +28,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_gravity="center"
-            android:indeterminateTint="#38BDF8" />
+            android:indeterminateTint="#2DD4BF" />
 
         <TextView
             android:id="@+id/tvWhatsNewBody"
@@ -45,7 +45,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
-        android:buttonTint="#38BDF8"
+        android:buttonTint="#2DD4BF"
         android:text="Don't show this again"
         android:textColor="#64748B"
         android:textSize="12sp" />
@@ -56,9 +56,9 @@
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="12dp"
-        android:backgroundTint="#38BDF8"
+        android:backgroundTint="#2DD4BF"
         android:text="AWESOME!"
-        android:textColor="#0B0F17"
+        android:textColor="#0A0B0E"
         android:textSize="12.5sp"
         android:textStyle="bold"
         app:cornerRadius="22dp" />

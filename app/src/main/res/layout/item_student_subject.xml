@@ -224,7 +224,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Open Section ➜"
-                    android:textColor="#38BDF8"
+                    android:textColor="#2DD4BF"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>

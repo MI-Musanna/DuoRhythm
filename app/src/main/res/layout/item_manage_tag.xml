@@ -39,7 +39,7 @@
         android:padding="4dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_edit"
-        app:tint="#38BDF8" />
+        app:tint="#2DD4BF" />
 
     <!-- Delete Button (btnDeleteTag, trash icon, tinted red #EF4444, size 28dp) -->
     <ImageButton

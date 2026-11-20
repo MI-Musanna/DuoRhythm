@@ -24,8 +24,8 @@ android {
         applicationId "com.duorhythm.app"
         minSdk 24
         targetSdk 34
-        versionCode 67
-        versionName "1.5.8-beta"
+        versionCode 68
+        versionName "1.5.9-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables.useSupportLibrary = true

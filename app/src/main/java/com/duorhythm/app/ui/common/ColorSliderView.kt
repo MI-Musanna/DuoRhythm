@@ -57,7 +57,7 @@ class ColorSliderView @JvmOverloads constructor(
             }
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(Color.parseColor("#0284C7"))
+                setColor(Color.parseColor("#0D9488"))
                 setStroke(dp(2), Color.WHITE)
             }
         }
@@ -65,7 +65,7 @@ class ColorSliderView @JvmOverloads constructor(
 
         etHexCode = EditText(context).apply {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, dp(44))
-            setText("#0284C7")
+            setText("#0D9488")
             setTextColor(Color.WHITE)
             textSize = 15f
             setPadding(dp(12), dp(8), dp(12), dp(8))
@@ -244,7 +244,7 @@ class ColorSliderView @JvmOverloads constructor(
     }
 
     companion object {
-        fun showDialog(context: Context, initialHex: String = "#0284C7", onSelected: (String) -> Unit) {
+        fun showDialog(context: Context, initialHex: String = "#0D9488", onSelected: (String) -> Unit) {
             val binding = DialogColorPickerBinding.inflate(LayoutInflater.from(context))
             var chosenHex = if (initialHex.startsWith("#")) initialHex else "#$initialHex"
 

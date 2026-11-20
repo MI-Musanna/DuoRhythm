@@ -35,7 +35,7 @@ class SpeedDialFabView @JvmOverloads constructor(
     data class SpeedDialItem(
         val label: String,
         val iconRes: Int,
-        val accentHex: String = "#38BDF8",
+        val accentHex: String = "#2DD4BF",
         val onClick: () -> Unit
     )
 
@@ -64,7 +64,7 @@ class SpeedDialFabView @JvmOverloads constructor(
         // Full-screen translucent scrim
         scrimView = View(context).apply {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-            setBackgroundColor(Color.parseColor("#CC0B0F17"))
+            setBackgroundColor(Color.parseColor("#CC0A0B0E"))
             alpha = 0f
             visibility = GONE
             isClickable = true
@@ -77,7 +77,7 @@ class SpeedDialFabView @JvmOverloads constructor(
         // Pure FrameLayout Circular Cyan FAB (zero FloatingActionButton rotated contentRect bug)
         val fabBg = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
-            setColor(Color.parseColor("#38BDF8"))
+            setColor(Color.parseColor("#2DD4BF"))
             setStroke((1.5f * density).toInt(), Color.parseColor("#80FFFFFF"))
         }
 
@@ -88,7 +88,7 @@ class SpeedDialFabView @JvmOverloads constructor(
                 Gravity.CENTER
             )
             setImageResource(R.drawable.ic_add)
-            imageTintList = ColorStateList.valueOf(Color.parseColor("#0B0F17"))
+            imageTintList = ColorStateList.valueOf(Color.parseColor("#0A0B0E"))
         }
 
         mainFabButton = FrameLayout(context).apply {
@@ -182,7 +182,7 @@ class SpeedDialFabView @JvmOverloads constructor(
             val accentColor = try {
                 Color.parseColor(item.accentHex)
             } catch (_: Exception) {
-                Color.parseColor("#38BDF8")
+                Color.parseColor("#2DD4BF")
             }
 
             val angleRad = Math.toRadians(startAngleDeg + (index * stepDeg))
@@ -210,7 +210,7 @@ class SpeedDialFabView @JvmOverloads constructor(
 
                 val circleBg = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setColor(Color.parseColor("#151C2C"))
+                    setColor(Color.parseColor("#14171F"))
                     setStroke((1.5f * density).toInt(), accentColor)
                 }
 
@@ -237,8 +237,8 @@ class SpeedDialFabView @JvmOverloads constructor(
                 val badgeBg = GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
                     cornerRadius = 9f * density
-                    setColor(Color.parseColor("#F51F293D"))
-                    setStroke((1f * density).toInt(), Color.parseColor("#4D2D3B55"))
+                    setColor(Color.parseColor("#F51E222D"))
+                    setStroke((1f * density).toInt(), Color.parseColor("#4D2B303E"))
                 }
 
                 val labelBadge = TextView(context).apply {

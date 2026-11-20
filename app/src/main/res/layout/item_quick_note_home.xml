@@ -34,7 +34,7 @@
                 android:paddingHorizontal="6dp"
                 android:paddingVertical="2dp"
                 tools:text="Study"
-                android:textColor="#38BDF8"
+                android:textColor="#2DD4BF"
                 android:textSize="9sp"
                 android:textStyle="bold"
                 android:singleLine="true"
