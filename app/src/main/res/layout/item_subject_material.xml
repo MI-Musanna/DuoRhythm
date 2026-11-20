@@ -66,7 +66,7 @@
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
                     android:text="PDF"
-                    android:textColor="#0D9488"
+                    android:textColor="#0284C7"
                     android:textSize="10sp"
                     android:textStyle="bold" />
             </LinearLayout>

@@ -220,9 +220,9 @@
             android:layout_height="48dp"
             android:layout_marginTop="10dp"
             android:text="📎 Attach Material / PDF / Image"
-            android:textColor="#2DD4BF"
+            android:textColor="#38BDF8"
             app:cornerRadius="10dp"
-            app:strokeColor="#2DD4BF" />
+            app:strokeColor="#38BDF8" />
 
         <!-- Preview Layout (Visibility GONE by default) -->
         <LinearLayout
@@ -241,7 +241,7 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:src="@drawable/ic_file"
-                app:tint="#2DD4BF" />
+                app:tint="#38BDF8" />
 
             <TextView
                 android:id="@+id/tvAttachmentFileName"

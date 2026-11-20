@@ -28,7 +28,7 @@ object SubscriptionAlarmScheduler {
             ).apply {
                 description = "Recurring subscription and financial due reminders"
                 enableLights(true)
-                lightColor = Color.parseColor("#0D9488")
+                lightColor = Color.parseColor("#0284C7")
                 enableVibration(true)
             }
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager

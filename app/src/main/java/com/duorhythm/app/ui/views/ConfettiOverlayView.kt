@@ -38,9 +38,9 @@ class ConfettiOverlayView(context: Context) : View(context) {
     private var currentAlpha = 255
 
     private val palette = intArrayOf(
-        Color.parseColor("#2DD4BF"),
+        Color.parseColor("#38BDF8"),
         Color.parseColor("#10B981"),
-        Color.parseColor("#2DD4BF"),
+        Color.parseColor("#38BDF8"),
         Color.parseColor("#F59E0B"),
         Color.parseColor("#A855F7")
     )

@@ -80,7 +80,7 @@
                 android:backgroundTint="#13243B"
                 android:paddingHorizontal="10dp"
                 android:text="Restore"
-                android:textColor="#2DD4BF"
+                android:textColor="#38BDF8"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 app:cornerRadius="16dp"

@@ -58,7 +58,7 @@
             android:layout_height="38dp"
             android:layout_marginEnd="10dp"
             android:background="@drawable/bg_color_circle_fill"
-            android:backgroundTint="#0D9488"
+            android:backgroundTint="#0284C7"
             android:clickable="true"
             android:contentDescription="Pick Color"
             android:focusable="true"
@@ -76,8 +76,8 @@
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp"
-            app:boxStrokeColor="#0D9488"
-            app:hintTextColor="#0D9488">
+            app:boxStrokeColor="#0284C7"
+            app:hintTextColor="#0284C7">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etNewTag"
@@ -101,7 +101,7 @@
             android:textColor="@color/white"
             android:textSize="12sp"
             android:textStyle="bold"
-            app:backgroundTint="#0D9488"
+            app:backgroundTint="#0284C7"
             app:cornerRadius="12dp" />
     </LinearLayout>
 

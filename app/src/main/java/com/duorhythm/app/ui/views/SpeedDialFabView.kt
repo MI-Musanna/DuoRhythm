@@ -35,13 +35,14 @@ class SpeedDialFabView @JvmOverloads constructor(
     data class SpeedDialItem(
         val label: String,
         val iconRes: Int,
-        val accentHex: String = "#2DD4BF",
+        val accentHex: String = "#38BDF8",
         val onClick: () -> Unit
     )
 
     private val density = resources.displayMetrics.density
     private val scrimView: View
     private val mainFabButton: FrameLayout
+    private val mainFabBg: GradientDrawable
     private val mainFabIcon: ImageView
     private val nodeViews = mutableListOf<LinearLayout>()
     private val hitRect = Rect()
@@ -75,9 +76,9 @@ class SpeedDialFabView @JvmOverloads constructor(
         addView(scrimView)
 
         // Pure FrameLayout Circular Cyan FAB (zero FloatingActionButton rotated contentRect bug)
-        val fabBg = GradientDrawable().apply {
+        mainFabBg = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
-            setColor(Color.parseColor("#2DD4BF"))
+            setColor(Color.parseColor("#38BDF8"))
             setStroke((1.5f * density).toInt(), Color.parseColor("#80FFFFFF"))
         }
 
@@ -100,7 +101,7 @@ class SpeedDialFabView @JvmOverloads constructor(
                 marginEnd = (fabMarginEndDp * density).toInt()
                 bottomMargin = ((baseBottomOffsetDp + systemBottomInsetDp) * density).toInt()
             }
-            background = fabBg
+            background = mainFabBg
             isClickable = true
             isFocusable = true
             elevation = 32f * density
@@ -155,6 +156,23 @@ class SpeedDialFabView @JvmOverloads constructor(
         return super.dispatchTouchEvent(ev)
     }
 
+    fun syncWorkspaceAccent(isWorkMode: Boolean) {
+        val hex = if (isWorkMode) "#10B981" else "#38BDF8"
+        mainFabBg.setColor(Color.parseColor(hex))
+        mainFabButton.invalidate()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        val isWork = try {
+            val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+            prefs.getBoolean("is_work_mode", false)
+        } catch (_: Exception) {
+            false
+        }
+        syncWorkspaceAccent(isWork)
+    }
+
     fun setBottomOffsetDp(dp: Float) {
         baseBottomOffsetDp = dp
         applyEffectiveBottomOffset()
@@ -182,7 +200,7 @@ class SpeedDialFabView @JvmOverloads constructor(
             val accentColor = try {
                 Color.parseColor(item.accentHex)
             } catch (_: Exception) {
-                Color.parseColor("#2DD4BF")
+                Color.parseColor("#38BDF8")
             }
 
             val angleRad = Math.toRadians(startAngleDeg + (index * stepDeg))

@@ -70,7 +70,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
     private val miniChartColors = listOf(
         Color.parseColor("#10B981"),
-        Color.parseColor("#2DD4BF"),
+        Color.parseColor("#38BDF8"),
         Color.parseColor("#F43F5E"),
         Color.parseColor("#8B5CF6"),
         Color.parseColor("#F59E0B"),
@@ -878,10 +878,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             "tech" to "#06B6D4",          // Teal
             "shopping" to "#EC4899",      // Pink
             "entertainment" to "#A855F7", // Purple
-            "bills" to "#2DD4BF",         // Sky
-            "utilities" to "#0D9488",
+            "bills" to "#38BDF8",         // Sky
+            "utilities" to "#0284C7",
             "transport" to "#06B6D4",     // Teal
-            "travel" to "#2DD4BF",
+            "travel" to "#38BDF8",
             "health" to "#EF4444",        // Red/Rose
             "medical" to "#EF4444",
             "education" to "#6366F1",     // Indigo
@@ -896,7 +896,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             "#F59E0B", // Amber
             "#8B5CF6", // Violet
             "#06B6D4", // Teal
-            "#2DD4BF", // Sky
+            "#38BDF8", // Sky
             "#EC4899", // Pink
             "#F97316", // Orange
             "#6366F1"  // Indigo
@@ -948,7 +948,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 val catKey = entry.key.lowercase(Locale.US).trim()
                 val customCat = dbHelper.getTransactionCategoryByName(entry.key)
                 val colorHex = when {
-                    customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0D9488" -> customCat.colorHex
+                    customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0284C7" -> customCat.colorHex
                     defaultCategoryColors.containsKey(catKey) -> defaultCategoryColors[catKey]!!
                     customCat != null && customCat.colorHex.isNotBlank() -> customCat.colorHex
                     else -> expenseFallbackPalette[expIdx % expenseFallbackPalette.size]
@@ -1104,10 +1104,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             if (isNight) Color.parseColor("#0C4A6E") else Color.parseColor("#E0F2FE")
         } else Color.TRANSPARENT
         val transferText = if (mode == "TRANSFER") {
-            if (isNight) Color.parseColor("#2DD4BF") else Color.parseColor("#0369A1")
+            if (isNight) Color.parseColor("#38BDF8") else Color.parseColor("#0369A1")
         } else unselectedText
         val transferStroke = if (mode == "TRANSFER") {
-            if (isNight) Color.parseColor("#0D9488") else Color.parseColor("#0D9488")
+            if (isNight) Color.parseColor("#0284C7") else Color.parseColor("#0284C7")
         } else unselectedStroke
         binding.btnTypeTransfer.setBackgroundColor(transferBg)
         binding.btnTypeTransfer.setTextColor(transferText)
@@ -1508,7 +1508,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             root.setBackgroundColor(android.graphics.Color.parseColor("#14171F"))
             val saveBtn = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
-            saveBtn.setTextColor(android.graphics.Color.parseColor("#2DD4BF"))
+            saveBtn.setTextColor(android.graphics.Color.parseColor("#38BDF8"))
             saveBtn.setOnClickListener {
                 val newAmount = etAmount.text.toString().trim().toDoubleOrNull()
                 if (newAmount == null || newAmount <= 0.0) {
@@ -1578,7 +1578,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Add Expense", com.duorhythm.app.R.drawable.ic_wallet, "#F43F5E") {
                     showAddTransactionDialog("EXPENSE")
                 },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#2DD4BF") {
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#38BDF8") {
                     showAddTransactionDialog("TRANSFER")
                 }
             ))

@@ -68,7 +68,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:src="@drawable/ic_notification"
-                        app:tint="#2DD4BF" />
+                        app:tint="#38BDF8" />
 
                     <TextView
                         android:layout_width="0dp"

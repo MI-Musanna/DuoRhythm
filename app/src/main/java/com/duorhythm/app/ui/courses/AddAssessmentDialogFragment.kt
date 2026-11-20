@@ -87,7 +87,7 @@ class AddAssessmentDialogFragment : DialogFragment() {
                     chipStrokeWidth = 2f
                     chipStrokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#1F2F4D"))
                     setTextColor(Color.WHITE)
-                    checkedIconTint = android.content.res.ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+                    checkedIconTint = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
 
                     setOnCheckedChangeListener { _, isChecked ->
                         if (isChecked) {
@@ -117,8 +117,8 @@ class AddAssessmentDialogFragment : DialogFragment() {
                 isCheckable = false
                 setChipBackgroundColorResource(android.R.color.transparent)
                 chipStrokeWidth = 2f
-                chipStrokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
-                setTextColor(Color.parseColor("#2DD4BF"))
+                chipStrokeColor = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+                setTextColor(Color.parseColor("#38BDF8"))
 
                 setOnClickListener {
                     val input = EditText(context).apply {

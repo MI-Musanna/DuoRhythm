@@ -28,8 +28,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:hint="Order Title (e.g. Print Practical)"
-            app:boxStrokeColor="#2DD4BF"
-            app:hintTextColor="#2DD4BF">
+            app:boxStrokeColor="#38BDF8"
+            app:hintTextColor="#38BDF8">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etOrderTitle"
@@ -46,8 +46,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:hint="Client / Customer Name"
-            app:boxStrokeColor="#2DD4BF"
-            app:hintTextColor="#2DD4BF">
+            app:boxStrokeColor="#38BDF8"
+            app:hintTextColor="#38BDF8">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etClientName"
@@ -82,7 +82,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:padding="4dp"
                 android:text="+ Add Item/Type"
-                android:textColor="#2DD4BF"
+                android:textColor="#38BDF8"
                 android:textSize="12sp"
                 android:textStyle="bold" />
         </RelativeLayout>
@@ -129,7 +129,7 @@
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:hint="Start Date"
-                app:boxStrokeColor="#2DD4BF">
+                app:boxStrokeColor="#38BDF8">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etOrderStartDate"
@@ -147,7 +147,7 @@
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
                 android:hint="Due Date"
-                app:boxStrokeColor="#2DD4BF">
+                app:boxStrokeColor="#38BDF8">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etOrderDueDate"
@@ -166,7 +166,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:hint="Notes &amp; Print Specifications (Optional)"
-            app:boxStrokeColor="#2DD4BF">
+            app:boxStrokeColor="#38BDF8">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etOrderNotes"

@@ -721,7 +721,7 @@ class WalletFragment : Fragment() {
             }
             else -> {
                 binding.tvChartNetStatus.text = "Balanced"
-                binding.tvChartNetStatus.setTextColor(Color.parseColor("#2DD4BF"))
+                binding.tvChartNetStatus.setTextColor(Color.parseColor("#38BDF8"))
             }
         }
 
@@ -1056,10 +1056,10 @@ class WalletFragment : Fragment() {
             if (isNight) Color.parseColor("#0C4A6E") else Color.parseColor("#E0F2FE")
         } else Color.TRANSPARENT
         val transferText = if (mode == "TRANSFER") {
-            if (isNight) Color.parseColor("#2DD4BF") else Color.parseColor("#0369A1")
+            if (isNight) Color.parseColor("#38BDF8") else Color.parseColor("#0369A1")
         } else unselectedText
         val transferStroke = if (mode == "TRANSFER") {
-            if (isNight) Color.parseColor("#0D9488") else Color.parseColor("#0D9488")
+            if (isNight) Color.parseColor("#0284C7") else Color.parseColor("#0284C7")
         } else unselectedStroke
         binding.btnTypeTransfer.setBackgroundColor(transferBg)
         binding.btnTypeTransfer.setTextColor(transferText)
@@ -1317,10 +1317,10 @@ class WalletFragment : Fragment() {
             binding.btnCurrencyBadge.visibility = View.GONE
             (binding.btnHeroRecordTx.parent as? View)?.visibility = View.GONE
             binding.speedDialWallet.setItems(listOf(
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Tx", com.duorhythm.app.R.drawable.ic_wallet, "#2DD4BF") {
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Tx", com.duorhythm.app.R.drawable.ic_wallet, "#38BDF8") {
                     binding.btnHeroRecordTx.performClick()
                 },
-                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#2DD4BF") {
+                com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Transfer", com.duorhythm.app.R.drawable.ic_sync, "#38BDF8") {
                     binding.btnHeroTransfer.performClick()
                 },
                 com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Dues / Debts", com.duorhythm.app.R.drawable.ic_analytics, "#10B981") {

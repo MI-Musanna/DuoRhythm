@@ -502,7 +502,7 @@ class SettingsActivity : AppCompatActivity() {
             )
             for ((id, btn) in presetButtons) {
                 val selected = (id == targetId)
-                btn.backgroundTintList = ColorStateList.valueOf(if (selected) Color.parseColor("#0D9488") else Color.TRANSPARENT)
+                btn.backgroundTintList = ColorStateList.valueOf(if (selected) Color.parseColor("#0284C7") else Color.TRANSPARENT)
                 btn.setTextColor(if (selected) Color.WHITE else Color.parseColor("#94A3B8"))
             }
         } finally {
@@ -1277,7 +1277,7 @@ class SettingsActivity : AppCompatActivity() {
                     val icon = v.findViewById<ImageView>(R.id.ivSnapshotType)
                     if (item.isAuto) {
                         icon.setImageResource(R.drawable.ic_schedule)
-                        icon.imageTintList = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+                        icon.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
                     } else {
                         icon.setImageResource(R.drawable.ic_save)
                         icon.imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))

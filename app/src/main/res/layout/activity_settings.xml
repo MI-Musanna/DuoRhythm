@@ -158,7 +158,7 @@
                             android:layout_width="22dp"
                             android:layout_height="22dp"
                             android:src="@drawable/ic_update_sparkle"
-                            app:tint="#2DD4BF" />
+                            app:tint="#38BDF8" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -178,7 +178,7 @@
                             android:paddingHorizontal="8dp"
                             android:paddingVertical="3dp"
                             android:text="v1.0.4-beta"
-                            android:textColor="#2DD4BF"
+                            android:textColor="#38BDF8"
                             android:textSize="10sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -206,7 +206,7 @@
                             android:layout_marginEnd="6dp"
                             android:backgroundTint="#13243B"
                             android:text="Check Updates"
-                            android:textColor="#2DD4BF"
+                            android:textColor="#38BDF8"
                             android:textSize="11.5sp"
                             android:textStyle="bold"
                             app:cornerRadius="20dp"
@@ -518,7 +518,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="2dp"
                                         android:text="08:00 AM"
-                                        android:textColor="#2DD4BF"
+                                        android:textColor="#38BDF8"
                                         android:textSize="12sp"
                                         android:textStyle="bold" />
                                 </LinearLayout>
@@ -568,7 +568,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="2dp"
                                         android:text="08:30 PM"
-                                        android:textColor="#2DD4BF"
+                                        android:textColor="#38BDF8"
                                         android:textSize="12sp"
                                         android:textStyle="bold" />
                                 </LinearLayout>
@@ -587,11 +587,11 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="10dp"
                                 android:text="Test Morning Notification"
-                                android:textColor="#2DD4BF"
+                                android:textColor="#38BDF8"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
                                 app:icon="@drawable/ic_schedule"
-                                app:iconTint="#2DD4BF"
+                                app:iconTint="#38BDF8"
                                 app:strokeColor="#2E38BDF8"
                                 app:strokeWidth="1dp"
                                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -619,7 +619,7 @@
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
                                 android:src="@drawable/ic_tasks"
-                                app:tint="#2DD4BF" />
+                                app:tint="#38BDF8" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -1930,7 +1930,7 @@
                                 android:textColor="@color/white"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
-                                app:backgroundTint="#0D9488"
+                                app:backgroundTint="#0284C7"
                                 app:cornerRadius="12dp"
                                 app:icon="@drawable/ic_backup"
                                 app:iconSize="16dp"
@@ -2098,7 +2098,7 @@
                                 android:layout_width="22dp"
                                 android:layout_height="22dp"
                                 android:src="@drawable/ic_history"
-                                app:tint="#2DD4BF" />
+                                app:tint="#38BDF8" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -2419,7 +2419,7 @@
                                 android:layout_weight="1"
                                 android:letterSpacing="0.06"
                                 android:text="EXECUTIVE PROFILE"
-                                android:textColor="#2DD4BF"
+                                android:textColor="#38BDF8"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
 
@@ -2431,7 +2431,7 @@
                                 android:insetTop="0dp"
                                 android:insetBottom="0dp"
                                 android:text="System Info ↗"
-                                android:textColor="#2DD4BF"
+                                android:textColor="#38BDF8"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -2470,7 +2470,7 @@
                                             android:layout_height="wrap_content"
                                             android:layout_gravity="center"
                                             android:text="MI"
-                                            android:textColor="#2DD4BF"
+                                            android:textColor="#38BDF8"
                                             android:textSize="16sp"
                                             android:textStyle="bold" />
                                     </FrameLayout>
@@ -2607,7 +2607,7 @@
                                 <View
                                     android:layout_width="3dp"
                                     android:layout_height="match_parent"
-                                    android:background="#2DD4BF" />
+                                    android:background="#38BDF8" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -2621,7 +2621,7 @@
                                         android:layout_height="wrap_content"
                                         android:letterSpacing="0.06"
                                         android:text="CORE PHILOSOPHY &amp; SPECS"
-                                        android:textColor="#2DD4BF"
+                                        android:textColor="#38BDF8"
                                         android:textSize="11sp"
                                         android:textStyle="bold" />
 
@@ -2659,7 +2659,7 @@
                             android:layout_marginTop="16dp"
                             android:letterSpacing="0.06"
                             android:text="OFFICIAL CHANNELS &amp; LINKS"
-                            android:textColor="#2DD4BF"
+                            android:textColor="#38BDF8"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -2695,7 +2695,7 @@
                                         android:layout_width="20dp"
                                         android:layout_height="20dp"
                                         android:src="@drawable/ic_globe"
-                                        app:tint="#2DD4BF" />
+                                        app:tint="#38BDF8" />
 
                                     <LinearLayout
                                         android:layout_width="0dp"
@@ -2717,7 +2717,7 @@
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="1dp"
                                             android:text="taplink.cc/mi2007"
-                                            android:textColor="#2DD4BF"
+                                            android:textColor="#38BDF8"
                                             android:textSize="11sp" />
                                     </LinearLayout>
 
@@ -2807,7 +2807,7 @@
                                         android:layout_width="20dp"
                                         android:layout_height="20dp"
                                         android:src="@drawable/ic_telegram"
-                                        app:tint="#2DD4BF" />
+                                        app:tint="#38BDF8" />
 
                                     <LinearLayout
                                         android:layout_width="0dp"
@@ -2829,7 +2829,7 @@
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="1dp"
                                             android:text="@NetHunter2007 (Telegram)"
-                                            android:textColor="#2DD4BF"
+                                            android:textColor="#38BDF8"
                                             android:textSize="11sp" />
                                     </LinearLayout>
 

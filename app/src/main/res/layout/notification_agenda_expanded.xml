@@ -28,7 +28,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="DAILY ACADEMIC AGENDAS"
-                android:textColor="#2DD4BF"
+                android:textColor="#38BDF8"
                 android:textSize="11.5sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -71,7 +71,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="TIMETABLE SCHEDULE"
-                android:textColor="#2DD4BF"
+                android:textColor="#38BDF8"
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
@@ -132,7 +132,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tap to open full timetable and syllabus →"
-            android:textColor="#2DD4BF"
+            android:textColor="#38BDF8"
             android:textSize="10.5sp"
             android:textStyle="bold" />
     </LinearLayout>

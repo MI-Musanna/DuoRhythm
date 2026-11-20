@@ -210,7 +210,7 @@
                 android:textColor="@color/white"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                app:backgroundTint="#0D9488"
+                app:backgroundTint="#0284C7"
                 app:cornerRadius="14dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -441,7 +441,7 @@
                     android:textColor="@color/white"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    app:backgroundTint="#0D9488"
+                    app:backgroundTint="#0284C7"
                     app:cornerRadius="16dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -535,7 +535,7 @@
         android:textStyle="bold"
         app:icon="@drawable/ic_add"
         app:iconTint="@color/white"
-        app:backgroundTint="#0D9488"
+        app:backgroundTint="#0284C7"
         app:elevation="6dp" />
 
     <com.duorhythm.app.ui.views.SpeedDialFabView

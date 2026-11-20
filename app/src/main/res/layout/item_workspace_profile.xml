@@ -75,7 +75,7 @@
                     android:padding="6dp"
                     android:src="@drawable/ic_edit"
                     android:visibility="gone"
-                    app:tint="#2DD4BF" />
+                    app:tint="#38BDF8" />
 
                 <!-- Active / Switch Pill Button -->
                 <TextView
@@ -113,7 +113,7 @@
                     android:contentDescription="User Avatar"
                     android:scaleType="centerCrop"
                     android:src="@drawable/ic_default_profile"
-                    app:tint="#2DD4BF" />
+                    app:tint="#38BDF8" />
             </FrameLayout>
 
             <LinearLayout

@@ -47,7 +47,7 @@ class FinancialAnalyticsDialog(
 
     private val chartColors = listOf(
         Color.parseColor("#10B981"), // Emerald Green
-        Color.parseColor("#2DD4BF"), // Sky Blue
+        Color.parseColor("#38BDF8"), // Sky Blue
         Color.parseColor("#F43F5E"), // Rose
         Color.parseColor("#8B5CF6"), // Violet
         Color.parseColor("#F59E0B"), // Amber

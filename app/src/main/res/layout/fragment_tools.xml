@@ -67,7 +67,7 @@
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="5dp"
                 android:text="FOCUS SUITE"
-                android:textColor="#2DD4BF"
+                android:textColor="#38BDF8"
                 android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -96,7 +96,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_bolt"
-                    app:tint="#2DD4BF" />
+                    app:tint="#38BDF8" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -295,7 +295,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_wallet"
-                        app:tint="#2DD4BF" />
+                        app:tint="#38BDF8" />
                 </FrameLayout>
 
                 <LinearLayout
@@ -329,7 +329,7 @@
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="5dp"
                     android:text="Convert ➜"
-                    android:textColor="#2DD4BF"
+                    android:textColor="#38BDF8"
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -437,7 +437,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_calendar"
-                        app:tint="#2DD4BF" />
+                        app:tint="#38BDF8" />
                 </FrameLayout>
 
                 <LinearLayout
@@ -471,7 +471,7 @@
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="5dp"
                     android:text="Open Log ➜"
-                    android:textColor="#2DD4BF"
+                    android:textColor="#38BDF8"
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>

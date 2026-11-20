@@ -463,7 +463,7 @@ class TasksFragment : Fragment() {
             if (!isChecked) return@addOnButtonCheckedListener
             if (checkedId == R.id.btnTabTasks) {
                 currentTab = TaskTab.TASKS
-                binding.btnTabTasks.setBackgroundColor(Color.parseColor("#0D9488"))
+                binding.btnTabTasks.setBackgroundColor(Color.parseColor("#0284C7"))
                 binding.btnTabTasks.setTextColor(Color.WHITE)
                 binding.btnTabGoals.setBackgroundColor(Color.TRANSPARENT)
                 binding.btnTabGoals.setTextColor(Color.parseColor("#94A3B8"))
@@ -599,8 +599,8 @@ class TasksFragment : Fragment() {
 
                 binding.tvGoalProgressHeader.text = "Task Progress"
                 binding.tvGoalProgressSubtitle.text = "$completedTasks of $totalTasks Completed"
-                binding.progressGoalCircular.setIndicatorColor(Color.parseColor("#0D9488"))
-                binding.progressGoalHorizontal.setIndicatorColor(Color.parseColor("#0D9488"))
+                binding.progressGoalCircular.setIndicatorColor(Color.parseColor("#0284C7"))
+                binding.progressGoalHorizontal.setIndicatorColor(Color.parseColor("#0284C7"))
                 binding.progressGoalCircular.setProgressCompat(taskPercent, true)
                 binding.progressGoalHorizontal.setProgressCompat(taskPercent, true)
                 binding.tvGoalPercentText.text = "$taskPercent%"
@@ -757,14 +757,14 @@ class TasksFragment : Fragment() {
             binding.fabAddTask.visibility = View.GONE
             if (currentTab == TaskTab.TASKS) {
                 binding.speedDialTasks.setItems(listOf(
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#2DD4BF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#38BDF8") {
                         showCreateTaskDialog(isGoal = false)
                     },
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Goal", com.duorhythm.app.R.drawable.ic_target, "#F59E0B") {
                         binding.toggleTasksGoals.check(com.duorhythm.app.R.id.btnTabGoals)
                         showCreateTaskDialog(isGoal = true)
                     },
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Category", com.duorhythm.app.R.drawable.ic_category, "#2DD4BF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Category", com.duorhythm.app.R.drawable.ic_category, "#38BDF8") {
                         binding.btnAddCustomCategory.performClick()
                     }
                 ))
@@ -773,7 +773,7 @@ class TasksFragment : Fragment() {
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Goal", com.duorhythm.app.R.drawable.ic_target, "#F59E0B") {
                         showCreateTaskDialog(isGoal = true)
                     },
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#2DD4BF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#38BDF8") {
                         binding.toggleTasksGoals.check(com.duorhythm.app.R.id.btnTabTasks)
                         showCreateTaskDialog(isGoal = false)
                     }

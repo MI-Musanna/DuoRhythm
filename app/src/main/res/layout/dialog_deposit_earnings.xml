@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
         android:text="SELECT DESTINATION WALLET BUCKET:"
-        android:textColor="#2DD4BF"
+        android:textColor="#38BDF8"
         android:textSize="11sp"
         android:textStyle="bold" />
 

@@ -1449,7 +1449,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                             name = if (nameCol >= 0) it.getString(nameCol) ?: "" else "",
                             type = if (typeCol >= 0) it.getString(typeCol) ?: "BOTH" else "BOTH",
                             isDefault = if (defCol >= 0) it.getInt(defCol) == 1 else false,
-                            colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#0D9488" else "#0D9488",
+                            colorHex = if (colorCol >= 0) it.getString(colorCol) ?: "#0284C7" else "#0284C7",
                             icon = if (iconCol >= 0) it.getString(iconCol) ?: "category" else "category"
                         )
                     )
@@ -1462,7 +1462,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun insertTransactionCategory(
         name: String,
         type: String = "BOTH",
-        colorHex: String = "#0D9488",
+        colorHex: String = "#0284C7",
         icon: String = "category"
     ): Long {
         val trimmed = name.trim()
@@ -1578,7 +1578,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         name = it.safeGetString("name"),
                         type = it.safeGetString("type", default = "BOTH"),
                         isDefault = it.safeGetBoolean("is_default", "isDefault"),
-                        colorHex = it.safeGetString("color_hex", "colorHex", default = "#0D9488"),
+                        colorHex = it.safeGetString("color_hex", "colorHex", default = "#0284C7"),
                         icon = it.safeGetString("icon", default = "category")
                     )
                 }
@@ -1605,7 +1605,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                             profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
                             name = it.safeGetString("name"),
                             icon = it.safeGetString("icon", default = "wallet"),
-                            colorHex = it.safeGetString("color_hex", "colorHex", default = "#0D9488"),
+                            colorHex = it.safeGetString("color_hex", "colorHex", default = "#0284C7"),
                             connectedAccounts = it.safeGetString("connected_accounts", "connectedAccounts"),
                             balance = it.safeGetDouble("balance"),
                             note = it.safeGetString("note")
@@ -1630,7 +1630,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         profileId = it.safeGetLong("profile_id", "profileId", default = 1L),
                         name = it.safeGetString("name"),
                         icon = it.safeGetString("icon", default = "wallet"),
-                        colorHex = it.safeGetString("color_hex", "colorHex", default = "#0D9488"),
+                        colorHex = it.safeGetString("color_hex", "colorHex", default = "#0284C7"),
                         connectedAccounts = it.safeGetString("connected_accounts", "connectedAccounts"),
                         balance = it.safeGetDouble("balance"),
                         note = it.safeGetString("note")
@@ -3580,14 +3580,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 )
                 cursor.use {
                     while (it.moveToNext()) {
-                        val colorHex = it.safeGetString("color_hex", default = "#0D9488")
+                        val colorHex = it.safeGetString("color_hex", default = "#0284C7")
                         list.add(
                             database.entities.ClassTypeEntity(
                                 id = it.safeGetLong("id"),
                                 profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
                                 name = it.safeGetString("name"),
                                 isDefault = it.safeGetBoolean("is_default", "isDefault"),
-                                colorHex = if (colorHex.isNotBlank()) colorHex else "#0D9488"
+                                colorHex = if (colorHex.isNotBlank()) colorHex else "#0284C7"
                             )
                         )
                     }
@@ -3654,7 +3654,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
                 if (count == 0) {
                     val defaults = listOf(
-                        Pair("Lecture", "#0D9488"),
+                        Pair("Lecture", "#0284C7"),
                         Pair("Lab", "#10B981"),
                         Pair("Tutorial", "#F59E0B"),
                         Pair("Seminar", "#8B5CF6")
@@ -4913,7 +4913,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 total += sum
             }
         }
-        val fallbackColors = listOf("#0D9488", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#14B8A6", "#64748B")
+        val fallbackColors = listOf("#0284C7", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#14B8A6", "#64748B")
         for ((idx, pair) in rawList.withIndex()) {
             val pct = if (total > 0) (pair.second / total * 100).toFloat() else 0f
             val customCat = getTransactionCategoryByName(pair.first)

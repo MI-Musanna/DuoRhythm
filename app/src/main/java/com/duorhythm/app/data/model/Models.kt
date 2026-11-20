@@ -22,7 +22,7 @@ data class WalletBucketItem(
     val profileId: Long = 1,
     val name: String,
     val icon: String = "wallet",
-    val colorHex: String = "#0D9488",
+    val colorHex: String = "#0284C7",
     val connectedAccounts: String = "",
     val balance: Double = 0.0,
     val note: String = ""

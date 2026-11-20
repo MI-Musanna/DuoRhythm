@@ -51,7 +51,7 @@
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:text="SELECT"
-            android:textColor="#2DD4BF" />
+            android:textColor="#38BDF8" />
     </RelativeLayout>
 
     <LinearLayout
@@ -89,7 +89,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="SELECT ALL"
-            android:textColor="#2DD4BF" />
+            android:textColor="#38BDF8" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDeleteBatch"

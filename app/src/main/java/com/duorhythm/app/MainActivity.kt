@@ -371,6 +371,23 @@ class MainActivity : AppCompatActivity() {
 
     fun isStudentProfile(): Boolean = isStudent
 
+    private fun syncAllSpeedDialFabs(isWorkMode: Boolean) {
+        getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean("is_work_mode", isWorkMode)
+            .apply()
+        fun walk(v: View?) {
+            if (v is com.duorhythm.app.ui.views.SpeedDialFabView) {
+                v.syncWorkspaceAccent(isWorkMode)
+            } else if (v is android.view.ViewGroup) {
+                for (i in 0 until v.childCount) walk(v.getChildAt(i))
+            }
+        }
+        if (::binding.isInitialized) {
+            walk(binding.root)
+        }
+    }
+
     fun setAppWorkspaceMode(isWorkMode: Boolean) {
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         prefs.edit().putBoolean("is_work_mode", isWorkMode).apply()
@@ -399,6 +416,7 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.fragments.forEach { fragment ->
             (fragment as? com.duorhythm.app.ui.home.HomeFragment)?.applyWorkspaceColorTheme(isWorkMode)
         }
+        syncAllSpeedDialFabs(isWorkMode)
     }
 
     fun applyWorkspaceColorTheme(isWorkMode: Boolean) {
@@ -516,21 +534,21 @@ class MainActivity : AppCompatActivity() {
     private fun updateSubtitleForPosition(position: Int) {
         if (!::binding.isInitialized) return
         val (newTitle, newSub, accentHex) = when {
-            isToolsActive -> Triple("Focus Suite", "Concentration & Study Tools", "#2DD4BF")
+            isToolsActive -> Triple("Focus Suite", "Concentration & Study Tools", "#38BDF8")
             position == MainPagerAdapter.INDEX_WALLET -> Triple("Wallet & Accounts", "Net Worth & Cash Flow", "#34D399")
-            position == MainPagerAdapter.INDEX_TASKS -> Triple("Tasks & Goals", "Daily Action & Milestones", "#2DD4BF")
+            position == MainPagerAdapter.INDEX_TASKS -> Triple("Tasks & Goals", "Daily Action & Milestones", "#38BDF8")
             position == MainPagerAdapter.INDEX_HOME -> Triple(
                 "DuoRhythm",
                 if (isStudent) "Personal Dashboard" else "Executive Work Hub",
-                if (isStudent) "#2DD4BF" else "#34D399"
+                if (isStudent) "#38BDF8" else "#34D399"
             )
-            position == MainPagerAdapter.INDEX_SCHEDULE -> Triple("Timetable", "Weekly Class Routine", "#2DD4BF")
+            position == MainPagerAdapter.INDEX_SCHEDULE -> Triple("Timetable", "Weekly Class Routine", "#38BDF8")
             position == MainPagerAdapter.INDEX_PORTAL -> Triple(
                 if (isStudent) "Academic Portal" else "Work Portal",
                 if (isStudent) "Courses, Exams & Directory" else "Client Orders & Deliverables",
-                if (isStudent) "#2DD4BF" else "#34D399"
+                if (isStudent) "#38BDF8" else "#34D399"
             )
-            else -> Triple("DuoRhythm", "Personal Dashboard", "#2DD4BF")
+            else -> Triple("DuoRhythm", "Personal Dashboard", "#38BDF8")
         }
 
         animateHeaderIdentity(newTitle, newSub, accentHex)
@@ -844,7 +862,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateHeaderSuiteVisuals(isToolsActive: Boolean) {
         try {
             binding.btnQuickTools.setBackgroundResource(R.drawable.bg_header_action_button)
-            binding.btnQuickTools.imageTintList = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+            binding.btnQuickTools.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
         } catch (e: Exception) {
             e.printStackTrace()
         }

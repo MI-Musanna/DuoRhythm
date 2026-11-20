@@ -392,7 +392,7 @@
                         android:layout_height="34dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:backgroundTint="#2DD4BF"
+                        android:backgroundTint="#38BDF8"
                         android:text="+ ADD TASK / EXAM"
                         android:textColor="#0A0B0E"
                         android:textSize="10.5sp"

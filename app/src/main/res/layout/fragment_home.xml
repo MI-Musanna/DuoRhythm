@@ -234,7 +234,7 @@
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_wallet"
-                            app:tint="#2DD4BF" />
+                            app:tint="#38BDF8" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -384,7 +384,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_portal"
-                        app:tint="#2DD4BF" />
+                        app:tint="#38BDF8" />
                 </FrameLayout>
 
                 <LinearLayout
@@ -426,7 +426,7 @@
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="0dp"
                     android:text="Portal →"
-                    android:textColor="#2DD4BF"
+                    android:textColor="#38BDF8"
                     android:textSize="11sp"
                     app:cornerRadius="17dp"
                     app:strokeColor="#2B303E"
@@ -468,7 +468,7 @@
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:src="@drawable/ic_notes"
-                            app:tint="#2DD4BF" />
+                            app:tint="#38BDF8" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -495,7 +495,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:text="+ NOTE"
-                        android:textColor="#2DD4BF"
+                        android:textColor="#38BDF8"
                         android:textSize="11sp"
                         android:textStyle="bold" />
                 </RelativeLayout>

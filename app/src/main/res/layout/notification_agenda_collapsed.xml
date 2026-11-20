@@ -32,7 +32,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="DUORHYTHM"
-                android:textColor="#2DD4BF"
+                android:textColor="#38BDF8"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
 
@@ -67,7 +67,7 @@
         android:paddingHorizontal="8dp"
         android:paddingVertical="3dp"
         android:text="5 Classes"
-        android:textColor="#2DD4BF"
+        android:textColor="#38BDF8"
         android:textSize="9.5sp"
         android:textStyle="bold" />
 </LinearLayout>

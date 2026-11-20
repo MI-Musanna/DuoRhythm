@@ -68,7 +68,7 @@ class BucketAnalyticsBottomSheet : BottomSheetDialogFragment() {
 
     private val chartColors = listOf(
         Color.parseColor("#10B981"), // Emerald Green
-        Color.parseColor("#2DD4BF"), // Sky Blue
+        Color.parseColor("#38BDF8"), // Sky Blue
         Color.parseColor("#F43F5E"), // Rose
         Color.parseColor("#8B5CF6"), // Violet
         Color.parseColor("#F59E0B"), // Amber
@@ -161,12 +161,12 @@ class BucketAnalyticsBottomSheet : BottomSheetDialogFragment() {
 
     private fun updateModeButtons() {
         if (currentMode == Mode.BAR_TREND) {
-            binding.btnSheetModeBarTrend.setBackgroundColor(Color.parseColor("#0D9488"))
+            binding.btnSheetModeBarTrend.setBackgroundColor(Color.parseColor("#0284C7"))
             binding.btnSheetModeBarTrend.setTextColor(Color.WHITE)
             binding.btnSheetModeCategoryPie.setBackgroundColor(Color.TRANSPARENT)
             binding.btnSheetModeCategoryPie.setTextColor(Color.parseColor("#94A3B8"))
         } else {
-            binding.btnSheetModeCategoryPie.setBackgroundColor(Color.parseColor("#0D9488"))
+            binding.btnSheetModeCategoryPie.setBackgroundColor(Color.parseColor("#0284C7"))
             binding.btnSheetModeCategoryPie.setTextColor(Color.WHITE)
             binding.btnSheetModeBarTrend.setBackgroundColor(Color.TRANSPARENT)
             binding.btnSheetModeBarTrend.setTextColor(Color.parseColor("#94A3B8"))
@@ -413,7 +413,7 @@ class BucketAnalyticsBottomSheet : BottomSheetDialogFragment() {
             val label = entry.key
             entries.add(PieEntry(entry.value.toFloat(), label))
             val customCat = dbHelper.getTransactionCategoryByName(label)
-            val parsedColor = if (customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0D9488") {
+            val parsedColor = if (customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0284C7") {
                 try { Color.parseColor(customCat.colorHex) } catch (_: Exception) { chartColors[colorIdx % chartColors.size] }
             } else if (isIncomeOnly) {
                 Color.parseColor("#10B981")
@@ -478,7 +478,7 @@ class BucketAnalyticsBottomSheet : BottomSheetDialogFragment() {
         val items = sortedList.mapIndexed { idx, entry ->
             val pct = if (targetTotal > 0) (entry.value / targetTotal) * 100.0 else 0.0
             val customCat = dbHelper.getTransactionCategoryByName(entry.key)
-            val assignedColor = if (customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0D9488") {
+            val assignedColor = if (customCat != null && customCat.colorHex.isNotBlank() && customCat.colorHex != "#0284C7") {
                 try { Color.parseColor(customCat.colorHex) } catch (_: Exception) { chartColors[idx % chartColors.size] }
             } else if (isIncomeOnly) {
                 Color.parseColor("#10B981")

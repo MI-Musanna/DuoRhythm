@@ -53,7 +53,7 @@ object ProfileAvatarHelper {
 
         if (!loaded) {
             imageView.setImageResource(R.drawable.ic_profile_placeholder)
-            imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+            imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
         }
     }
 

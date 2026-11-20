@@ -38,8 +38,8 @@
     <!-- Water Gradient & Oceanic Glass UI Palette -->
     <color name="water_cyan_bright">#00F2FE</color>
     <color name="water_cyan_glow">#4D00F2FE</color>
-    <color name="water_sky_light">#2DD4BF</color>
-    <color name="water_azure">#0D9488</color>
+    <color name="water_sky_light">#38BDF8</color>
+    <color name="water_azure">#0284C7</color>
     <color name="water_ocean_deep">#0072FF</color>
     <color name="water_cobalt">#1D4ED8</color>
     <color name="water_teal_lagoon">#14B8A6</color>
@@ -48,11 +48,11 @@
     <color name="water_surface_sheen">#3300F2FE</color>
     <color name="water_rim_stroke">#3338BDF8</color>
     <color name="water_shimmer_highlight">#E0F7FA</color>
-    <color name="ocean_start">#0D9488</color>
+    <color name="ocean_start">#0284C7</color>
     <color name="ocean_end">#2563EB</color>
 
     <!-- Primary Vibrant Gradients -->
-    <color name="primary">#2DD4BF</color>
+    <color name="primary">#38BDF8</color>
     <color name="primary_variant">#0072FF</color>
     <color name="on_primary">#050811</color>
     <color name="white">#FFFFFF</color>
@@ -64,7 +64,7 @@
     <color name="on_secondary">#FFFFFF</color>
 
     <!-- Accents & Vibrant Glows -->
-    <color name="neon_cyan">#2DD4BF</color>
+    <color name="neon_cyan">#38BDF8</color>
     <color name="neon_magenta">#FF2A6D</color>
     <color name="neon_purple">#8B5CF6</color>
     <color name="neon_green">#10B981</color>
@@ -92,7 +92,7 @@
     <color name="accent_rose">#FF2A6D</color>
     <color name="accent_amber">#F59E0B</color>
     <color name="accent_emerald">#10B981</color>
-    <color name="accent_sky">#2DD4BF</color>
+    <color name="accent_sky">#38BDF8</color>
 
     <!-- Typography & Micro-Hierarchy -->
     <color name="text_primary">#FFFFFF</color>
@@ -107,7 +107,7 @@
     <color name="expense_red">#FF4D6D</color>
     <color name="priority_high">#FF4D6D</color>
     <color name="priority_medium">#F59E0B</color>
-    <color name="priority_low">#2DD4BF</color>
+    <color name="priority_low">#38BDF8</color>
     <color name="priority_none">#64748B</color>
 
     <!-- Liquid Bank Cards Gradient Colors -->
@@ -135,16 +135,16 @@
     <color name="badge_neutral_text">#94A3B8</color>
 
     <!-- Subject / Course Badges & Chips (Night Mode) -->
-    <color name="badge_credit_bg">#162A2D</color>
+    <color name="badge_credit_bg">#13263A</color>
     <color name="badge_credit_stroke">#0369A1</color>
-    <color name="badge_credit_text">#2DD4BF</color>
+    <color name="badge_credit_text">#38BDF8</color>
 
-    <color name="badge_code_bg">#162A2D</color>
+    <color name="badge_code_bg">#13263A</color>
     <color name="badge_code_stroke">#0369A1</color>
-    <color name="badge_code_text">#2DD4BF</color>
+    <color name="badge_code_text">#38BDF8</color>
 
     <!-- Empty State Icon Tint -->
-    <color name="empty_state_icon_tint">#2DD4BF</color>
+    <color name="empty_state_icon_tint">#38BDF8</color>
 
     <!-- Dues & Debts Summary Cards (Night Mode) -->
     <color name="lent_card_bg">#064E3B</color>
@@ -175,8 +175,8 @@
     <color name="brand_200">#A5F3FC</color>
     <color name="brand_300">#67E8F9</color>
     <color name="brand_400">#22D3EE</color>
-    <color name="brand_500">#2DD4BF</color>
-    <color name="brand_600">#0D9488</color>
+    <color name="brand_500">#38BDF8</color>
+    <color name="brand_600">#0284C7</color>
     <color name="brand_700">#0369A1</color>
     <color name="brand_800">#075985</color>
     <color name="brand_900">#0C4A6E</color>

@@ -69,8 +69,8 @@
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp"
-            app:boxStrokeColor="#0D9488"
-            app:hintTextColor="#0D9488">
+            app:boxStrokeColor="#0284C7"
+            app:hintTextColor="#0284C7">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etLeadInput"
@@ -133,7 +133,7 @@
             android:paddingHorizontal="16dp"
             android:text="SAVE"
             android:textColor="@color/white"
-            app:backgroundTint="#0D9488"
+            app:backgroundTint="#0284C7"
             app:cornerRadius="12dp" />
     </LinearLayout>
 

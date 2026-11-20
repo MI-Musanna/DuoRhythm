@@ -29,7 +29,7 @@ class AddCategoryDialogFragment : DialogFragment() {
         val context = requireContext()
         val dbHelper = DatabaseHelper.getInstance(context)
 
-        var selectedColor = "#0D9488"
+        var selectedColor = "#0284C7"
         var selectedIcon = "ic_wallet"
 
         fun updateTypeToggleUi() {
@@ -41,9 +41,9 @@ class AddCategoryDialogFragment : DialogFragment() {
             )
             for ((btn, id) in buttons) {
                 if (id == checkedId) {
-                    btn.setBackgroundColor(Color.parseColor("#0D9488"))
+                    btn.setBackgroundColor(Color.parseColor("#0284C7"))
                     btn.setTextColor(Color.WHITE)
-                    btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+                    btn.strokeColor = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
                 } else {
                     btn.setBackgroundColor(androidx.core.content.ContextCompat.getColor(context, R.color.surface_variant))
                     btn.setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_secondary))
@@ -60,7 +60,7 @@ class AddCategoryDialogFragment : DialogFragment() {
         var updateColorsRow: ((String) -> Unit)? = null
 
         fun updateUiColors() {
-            val parsedColor = try { Color.parseColor(selectedColor) } catch (_: Exception) { Color.parseColor("#0D9488") }
+            val parsedColor = try { Color.parseColor(selectedColor) } catch (_: Exception) { Color.parseColor("#0284C7") }
             binding.btnSaveCategory.backgroundTintList = ColorStateList.valueOf(parsedColor)
             updateIconsRow?.invoke(selectedIcon, selectedColor)
         }

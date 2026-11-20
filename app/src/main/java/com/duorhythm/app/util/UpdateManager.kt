@@ -444,7 +444,7 @@ object UpdateManager {
             } else {
                 // Newer beta available -> Active Update Button
                 btnBeta?.text = "UPDATE"
-                btnBeta?.setTextColor(Color.parseColor("#2DD4BF"))
+                btnBeta?.setTextColor(Color.parseColor("#38BDF8"))
                 btnBeta?.setBackgroundResource(R.drawable.bg_pill_blue)
                 btnBeta?.isClickable = true
                 val clickAction = View.OnClickListener {

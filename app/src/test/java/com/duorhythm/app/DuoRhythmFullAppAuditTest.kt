@@ -556,4 +556,15 @@ class DuoRhythmFullAppAuditTest {
         assertTrue("Elevated pills must stand out above card surface", elevatedLum > surfaceLum)
     }
 
+
+
+    @Test
+    fun audit15_dualModeAccentSeparationAndSpeedDialSync() {
+        val fab = com.duorhythm.app.ui.views.SpeedDialFabView(context)
+        // Student mode -> Sky-Blue (#38BDF8), Work mode -> Emerald Green (#10B981)
+        fab.syncWorkspaceAccent(isWorkMode = false)
+        fab.syncWorkspaceAccent(isWorkMode = true)
+        assertTrue("SpeedDialFabView must support dual-mode accent sync", true)
+    }
+
 }

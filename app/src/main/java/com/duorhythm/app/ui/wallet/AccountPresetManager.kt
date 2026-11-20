@@ -22,7 +22,7 @@ object AccountPresetManager {
         AccountPreset("Bank", "bank", "🏦", "#6366F1"),
         AccountPreset("Card", "card", "💳", "#3B82F6"),
         AccountPreset("Crypto", "crypto", "🪙", "#F59E0B"),
-        AccountPreset("Online", "globe", "🌐", "#0D9488"),
+        AccountPreset("Online", "globe", "🌐", "#0284C7"),
         AccountPreset("Vault", "shield", "🛡️", "#F97316"),
         AccountPreset("Savings", "target", "🎯", "#8B5CF6"),
         AccountPreset("Work", "tools", "💼", "#14B8A6")
@@ -41,7 +41,7 @@ object AccountPresetManager {
                         name = obj.getString("name"),
                         icon = obj.optString("icon", "wallet"),
                         emoji = obj.optString("emoji", "🏷️"),
-                        colorHex = obj.optString("colorHex", "#0D9488"),
+                        colorHex = obj.optString("colorHex", "#0284C7"),
                         isCustom = true
                     )
                 )

@@ -99,8 +99,8 @@
                     android:contentDescription="Focus Suite"
                     android:padding="8dp"
                     android:src="@drawable/ic_toolbox"
-                    android:tint="#2DD4BF"
-                    app:tint="#2DD4BF" />
+                    android:tint="#38BDF8"
+                    app:tint="#38BDF8" />
 
                 <!-- Profile Switcher Action Icon -->
                 <ImageButton

@@ -80,7 +80,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:text="MI"
-                            android:textColor="#2DD4BF"
+                            android:textColor="#38BDF8"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                     </FrameLayout>

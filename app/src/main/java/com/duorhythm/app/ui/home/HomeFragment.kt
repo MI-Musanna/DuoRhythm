@@ -140,16 +140,16 @@ class HomeFragment : Fragment() {
                         dlg.setOnOrderSavedListener { loadDashboardData() }
                         dlg.show(parentFragmentManager, "HOME_WORK_ORDER")
                     },
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Money", com.duorhythm.app.R.drawable.ic_wallet, "#2DD4BF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Money", com.duorhythm.app.R.drawable.ic_wallet, "#38BDF8") {
                         com.duorhythm.app.ui.wallet.RecordTransactionDialogFragment.newInstance().show(parentFragmentManager, "HOME_TX")
                     },
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Quick Note", com.duorhythm.app.R.drawable.ic_notes, "#2DD4BF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Quick Note", com.duorhythm.app.R.drawable.ic_notes, "#38BDF8") {
                         showAddNoteDialog()
                     }
                 ))
             } else {
                 binding.speedDialHome.setItems(listOf(
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#2DD4BF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Task", com.duorhythm.app.R.drawable.ic_tasks, "#38BDF8") {
                         showQuickTaskOrGoalModal(isGoal = false)
                     },
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("New Goal", com.duorhythm.app.R.drawable.ic_target, "#F59E0B") {
@@ -158,7 +158,7 @@ class HomeFragment : Fragment() {
                     com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Record Money", com.duorhythm.app.R.drawable.ic_wallet, "#10B981") {
                         com.duorhythm.app.ui.wallet.RecordTransactionDialogFragment.newInstance().show(parentFragmentManager, "HOME_TX")
                     },
-                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Quick Note", com.duorhythm.app.R.drawable.ic_notes, "#2DD4BF") {
+                    com.duorhythm.app.ui.views.SpeedDialFabView.SpeedDialItem("Quick Note", com.duorhythm.app.R.drawable.ic_notes, "#38BDF8") {
                         showAddNoteDialog()
                     }
                 ))
@@ -283,14 +283,14 @@ class HomeFragment : Fragment() {
                     val pad8 = (8 * density).toInt()
                     binding.ivUserProfile.setPadding(pad8, pad8, pad8, pad8)
                     binding.ivUserProfile.setImageResource(R.drawable.ic_profile_placeholder)
-                    binding.ivUserProfile.imageTintList = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+                    binding.ivUserProfile.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
                 }
             } else {
                 val density = resources.displayMetrics.density
                 val pad8 = (8 * density).toInt()
                 binding.ivUserProfile.setPadding(pad8, pad8, pad8, pad8)
                 binding.ivUserProfile.setImageResource(R.drawable.ic_profile_placeholder)
-                binding.ivUserProfile.imageTintList = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+                binding.ivUserProfile.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
             }
 
             val openProfile = View.OnClickListener {
@@ -346,9 +346,9 @@ class HomeFragment : Fragment() {
 
                 // Sync Portal Shortcut Card to Student Mode
                 binding.badgeHomePortal.setBackgroundResource(R.drawable.bg_squircle_portal_student)
-                binding.ivHomePortalIcon.setColorFilter(Color.parseColor("#2DD4BF"))
+                binding.ivHomePortalIcon.setColorFilter(Color.parseColor("#38BDF8"))
                 binding.btnHomePortalAction.setBackgroundResource(R.drawable.bg_portal_pill_student)
-                binding.btnHomePortalAction.setTextColor(Color.parseColor("#2DD4BF"))
+                binding.btnHomePortalAction.setTextColor(Color.parseColor("#38BDF8"))
             } else {
                 binding.btnStudentMode.background = null
                 binding.btnStudentMode.setTextColor(Color.parseColor("#64748B"))
@@ -461,10 +461,10 @@ class HomeFragment : Fragment() {
             val courses = db.getCourses(profileId)
             binding.tvEnrolledSubjectsCount.text = "${courses.size} Enrolled Subjects • Coursework & Exams"
             binding.btnStudyPortal.text = "Portal →"
-            binding.btnStudyPortal.setTextColor(Color.parseColor("#2DD4BF"))
+            binding.btnStudyPortal.setTextColor(Color.parseColor("#38BDF8"))
             binding.btnStudyPortal.strokeColor = ColorStateList.valueOf(Color.parseColor("#2B303E"))
             binding.ivPortalCardIcon.setImageResource(R.drawable.ic_portal)
-            binding.ivPortalCardIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#2DD4BF"))
+            binding.ivPortalCardIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
 
             // Reload Academic Classes into Next-Up
             loadStudentNextUpLectures()
@@ -1063,7 +1063,7 @@ class HomeFragment : Fragment() {
         binding.tvWorkMilestoneStatus.setTextColor(
             when (statusText) {
                 "COMPLETED" -> Color.parseColor("#10B981")
-                "IN_PROGRESS", "IN PROGRESS" -> Color.parseColor("#2DD4BF")
+                "IN_PROGRESS", "IN PROGRESS" -> Color.parseColor("#38BDF8")
                 else -> Color.parseColor("#F59E0B")
             }
         )

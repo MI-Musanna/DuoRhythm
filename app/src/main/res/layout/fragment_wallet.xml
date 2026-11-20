@@ -67,7 +67,7 @@
                 android:contentDescription="Manage Transaction Categories"
                 android:tooltipText="Manage Transaction Categories"
                 android:src="@drawable/ic_category"
-                app:tint="#2DD4BF" />
+                app:tint="#38BDF8" />
 
             <!-- Quick Converter Tool -->
             <ImageButton
@@ -78,7 +78,7 @@
                 android:background="@drawable/bg_header_action_button"
                 android:contentDescription="Live Currency Converter"
                 android:src="@drawable/ic_calculate"
-                app:tint="#2DD4BF" />
+                app:tint="#38BDF8" />
 
             <!-- Currency Badge Pill -->
             <TextView
@@ -220,7 +220,7 @@
                             android:layout_height="34dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_wallet"
-                            app:tint="#2DD4BF" />
+                            app:tint="#38BDF8" />
                     </FrameLayout>
 
                     <TextView
@@ -253,7 +253,7 @@
                         android:textColor="@color/white"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0D9488"
+                        app:backgroundTint="#0284C7"
                         app:cornerRadius="16dp" />
 
                 </LinearLayout>
@@ -352,7 +352,7 @@
                                 android:layout_height="10dp"
                                 android:layout_marginEnd="4dp"
                                 android:src="@drawable/ic_shield_check"
-                                app:tint="#0D9488" />
+                                app:tint="#0284C7" />
 
                             <TextView
                                 android:id="@+id/tvAccountsSummary"
@@ -400,7 +400,7 @@
                             android:textColor="@color/white"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            app:backgroundTint="#0D9488"
+                            app:backgroundTint="#0284C7"
                             app:cornerRadius="10dp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -558,7 +558,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Balanced"
-                            android:textColor="#2DD4BF"
+                            android:textColor="#38BDF8"
                             android:textSize="11.5sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -614,7 +614,7 @@
                     android:insetBottom="0dp"
                     android:paddingHorizontal="10dp"
                     android:text="+ ADD"
-                    android:textColor="#2DD4BF"
+                    android:textColor="#38BDF8"
                     android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -658,7 +658,7 @@
                             android:layout_height="24dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_wallet"
-                            app:tint="#2DD4BF" />
+                            app:tint="#38BDF8" />
                     </FrameLayout>
 
                     <TextView
@@ -690,7 +690,7 @@
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold"
-                        app:backgroundTint="#0D9488"
+                        app:backgroundTint="#0284C7"
                         app:cornerRadius="14dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -813,7 +813,7 @@
                             android:layout_height="16dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_subscription"
-                            app:tint="#2DD4BF" />
+                            app:tint="#38BDF8" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -837,7 +837,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="1dp"
                             android:text="Active Subscriptions: ৳0.00/mo"
-                            android:textColor="#2DD4BF"
+                            android:textColor="#38BDF8"
                             android:textSize="11sp" />
                     </LinearLayout>
 

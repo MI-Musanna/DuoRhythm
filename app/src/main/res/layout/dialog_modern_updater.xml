@@ -18,7 +18,7 @@
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:src="@drawable/ic_update_sparkle"
-            app:tint="#2DD4BF" />
+            app:tint="#38BDF8" />
 
         <TextView
             android:layout_width="0dp"
@@ -120,7 +120,7 @@
         android:layout_marginTop="12dp"
         app:cardBackgroundColor="#131B2E"
         app:cardCornerRadius="14dp"
-        app:strokeColor="#2DD4BF"
+        app:strokeColor="#38BDF8"
         app:strokeWidth="1.5dp">
 
         <RelativeLayout
@@ -144,7 +144,7 @@
                 android:layout_below="@id/tvBetaLabel"
                 android:layout_marginTop="3dp"
                 android:text="v1.0.2-beta • Currently Installed"
-                android:textColor="#2DD4BF"
+                android:textColor="#38BDF8"
                 android:textSize="12sp" />
 
             <TextView
@@ -157,7 +157,7 @@
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="5dp"
                 android:text="INSTALLED"
-                android:textColor="#2DD4BF"
+                android:textColor="#38BDF8"
                 android:textSize="10sp"
                 android:textStyle="bold" />
         </RelativeLayout>

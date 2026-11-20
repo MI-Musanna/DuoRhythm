@@ -79,7 +79,7 @@
                     android:contentDescription="Avatar"
                     android:scaleType="centerCrop"
                     android:src="@drawable/ic_default_profile"
-                    app:tint="#2DD4BF" />
+                    app:tint="#38BDF8" />
             </FrameLayout>
 
             <LinearLayout

@@ -9,5 +9,5 @@ data class ClassTypeEntity(
     val profileId: Long = 1,
     val name: String,
     val isDefault: Boolean = false,
-    val colorHex: String = "#0D9488"
+    val colorHex: String = "#0284C7"
 )

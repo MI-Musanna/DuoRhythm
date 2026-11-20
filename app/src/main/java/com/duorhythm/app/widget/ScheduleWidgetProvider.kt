@@ -176,7 +176,7 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
                     // TODAY'S EXAM!
                     val timeSub = if (exam.dueTime.isNotBlank()) " • ${exam.dueTime}" else ""
                     views.setTextViewText(badgeViewId, "TODAY$timeSub")
-                    views.setTextColor(badgeViewId, Color.parseColor("#2DD4BF"))
+                    views.setTextColor(badgeViewId, Color.parseColor("#38BDF8"))
                 }
                 diffDays == 1L -> {
                     views.setTextViewText(badgeViewId, "TOMORROW")

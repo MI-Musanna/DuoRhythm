@@ -37,7 +37,7 @@
             android:background="@drawable/bg_widget_pill_badge"
             android:paddingHorizontal="8dp"
             android:paddingVertical="3dp"
-            android:textColor="#2DD4BF"
+            android:textColor="#38BDF8"
             android:textSize="10sp"
             android:textStyle="bold" />
 
@@ -48,7 +48,7 @@
             android:layout_height="36dp"
             android:paddingHorizontal="6dp"
             android:text="+ SCHEDULE"
-            android:textColor="#2DD4BF"
+            android:textColor="#38BDF8"
             android:textSize="11sp" />
 
         <ImageView

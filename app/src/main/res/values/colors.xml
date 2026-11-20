@@ -8,8 +8,8 @@
     <color name="border_glass_subtle">#1A1E29</color>
 
     <!-- Vibrant Functional Accents -->
-    <color name="accent_cyan_primary">#2DD4BF</color>
-    <color name="accent_cyan_glow">#2DD4BF</color>
+    <color name="accent_cyan_primary">#38BDF8</color>
+    <color name="accent_cyan_glow">#38BDF8</color>
     <color name="accent_emerald_work">#10B981</color>
     <color name="accent_amber_exam">#F59E0B</color>
     <color name="accent_purple_badge">#A855F7</color>
@@ -57,24 +57,24 @@
     <color name="cyber_glass_border">#2B303E</color>
 
     <!-- High-Contrast Accent Colors -->
-    <color name="water_cyan_bright">#2DD4BF</color>
-    <color name="water_cyan_glow">#2DD4BF</color>
-    <color name="water_sky_light">#2DD4BF</color>
-    <color name="water_azure">#2DD4BF</color>
+    <color name="water_cyan_bright">#38BDF8</color>
+    <color name="water_cyan_glow">#38BDF8</color>
+    <color name="water_sky_light">#38BDF8</color>
+    <color name="water_azure">#38BDF8</color>
     <color name="water_ocean_deep">#0369A1</color>
     <color name="water_cobalt">#1D4ED8</color>
-    <color name="water_teal_lagoon">#0D9488</color>
+    <color name="water_teal_lagoon">#0284C7</color>
     <color name="water_abyss_dark">#0A0B0E</color>
-    <color name="water_abyss_deepest">#2DD4BF</color>
+    <color name="water_abyss_deepest">#38BDF8</color>
     <color name="water_surface_sheen">#1A00E5FF</color>
     <color name="water_rim_stroke">#3300E5FF</color>
-    <color name="water_shimmer_highlight">#2DD4BF</color>
-    <color name="ocean_start">#2DD4BF</color>
+    <color name="water_shimmer_highlight">#38BDF8</color>
+    <color name="ocean_start">#38BDF8</color>
     <color name="ocean_end">#0369A1</color>
 
     <!-- Primary Brand -->
-    <color name="primary">#2DD4BF</color>
-    <color name="primary_variant">#2DD4BF</color>
+    <color name="primary">#38BDF8</color>
+    <color name="primary_variant">#38BDF8</color>
     <color name="on_primary">#0A0B0E</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
@@ -85,7 +85,7 @@
     <color name="on_secondary">#FFFFFF</color>
 
     <!-- Accents & Glows -->
-    <color name="neon_cyan">#2DD4BF</color>
+    <color name="neon_cyan">#38BDF8</color>
     <color name="neon_magenta">#F43F5E</color>
     <color name="neon_purple">#A855F7</color>
     <color name="neon_green">#10B981</color>
@@ -114,7 +114,7 @@
     <color name="accent_rose">#F43F5E</color>
     <color name="accent_amber">#F59E0B</color>
     <color name="accent_emerald">#10B981</color>
-    <color name="accent_sky">#2DD4BF</color>
+    <color name="accent_sky">#38BDF8</color>
 
     <!-- Typography Tokens -->
     <color name="text_primary">#F8FAFC</color>
@@ -129,7 +129,7 @@
     <color name="expense_red">#F43F5E</color>
     <color name="priority_high">#F43F5E</color>
     <color name="priority_medium">#F59E0B</color>
-    <color name="priority_low">#2DD4BF</color>
+    <color name="priority_low">#38BDF8</color>
     <color name="priority_none">#475569</color>
 
     <!-- Bank Cards Gradient Colors -->
@@ -159,14 +159,14 @@
     <!-- Subject / Course Badges & Chips -->
     <color name="badge_credit_bg">#1E222D</color>
     <color name="badge_credit_stroke">#2B303E</color>
-    <color name="badge_credit_text">#2DD4BF</color>
+    <color name="badge_credit_text">#38BDF8</color>
 
     <color name="badge_code_bg">#1E222D</color>
     <color name="badge_code_stroke">#2B303E</color>
-    <color name="badge_code_text">#2DD4BF</color>
+    <color name="badge_code_text">#38BDF8</color>
 
     <!-- Empty State Icon Tint -->
-    <color name="empty_state_icon_tint">#2DD4BF</color>
+    <color name="empty_state_icon_tint">#38BDF8</color>
 
     <!-- Dues & Debts Summary Cards -->
     <color name="lent_card_bg">#064E3B</color>
@@ -197,8 +197,8 @@
     <color name="brand_200">#A5F3FC</color>
     <color name="brand_300">#67E8F9</color>
     <color name="brand_400">#22D3EE</color>
-    <color name="brand_500">#2DD4BF</color>
-    <color name="brand_600">#0D9488</color>
+    <color name="brand_500">#38BDF8</color>
+    <color name="brand_600">#0284C7</color>
     <color name="brand_700">#0369A1</color>
     <color name="brand_800">#075985</color>
     <color name="brand_900">#0C4A6E</color>
