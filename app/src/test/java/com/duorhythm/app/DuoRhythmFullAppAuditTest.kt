@@ -530,4 +530,30 @@ class DuoRhythmFullAppAuditTest {
         assertEquals(24f, betweenDp, 0.1f)
     }
 
+
+
+    @Test
+    fun audit14_speedDialFabClearsNavigationDockAndTonalHierarchy() {
+        val density = context.resources.displayMetrics.density
+        val fab = com.duorhythm.app.ui.views.SpeedDialFabView(context)
+        val wSpec = View.MeasureSpec.makeMeasureSpec((412 * density).toInt(), View.MeasureSpec.EXACTLY)
+        val hSpec = View.MeasureSpec.makeMeasureSpec((900 * density).toInt(), View.MeasureSpec.EXACTLY)
+        fab.measure(wSpec, hSpec)
+        fab.layout(0, 0, (412 * density).toInt(), (900 * density).toInt())
+
+        // Navigation dock height (60dp) + bottom margin (16dp) = 76dp from screen bottom.
+        // FAB default bottom margin must be >= 88dp so it sits at least 12dp above the dock with zero overlap.
+        val mainButton = fab.getChildAt(1)
+        val lp = mainButton.layoutParams as android.widget.FrameLayout.LayoutParams
+        val bottomMarginDp = lp.bottomMargin / density
+        assertTrue("FAB bottom margin ($bottomMarginDp dp) must clear the 76dp navigation dock", bottomMarginDp >= 88f)
+
+        // Verify distinct 3-tier luminance separation: bg_canvas < bg_surface < bg_surface_elevated
+        val canvasLum = relativeLuminance(androidx.core.content.ContextCompat.getColor(context, R.color.bg_canvas))
+        val surfaceLum = relativeLuminance(androidx.core.content.ContextCompat.getColor(context, R.color.bg_surface))
+        val elevatedLum = relativeLuminance(androidx.core.content.ContextCompat.getColor(context, R.color.bg_surface_elevated))
+        assertTrue("Card surface must be visibly elevated above canvas", surfaceLum > canvasLum)
+        assertTrue("Elevated pills must stand out above card surface", elevatedLum > surfaceLum)
+    }
+
 }

@@ -48,7 +48,8 @@ class SpeedDialFabView @JvmOverloads constructor(
 
     var isExpanded = false
         private set
-    private var bottomOffsetDp = 92f
+    private var baseBottomOffsetDp = 88f
+    private var systemBottomInsetDp = 0f
 
     private val fabSizeDp = 56f
     private val fabMarginEndDp = 20f
@@ -97,7 +98,7 @@ class SpeedDialFabView @JvmOverloads constructor(
             ).apply {
                 gravity = Gravity.BOTTOM or Gravity.END
                 marginEnd = (fabMarginEndDp * density).toInt()
-                bottomMargin = (bottomOffsetDp * density).toInt()
+                bottomMargin = ((baseBottomOffsetDp + systemBottomInsetDp) * density).toInt()
             }
             background = fabBg
             isClickable = true
@@ -111,6 +112,27 @@ class SpeedDialFabView @JvmOverloads constructor(
             }
         }
         addView(mainFabButton)
+
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
+            val sysBottom = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()).bottom
+            systemBottomInsetDp = sysBottom / density
+            applyEffectiveBottomOffset()
+            insets
+        }
+    }
+
+    private fun applyEffectiveBottomOffset() {
+        val totalDp = baseBottomOffsetDp + systemBottomInsetDp
+        (mainFabButton.layoutParams as? LayoutParams)?.let { lp ->
+            lp.bottomMargin = (totalDp * density).toInt()
+            mainFabButton.layoutParams = lp
+        }
+        nodeViews.forEach { node ->
+            (node.layoutParams as? LayoutParams)?.let { lp ->
+                lp.bottomMargin = ((totalDp + 2f) * density).toInt()
+                node.layoutParams = lp
+            }
+        }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -134,17 +156,8 @@ class SpeedDialFabView @JvmOverloads constructor(
     }
 
     fun setBottomOffsetDp(dp: Float) {
-        bottomOffsetDp = dp
-        (mainFabButton.layoutParams as? LayoutParams)?.let { lp ->
-            lp.bottomMargin = (dp * density).toInt()
-            mainFabButton.layoutParams = lp
-        }
-        nodeViews.forEach { node ->
-            (node.layoutParams as? LayoutParams)?.let { lp ->
-                lp.bottomMargin = ((dp + 2f) * density).toInt()
-                node.layoutParams = lp
-            }
-        }
+        baseBottomOffsetDp = dp
+        applyEffectiveBottomOffset()
     }
 
     fun setItems(items: List<SpeedDialItem>) {
@@ -192,7 +205,7 @@ class SpeedDialFabView @JvmOverloads constructor(
                 ).apply {
                     gravity = Gravity.BOTTOM or Gravity.END
                     marginEnd = (alignedNodeMarginEndDp * density).toInt()
-                    bottomMargin = ((bottomOffsetDp + 2f) * density).toInt()
+                    bottomMargin = ((baseBottomOffsetDp + systemBottomInsetDp + 2f) * density).toInt()
                 }
 
                 val circleBg = GradientDrawable().apply {

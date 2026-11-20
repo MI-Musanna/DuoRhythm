@@ -61,7 +61,7 @@
             android:layout_marginStart="10dp"
             android:backgroundTint="#00E5FF"
             android:text="INSTALL NOW"
-            android:textColor="#06080F"
+            android:textColor="#080C16"
             android:textSize="12sp"
             android:textStyle="bold"
             android:visibility="gone"

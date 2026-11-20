@@ -124,7 +124,7 @@
                 android:layout_centerVertical="true"
                 android:backgroundTint="#10B981"
                 android:text="+ NEW ORDER"
-                android:textColor="#06080F"
+                android:textColor="#080C16"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 app:cornerRadius="18dp" />

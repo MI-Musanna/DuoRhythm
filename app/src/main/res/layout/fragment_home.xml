@@ -9,7 +9,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#06080F"
+    android:background="#080C16"
     android:fillViewport="true"
     android:overScrollMode="never">
 
@@ -211,10 +211,10 @@
                 android:minHeight="96dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="#0D1322"
+                app:cardBackgroundColor="#121A2D"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#18243C"
+                app:strokeColor="#243352"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -278,10 +278,10 @@
                 android:minHeight="96dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                app:cardBackgroundColor="#0D1322"
+                app:cardBackgroundColor="#121A2D"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#18243C"
+                app:strokeColor="#243352"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -359,10 +359,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_between_cards"
-            app:cardBackgroundColor="#0D1322"
+            app:cardBackgroundColor="#121A2D"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="#18243C"
+            app:strokeColor="#243352"
             app:strokeWidth="1dp">
 
             <RelativeLayout
@@ -429,7 +429,7 @@
                     android:textColor="#00E5FF"
                     android:textSize="11sp"
                     app:cornerRadius="17dp"
-                    app:strokeColor="#18243C"
+                    app:strokeColor="#243352"
                     app:strokeWidth="1dp" />
             </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -440,10 +440,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_between_cards"
-            app:cardBackgroundColor="#0D1322"
+            app:cardBackgroundColor="#121A2D"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="#18243C"
+            app:strokeColor="#243352"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -564,10 +564,10 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="#0D1322"
+                app:cardBackgroundColor="#121A2D"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#18243C"
+                app:strokeColor="#243352"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -599,10 +599,10 @@
                 android:layout_height="46dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                app:cardBackgroundColor="#0D1322"
+                app:cardBackgroundColor="#121A2D"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#18243C"
+                app:strokeColor="#243352"
                 app:strokeWidth="1dp">
 
                 <LinearLayout

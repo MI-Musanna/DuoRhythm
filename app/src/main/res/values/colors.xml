@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Deep Obsidian Surface Tokens (Used App-Wide) -->
-    <color name="bg_root_obsidian">#06080F</color>
-    <color name="surface_card_slate">#0D1322</color>
-    <color name="surface_card_elevated">#11192E</color>
-    <color name="border_glass_stroke">#18243C</color>
-    <color name="border_glass_subtle">#101726</color>
+    <color name="bg_root_obsidian">#080C16</color>
+    <color name="surface_card_slate">#121A2D</color>
+    <color name="surface_card_elevated">#19243D</color>
+    <color name="border_glass_stroke">#243352</color>
+    <color name="border_glass_subtle">#162036</color>
 
     <!-- Vibrant Functional Accents -->
     <color name="accent_cyan_primary">#00E5FF</color>
@@ -22,39 +22,39 @@
     <color name="text_white_hero">#F8FAFC</color>
     <color name="text_slate_sub">#94A3B8</color>
     <color name="text_muted_dim">#7E93B0</color>
-    <color name="border_card_stroke">#18243C</color>
+    <color name="border_card_stroke">#243352</color>
 
     <!-- Global Deep Obsidian Mapped Surfaces -->
-    <color name="background">#06080F</color>
-    <color name="background_canvas_alt">#06080F</color>
-    <color name="background_card">#0D1322</color>
+    <color name="background">#080C16</color>
+    <color name="background_canvas_alt">#080C16</color>
+    <color name="background_card">#121A2D</color>
 
     <!-- Solid High-Contrast Surfaces -->
-    <color name="surface">#0D1322</color>
-    <color name="surface_card">#0D1322</color>
-    <color name="surface_card_selected">#11192E</color>
-    <color name="surface_variant">#11192E</color>
-    <color name="surface_glass">#0D1322</color>
-    <color name="surface_dock">#06080F</color>
-    <color name="surface_pill">#11192E</color>
+    <color name="surface">#121A2D</color>
+    <color name="surface_card">#121A2D</color>
+    <color name="surface_card_selected">#19243D</color>
+    <color name="surface_variant">#19243D</color>
+    <color name="surface_glass">#121A2D</color>
+    <color name="surface_dock">#080C16</color>
+    <color name="surface_pill">#19243D</color>
     <color name="blur_overlay">#00000000</color>
 
     <!-- Translucent Fills -->
-    <color name="glass_fill_04">#0D1322</color>
-    <color name="glass_fill_06">#11192E</color>
-    <color name="glass_fill_08">#18243C</color>
-    <color name="glass_fill_12">#18243C</color>
+    <color name="glass_fill_04">#121A2D</color>
+    <color name="glass_fill_06">#19243D</color>
+    <color name="glass_fill_08">#243352</color>
+    <color name="glass_fill_12">#243352</color>
 
     <!-- Borders & Dividers -->
-    <color name="glass_border_highlight">#18243C</color>
-    <color name="glass_border_shadow">#101726</color>
-    <color name="card_stroke">#18243C</color>
-    <color name="card_stroke_bright">#18243C</color>
-    <color name="specular_stroke">#18243C</color>
-    <color name="squircle_bg">#0D1322</color>
-    <color name="squircle_stroke">#18243C</color>
-    <color name="glass_rim_light">#18243C</color>
-    <color name="cyber_glass_border">#18243C</color>
+    <color name="glass_border_highlight">#243352</color>
+    <color name="glass_border_shadow">#162036</color>
+    <color name="card_stroke">#243352</color>
+    <color name="card_stroke_bright">#243352</color>
+    <color name="specular_stroke">#243352</color>
+    <color name="squircle_bg">#121A2D</color>
+    <color name="squircle_stroke">#243352</color>
+    <color name="glass_rim_light">#243352</color>
+    <color name="cyber_glass_border">#243352</color>
 
     <!-- High-Contrast Accent Colors -->
     <color name="water_cyan_bright">#00E5FF</color>
@@ -64,7 +64,7 @@
     <color name="water_ocean_deep">#0369A1</color>
     <color name="water_cobalt">#1D4ED8</color>
     <color name="water_teal_lagoon">#0D9488</color>
-    <color name="water_abyss_dark">#06080F</color>
+    <color name="water_abyss_dark">#080C16</color>
     <color name="water_abyss_deepest">#00E5FF</color>
     <color name="water_surface_sheen">#1A00E5FF</color>
     <color name="water_rim_stroke">#3300E5FF</color>
@@ -75,7 +75,7 @@
     <!-- Primary Brand -->
     <color name="primary">#00E5FF</color>
     <color name="primary_variant">#38BDF8</color>
-    <color name="on_primary">#06080F</color>
+    <color name="on_primary">#080C16</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
 
@@ -90,7 +90,7 @@
     <color name="neon_purple">#A855F7</color>
     <color name="neon_green">#10B981</color>
     <color name="neon_yellow">#F59E0B</color>
-    <color name="cyber_glass">#0D1322</color>
+    <color name="cyber_glass">#121A2D</color>
 
     <!-- Ambient Colored Halos -->
     <color name="glow_ambient_cyan">#2600E5FF</color>
@@ -106,8 +106,8 @@
     <color name="neon_green_stroke">#3310B981</color>
 
     <!-- Outlined Button Colors -->
-    <color name="glass_button_bg">#11192E</color>
-    <color name="glass_button_stroke">#18243C</color>
+    <color name="glass_button_bg">#19243D</color>
+    <color name="glass_button_stroke">#243352</color>
 
     <color name="accent_indigo">#6366F1</color>
     <color name="accent_purple">#A855F7</color>
@@ -120,7 +120,7 @@
     <color name="text_primary">#F8FAFC</color>
     <color name="text_secondary">#94A3B8</color>
     <color name="text_silver">#94A3B8</color>
-    <color name="glass_card_translucent">#0D1322</color>
+    <color name="glass_card_translucent">#121A2D</color>
     <color name="text_muted">#7E93B0</color>
     <color name="text_ice">#94A3B8</color>
 
@@ -133,8 +133,8 @@
     <color name="priority_none">#475569</color>
 
     <!-- Bank Cards Gradient Colors -->
-    <color name="card_navy_start">#11192E</color>
-    <color name="card_navy_end">#06080F</color>
+    <color name="card_navy_start">#19243D</color>
+    <color name="card_navy_end">#080C16</color>
     <color name="card_purple_start">#6D28D9</color>
     <color name="card_purple_end">#4F46E5</color>
     <color name="card_emerald_start">#059669</color>
@@ -143,26 +143,26 @@
     <color name="card_amber_end">#B45309</color>
 
     <!-- Semantic Dynamic Tokens -->
-    <color name="surface_nav">#06080F</color>
-    <color name="nav_divider">#18243C</color>
+    <color name="surface_nav">#080C16</color>
+    <color name="nav_divider">#243352</color>
     <color name="nav_icon_inactive">#64748B</color>
 
-    <color name="settings_panel_bg">#06080F</color>
-    <color name="settings_panel_stroke">#18243C</color>
+    <color name="settings_panel_bg">#080C16</color>
+    <color name="settings_panel_stroke">#243352</color>
     <color name="settings_panel_text">#F8FAFC</color>
     <color name="settings_panel_text_muted">#94A3B8</color>
 
-    <color name="badge_neutral_bg">#11192E</color>
-    <color name="badge_neutral_stroke">#18243C</color>
+    <color name="badge_neutral_bg">#19243D</color>
+    <color name="badge_neutral_stroke">#243352</color>
     <color name="badge_neutral_text">#94A3B8</color>
 
     <!-- Subject / Course Badges & Chips -->
-    <color name="badge_credit_bg">#11192E</color>
-    <color name="badge_credit_stroke">#18243C</color>
+    <color name="badge_credit_bg">#19243D</color>
+    <color name="badge_credit_stroke">#243352</color>
     <color name="badge_credit_text">#38BDF8</color>
 
-    <color name="badge_code_bg">#11192E</color>
-    <color name="badge_code_stroke">#18243C</color>
+    <color name="badge_code_bg">#19243D</color>
+    <color name="badge_code_stroke">#243352</color>
     <color name="badge_code_text">#00E5FF</color>
 
     <!-- Empty State Icon Tint -->
@@ -188,9 +188,9 @@
     <color name="neutral_500">#7E93B0</color>
     <color name="neutral_600">#475569</color>
     <color name="neutral_700">#23324D</color>
-    <color name="neutral_800">#18243C</color>
-    <color name="neutral_900">#0D1322</color>
-    <color name="neutral_950">#06080F</color>
+    <color name="neutral_800">#243352</color>
+    <color name="neutral_900">#121A2D</color>
+    <color name="neutral_950">#080C16</color>
 
     <color name="brand_50">#ECFEFF</color>
     <color name="brand_100">#CFFAFE</color>
@@ -209,7 +209,7 @@
     <color name="bg_canvas">@color/neutral_950</color>
     <!-- 30% Secondary Card Surfaces -->
     <color name="bg_surface">@color/neutral_900</color>
-    <color name="bg_surface_elevated">#11192E</color>
+    <color name="bg_surface_elevated">#19243D</color>
     <color name="border_subtle">@color/neutral_800</color>
     <!-- 10% Focal Brand & Status Accents -->
     <color name="brand_primary">@color/brand_500</color>

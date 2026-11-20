@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#06080F"
+    android:background="#080C16"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -52,7 +52,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginVertical="10dp"
-        android:background="#18243C" />
+        android:background="#243352" />
 
     <!-- 2-Column Split: Today's Routine vs Exams & Financial Alerts -->
     <LinearLayout
@@ -90,7 +90,7 @@
             android:layout_width="1dp"
             android:layout_height="match_parent"
             android:layout_marginHorizontal="10dp"
-            android:background="#18243C" />
+            android:background="#243352" />
 
         <!-- Right Column: Priority Exams & Subscriptions -->
         <LinearLayout
@@ -124,7 +124,7 @@
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:layout_marginTop="12dp"
-        android:background="#0D1322"
+        android:background="#121A2D"
         android:gravity="center"
         android:orientation="horizontal">
 

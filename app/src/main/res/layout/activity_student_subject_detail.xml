@@ -394,7 +394,7 @@
                         android:layout_centerVertical="true"
                         android:backgroundTint="#00E5FF"
                         android:text="+ ADD TASK / EXAM"
-                        android:textColor="#06080F"
+                        android:textColor="#080C16"
                         android:textSize="10.5sp"
                         android:textStyle="bold"
                         app:cornerRadius="17dp" />

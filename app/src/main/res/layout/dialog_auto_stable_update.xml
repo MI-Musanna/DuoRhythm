@@ -42,7 +42,7 @@
             android:textColor="#94A3B8"
             android:textSize="12.5sp"
             app:cornerRadius="22dp"
-            app:strokeColor="#1F2F4D" />
+            app:strokeColor="#243352" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnUpdateNow"
@@ -53,7 +53,7 @@
             android:layout_marginStart="6dp"
             android:backgroundTint="#00E5FF"
             android:text="Update Now"
-            android:textColor="#06080F"
+            android:textColor="#080C16"
             android:textSize="12.5sp"
             android:textStyle="bold"
             app:cornerRadius="22dp" />

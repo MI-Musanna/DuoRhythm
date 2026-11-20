@@ -116,7 +116,7 @@
                             android:layout_marginEnd="6dp"
                             android:backgroundTint="@color/accent_cyan_primary"
                             android:text="+ RECORD"
-                            android:textColor="#06080F"
+                            android:textColor="#080C16"
                             android:textSize="11.5sp"
                             android:textStyle="bold"
                             app:cornerRadius="20dp" />

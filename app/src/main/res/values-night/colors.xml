@@ -3,18 +3,18 @@
     <!-- Liquid Glass & Ambient Glow UI Color Palette (Night / Obsidian Navy) -->
 
     <!-- Deep Midnight Obsidian Canvas (#0A0E17) -->
-    <color name="background">#06080F</color>
-    <color name="background_canvas_alt">#06080F</color>
-    <color name="background_card">#0D1322</color>
+    <color name="background">#080C16</color>
+    <color name="background_canvas_alt">#080C16</color>
+    <color name="background_card">#121A2D</color>
 
     <!-- Solid High-Contrast Luxury Dark Surfaces (#131B2E) -->
-    <color name="surface">#0D1322</color>
-    <color name="surface_card">#0D1322</color>
-    <color name="surface_card_selected">#1E293B</color>
-    <color name="surface_variant">#1E293B</color>
-    <color name="surface_glass">#0D1322</color>
-    <color name="surface_dock">#06080F</color>
-    <color name="surface_pill">#1E293B</color>
+    <color name="surface">#121A2D</color>
+    <color name="surface_card">#121A2D</color>
+    <color name="surface_card_selected">#19243D</color>
+    <color name="surface_variant">#19243D</color>
+    <color name="surface_glass">#121A2D</color>
+    <color name="surface_dock">#080C16</color>
+    <color name="surface_pill">#19243D</color>
     <color name="blur_overlay">#4D0A0E17</color>
 
     <!-- Translucent Fills -->
@@ -25,15 +25,15 @@
 
     <!-- Glass Borders & Inner Highlights -->
     <color name="glass_border_highlight">#334155</color>
-    <color name="glass_border_shadow">#1E293B</color>
-    <color name="card_stroke">#1E293B</color>
+    <color name="glass_border_shadow">#19243D</color>
+    <color name="card_stroke">#19243D</color>
     <color name="card_stroke_bright">#334155</color>
-    <color name="specular_stroke">#1E293B</color>
+    <color name="specular_stroke">#19243D</color>
     <color name="squircle_bg">#172033</color>
     <color name="squircle_stroke">#232F48</color>
-    <color name="glass_rim_light">#1E293B</color>
-    <color name="cyber_glass">#0D1322</color>
-    <color name="cyber_glass_border">#1E293B</color>
+    <color name="glass_rim_light">#19243D</color>
+    <color name="cyber_glass">#121A2D</color>
+    <color name="cyber_glass_border">#19243D</color>
 
     <!-- Water Gradient & Oceanic Glass UI Palette -->
     <color name="water_cyan_bright">#00F2FE</color>
@@ -98,7 +98,7 @@
     <color name="text_primary">#FFFFFF</color>
     <color name="text_secondary">#94A3B8</color>
     <color name="text_silver">#94A3B8</color>
-    <color name="glass_card_translucent">#0D1322</color>
+    <color name="glass_card_translucent">#121A2D</color>
     <color name="text_muted">#7E93B0</color>
     <color name="text_ice">#D2D9E3</color>
 
@@ -111,7 +111,7 @@
     <color name="priority_none">#64748B</color>
 
     <!-- Liquid Bank Cards Gradient Colors -->
-    <color name="card_navy_start">#1E293B</color>
+    <color name="card_navy_start">#19243D</color>
     <color name="card_navy_end">#0F172A</color>
     <color name="card_purple_start">#7F00FF</color>
     <color name="card_purple_end">#E100FF</color>
@@ -121,25 +121,25 @@
     <color name="card_amber_end">#78350F</color>
 
     <!-- Semantic Dynamic Tokens (Night Mode) -->
-    <color name="surface_nav">#06080F</color>
-    <color name="nav_divider">#1E293B</color>
+    <color name="surface_nav">#080C16</color>
+    <color name="nav_divider">#19243D</color>
     <color name="nav_icon_inactive">#64748B</color>
 
-    <color name="settings_panel_bg">#0D1322</color>
-    <color name="settings_panel_stroke">#1E293B</color>
+    <color name="settings_panel_bg">#121A2D</color>
+    <color name="settings_panel_stroke">#19243D</color>
     <color name="settings_panel_text">#FFFFFF</color>
     <color name="settings_panel_text_muted">#94A3B8</color>
 
-    <color name="badge_neutral_bg">#1E293B</color>
+    <color name="badge_neutral_bg">#19243D</color>
     <color name="badge_neutral_stroke">#334155</color>
     <color name="badge_neutral_text">#94A3B8</color>
 
     <!-- Subject / Course Badges & Chips (Night Mode) -->
-    <color name="badge_credit_bg">#0F2942</color>
+    <color name="badge_credit_bg">#152842</color>
     <color name="badge_credit_stroke">#0369A1</color>
     <color name="badge_credit_text">#38BDF8</color>
 
-    <color name="badge_code_bg">#0F2942</color>
+    <color name="badge_code_bg">#152842</color>
     <color name="badge_code_stroke">#0369A1</color>
     <color name="badge_code_text">#38BDF8</color>
 
@@ -166,9 +166,9 @@
     <color name="neutral_500">#7E93B0</color>
     <color name="neutral_600">#475569</color>
     <color name="neutral_700">#23324D</color>
-    <color name="neutral_800">#18243C</color>
-    <color name="neutral_900">#0D1322</color>
-    <color name="neutral_950">#06080F</color>
+    <color name="neutral_800">#243352</color>
+    <color name="neutral_900">#121A2D</color>
+    <color name="neutral_950">#080C16</color>
 
     <color name="brand_50">#ECFEFF</color>
     <color name="brand_100">#CFFAFE</color>
@@ -187,7 +187,7 @@
     <color name="bg_canvas">@color/neutral_950</color>
     <!-- 30% Secondary Card Surfaces -->
     <color name="bg_surface">@color/neutral_900</color>
-    <color name="bg_surface_elevated">#11192E</color>
+    <color name="bg_surface_elevated">#19243D</color>
     <color name="border_subtle">@color/neutral_800</color>
     <!-- 10% Focal Brand & Status Accents -->
     <color name="brand_primary">@color/brand_500</color>

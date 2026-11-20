@@ -58,7 +58,7 @@
         android:layout_marginTop="12dp"
         android:backgroundTint="#00E5FF"
         android:text="AWESOME!"
-        android:textColor="#06080F"
+        android:textColor="#080C16"
         android:textSize="12.5sp"
         android:textStyle="bold"
         app:cornerRadius="22dp" />

@@ -13,7 +13,7 @@
     android:fillViewport="true"
     android:clipToPadding="false"
     android:paddingBottom="96dp"
-    android:background="#06080F">
+    android:background="#080C16">
 
     <LinearLayout
         android:id="@+id/rootLayout"
@@ -275,7 +275,7 @@
                         android:layout_centerVertical="true"
                         android:backgroundTint="#00E5FF"
                         android:text="+ ADD COURSE"
-                        android:textColor="#06080F"
+                        android:textColor="#080C16"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         app:cornerRadius="18dp" />
@@ -1039,7 +1039,7 @@
                     android:layout_centerVertical="true"
                     android:backgroundTint="#10B981"
                     android:text="+ NEW ORDER"
-                    android:textColor="#06080F"
+                    android:textColor="#080C16"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     app:cornerRadius="18dp" />
