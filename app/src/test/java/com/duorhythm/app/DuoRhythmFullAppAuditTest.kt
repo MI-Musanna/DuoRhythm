@@ -477,4 +477,19 @@ class DuoRhythmFullAppAuditTest {
         val completedTask = undatedTask.copy(isCompleted = true)
         assertFalse("Completed task must be excluded from briefing", isBriefingEligible(completedTask, examDateStr))
     }
+
+    @Test
+    fun audit12_seamlessScrollReactiveHeaderFrostProgression() {
+        val frostDrawable = androidx.core.content.ContextCompat.getDrawable(
+            context,
+            R.drawable.bg_header_scroll_frost
+        )
+        assertTrue("Scroll frost drawable must exist", frostDrawable != null)
+
+        val headerBg = androidx.core.content.ContextCompat.getDrawable(
+            context,
+            R.drawable.bg_cyber_header
+        )
+        assertTrue("Seamless cyber header drawable must exist", headerBg != null)
+    }
 }

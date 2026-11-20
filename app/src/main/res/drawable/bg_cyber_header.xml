@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/surface" />
-        </shape>
-    </item>
-    <item
-        android:gravity="bottom"
-        android:height="1dp">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/card_stroke" />
-        </shape>
-    </item>
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Seamless match with #06080F canvas: zero bottom border line when at scroll top -->
+    <solid android:color="#06080F" />
+</shape>

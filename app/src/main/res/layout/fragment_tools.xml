@@ -7,7 +7,7 @@
     android:fillViewport="true"
     android:clipToPadding="false"
     android:paddingBottom="96dp"
-    android:background="@drawable/bg_ambient_canvas">
+    android:background="#06080F">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -46,7 +46,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.02"
-                    android:text="Focus Suite"
+                    android:text="Back to Dashboard"
                     android:textColor="@color/text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -55,7 +55,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:text="Dedicated study &amp; concentration tools"
+                    android:text="Tap any utility below to launch"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>

@@ -13,7 +13,7 @@
     android:fillViewport="true"
     android:clipToPadding="false"
     android:paddingBottom="96dp"
-    android:background="@color/bg_root_obsidian">
+    android:background="#06080F">
 
     <LinearLayout
         android:id="@+id/rootLayout"

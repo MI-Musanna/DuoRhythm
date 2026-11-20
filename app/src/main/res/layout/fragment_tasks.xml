@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:background="@color/bg_root_obsidian">
+    android:background="#06080F">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

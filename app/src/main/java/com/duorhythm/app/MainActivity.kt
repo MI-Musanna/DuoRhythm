@@ -107,8 +107,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
+            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.statusBarColor = Color.parseColor("#0A1322")
+                window.statusBarColor = Color.TRANSPARENT
+                window.navigationBarColor = Color.TRANSPARENT
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     // Keep status bar icons light (white) on dark navy/obsidian
                     window.decorView.systemUiVisibility = window.decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
@@ -376,12 +378,11 @@ class MainActivity : AppCompatActivity() {
 
         val currentPos = binding.mainViewPager.currentItem
         if (currentPos == MainPagerAdapter.INDEX_HOME) {
-            binding.tvAppSubtitle.text = if (!isWorkMode) "Personal Dashboard" else "Client & Project Hub"
             (pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment)?.loadDashboardData()
         } else if (currentPos == MainPagerAdapter.INDEX_PORTAL) {
-            binding.tvAppSubtitle.text = if (!isWorkMode) "Academic Overview" else "Client & Project Hub"
             (pagerAdapter.getFragment(MainPagerAdapter.INDEX_PORTAL) as? PortalFragment)?.setProfile(!isWorkMode)
         }
+        updateSubtitleForPosition(currentPos)
 
         val targetTab = when (binding.mainViewPager.currentItem) {
             0 -> R.id.nav_wallet
@@ -513,14 +514,112 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateSubtitleForPosition(position: Int) {
-        binding.tvAppSubtitle.text = when (position) {
-            MainPagerAdapter.INDEX_WALLET -> "Wallet & Accounts"
-            MainPagerAdapter.INDEX_TASKS -> "To-Do List & Goals"
-            MainPagerAdapter.INDEX_HOME -> if (isStudent) "Personal Dashboard" else "Client & Project Hub"
-            MainPagerAdapter.INDEX_SCHEDULE -> "Weekly Class Timetable"
-            MainPagerAdapter.INDEX_PORTAL -> if (isStudent) "Academic Overview" else "Client & Project Hub"
-            else -> if (isStudent) "Personal Dashboard" else "Client & Project Hub"
+        if (!::binding.isInitialized) return
+        val (newTitle, newSub, accentHex) = when {
+            isToolsActive -> Triple("Focus Suite", "Concentration & Study Tools", "#00E5FF")
+            position == MainPagerAdapter.INDEX_WALLET -> Triple("Wallet & Accounts", "Net Worth & Cash Flow", "#10B981")
+            position == MainPagerAdapter.INDEX_TASKS -> Triple("Tasks & Goals", "Daily Action & Milestones", "#A855F7")
+            position == MainPagerAdapter.INDEX_HOME -> Triple(
+                "DuoRhythm",
+                if (isStudent) "Personal Dashboard" else "Executive Work Hub",
+                if (isStudent) "#00E5FF" else "#10B981"
+            )
+            position == MainPagerAdapter.INDEX_SCHEDULE -> Triple("Timetable", "Weekly Class Routine", "#38BDF8")
+            position == MainPagerAdapter.INDEX_PORTAL -> Triple(
+                if (isStudent) "Academic Portal" else "Work Portal",
+                if (isStudent) "Courses, Exams & Directory" else "Client Orders & Deliverables",
+                if (isStudent) "#00E5FF" else "#10B981"
+            )
+            else -> Triple("DuoRhythm", "Personal Dashboard", "#00E5FF")
         }
+
+        animateHeaderIdentity(newTitle, newSub, accentHex)
+        attachScrollReactiveHeaderToCurrentPage(position)
+    }
+
+    private fun animateHeaderIdentity(title: String, subtitle: String, accentHex: String) {
+        if (!::binding.isInitialized) return
+        val prevTitle = binding.tvAppTitle.text?.toString().orEmpty()
+        val prevSub = binding.tvAppSubtitle.text?.toString().orEmpty()
+        binding.tvAppSubtitle.setTextColor(Color.parseColor(accentHex))
+
+        if (prevTitle == title && prevSub == subtitle) return
+
+        val density = resources.displayMetrics.density
+        val slideOffset = 6f * density
+
+        binding.tvAppTitle.animate().cancel()
+        binding.tvAppSubtitle.animate().cancel()
+
+        binding.tvAppTitle.alpha = 0.25f
+        binding.tvAppTitle.translationY = slideOffset
+        binding.tvAppTitle.text = title
+        binding.tvAppTitle.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(200L)
+            .setInterpolator(FastOutSlowInInterpolator())
+            .start()
+
+        binding.tvAppSubtitle.alpha = 0.25f
+        binding.tvAppSubtitle.translationY = slideOffset * 0.7f
+        binding.tvAppSubtitle.text = subtitle
+        binding.tvAppSubtitle.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(220L)
+            .setInterpolator(FastOutSlowInInterpolator())
+            .start()
+    }
+
+    fun updateHeaderScrollProgress(scrollY: Int) {
+        if (!::binding.isInitialized) return
+        val density = resources.displayMetrics.density
+        val threshold = 36f * density
+        val progress = (scrollY.coerceAtLeast(0).toFloat() / threshold).coerceIn(0f, 1f)
+
+        binding.viewHeaderScrollFrost.alpha = progress
+        val padTop = ((10f - (3f * progress)) * density).toInt()
+        val padBottom = ((8f - (2f * progress)) * density).toInt()
+        val padH = (16f * density).toInt()
+        binding.headerInnerContainer.setPadding(padH, padTop, padH, padBottom)
+    }
+
+    private fun attachScrollReactiveHeaderToCurrentPage(position: Int) {
+        if (!::binding.isInitialized) return
+        // Reset header smoothly to merged state on tab switch
+        updateHeaderScrollProgress(0)
+        binding.root.post {
+            try {
+                val targetRoot: View? = if (isToolsActive) {
+                    supportFragmentManager.findFragmentByTag("tools")?.view
+                } else {
+                    (pagerAdapter.getFragment(position)?.view)
+                        ?: supportFragmentManager.findFragmentByTag("f$position")?.view
+                }
+                val scrollView = findFirstNestedScrollView(targetRoot)
+                if (scrollView != null) {
+                    updateHeaderScrollProgress(scrollView.scrollY)
+                    scrollView.setOnScrollChangeListener(
+                        androidx.core.widget.NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
+                            updateHeaderScrollProgress(scrollY)
+                        }
+                    )
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun findFirstNestedScrollView(root: View?): androidx.core.widget.NestedScrollView? {
+        if (root == null) return null
+        if (root is androidx.core.widget.NestedScrollView) return root
+        if (root is android.view.ViewGroup) {
+            for (i in 0 until root.childCount) {
+                val found = findFirstNestedScrollView(root.getChildAt(i))
+                if (found != null) return found
+            }
+        }
+        return null
     }
 
     private fun setupTopQuickActions() {
@@ -573,7 +672,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.ivAppLogo.setOnClickListener {
-            com.duorhythm.app.ui.tools.AboutBottomSheetDialog(this).show()
+            if (isToolsActive) {
+                closeTools()
+            } else if (binding.mainViewPager.currentItem != MainPagerAdapter.INDEX_HOME) {
+                selectNavTab(R.id.nav_home)
+            } else {
+                com.duorhythm.app.ui.tools.AboutBottomSheetDialog(this).show()
+            }
         }
 
         com.duorhythm.app.util.AnimationUtils.attachTactileFeedback(
@@ -713,7 +818,7 @@ class MainActivity : AppCompatActivity() {
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
             .replace(R.id.toolsContainer, toolsFragment, "tools")
             .commit()
-        binding.tvAppSubtitle.text = "Focus & Productivity Suite"
+        updateSubtitleForPosition(binding.mainViewPager.currentItem)
         updateHeaderSuiteVisuals(true)
     }
 

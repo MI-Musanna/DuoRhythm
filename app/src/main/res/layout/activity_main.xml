@@ -9,21 +9,34 @@
     android:clipToPadding="false"
     android:background="@drawable/bg_ambient_canvas">
 
-    <!-- Unified Single Clean Top AppBar -->
+    <!-- Seamless, Tab-Blended & Scroll-Reactive Top Header -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_cyber_header"
+        android:background="#06080F"
         app:elevation="0dp">
 
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="12dp">
+            android:layout_height="wrap_content">
+
+            <!-- Fades in smoothly ONLY when page content scrolls underneath -->
+            <View
+                android:id="@+id/viewHeaderScrollFrost"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0"
+                android:background="@drawable/bg_header_scroll_frost" />
+
+            <LinearLayout
+                android:id="@+id/headerInnerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -150,7 +163,8 @@
                     android:visibility="gone" />
             </LinearLayout>
 
-        </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Full-screen Main ViewPager2 for swipe gesture tab navigation -->
