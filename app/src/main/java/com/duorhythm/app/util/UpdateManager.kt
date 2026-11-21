@@ -357,7 +357,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Dynamic biometric authentication enabled.\n• Wallet cash flow analytics isolated from external bills."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Neutral Carbon & Dual-Mode UI (Sky-Blue Student / Emerald Work) unified.\n• Deterministic initials avatars, tactile spring motion & instant tab badge clearing."
                     }
                 }
             }

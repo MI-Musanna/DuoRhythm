@@ -1,26 +1,20 @@
 package com.duorhythm.app.util
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewAnimationUtils
+import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import kotlin.math.hypot
 
-/**
- * Tactile Micro-Interaction & Spatial Transition Engine:
- * - 0ms ACTION_DOWN press scale feedback (without overriding OnClickListener)
- * - Interruptible Circular Reveal for Student <-> Work workspace mode transitions
- * - Task completion pop (0.85x -> 1.15x -> 1.0x)
- * - Damped horizontal validation shake (±8dp, 240ms)
- * - Dark-mode photo glare dimming (85% opacity) & mode-matched accent glow
- */
 object DuoMotionHelper {
 
     fun attachZeroMsPressFeedback(vararg views: View?) {
@@ -46,15 +40,33 @@ object DuoMotionHelper {
                             .start()
                     }
                 }
-                false // Never consume click event
+                false
             }
         }
     }
 
-    fun triggerCircularReveal(targetView: View?, anchorView: View? = null) {
+    /**
+     * Visible Circular Reveal wave across the workspace container using a transient mode-tinted
+     * overlay so the wipe is clearly perceptible over the #0A0B0E carbon canvas.
+     */
+    fun triggerCircularReveal(targetView: View?, isWorkMode: Boolean = false, anchorView: View? = null) {
         if (targetView == null || !targetView.isAttachedToWindow) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        val parent = targetView.parent as? ViewGroup ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && targetView.width > 0 && targetView.height > 0) {
             try {
+                val waveOverlay = View(targetView.context).apply {
+                    layoutParams = ViewGroup.LayoutParams(targetView.width, targetView.height)
+                    x = targetView.x
+                    y = targetView.y
+                    setBackgroundColor(
+                        Color.parseColor(if (isWorkMode) "#2E10B981" else "#2E38BDF8")
+                    )
+                    elevation = 20f * resources.displayMetrics.density
+                    isClickable = false
+                    isFocusable = false
+                }
+                parent.addView(waveOverlay)
+
                 val cx = if (anchorView != null && anchorView.isAttachedToWindow) {
                     val anchorLoc = IntArray(2)
                     val targetLoc = IntArray(2)
@@ -71,32 +83,54 @@ object DuoMotionHelper {
                     targetView.getLocationInWindow(targetLoc)
                     (anchorLoc[1] - targetLoc[1] + anchorView.height / 2).coerceIn(0, targetView.height)
                 } else {
-                    (targetView.height * 0.12f).toInt()
+                    (targetView.height * 0.14f).toInt()
                 }
+
                 val finalRadius = hypot(targetView.width.toDouble(), targetView.height.toDouble()).toFloat()
-                if (finalRadius > 0f) {
-                    val anim = ViewAnimationUtils.createCircularReveal(targetView, cx, cy, 24f, finalRadius)
-                    anim.duration = 280L
-                    anim.interpolator = DecelerateInterpolator(1.4f)
-                    anim.start()
+                val reveal = ViewAnimationUtils.createCircularReveal(waveOverlay, cx, cy, 16f, finalRadius).apply {
+                    duration = 320L
+                    interpolator = DecelerateInterpolator(1.3f)
+                }
+                val fadeOut = ObjectAnimator.ofFloat(waveOverlay, View.ALPHA, 1f, 0f).apply {
+                    startDelay = 140L
+                    duration = 220L
+                }
+                AnimatorSet().apply {
+                    playTogether(reveal, fadeOut)
+                    addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            parent.removeView(waveOverlay)
+                        }
+                    })
+                    start()
                 }
             } catch (_: Exception) {}
         }
     }
 
-    fun playTaskCompletionPop(view: View?) {
-        if (view == null) return
+    fun playTaskCompletionPop(view: View?, onPopPeak: (() -> Unit)? = null) {
+        if (view == null) {
+            onPopPeak?.invoke()
+            return
+        }
         view.animate().cancel()
-        val downX = ObjectAnimator.ofFloat(view, View.SCALE_X, 1f, 0.85f).setDuration(70L)
-        val downY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 1f, 0.85f).setDuration(70L)
-        val upX = ObjectAnimator.ofFloat(view, View.SCALE_X, 0.85f, 1.15f, 1.0f).setDuration(220L)
-        val upY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 0.85f, 1.15f, 1.0f).setDuration(220L)
-        upX.interpolator = OvershootInterpolator(2.0f)
-        upY.interpolator = OvershootInterpolator(2.0f)
+        val downX = ObjectAnimator.ofFloat(view, View.SCALE_X, 1f, 0.90f).setDuration(75L)
+        val downY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 1f, 0.90f).setDuration(75L)
+        val upX = ObjectAnimator.ofFloat(view, View.SCALE_X, 0.90f, 1.06f, 1.0f).setDuration(210L)
+        val upY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 0.90f, 1.06f, 1.0f).setDuration(210L)
+        upX.interpolator = OvershootInterpolator(2.2f)
+        upY.interpolator = OvershootInterpolator(2.2f)
 
         AnimatorSet().apply {
             play(downX).with(downY)
             play(upX).with(upY).after(downX)
+            if (onPopPeak != null) {
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        onPopPeak.invoke()
+                    }
+                })
+            }
             start()
         }
     }
@@ -120,15 +154,17 @@ object DuoMotionHelper {
         imageView?.alpha = if (hasPhoto) 0.85f else 1.0f
     }
 
+    /**
+     * Never overwrite backgroundTintList on a GradientDrawable-backed view (which locks the first color);
+     * instead clear backgroundTintList and apply mode-matched ambient/spot outer glow.
+     */
     fun applyModeAccentGlow(view: View?, isWorkMode: Boolean) {
         if (view == null) return
+        view.backgroundTintList = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val glowColor = if (isWorkMode) Color.parseColor("#10B981") else Color.parseColor("#38BDF8")
             view.outlineAmbientShadowColor = glowColor
             view.outlineSpotShadowColor = glowColor
         }
-        view.backgroundTintList = view.backgroundTintList ?: ColorStateList.valueOf(
-            Color.parseColor(if (isWorkMode) "#10B981" else "#38BDF8")
-        )
     }
 }

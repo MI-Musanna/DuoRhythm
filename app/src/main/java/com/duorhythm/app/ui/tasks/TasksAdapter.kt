@@ -214,8 +214,9 @@ class TasksAdapter(
                         .setInterpolator(android.view.animation.OvershootInterpolator(2.6f))
                         .start()
                 }
-                com.duorhythm.app.util.DuoMotionHelper.playTaskCompletionPop(itemView)
-                onToggleCompleted(task, isChecked)
+                com.duorhythm.app.util.DuoMotionHelper.playTaskCompletionPop(binding.root) {
+                    onToggleCompleted(task, isChecked)
+                }
             }
 
             binding.btnDeleteTask.setOnClickListener {

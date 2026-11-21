@@ -19,6 +19,7 @@ import com.duorhythm.app.ui.views.WormDotsIndicatorView
 import database.entities.AssessmentEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -590,5 +591,25 @@ class DuoRhythmFullAppAuditTest {
         assertEquals(0.85f, iv.alpha, 0.01f)
         com.duorhythm.app.util.DuoMotionHelper.attachZeroMsPressFeedback(iv)
         com.duorhythm.app.util.DuoMotionHelper.playValidationShake(iv)
+    }
+
+    @Test
+    fun audit17_profileInitialsIntegrationAndDualModeFabUnlock() {
+        // 1. Verify ProfileAvatarHelper delegates to DeterministicAvatarHelper when no photo exists
+        val iv = android.widget.ImageView(context)
+        com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(iv, null, "Mahdi Islam")
+        assertTrue(
+            "Named profile without photo must render deterministic initials BitmapDrawable",
+            iv.drawable is android.graphics.drawable.BitmapDrawable
+        )
+        assertNull("Initials avatar must not apply monochrome placeholder tint", iv.imageTintList)
+
+        // 2. Verify SpeedDialFabView switches cleanly between Student (#38BDF8) and Work (#10B981) without tint lock
+        val fab = com.duorhythm.app.ui.views.SpeedDialFabView(context)
+        fab.syncWorkspaceAccent(isWorkMode = false)
+        val mainBtn = fab.getChildAt(1)
+        assertNull("mainFabButton backgroundTintList must remain null so GradientDrawable color switches freely", mainBtn.backgroundTintList)
+        fab.syncWorkspaceAccent(isWorkMode = true)
+        assertNull("mainFabButton backgroundTintList must remain null in Work Mode", mainBtn.backgroundTintList)
     }
 }

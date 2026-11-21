@@ -396,7 +396,7 @@ class MainActivity : AppCompatActivity() {
         isStudent = !isWorkMode
         syncAllSpeedDialFabs(isWorkMode)
         if (::binding.isInitialized) {
-            com.duorhythm.app.util.DuoMotionHelper.triggerCircularReveal(binding.mainViewPager)
+            com.duorhythm.app.util.DuoMotionHelper.triggerCircularReveal(binding.mainViewPager, isWorkMode)
         }
 
         val currentPos = binding.mainViewPager.currentItem
@@ -533,6 +533,9 @@ class MainActivity : AppCompatActivity() {
 
         updateTabVisuals(prevTabId, targetTabId, animated = animated)
         hasInitializedTabs = true
+
+        clearedTabBadgesThisSession.add(position)
+        refreshNavigationBadges()
 
         updateSubtitleForPosition(position)
     }

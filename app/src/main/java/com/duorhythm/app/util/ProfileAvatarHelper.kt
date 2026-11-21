@@ -1,21 +1,19 @@
 package com.duorhythm.app.util
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.net.Uri
 import android.widget.ImageView
-import com.duorhythm.app.R
 import java.io.File
 import java.io.FileOutputStream
 
 object ProfileAvatarHelper {
 
     /**
-     * Resilient avatar renderer that handles file:// URIs (with or without query parameters),
-     * absolute disk paths, and content:// URIs. If the file is missing or invalid, renders
-     * a clean fallback placeholder icon with #38BDF8 cyan tint to prevent blank black holes.
+     * Unified avatar renderer:
+     * 1. Loads valid file://, path, or content:// avatar bitmap with 85% dark-mode glare dimming.
+     * 2. When no photo exists, delegates directly to DeterministicAvatarHelper so named profiles
+     *    render crisp 2-letter initials (e.g., "MI") on a deterministic name-hashed background.
      */
     fun bindProfileAvatar(imageView: ImageView, avatarPath: String?, profileName: String = "") {
         var loaded = false
@@ -31,8 +29,11 @@ object ProfileAvatarHelper {
                 if (file.exists() && file.length() > 0) {
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                     if (bitmap != null) {
-                        imageView.setImageBitmap(bitmap)
+                        imageView.setPadding(0, 0, 0, 0)
                         imageView.imageTintList = null
+                        imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+                        imageView.setImageBitmap(bitmap)
+                        DuoMotionHelper.applyDarkPhotoDimming(imageView, hasPhoto = true)
                         loaded = true
                     }
                 } else if (avatarPath.startsWith("content://")) {
@@ -40,8 +41,11 @@ object ProfileAvatarHelper {
                     imageView.context.contentResolver.openInputStream(uri)?.use { stream ->
                         val bitmap = BitmapFactory.decodeStream(stream)
                         if (bitmap != null) {
-                            imageView.setImageBitmap(bitmap)
+                            imageView.setPadding(0, 0, 0, 0)
                             imageView.imageTintList = null
+                            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+                            imageView.setImageBitmap(bitmap)
+                            DuoMotionHelper.applyDarkPhotoDimming(imageView, hasPhoto = true)
                             loaded = true
                         }
                     }
@@ -52,15 +56,21 @@ object ProfileAvatarHelper {
         }
 
         if (!loaded) {
-            imageView.setImageResource(R.drawable.ic_profile_placeholder)
-            imageView.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+            DuoMotionHelper.applyDarkPhotoDimming(imageView, hasPhoto = false)
+            val sizeDp = if (imageView.layoutParams != null && imageView.layoutParams.width > 0) {
+                (imageView.layoutParams.width / imageView.resources.displayMetrics.density).toInt().coerceAtLeast(24)
+            } else {
+                40
+            }
+            DeterministicAvatarHelper.bindAvatar(
+                imageView = imageView,
+                name = profileName,
+                photoUri = null,
+                sizeDp = sizeDp
+            )
         }
     }
 
-    /**
-     * Persistent avatar storage: copies image streams directly into the app private files directory
-     * under "workspace_avatars" so that gallery photos survive reboots and external file permission revokes.
-     */
     fun saveAvatarPermanently(context: Context, sourceUri: Uri, profileId: Long): String {
         return try {
             val avatarDir = File(context.filesDir, "workspace_avatars")

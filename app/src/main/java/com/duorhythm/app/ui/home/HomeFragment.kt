@@ -271,27 +271,11 @@ class HomeFragment : Fragment() {
 
             binding.ivUserProfile.setImageDrawable(null)
             binding.ivUserProfile.setImageBitmap(null)
-
-            val avatarUriString = activeProfile?.avatarUri
-            if (!avatarUriString.isNullOrBlank()) {
-                try {
-                    binding.ivUserProfile.setPadding(0, 0, 0, 0)
-                    binding.ivUserProfile.imageTintList = null
-                    binding.ivUserProfile.setImageURI(android.net.Uri.parse(avatarUriString))
-                } catch (e: Exception) {
-                    val density = resources.displayMetrics.density
-                    val pad8 = (8 * density).toInt()
-                    binding.ivUserProfile.setPadding(pad8, pad8, pad8, pad8)
-                    binding.ivUserProfile.setImageResource(R.drawable.ic_profile_placeholder)
-                    binding.ivUserProfile.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-                }
-            } else {
-                val density = resources.displayMetrics.density
-                val pad8 = (8 * density).toInt()
-                binding.ivUserProfile.setPadding(pad8, pad8, pad8, pad8)
-                binding.ivUserProfile.setImageResource(R.drawable.ic_profile_placeholder)
-                binding.ivUserProfile.imageTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-            }
+            com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(
+                binding.ivUserProfile,
+                activeProfile?.avatarUri,
+                profileName
+            )
 
             val openProfile = View.OnClickListener {
                 val intent = Intent(requireContext(), ProfileActivity::class.java)
