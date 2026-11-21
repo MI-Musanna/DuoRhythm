@@ -395,8 +395,8 @@ class MainActivity : AppCompatActivity() {
             .edit().putBoolean("is_work_mode", isWorkMode).apply()
         isStudent = !isWorkMode
         syncAllSpeedDialFabs(isWorkMode)
-        if (::binding.isInitialized) {
-            com.duorhythm.app.util.DuoMotionHelper.triggerCircularReveal(binding.mainViewPager, isWorkMode)
+        if (::pagerAdapter.isInitialized) {
+            (pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment)?.animateWorkspaceTransition()
         }
 
         val currentPos = binding.mainViewPager.currentItem

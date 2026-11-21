@@ -357,7 +357,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Neutral Carbon & Dual-Mode UI (Sky-Blue Student / Emerald Work) unified.\n• Deterministic initials avatars, tactile spring motion & instant tab badge clearing."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Smooth bidirectional Student <-> Work transitions across Home & Portal.\n• Reactive Exam subject title auto-fill with 1-tap clear & custom category chips."
                     }
                 }
             }

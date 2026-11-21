@@ -612,4 +612,21 @@ class DuoRhythmFullAppAuditTest {
         fab.syncWorkspaceAccent(isWorkMode = true)
         assertNull("mainFabButton backgroundTintList must remain null in Work Mode", mainBtn.backgroundTintList)
     }
+
+    @Test
+    fun audit18_bidirectionalWorkspaceSwitchAndExamClearButton() {
+        val root = android.widget.FrameLayout(context)
+        val child = android.view.View(context)
+        root.addView(child)
+        com.duorhythm.app.util.DuoMotionHelper.animateWorkspaceSwitch(root, child)
+        assertEquals(0.78f, child.alpha, 0.05f)
+
+        val schedXml = java.io.File("src/main/res/layout/dialog_schedule_assessment.xml").let {
+            if (it.exists()) it else java.io.File("app/src/main/res/layout/dialog_schedule_assessment.xml")
+        }
+        if (schedXml.exists()) {
+            val txt = schedXml.readText()
+            assertTrue("dialog_schedule_assessment.xml must include clear_text endIconMode", txt.contains("endIconMode=\"clear_text\""))
+        }
+    }
 }

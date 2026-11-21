@@ -6,14 +6,15 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.graphics.Color
 import android.os.Build
+import android.transition.AutoTransition
+import android.transition.TransitionManager
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
-import kotlin.math.hypot
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 
 object DuoMotionHelper {
 
@@ -46,65 +47,32 @@ object DuoMotionHelper {
     }
 
     /**
-     * Visible Circular Reveal wave across the workspace container using a transient mode-tinted
-     * overlay so the wipe is clearly perceptible over the #0A0B0E carbon canvas.
+     * Smooth, symmetric bidirectional workspace transition (Student <-> Work):
+     * 1. Morphs segmented pill & layout bounds via AutoTransition (200ms FastOutSlowIn).
+     * 2. Crossfades and glides the incoming content container (alpha 0.78 -> 1.0, translationY 6dp -> 0)
+     *    without any jarring full-screen color flash.
      */
-    fun triggerCircularReveal(targetView: View?, isWorkMode: Boolean = false, anchorView: View? = null) {
-        if (targetView == null || !targetView.isAttachedToWindow) return
-        val parent = targetView.parent as? ViewGroup ?: return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && targetView.width > 0 && targetView.height > 0) {
+    fun animateWorkspaceSwitch(container: ViewGroup?, incomingContent: View? = null) {
+        if (container != null && container.isAttachedToWindow) {
             try {
-                val waveOverlay = View(targetView.context).apply {
-                    layoutParams = ViewGroup.LayoutParams(targetView.width, targetView.height)
-                    x = targetView.x
-                    y = targetView.y
-                    setBackgroundColor(
-                        Color.parseColor(if (isWorkMode) "#2E10B981" else "#2E38BDF8")
-                    )
-                    elevation = 20f * resources.displayMetrics.density
-                    isClickable = false
-                    isFocusable = false
+                val transition = AutoTransition().apply {
+                    duration = 200L
+                    interpolator = FastOutSlowInInterpolator()
                 }
-                parent.addView(waveOverlay)
-
-                val cx = if (anchorView != null && anchorView.isAttachedToWindow) {
-                    val anchorLoc = IntArray(2)
-                    val targetLoc = IntArray(2)
-                    anchorView.getLocationInWindow(anchorLoc)
-                    targetView.getLocationInWindow(targetLoc)
-                    (anchorLoc[0] - targetLoc[0] + anchorView.width / 2).coerceIn(0, targetView.width)
-                } else {
-                    (targetView.width * 0.82f).toInt()
-                }
-                val cy = if (anchorView != null && anchorView.isAttachedToWindow) {
-                    val anchorLoc = IntArray(2)
-                    val targetLoc = IntArray(2)
-                    anchorView.getLocationInWindow(anchorLoc)
-                    targetView.getLocationInWindow(targetLoc)
-                    (anchorLoc[1] - targetLoc[1] + anchorView.height / 2).coerceIn(0, targetView.height)
-                } else {
-                    (targetView.height * 0.14f).toInt()
-                }
-
-                val finalRadius = hypot(targetView.width.toDouble(), targetView.height.toDouble()).toFloat()
-                val reveal = ViewAnimationUtils.createCircularReveal(waveOverlay, cx, cy, 16f, finalRadius).apply {
-                    duration = 320L
-                    interpolator = DecelerateInterpolator(1.3f)
-                }
-                val fadeOut = ObjectAnimator.ofFloat(waveOverlay, View.ALPHA, 1f, 0f).apply {
-                    startDelay = 140L
-                    duration = 220L
-                }
-                AnimatorSet().apply {
-                    playTogether(reveal, fadeOut)
-                    addListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            parent.removeView(waveOverlay)
-                        }
-                    })
-                    start()
-                }
+                TransitionManager.beginDelayedTransition(container, transition)
             } catch (_: Exception) {}
+        }
+        if (incomingContent != null) {
+            val d = incomingContent.resources.displayMetrics.density
+            incomingContent.animate().cancel()
+            incomingContent.alpha = 0.78f
+            incomingContent.translationY = 6f * d
+            incomingContent.animate()
+                .alpha(1.0f)
+                .translationY(0f)
+                .setDuration(190L)
+                .setInterpolator(DecelerateInterpolator(1.4f))
+                .start()
         }
     }
 
@@ -154,10 +122,6 @@ object DuoMotionHelper {
         imageView?.alpha = if (hasPhoto) 0.85f else 1.0f
     }
 
-    /**
-     * Never overwrite backgroundTintList on a GradientDrawable-backed view (which locks the first color);
-     * instead clear backgroundTintList and apply mode-matched ambient/spot outer glow.
-     */
     fun applyModeAccentGlow(view: View?, isWorkMode: Boolean) {
         if (view == null) return
         view.backgroundTintList = null

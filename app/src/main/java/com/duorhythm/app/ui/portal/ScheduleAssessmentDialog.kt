@@ -97,6 +97,39 @@ class ScheduleAssessmentDialog(
         val initialTypeIdx = types.indexOf(targetType).let { if (it >= 0) it else 0 }
         binding.spAssessmentType.setSelection(initialTypeIdx)
 
+        var lastAutoSubjectTitle = existingItem?.title ?: ""
+        var userEditedTitleManually = existingItem != null
+        var isApplyingAutoTitle = false
+
+        binding.etAssessmentTitle.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                if (isApplyingAutoTitle) return
+                val current = s?.toString()?.trim() ?: ""
+                if (current.isEmpty()) {
+                    userEditedTitleManually = false
+                    lastAutoSubjectTitle = ""
+                } else if (current != lastAutoSubjectTitle) {
+                    userEditedTitleManually = true
+                }
+            }
+        })
+
+        fun applyReactiveSubjectTitle(rawSubjectName: String) {
+            val cleanTitle = rawSubjectName.trim()
+            if (cleanTitle.isEmpty()) return
+            val currentText = binding.etAssessmentTitle.text?.toString()?.trim() ?: ""
+            if (!userEditedTitleManually || currentText.isEmpty() || currentText == lastAutoSubjectTitle) {
+                isApplyingAutoTitle = true
+                lastAutoSubjectTitle = cleanTitle
+                userEditedTitleManually = false
+                binding.etAssessmentTitle.setText(cleanTitle)
+                binding.etAssessmentTitle.setSelection(cleanTitle.length)
+                isApplyingAutoTitle = false
+            }
+        }
+
         var selectedCategory = targetType
         fun populateCategoryChips() {
             binding.chipGroupAssessmentCategory.removeAllViews()
@@ -259,6 +292,9 @@ class ScheduleAssessmentDialog(
             selectedCourse?.let { course ->
                 val display = if (course.code.isNotBlank()) "[${course.code}] ${course.name}" else course.name
                 binding.actvAssessmentSubject.setText(display, false)
+                if (existingItem == null) {
+                    applyReactiveSubjectTitle(course.name)
+                }
             }
         }
 
@@ -266,10 +302,7 @@ class ScheduleAssessmentDialog(
             val course = enrolledCourses.getOrNull(position)
             if (course != null) {
                 selectedCourse = course
-                val selectedTypeStr = binding.spAssessmentType.selectedItem?.toString() ?: "Exam"
-                if (binding.etAssessmentTitle.text.isNullOrBlank()) {
-                    binding.etAssessmentTitle.setText("${course.name} - $selectedTypeStr")
-                }
+                applyReactiveSubjectTitle(course.name)
                 val teacherName = if (course.instructorName.isNotBlank()) course.instructorName else course.teacherName
                 if (binding.etAssessmentTeacher.text.isNullOrBlank() || !isEdit) {
                     binding.etAssessmentTeacher.setText(teacherName)

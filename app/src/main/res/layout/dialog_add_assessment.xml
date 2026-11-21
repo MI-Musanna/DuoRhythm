@@ -78,6 +78,8 @@
         <!-- Field 3: Title -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilAssessmentTitle"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/text_secondary"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

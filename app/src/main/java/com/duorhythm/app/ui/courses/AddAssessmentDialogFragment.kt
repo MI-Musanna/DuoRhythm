@@ -66,8 +66,37 @@ class AddAssessmentDialogFragment : DialogFragment() {
         val courseNames = enrolledCourses.map { "[${it.code}] ${it.name}" }
         val courseAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, courseNames)
         binding.actvAssessmentSubject.setAdapter(courseAdapter)
+        var lastAutoSubjectTitle = ""
+        var userEditedTitleManually = false
+        var isApplyingAutoTitle = false
+
+        binding.etAssessmentTitle.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                if (isApplyingAutoTitle) return
+                val current = s?.toString()?.trim() ?: ""
+                if (current.isEmpty()) {
+                    userEditedTitleManually = false
+                    lastAutoSubjectTitle = ""
+                } else if (current != lastAutoSubjectTitle) {
+                    userEditedTitleManually = true
+                }
+            }
+        })
+
         binding.actvAssessmentSubject.setOnItemClickListener { _, _, position, _ ->
             selectedCourse = enrolledCourses.getOrNull(position)
+            val cleanName = selectedCourse?.name?.trim().orEmpty()
+            val currentText = binding.etAssessmentTitle.text?.toString()?.trim().orEmpty()
+            if (cleanName.isNotEmpty() && (!userEditedTitleManually || currentText.isEmpty() || currentText == lastAutoSubjectTitle)) {
+                isApplyingAutoTitle = true
+                lastAutoSubjectTitle = cleanName
+                userEditedTitleManually = false
+                binding.etAssessmentTitle.setText(cleanName)
+                binding.etAssessmentTitle.setSelection(cleanName.length)
+                isApplyingAutoTitle = false
+            }
         }
 
         // 2. Setup dynamic categories & inline "+ Add" chip

@@ -61,6 +61,11 @@ class HomeFragment : Fragment() {
 
     private var isNotesCollapsed = false
 
+    fun animateWorkspaceTransition() {
+        if (_binding == null || !isAdded) return
+        com.duorhythm.app.util.DuoMotionHelper.animateWorkspaceSwitch(binding.rootLayout)
+    }
+
     fun setSectionCollapsed(viewToHide: View, chevron: ImageView, isCollapsed: Boolean, animate: Boolean) {
         if (animate && _binding != null) {
             TransitionManager.beginDelayedTransition(binding.rootLayout, AutoTransition().apply { duration = 180 })
