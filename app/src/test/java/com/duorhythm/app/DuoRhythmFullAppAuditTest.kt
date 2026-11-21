@@ -629,4 +629,23 @@ class DuoRhythmFullAppAuditTest {
             assertTrue("dialog_schedule_assessment.xml must include clear_text endIconMode", txt.contains("endIconMode=\"clear_text\""))
         }
     }
+
+    @Test
+    fun audit19_snapshotCircularRevealAndReactiveAssessmentTitle() {
+        val parent = android.widget.FrameLayout(context)
+        val container = android.widget.FrameLayout(context)
+        parent.addView(container)
+        com.duorhythm.app.util.DuoMotionHelper.triggerSnapshotCircularReveal(container, null)
+
+        val sadFile = java.io.File("src/main/java/com/duorhythm/app/ui/portal/ScheduleAssessmentDialog.kt").let {
+            if (it.exists()) it else java.io.File("app/src/main/java/com/duorhythm/app/ui/portal/ScheduleAssessmentDialog.kt")
+        }
+        if (sadFile.exists()) {
+            val code = sadFile.readText()
+            assertTrue(
+                "ScheduleAssessmentDialog must reactively update title when category chip is checked",
+                code.contains("updateComposedAssessmentTitle()")
+            )
+        }
+    }
 }

@@ -66,9 +66,29 @@ class AddAssessmentDialogFragment : DialogFragment() {
         val courseNames = enrolledCourses.map { "[${it.code}] ${it.name}" }
         val courseAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, courseNames)
         binding.actvAssessmentSubject.setAdapter(courseAdapter)
+        var currentSubjectName = ""
+        var activeChipCategory = ""
         var lastAutoSubjectTitle = ""
         var userEditedTitleManually = false
         var isApplyingAutoTitle = false
+
+        fun updateComposedAssessmentTitle() {
+            val composed = when {
+                currentSubjectName.isNotBlank() && activeChipCategory.isNotBlank() -> "$currentSubjectName - $activeChipCategory"
+                currentSubjectName.isNotBlank() -> currentSubjectName
+                else -> ""
+            }
+            if (composed.isEmpty()) return
+            val currentText = binding.etAssessmentTitle.text?.toString()?.trim().orEmpty()
+            if (!userEditedTitleManually || currentText.isEmpty() || currentText == lastAutoSubjectTitle) {
+                isApplyingAutoTitle = true
+                lastAutoSubjectTitle = composed
+                userEditedTitleManually = false
+                binding.etAssessmentTitle.setText(composed)
+                binding.etAssessmentTitle.setSelection(composed.length)
+                isApplyingAutoTitle = false
+            }
+        }
 
         binding.etAssessmentTitle.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -87,16 +107,8 @@ class AddAssessmentDialogFragment : DialogFragment() {
 
         binding.actvAssessmentSubject.setOnItemClickListener { _, _, position, _ ->
             selectedCourse = enrolledCourses.getOrNull(position)
-            val cleanName = selectedCourse?.name?.trim().orEmpty()
-            val currentText = binding.etAssessmentTitle.text?.toString()?.trim().orEmpty()
-            if (cleanName.isNotEmpty() && (!userEditedTitleManually || currentText.isEmpty() || currentText == lastAutoSubjectTitle)) {
-                isApplyingAutoTitle = true
-                lastAutoSubjectTitle = cleanName
-                userEditedTitleManually = false
-                binding.etAssessmentTitle.setText(cleanName)
-                binding.etAssessmentTitle.setSelection(cleanName.length)
-                isApplyingAutoTitle = false
-            }
+            currentSubjectName = selectedCourse?.name?.trim().orEmpty()
+            updateComposedAssessmentTitle()
         }
 
         // 2. Setup dynamic categories & inline "+ Add" chip
@@ -121,6 +133,11 @@ class AddAssessmentDialogFragment : DialogFragment() {
                     setOnCheckedChangeListener { _, isChecked ->
                         if (isChecked) {
                             selectedCategory = cat
+                            activeChipCategory = cat
+                            updateComposedAssessmentTitle()
+                        } else if (activeChipCategory == cat) {
+                            activeChipCategory = ""
+                            updateComposedAssessmentTitle()
                         }
                     }
 
@@ -167,6 +184,8 @@ class AddAssessmentDialogFragment : DialogFragment() {
                             if (name.isNotEmpty()) {
                                 db.addAssessmentCategory(profileId, name)
                                 selectedCategory = name
+                                activeChipCategory = name
+                                updateComposedAssessmentTitle()
                                 populateCategories()
                             }
                         }

@@ -4,17 +4,22 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Build
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import kotlin.math.hypot
 
 object DuoMotionHelper {
 
@@ -47,10 +52,87 @@ object DuoMotionHelper {
     }
 
     /**
-     * Smooth, symmetric bidirectional workspace transition (Student <-> Work):
-     * 1. Morphs segmented pill & layout bounds via AutoTransition (200ms FastOutSlowIn).
-     * 2. Crossfades and glides the incoming content container (alpha 0.78 -> 1.0, translationY 6dp -> 0)
-     *    without any jarring full-screen color flash.
+     * Gold-standard Snapshot-Backed Circular Reveal:
+     * Call BEFORE mutating the workspace UI (Student <-> Work).
+     * Captures a pixel-accurate bitmap of the outgoing mode behind `container`,
+     * then expands a clean Circular Reveal on `container` directly from `anchorView`
+     * with zero color flash, zero blank frames, and symmetric behavior in both directions.
+     */
+    fun triggerSnapshotCircularReveal(container: ViewGroup?, anchorView: View? = null) {
+        if (container == null || !container.isAttachedToWindow) return
+        val parent = container.parent as? FrameLayout ?: return
+        val w = container.width
+        val h = container.height
+        if (w <= 0 || h <= 0 || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return
+
+        try {
+            val snapshotBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(snapshotBitmap)
+            container.draw(canvas)
+
+            val snapshotView = ImageView(container.context).apply {
+                layoutParams = FrameLayout.LayoutParams(w, h).apply {
+                    leftMargin = container.left
+                    topMargin = container.top
+                }
+                scaleType = ImageView.ScaleType.FIT_XY
+                setImageBitmap(snapshotBitmap)
+                isClickable = false
+                isFocusable = false
+            }
+
+            val containerIndex = parent.indexOfChild(container).coerceAtLeast(0)
+            parent.addView(snapshotView, containerIndex)
+
+            val cx: Int
+            val cy: Int
+            if (anchorView != null && anchorView.isAttachedToWindow && anchorView.width > 0) {
+                val anchorLoc = IntArray(2)
+                val containerLoc = IntArray(2)
+                anchorView.getLocationInWindow(anchorLoc)
+                container.getLocationInWindow(containerLoc)
+                cx = (anchorLoc[0] - containerLoc[0] + anchorView.width / 2).coerceIn(0, w)
+                cy = (anchorLoc[1] - containerLoc[1] + anchorView.height / 2).coerceIn(0, h)
+            } else {
+                cx = (w * 0.84f).toInt()
+                cy = (h * 0.14f).toInt()
+            }
+
+            val finalRadius = hypot(w.toDouble(), h.toDouble()).toFloat()
+
+            container.post {
+                if (!container.isAttachedToWindow) {
+                    parent.removeView(snapshotView)
+                    if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
+                    return@post
+                }
+                try {
+                    val reveal = ViewAnimationUtils.createCircularReveal(container, cx, cy, 0f, finalRadius).apply {
+                        duration = 340L
+                        interpolator = FastOutSlowInInterpolator()
+                        addListener(object : AnimatorListenerAdapter() {
+                            private var cleaned = false
+                            private fun cleanup() {
+                                if (cleaned) return
+                                cleaned = true
+                                parent.removeView(snapshotView)
+                                if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
+                            }
+                            override fun onAnimationEnd(animation: Animator) = cleanup()
+                            override fun onAnimationCancel(animation: Animator) = cleanup()
+                        })
+                    }
+                    reveal.start()
+                } catch (_: Exception) {
+                    parent.removeView(snapshotView)
+                    if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    /**
+     * Preserved fallback workspace switch with smooth bounds and fade.
      */
     fun animateWorkspaceSwitch(container: ViewGroup?, incomingContent: View? = null) {
         if (container != null && container.isAttachedToWindow) {

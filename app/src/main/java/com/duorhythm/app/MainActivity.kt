@@ -395,13 +395,11 @@ class MainActivity : AppCompatActivity() {
             .edit().putBoolean("is_work_mode", isWorkMode).apply()
         isStudent = !isWorkMode
         syncAllSpeedDialFabs(isWorkMode)
-        if (::pagerAdapter.isInitialized) {
-            (pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment)?.animateWorkspaceTransition()
-        }
-
         val currentPos = binding.mainViewPager.currentItem
         if (currentPos == MainPagerAdapter.INDEX_HOME) {
-            (pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment)?.loadDashboardData()
+            val homeFrag = pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment
+            homeFrag?.animateWorkspaceTransition()
+            homeFrag?.loadDashboardData()
         } else if (currentPos == MainPagerAdapter.INDEX_PORTAL) {
             (pagerAdapter.getFragment(MainPagerAdapter.INDEX_PORTAL) as? PortalFragment)?.setProfile(!isWorkMode)
         }

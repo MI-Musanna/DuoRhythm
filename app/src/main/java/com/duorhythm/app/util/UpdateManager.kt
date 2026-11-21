@@ -357,7 +357,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Smooth bidirectional Student <-> Work transitions across Home & Portal.\n• Reactive Exam subject title auto-fill with 1-tap clear & custom category chips."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Snapshot-backed Circular Reveal for Student <-> Work transitions in Home & Portal.\n• Reactive Exam title composition: auto-fills Subject and appends selected Category chip."
                     }
                 }
             }

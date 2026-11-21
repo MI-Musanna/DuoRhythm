@@ -567,9 +567,9 @@ class PortalFragment : Fragment() {
                 binding.togglePortalProfile.check(targetChecked)
             }
 
-            com.duorhythm.app.util.DuoMotionHelper.animateWorkspaceSwitch(
+            com.duorhythm.app.util.DuoMotionHelper.triggerSnapshotCircularReveal(
                 binding.root as? android.view.ViewGroup,
-                if (isStudentProfile) binding.layoutStudentPortal else binding.layoutWorkPortalContainer
+                binding.togglePortalProfile
             )
             updateToggleStyle(isStudentProfile)
             syncPortalSpeedDialForMode()

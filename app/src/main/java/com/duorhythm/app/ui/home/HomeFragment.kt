@@ -63,7 +63,8 @@ class HomeFragment : Fragment() {
 
     fun animateWorkspaceTransition() {
         if (_binding == null || !isAdded) return
-        com.duorhythm.app.util.DuoMotionHelper.animateWorkspaceSwitch(binding.rootLayout)
+        val toggleAnchor = (binding.btnWorkMode.parent as? View) ?: binding.btnWorkMode
+        com.duorhythm.app.util.DuoMotionHelper.triggerSnapshotCircularReveal(binding.rootLayout, toggleAnchor)
     }
 
     fun setSectionCollapsed(viewToHide: View, chevron: ImageView, isCollapsed: Boolean, animate: Boolean) {

@@ -97,9 +97,29 @@ class ScheduleAssessmentDialog(
         val initialTypeIdx = types.indexOf(targetType).let { if (it >= 0) it else 0 }
         binding.spAssessmentType.setSelection(initialTypeIdx)
 
+        var currentSubjectName = existingItem?.title ?: ""
+        var activeChipCategory = ""
         var lastAutoSubjectTitle = existingItem?.title ?: ""
         var userEditedTitleManually = existingItem != null
         var isApplyingAutoTitle = false
+
+        fun updateComposedAssessmentTitle() {
+            val composed = when {
+                currentSubjectName.isNotBlank() && activeChipCategory.isNotBlank() -> "$currentSubjectName - $activeChipCategory"
+                currentSubjectName.isNotBlank() -> currentSubjectName
+                else -> ""
+            }
+            if (composed.isEmpty()) return
+            val currentText = binding.etAssessmentTitle.text?.toString()?.trim() ?: ""
+            if (!userEditedTitleManually || currentText.isEmpty() || currentText == lastAutoSubjectTitle) {
+                isApplyingAutoTitle = true
+                lastAutoSubjectTitle = composed
+                userEditedTitleManually = false
+                binding.etAssessmentTitle.setText(composed)
+                binding.etAssessmentTitle.setSelection(composed.length)
+                isApplyingAutoTitle = false
+            }
+        }
 
         binding.etAssessmentTitle.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -117,17 +137,10 @@ class ScheduleAssessmentDialog(
         })
 
         fun applyReactiveSubjectTitle(rawSubjectName: String) {
-            val cleanTitle = rawSubjectName.trim()
-            if (cleanTitle.isEmpty()) return
-            val currentText = binding.etAssessmentTitle.text?.toString()?.trim() ?: ""
-            if (!userEditedTitleManually || currentText.isEmpty() || currentText == lastAutoSubjectTitle) {
-                isApplyingAutoTitle = true
-                lastAutoSubjectTitle = cleanTitle
-                userEditedTitleManually = false
-                binding.etAssessmentTitle.setText(cleanTitle)
-                binding.etAssessmentTitle.setSelection(cleanTitle.length)
-                isApplyingAutoTitle = false
-            }
+            val clean = rawSubjectName.trim()
+            if (clean.isEmpty()) return
+            currentSubjectName = clean
+            updateComposedAssessmentTitle()
         }
 
         var selectedCategory = targetType
@@ -142,6 +155,11 @@ class ScheduleAssessmentDialog(
                     setOnCheckedChangeListener { _, isChecked ->
                         if (isChecked) {
                             selectedCategory = cat
+                            activeChipCategory = cat
+                            updateComposedAssessmentTitle()
+                        } else if (activeChipCategory.equals(cat, ignoreCase = true)) {
+                            activeChipCategory = ""
+                            updateComposedAssessmentTitle()
                         }
                     }
                     setOnLongClickListener {
@@ -176,6 +194,8 @@ class ScheduleAssessmentDialog(
                             if (text.isNotEmpty()) {
                                 dbHelper.addAssessmentCategory(profileId, text)
                                 selectedCategory = text
+                                activeChipCategory = text
+                                updateComposedAssessmentTitle()
                                 if (!types.contains(text)) {
                                     types.add(0, text)
                                     typeAdapter.notifyDataSetChanged()
