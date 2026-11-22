@@ -390,17 +390,42 @@ class MainActivity : AppCompatActivity() {
 
     private var lastViewportRevealMs = 0L
 
-    fun animateWorkspaceViewportReveal(isWorkMode: Boolean, fromPortal: Boolean = false) {
+    private fun findVisibleWorkspaceToggleButton(root: View?, isWorkMode: Boolean): View? {
+        if (root == null) return null
+        val targetLabel = if (isWorkMode) "WORK" else "STUDENT"
+        val queue = ArrayDeque<View>()
+        queue.add(root)
+        while (queue.isNotEmpty()) {
+            val v = queue.removeFirst()
+            if (v.isShown && v is android.widget.TextView) {
+                val txt = v.text?.toString()?.trim()
+                if (txt.equals(targetLabel, ignoreCase = true) && v.width in 40..650) {
+                    return v
+                }
+            }
+            if (v is android.view.ViewGroup) {
+                for (i in 0 until v.childCount) {
+                    queue.add(v.getChildAt(i))
+                }
+            }
+        }
+        return null
+    }
+
+    fun animateWorkspaceViewportReveal(isWorkMode: Boolean, fromPortal: Boolean = false, explicitAnchor: View? = null) {
         if (!::binding.isInitialized) return
         val now = android.os.SystemClock.elapsedRealtime()
         if (now - lastViewportRevealMs < 220L) return
         lastViewportRevealMs = now
-        val cxRatio = if (fromPortal) (if (isWorkMode) 0.72f else 0.28f) else 0.84f
+        val anchor = explicitAnchor ?: findVisibleWorkspaceToggleButton(binding.mainViewPager, isWorkMode)
+        val cxRatio = if (fromPortal) (if (isWorkMode) 0.74f else 0.26f) else (if (isWorkMode) 0.89f else 0.77f)
         val cyDp = if (fromPortal) 34f else 44f
         com.duorhythm.app.util.DuoMotionHelper.triggerViewportCircularReveal(
             viewport = binding.mainViewPager,
-            cxRatio = cxRatio,
-            cyDp = cyDp
+            isWorkMode = isWorkMode,
+            anchorView = anchor,
+            fallbackCxRatio = cxRatio,
+            fallbackCyDp = cyDp
         )
     }
 

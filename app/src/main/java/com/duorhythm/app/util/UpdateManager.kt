@@ -357,7 +357,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Smooth jitter-free Circular Reveal for Student <-> Work switches across Home & Portal.\n• Removed 8:00 AM exam alarm & added Settings toggle to keep Silent mode after class."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Luminous Emerald/Sky-Blue Circular Reveal wave from exact Student/Work buttons.\n• Removed 8:00 AM exam alarm & added Settings toggle to keep Silent mode after class."
                     }
                 }
             }

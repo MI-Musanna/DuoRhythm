@@ -204,7 +204,14 @@ class PortalFragment : Fragment() {
 
     fun setProfile(student: Boolean) {
         if (isStudentProfile == student) return
-        (activity as? MainActivity)?.animateWorkspaceViewportReveal(isWorkMode = !student, fromPortal = true)
+        val anchorBtn = if (_binding != null) {
+            if (student) binding.btnProfileStudent else binding.btnProfileWork
+        } else null
+        (activity as? MainActivity)?.animateWorkspaceViewportReveal(
+            isWorkMode = !student,
+            fromPortal = true,
+            explicitAnchor = anchorBtn
+        )
         isStudentProfile = student
         updateProfileView()
     }

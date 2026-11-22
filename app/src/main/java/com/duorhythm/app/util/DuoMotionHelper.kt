@@ -4,9 +4,12 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.os.Build
 import android.transition.AutoTransition
 import android.transition.TransitionManager
@@ -14,6 +17,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
@@ -52,12 +56,19 @@ object DuoMotionHelper {
     }
 
     /**
-     * Fixed-Viewport Snapshot Circular Reveal (for MainActivity.mainViewPager inside CoordinatorLayout):
-     * Captures a pixel-accurate bitmap of the outgoing mode at exact viewport bounds (w x h),
-     * places it directly behind `viewport` so height changes in inner RecyclerViews NEVER cause
-     * jitter or blank frames, and expands a clean Circular Reveal symmetrically in both directions.
+     * Luminous Snapshot-Backed Circular Reveal:
+     * Captures the outgoing mode snapshot behind `viewport`, then sweeps a 480ms Circular Reveal
+     * from the exact tapped toggle button center with a synchronized mode-colored glowing edge ring
+     * (#10B981 Emerald for Work, #38BDF8 Sky-Blue for Student) so the transition is unmistakably
+     * crisp and visible over the #0A0B0E dark carbon canvas.
      */
-    fun triggerViewportCircularReveal(viewport: View?, cxRatio: Float = 0.84f, cyDp: Float = 42f) {
+    fun triggerViewportCircularReveal(
+        viewport: View?,
+        isWorkMode: Boolean = false,
+        anchorView: View? = null,
+        fallbackCxRatio: Float = 0.84f,
+        fallbackCyDp: Float = 42f
+    ) {
         if (viewport == null || !viewport.isAttachedToWindow) return
         val parent = viewport.parent as? ViewGroup ?: return
         val w = viewport.width
@@ -80,48 +91,141 @@ object DuoMotionHelper {
                 isFocusable = false
             }
 
+            val cx: Float
+            val cy: Float
+            if (anchorView != null && anchorView.isAttachedToWindow && anchorView.width > 0) {
+                val anchorLoc = IntArray(2)
+                val viewportLoc = IntArray(2)
+                anchorView.getLocationInWindow(anchorLoc)
+                viewport.getLocationInWindow(viewportLoc)
+                cx = (anchorLoc[0] - viewportLoc[0] + anchorView.width / 2f).coerceIn(0f, w.toFloat())
+                cy = (anchorLoc[1] - viewportLoc[1] + anchorView.height / 2f).coerceIn(0f, h.toFloat())
+            } else {
+                val density = viewport.resources.displayMetrics.density
+                cx = (w * fallbackCxRatio).coerceIn(0f, w.toFloat())
+                cy = (fallbackCyDp * density).coerceIn(0f, h.toFloat())
+            }
+
+            val finalRadius = hypot(
+                maxOf(cx, w - cx).toDouble(),
+                maxOf(cy, h - cy).toDouble()
+            ).toFloat()
+
+            val accentHex = if (isWorkMode) "#10B981" else "#38BDF8"
+            val ringOverlay = RevealWaveRingView(viewport.context, cx, cy, finalRadius, Color.parseColor(accentHex)).apply {
+                layoutParams = ViewGroup.LayoutParams(w, h)
+                x = viewport.x
+                y = viewport.y
+                elevation = 24f * viewport.resources.displayMetrics.density
+                isClickable = false
+                isFocusable = false
+            }
+
             val viewportIndex = parent.indexOfChild(viewport).coerceAtLeast(0)
             parent.addView(snapshotView, viewportIndex)
-
-            val density = viewport.resources.displayMetrics.density
-            val cx = (w * cxRatio).toInt().coerceIn(0, w)
-            val cy = (cyDp * density).toInt().coerceIn(0, h)
-            val finalRadius = hypot(w.toDouble(), h.toDouble()).toFloat()
+            parent.addView(ringOverlay)
 
             viewport.post {
                 if (!viewport.isAttachedToWindow) {
                     parent.removeView(snapshotView)
+                    parent.removeView(ringOverlay)
                     if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
                     return@post
                 }
                 try {
-                    val reveal = ViewAnimationUtils.createCircularReveal(viewport, cx, cy, 0f, finalRadius).apply {
-                        duration = 340L
-                        interpolator = FastOutSlowInInterpolator()
+                    val durationMs = 480L
+                    val interp = AccelerateDecelerateInterpolator()
+
+                    val reveal = ViewAnimationUtils.createCircularReveal(
+                        viewport,
+                        cx.toInt(),
+                        cy.toInt(),
+                        0f,
+                        finalRadius
+                    ).apply {
+                        duration = durationMs
+                        interpolator = interp
+                    }
+
+                    val ringAnim = ValueAnimator.ofFloat(0f, finalRadius).apply {
+                        duration = durationMs
+                        interpolator = interp
+                        addUpdateListener { anim ->
+                            ringOverlay.updateRadius(anim.animatedValue as Float)
+                        }
+                    }
+
+                    AnimatorSet().apply {
+                        playTogether(reveal, ringAnim)
                         addListener(object : AnimatorListenerAdapter() {
                             private var cleaned = false
                             private fun cleanup() {
                                 if (cleaned) return
                                 cleaned = true
                                 parent.removeView(snapshotView)
+                                parent.removeView(ringOverlay)
                                 if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
                             }
                             override fun onAnimationEnd(animation: Animator) = cleanup()
                             override fun onAnimationCancel(animation: Animator) = cleanup()
                         })
+                        start()
                     }
-                    reveal.start()
                 } catch (_: Exception) {
                     parent.removeView(snapshotView)
+                    parent.removeView(ringOverlay)
                     if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
                 }
             }
         } catch (_: Exception) {}
     }
 
+    fun triggerViewportCircularReveal(viewport: View?, cxRatio: Float = 0.84f, cyDp: Float = 42f) {
+        triggerViewportCircularReveal(viewport, false, null, cxRatio, cyDp)
+    }
+
+    private class RevealWaveRingView(
+        context: Context,
+        private val cx: Float,
+        private val cy: Float,
+        private val maxRadius: Float,
+        accentColor: Int
+    ) : View(context) {
+
+        private var currentRadius = 0f
+        private val density = resources.displayMetrics.density
+
+        private val haloPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 7f * density
+            color = accentColor
+        }
+
+        private val corePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 2.2f * density
+            color = accentColor
+        }
+
+        fun updateRadius(r: Float) {
+            currentRadius = r
+            invalidate()
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            if (currentRadius <= 1f || maxRadius <= 1f) return
+            val progress = (currentRadius / maxRadius).coerceIn(0f, 1f)
+            val fadeFactor = if (progress > 0.78f) ((1f - progress) / 0.22f).coerceIn(0f, 1f) else 1f
+            haloPaint.alpha = (72 * fadeFactor).toInt()
+            corePaint.alpha = (235 * fadeFactor).toInt()
+            canvas.drawCircle(cx, cy, currentRadius, haloPaint)
+            canvas.drawCircle(cx, cy, currentRadius, corePaint)
+        }
+    }
+
     /**
      * Snapshot-Backed Circular Reveal:
-     * Retained for fragment-level containers and audit backwards-compatibility.
+     * Retained for fragment-level containers and audit backwards-compatibility (audit19).
      */
     fun triggerSnapshotCircularReveal(container: ViewGroup?, anchorView: View? = null) {
         if (container == null || !container.isAttachedToWindow) return

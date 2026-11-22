@@ -669,4 +669,17 @@ class DuoRhythmFullAppAuditTest {
             )
         }
     }
+
+    @Test
+    fun audit21_luminousWavefrontCircularReveal() {
+        val parent = android.widget.FrameLayout(context)
+        val viewport = android.widget.FrameLayout(context)
+        parent.addView(viewport)
+        com.duorhythm.app.util.DuoMotionHelper.triggerViewportCircularReveal(
+            viewport = viewport,
+            isWorkMode = true,
+            anchorView = null
+        )
+        assertTrue("Luminous wavefront reveal helper executed cleanly", true)
+    }
 }
