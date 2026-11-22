@@ -1003,6 +1003,53 @@
                             android:layout_marginVertical="8dp"
                             android:background="@color/card_stroke" />
 
+                        <!-- Switch Row: Restore General Mode After Class -->
+                        <LinearLayout
+                            android:id="@+id/rowAutoRestoreGeneral"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingVertical="10dp"
+                            android:minHeight="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Restore General Mode After Class"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Return phone to General mode after final class; off stays Silent"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchAutoRestoreGeneral"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="8dp"
+                            android:background="@color/card_stroke" />
+
                         <!-- Switch Row: Show Course Progress Bar -->
                         <LinearLayout
                             android:id="@+id/rowShowCourseProgress"

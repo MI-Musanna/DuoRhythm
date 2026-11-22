@@ -357,7 +357,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Snapshot-backed Circular Reveal for Student <-> Work transitions in Home & Portal.\n• Reactive Exam title composition: auto-fills Subject and appends selected Category chip."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Smooth jitter-free Circular Reveal for Student <-> Work switches across Home & Portal.\n• Removed 8:00 AM exam alarm & added Settings toggle to keep Silent mode after class."
                     }
                 }
             }

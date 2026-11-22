@@ -74,41 +74,9 @@ object ReminderManager {
     }
 
     fun scheduleExamReminder(context: Context, examItem: SubjectWorkItem, subjectName: String) {
-        if (!isRemindersEnabled(context) || examItem.status == "DONE") return
-        if (examItem.endDate.isBlank()) return
-
-        val triggerMs = calculateExamTriggerMs(examItem.endDate)
-        if (triggerMs <= System.currentTimeMillis()) return
-
-        val message = "Subject: $subjectName • Due: ${examItem.endDate}" +
-                if (examItem.description.isNotBlank()) " • ${examItem.description}" else ""
-
-        val intent = Intent(context, ReminderReceiver::class.java).apply {
-            action = ACTION_REMINDER
-            putExtra(EXTRA_TYPE, "EXAM")
-            putExtra(EXTRA_ID, examItem.id)
-            putExtra(EXTRA_TITLE, "Exam Reminder: ${examItem.title}")
-            putExtra(EXTRA_MESSAGE, message)
-        }
-
-        val requestCode = (200000 + examItem.id).toInt()
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            requestCode,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
-            } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
-            }
-        } catch (_: SecurityException) {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
-        }
+        // Hardcoded 8:00 AM morning exam alarm disabled; real exam-time lead alerts (2h & 20m prior)
+        // are handled exclusively by AlarmSyncManager based on the exam's actual scheduled time.
+        cancelExamReminder(context, examItem.id)
     }
 
     fun cancelExamReminder(context: Context, examId: Long) {
@@ -144,7 +112,7 @@ object ReminderManager {
             val exams = db.getItemsForSubject(s.id, "EXAM")
             for (exam in exams) {
                 if (exam.status != "DONE") {
-                    scheduleExamReminder(context, exam, s.name)
+                    cancelExamReminder(context, exam.id)
                 }
             }
         }

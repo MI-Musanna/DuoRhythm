@@ -240,11 +240,13 @@ class ClassAlarmReceiver : BroadcastReceiver() {
             nm?.notify(30101, transitionNotif)
         } else {
             // No immediate class exists:
-            // Restore normal sound profile and post "Class Ended: ${currentClass.subjectName}"
-            val savedMode = prefs.getInt(ClassAlarmScheduler.KEY_SAVED_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL)
-            try {
-                audioManager.ringerMode = savedMode
-            } catch (_: Exception) {}
+            // Restore normal sound profile ONLY if 'Restore General Mode After Class' is enabled in Settings
+            if (SmartAutomationManager.isAutoRestoreGeneralAfterClassEnabled(context)) {
+                val savedMode = prefs.getInt(ClassAlarmScheduler.KEY_SAVED_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL)
+                try {
+                    audioManager.ringerMode = savedMode
+                } catch (_: Exception) {}
+            }
             prefs.edit().putBoolean(ClassAlarmScheduler.KEY_IN_CLASS_DND, false).apply()
 
             nm?.cancel(30101)

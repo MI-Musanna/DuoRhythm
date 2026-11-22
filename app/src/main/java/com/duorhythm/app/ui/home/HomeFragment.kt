@@ -62,9 +62,7 @@ class HomeFragment : Fragment() {
     private var isNotesCollapsed = false
 
     fun animateWorkspaceTransition() {
-        if (_binding == null || !isAdded) return
-        val toggleAnchor = (binding.btnWorkMode.parent as? View) ?: binding.btnWorkMode
-        com.duorhythm.app.util.DuoMotionHelper.triggerSnapshotCircularReveal(binding.rootLayout, toggleAnchor)
+        // Handled centrally at MainActivity viewport level to eliminate height-jump jitter
     }
 
     fun setSectionCollapsed(viewToHide: View, chevron: ImageView, isCollapsed: Boolean, animate: Boolean) {

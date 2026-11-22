@@ -287,6 +287,7 @@ class SettingsActivity : AppCompatActivity() {
         searchableItems.add(SettingSearchItem("Class & Exam Alarms", "System alarm reminders before scheduled lectures", binding.rowClassAlarms, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Class Reminder Lead Time", "Custom minutes before lecture", binding.rowClassLeadTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Auto-Silent During Classes (DND)", "Silences ringer during scheduled lectures", binding.rowClassDnd, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+        searchableItems.add(SettingSearchItem("Restore General Mode After Class", "Return phone to General mode after final class; off stays Silent", binding.rowAutoRestoreGeneral, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
 
         // Financial Ledger
         searchableItems.add(SettingSearchItem("Show Running Balance", "Display remaining balance underneath transactions", binding.rowRunningBalance, binding.cardFinanceAutomations, binding.layoutFinanceAutomationsContent, binding.ivChevronFinance))
@@ -984,6 +985,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowClassDnd.setOnClickListener {
             binding.switchClassDnd.toggle()
         }
+        binding.rowAutoRestoreGeneral.setOnClickListener {
+            binding.switchAutoRestoreGeneral.toggle()
+        }
         binding.rowShowCourseProgress.setOnClickListener {
             binding.switchShowCourseProgress.toggle()
         }
@@ -1112,6 +1116,16 @@ class SettingsActivity : AppCompatActivity() {
             SmartAutomationManager.setAutoSilentClassesEnabled(this, isChecked)
             AlarmSyncManager.resyncAll(this)
             val msg = if (isChecked) "Auto-silent during classes activated" else "Auto-silent disabled"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
+        // Card 2: Academic - Restore General Mode After Class
+        binding.switchAutoRestoreGeneral.setOnCheckedChangeListener(null)
+        binding.switchAutoRestoreGeneral.isChecked = SmartAutomationManager.isAutoRestoreGeneralAfterClassEnabled(this)
+        binding.switchAutoRestoreGeneral.setOnCheckedChangeListener { _, isChecked ->
+            if (isHydratingUI) return@setOnCheckedChangeListener
+            SmartAutomationManager.setAutoRestoreGeneralAfterClassEnabled(this, isChecked)
+            val msg = if (isChecked) "Phone will return to General mode after class" else "Phone will stay in Silent mode after class"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
 

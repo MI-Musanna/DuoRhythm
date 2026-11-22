@@ -298,4 +298,18 @@ object SmartAutomationManager {
         targetCal.add(Calendar.DAY_OF_YEAR, daysUntil)
         return targetCal.timeInMillis
     }
+
+    const val KEY_AUTO_RESTORE_GENERAL_AFTER_CLASS = "pref_auto_restore_general_after_class"
+
+    fun isAutoRestoreGeneralAfterClassEnabled(context: Context): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(KEY_AUTO_RESTORE_GENERAL_AFTER_CLASS, true)
+    }
+
+    fun setAutoRestoreGeneralAfterClassEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_AUTO_RESTORE_GENERAL_AFTER_CLASS, enabled)
+            .apply()
+    }
 }

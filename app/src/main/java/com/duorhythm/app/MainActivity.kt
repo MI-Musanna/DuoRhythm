@@ -388,6 +388,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var lastViewportRevealMs = 0L
+
+    fun animateWorkspaceViewportReveal(isWorkMode: Boolean, fromPortal: Boolean = false) {
+        if (!::binding.isInitialized) return
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - lastViewportRevealMs < 220L) return
+        lastViewportRevealMs = now
+        val cxRatio = if (fromPortal) (if (isWorkMode) 0.72f else 0.28f) else 0.84f
+        val cyDp = if (fromPortal) 34f else 44f
+        com.duorhythm.app.util.DuoMotionHelper.triggerViewportCircularReveal(
+            viewport = binding.mainViewPager,
+            cxRatio = cxRatio,
+            cyDp = cyDp
+        )
+    }
+
     fun setAppWorkspaceMode(isWorkMode: Boolean) {
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         prefs.edit().putBoolean("is_work_mode", isWorkMode).apply()
@@ -397,10 +413,10 @@ class MainActivity : AppCompatActivity() {
         syncAllSpeedDialFabs(isWorkMode)
         val currentPos = binding.mainViewPager.currentItem
         if (currentPos == MainPagerAdapter.INDEX_HOME) {
-            val homeFrag = pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment
-            homeFrag?.animateWorkspaceTransition()
-            homeFrag?.loadDashboardData()
+            animateWorkspaceViewportReveal(isWorkMode = isWorkMode, fromPortal = false)
+            (pagerAdapter.getFragment(MainPagerAdapter.INDEX_HOME) as? HomeFragment)?.loadDashboardData()
         } else if (currentPos == MainPagerAdapter.INDEX_PORTAL) {
+            animateWorkspaceViewportReveal(isWorkMode = isWorkMode, fromPortal = true)
             (pagerAdapter.getFragment(MainPagerAdapter.INDEX_PORTAL) as? PortalFragment)?.setProfile(!isWorkMode)
         }
         updateSubtitleForPosition(currentPos)

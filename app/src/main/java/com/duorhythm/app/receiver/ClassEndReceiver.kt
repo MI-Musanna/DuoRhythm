@@ -96,11 +96,13 @@ class ClassEndReceiver : BroadcastReceiver() {
             nm?.notify(30101, transitionNotif)
         } else {
             // No consecutive class exists:
-            // 1. Restore normal sound profile
-            val savedMode = prefs.getInt(ClassAlarmScheduler.KEY_SAVED_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL)
-            try {
-                audioManager.ringerMode = savedMode
-            } catch (_: Exception) {}
+            // Restore normal sound profile ONLY if 'Restore General Mode After Class' is enabled in Settings
+            if (SmartAutomationManager.isAutoRestoreGeneralAfterClassEnabled(context)) {
+                val savedMode = prefs.getInt(ClassAlarmScheduler.KEY_SAVED_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL)
+                try {
+                    audioManager.ringerMode = savedMode
+                } catch (_: Exception) {}
+            }
             prefs.edit().putBoolean(ClassAlarmScheduler.KEY_IN_CLASS_DND, false).apply()
 
             // 2. Cancel previous class DND notification

@@ -204,6 +204,7 @@ class PortalFragment : Fragment() {
 
     fun setProfile(student: Boolean) {
         if (isStudentProfile == student) return
+        (activity as? MainActivity)?.animateWorkspaceViewportReveal(isWorkMode = !student, fromPortal = true)
         isStudentProfile = student
         updateProfileView()
     }
@@ -567,10 +568,6 @@ class PortalFragment : Fragment() {
                 binding.togglePortalProfile.check(targetChecked)
             }
 
-            com.duorhythm.app.util.DuoMotionHelper.triggerSnapshotCircularReveal(
-                binding.root as? android.view.ViewGroup,
-                binding.togglePortalProfile
-            )
             updateToggleStyle(isStudentProfile)
             syncPortalSpeedDialForMode()
 

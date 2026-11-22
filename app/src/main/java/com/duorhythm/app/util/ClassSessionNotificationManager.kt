@@ -102,19 +102,27 @@ object ClassSessionNotificationManager {
         // 1. Dismiss Ongoing Notification
         nm.cancel(NOTIF_ID_SESSION)
 
-        // 2. Hardware Sound Profile: Restore Normal Ringer Mode
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && nm.isNotificationPolicyAccessGranted) {
-                nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
-            }
-            am.ringerMode = AudioManager.RINGER_MODE_NORMAL
-        } catch (_: Exception) {}
+        // 2. Hardware Sound Profile: Restore Normal Ringer Mode ONLY if enabled in Settings
+        val shouldRestoreGeneral = com.duorhythm.app.automation.SmartAutomationManager.isAutoRestoreGeneralAfterClassEnabled(context)
+        if (shouldRestoreGeneral) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && nm.isNotificationPolicyAccessGranted) {
+                    nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+                }
+                am.ringerMode = AudioManager.RINGER_MODE_NORMAL
+            } catch (_: Exception) {}
+        }
 
         // 3. Post Quick Dismissible Completion Notification
+        val endSummary = if (shouldRestoreGeneral) {
+            "Normal sound profile restored • Ready for next schedule"
+        } else {
+            "Kept in Silent mode after class (per Settings)"
+        }
         val notif = NotificationCompat.Builder(context, SESSION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_duorhythm)
             .setContentTitle("✅ Class Finished: $subjectName")
-            .setContentText("Normal sound profile restored • Ready for next schedule")
+            .setContentText(endSummary)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setTimeoutAfter(30000) // Auto-cleans itself after 30 seconds

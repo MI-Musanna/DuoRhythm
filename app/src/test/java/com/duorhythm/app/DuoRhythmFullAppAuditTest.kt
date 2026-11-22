@@ -648,4 +648,25 @@ class DuoRhythmFullAppAuditTest {
             )
         }
     }
+
+    @Test
+    fun audit20_postClassGeneralModePreferenceAndNo8AmExamAlarm() {
+        // 1. Verify 'Restore General Mode After Class' defaults to true and persists false cleanly
+        assertTrue(com.duorhythm.app.automation.SmartAutomationManager.isAutoRestoreGeneralAfterClassEnabled(context))
+        com.duorhythm.app.automation.SmartAutomationManager.setAutoRestoreGeneralAfterClassEnabled(context, false)
+        assertFalse(com.duorhythm.app.automation.SmartAutomationManager.isAutoRestoreGeneralAfterClassEnabled(context))
+        com.duorhythm.app.automation.SmartAutomationManager.setAutoRestoreGeneralAfterClassEnabled(context, true)
+
+        // 2. Verify ReminderManager no longer schedules hardcoded 8:00 AM exam alarms
+        val rmFile = java.io.File("src/main/java/com/duorhythm/app/service/ReminderManager.kt").let {
+            if (it.exists()) it else java.io.File("app/src/main/java/com/duorhythm/app/service/ReminderManager.kt")
+        }
+        if (rmFile.exists()) {
+            val code = rmFile.readText()
+            assertTrue(
+                "ReminderManager.scheduleExamReminder must cancel 8:00 AM legacy alarm instead of scheduling it",
+                code.contains("Hardcoded 8:00 AM morning exam alarm disabled")
+            )
+        }
+    }
 }

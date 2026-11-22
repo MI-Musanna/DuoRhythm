@@ -52,11 +52,76 @@ object DuoMotionHelper {
     }
 
     /**
-     * Gold-standard Snapshot-Backed Circular Reveal:
-     * Call BEFORE mutating the workspace UI (Student <-> Work).
-     * Captures a pixel-accurate bitmap of the outgoing mode behind `container`,
-     * then expands a clean Circular Reveal on `container` directly from `anchorView`
-     * with zero color flash, zero blank frames, and symmetric behavior in both directions.
+     * Fixed-Viewport Snapshot Circular Reveal (for MainActivity.mainViewPager inside CoordinatorLayout):
+     * Captures a pixel-accurate bitmap of the outgoing mode at exact viewport bounds (w x h),
+     * places it directly behind `viewport` so height changes in inner RecyclerViews NEVER cause
+     * jitter or blank frames, and expands a clean Circular Reveal symmetrically in both directions.
+     */
+    fun triggerViewportCircularReveal(viewport: View?, cxRatio: Float = 0.84f, cyDp: Float = 42f) {
+        if (viewport == null || !viewport.isAttachedToWindow) return
+        val parent = viewport.parent as? ViewGroup ?: return
+        val w = viewport.width
+        val h = viewport.height
+        if (w <= 0 || h <= 0 || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return
+
+        try {
+            val snapshotBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(snapshotBitmap)
+            viewport.draw(canvas)
+
+            val snapshotView = ImageView(viewport.context).apply {
+                layoutParams = ViewGroup.LayoutParams(w, h)
+                x = viewport.x
+                y = viewport.y
+                translationZ = viewport.translationZ
+                scaleType = ImageView.ScaleType.FIT_XY
+                setImageBitmap(snapshotBitmap)
+                isClickable = false
+                isFocusable = false
+            }
+
+            val viewportIndex = parent.indexOfChild(viewport).coerceAtLeast(0)
+            parent.addView(snapshotView, viewportIndex)
+
+            val density = viewport.resources.displayMetrics.density
+            val cx = (w * cxRatio).toInt().coerceIn(0, w)
+            val cy = (cyDp * density).toInt().coerceIn(0, h)
+            val finalRadius = hypot(w.toDouble(), h.toDouble()).toFloat()
+
+            viewport.post {
+                if (!viewport.isAttachedToWindow) {
+                    parent.removeView(snapshotView)
+                    if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
+                    return@post
+                }
+                try {
+                    val reveal = ViewAnimationUtils.createCircularReveal(viewport, cx, cy, 0f, finalRadius).apply {
+                        duration = 340L
+                        interpolator = FastOutSlowInInterpolator()
+                        addListener(object : AnimatorListenerAdapter() {
+                            private var cleaned = false
+                            private fun cleanup() {
+                                if (cleaned) return
+                                cleaned = true
+                                parent.removeView(snapshotView)
+                                if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
+                            }
+                            override fun onAnimationEnd(animation: Animator) = cleanup()
+                            override fun onAnimationCancel(animation: Animator) = cleanup()
+                        })
+                    }
+                    reveal.start()
+                } catch (_: Exception) {
+                    parent.removeView(snapshotView)
+                    if (!snapshotBitmap.isRecycled) snapshotBitmap.recycle()
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    /**
+     * Snapshot-Backed Circular Reveal:
+     * Retained for fragment-level containers and audit backwards-compatibility.
      */
     fun triggerSnapshotCircularReveal(container: ViewGroup?, anchorView: View? = null) {
         if (container == null || !container.isAttachedToWindow) return
@@ -132,7 +197,7 @@ object DuoMotionHelper {
     }
 
     /**
-     * Preserved fallback workspace switch with smooth bounds and fade.
+     * Preserved fallback workspace switch with smooth bounds and fade (used by audit18).
      */
     fun animateWorkspaceSwitch(container: ViewGroup?, incomingContent: View? = null) {
         if (container != null && container.isAttachedToWindow) {
