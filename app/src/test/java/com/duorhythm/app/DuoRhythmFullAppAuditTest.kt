@@ -682,4 +682,25 @@ class DuoRhythmFullAppAuditTest {
         )
         assertTrue("Luminous wavefront reveal helper executed cleanly", true)
     }
+
+    @Test
+    fun audit22_customDefaultExamReminderTimePersistence() {
+        // 1. Default time should be 09:00 AM
+        val initial = com.duorhythm.app.scheduler.AssessmentAlarmScheduler.getDefaultExamReminderTime(context)
+        assertEquals(Pair(9, 0), initial)
+        assertEquals("09:00 AM", com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatDefaultExamTimeLabel(context))
+
+        // 2. Custom time (e.g. 10:30 AM) persists & formats accurately
+        com.duorhythm.app.scheduler.AssessmentAlarmScheduler.setDefaultExamReminderTime(context, 10, 30)
+        assertEquals(Pair(10, 30), com.duorhythm.app.scheduler.AssessmentAlarmScheduler.getDefaultExamReminderTime(context))
+        assertEquals("10:30 AM", com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatDefaultExamTimeLabel(context))
+
+        // 3. Turning off (-1) disables untimed exam fallback cleanly
+        com.duorhythm.app.scheduler.AssessmentAlarmScheduler.setDefaultExamReminderTime(context, -1, 0)
+        assertNull(com.duorhythm.app.scheduler.AssessmentAlarmScheduler.getDefaultExamReminderTime(context))
+        assertEquals("OFF", com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatDefaultExamTimeLabel(context))
+
+        // Restore default 09:00 AM
+        com.duorhythm.app.scheduler.AssessmentAlarmScheduler.setDefaultExamReminderTime(context, 9, 0)
+    }
 }

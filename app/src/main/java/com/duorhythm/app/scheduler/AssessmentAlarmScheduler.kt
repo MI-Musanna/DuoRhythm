@@ -13,6 +13,39 @@ import java.util.Locale
 
 object AssessmentAlarmScheduler {
 
+    const val KEY_DEFAULT_EXAM_HOUR = "pref_default_exam_hour"
+    const val KEY_DEFAULT_EXAM_MINUTE = "pref_default_exam_minute"
+
+    /**
+     * Returns configured (hour24, minute) for exams saved without a specific time,
+     * or null if the user explicitly turned off alerts for untimed exams (hour < 0).
+     */
+    fun getDefaultExamReminderTime(context: Context): Pair<Int, Int>? {
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        val hour = prefs.getInt(KEY_DEFAULT_EXAM_HOUR, 9)
+        if (hour < 0) return null
+        val minute = prefs.getInt(KEY_DEFAULT_EXAM_MINUTE, 0).coerceIn(0, 59)
+        return Pair(hour.coerceIn(0, 23), minute)
+    }
+
+    fun setDefaultExamReminderTime(context: Context, hour: Int, minute: Int) {
+        context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putInt(KEY_DEFAULT_EXAM_HOUR, hour)
+            .putInt(KEY_DEFAULT_EXAM_MINUTE, minute.coerceIn(0, 59))
+            .apply()
+        resyncAllAssessments(context)
+    }
+
+    fun formatDefaultExamTimeLabel(context: Context): String {
+        val pair = getDefaultExamReminderTime(context) ?: return "OFF"
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, pair.first)
+            set(Calendar.MINUTE, pair.second)
+        }
+        return SimpleDateFormat("hh:mm a", Locale.US).format(cal.time)
+    }
+
     fun buildAssessmentNotification(assessment: AssessmentEntity): Pair<String, String> {
         val typeName = assessment.type
         val title = when {
@@ -35,8 +68,15 @@ object AssessmentAlarmScheduler {
             cancelAlarmsForAssessment(context, assessment.id)
             return
         }
-        if (assessment.status == "DONE" || assessment.date.isBlank()) return
-        val examStartMs = parseExamStartMs(assessment.date, assessment.time) ?: return
+        if (assessment.status == "DONE" || assessment.date.isBlank()) {
+            cancelAlarmsForAssessment(context, assessment.id)
+            return
+        }
+        val examStartMs = parseExamStartMs(context, assessment.date, assessment.time)
+        if (examStartMs == null) {
+            cancelAlarmsForAssessment(context, assessment.id)
+            return
+        }
         val now = System.currentTimeMillis()
         if (examStartMs <= now) return
 
@@ -70,7 +110,6 @@ object AssessmentAlarmScheduler {
                     finalTrigger, assessment.id, finalTitle, body
                 )
             } else if (examStartMs > now) {
-                // Short-window fallback (< 1h before start): 1m prior or at exact start
                 val fallbackTrigger = if (examStartMs - 60_000L > now) examStartMs - 60_000L else examStartMs
                 val fallbackTitle = "Exam Starting Soon: ${assessment.title} (${assessment.subjectName})"
                 dispatchAlarm(
@@ -100,7 +139,6 @@ object AssessmentAlarmScheduler {
                     leadTrigger, assessment.id, finalTitle, body
                 )
             } else if (examStartMs > now) {
-                // Short-window fallback (< 20m before start): 1m prior or at exact start
                 val fallbackTrigger = if (examStartMs - 60_000L > now) examStartMs - 60_000L else examStartMs
                 val fallbackTitle = "Quiz Starting Soon: ${assessment.title} (${assessment.subjectName})"
                 dispatchAlarm(
@@ -178,7 +216,6 @@ object AssessmentAlarmScheduler {
                 return
             }
 
-            // Resync exams from subject_work_items
             db.getAllExams(profileId = activeProfileId).forEach { pair ->
                 val entity = AssessmentEntity.fromSubjectWorkItem(
                     pair.first,
@@ -189,7 +226,6 @@ object AssessmentAlarmScheduler {
                 scheduleAssessmentAlarms(context, entity)
             }
 
-            // Resync assessments from assessments table
             db.getUpcomingExamsForWidget(activeProfileId).forEach { widgetEx ->
                 val entity = AssessmentEntity.fromLocalEntity(widgetEx)
                 scheduleAssessmentAlarms(context, entity)
@@ -197,22 +233,25 @@ object AssessmentAlarmScheduler {
         } catch (_: Exception) {}
     }
 
-    private fun parseExamStartMs(dateStr: String, timeStr: String): Long? {
+    private fun parseExamStartMs(context: Context, dateStr: String, timeStr: String): Long? {
         val cleanDate = dateStr.trim()
-        val cleanTime = timeStr.trim().ifBlank { "09:00 AM" }
+        val rawTime = timeStr.trim()
         val dateFormats = listOf("yyyy-MM-dd", "yyyy/MM/dd", "dd-MM-yyyy", "dd/MM/yyyy")
-        val timeFormats = listOf("hh:mm a", "h:mm a", "hh:mma", "h:mma", "HH:mm", "H:mm")
 
-        for (df in dateFormats) {
-            for (tf in timeFormats) {
-                try {
-                    val sdf = SimpleDateFormat("$df $tf", Locale.US)
-                    val date = sdf.parse("$cleanDate $cleanTime")
-                    if (date != null) return date.time
-                } catch (_: Exception) {}
+        if (rawTime.isNotBlank()) {
+            val timeFormats = listOf("hh:mm a", "h:mm a", "hh:mma", "h:mma", "HH:mm", "H:mm")
+            for (df in dateFormats) {
+                for (tf in timeFormats) {
+                    try {
+                        val sdf = SimpleDateFormat("$df $tf", Locale.US)
+                        val date = sdf.parse("$cleanDate $rawTime")
+                        if (date != null) return date.time
+                    } catch (_: Exception) {}
+                }
             }
         }
 
+        val defaultPair = getDefaultExamReminderTime(context) ?: return null
         for (df in dateFormats) {
             try {
                 val sdf = SimpleDateFormat(df, Locale.US)
@@ -220,9 +259,10 @@ object AssessmentAlarmScheduler {
                 if (date != null) {
                     val cal = Calendar.getInstance().apply {
                         time = date
-                        set(Calendar.HOUR_OF_DAY, 9)
-                        set(Calendar.MINUTE, 0)
+                        set(Calendar.HOUR_OF_DAY, defaultPair.first)
+                        set(Calendar.MINUTE, defaultPair.second)
                         set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
                     }
                     return cal.timeInMillis
                 }

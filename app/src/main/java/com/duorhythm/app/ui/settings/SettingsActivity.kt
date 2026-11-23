@@ -288,6 +288,7 @@ class SettingsActivity : AppCompatActivity() {
         searchableItems.add(SettingSearchItem("Class Reminder Lead Time", "Custom minutes before lecture", binding.rowClassLeadTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Auto-Silent During Classes (DND)", "Silences ringer during scheduled lectures", binding.rowClassDnd, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Restore General Mode After Class", "Return phone to General mode after final class; off stays Silent", binding.rowAutoRestoreGeneral, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+        searchableItems.add(SettingSearchItem("Default Exam Reminder Time", "Used when an exam has no specific time set", binding.rowDefaultExamTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
 
         // Financial Ledger
         searchableItems.add(SettingSearchItem("Show Running Balance", "Display remaining balance underneath transactions", binding.rowRunningBalance, binding.cardFinanceAutomations, binding.layoutFinanceAutomationsContent, binding.ivChevronFinance))
@@ -1144,10 +1145,49 @@ class SettingsActivity : AppCompatActivity() {
         val duoPrefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         val examReminders = duoPrefs.getBoolean("pref_exam_reminders_enabled", true)
         binding.switchExamReminders.isChecked = examReminders
+
+        fun refreshDefaultExamTimeUI() {
+            binding.rowDefaultExamTime.visibility = if (binding.switchExamReminders.isChecked) View.VISIBLE else View.GONE
+            val label = com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatDefaultExamTimeLabel(this)
+            binding.tvDefaultExamTimeBadge.text = label
+            binding.tvDefaultExamTimeSubtitle.text = if (label == "OFF") {
+                "Disabled for untimed exams (only exams with a set time alert)"
+            } else {
+                "Used when an exam has no specific time set"
+            }
+        }
+        refreshDefaultExamTimeUI()
+
+        binding.rowDefaultExamTime.setOnClickListener {
+            val currentPair = com.duorhythm.app.scheduler.AssessmentAlarmScheduler.getDefaultExamReminderTime(this) ?: Pair(9, 0)
+            val picker = android.app.TimePickerDialog(
+                this,
+                { _, hourOfDay, minute ->
+                    com.duorhythm.app.scheduler.AssessmentAlarmScheduler.setDefaultExamReminderTime(this, hourOfDay, minute)
+                    refreshDefaultExamTimeUI()
+                    Toast.makeText(
+                        this,
+                        "Default exam reminder time set to ${com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatDefaultExamTimeLabel(this)}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
+                currentPair.first,
+                currentPair.second,
+                false
+            )
+            picker.setButton(android.content.DialogInterface.BUTTON_NEUTRAL, "Turn Off") { _, _ ->
+                com.duorhythm.app.scheduler.AssessmentAlarmScheduler.setDefaultExamReminderTime(this, -1, 0)
+                refreshDefaultExamTimeUI()
+                Toast.makeText(this, "Untimed exam reminders turned off", Toast.LENGTH_SHORT).show()
+            }
+            picker.show()
+        }
+
         binding.switchExamReminders.setOnCheckedChangeListener { _, isChecked ->
             if (!isHydratingUI) {
                 duoPrefs.edit().putBoolean("pref_exam_reminders_enabled", isChecked).apply()
                 backupPrefs.edit().putBoolean("pref_exam_reminders_enabled", isChecked).apply()
+                refreshDefaultExamTimeUI()
                 if (!isChecked) {
                     try {
                         val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this)
