@@ -1,54 +1,74 @@
+<div align="center">
+
+<img src="art/app_icon.png" width="100" height="100" alt="DuoRhythm" style="border-radius: 22px;">
+
 # DuoRhythm
+**Next-Gen Local-First Financial Ledger & Academic Companion**
 
-**Dual-Mode Academic, Productivity & Financial Ledger Ecosystem for Android**  
-Built natively in **Kotlin** with a **Local-First, Offline-First MVVM + Repository Architecture**.
+[![Release](https://img.shields.io/github/v/release/MI-Musanna/DuoRhythm?color=38BDF8&label=Beta%20Build&style=flat-square)](https://github.com/MI-Musanna/DuoRhythm/releases/Pre-release)
+[![Platform](https://img.shields.io/badge/Platform-Android_8.0+-10B981?style=flat-square)](https://github.com/MI-Musanna/DuoRhythm)
+[![Stack](https://img.shields.io/badge/Stack-Kotlin_%7C_Room_%7C_MVVM-6366F1?style=flat-square)](https://github.com/MI-Musanna/DuoRhythm)
+[![License](https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square)](LICENSE)
 
----
+An offline, zero-telemetry Android suite built for students and independent builders who need strict capital accounting alongside coursework engineering.
 
-## Overview
+<p align="center">
+  <a href="https://github.com/MI-Musanna/DuoRhythm/releases/latest">
+    <img src="https://img.shields.io/badge/Download_APK-v1.3.6--beta-0284C7?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
+  </a>
+  <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=duorhythm">
+    <img src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png" height="28" alt="Get it on Orion Store" />
+  </a>
+  <a href="https://github.com/MI-Musanna/DuoRhythm/issues">
+    <img src="https://img.shields.io/badge/Issue_Tracker-Report_Bug-EA580C?style=for-the-badge&logo=github&logoColor=white" alt="Issue Tracker" />
+  </a>
+</p>
 
-**DuoRhythm** unifies daily university/academic tracking (`Student Mode`) and freelance/client project operations (`Work Mode`) inside a single high-speed Android application without requiring cloud accounts, subscriptions, or external telemetry.
-
-- **Current Release:** `v1.6.7-beta`
-- **Author & Maintainer:** Mahdi Islam Musanna ([GitHub](https://github.com/MI-Musanna))
-- **Architecture:** Single-Activity (`MainActivity` + `ViewPager2`), MVVM, Room / SQLite, Custom `Canvas` Views, Native Hardware Automation
-
----
-
-## Core Modules
-
-1. **Unified Dashboard (`Home`)**
-   - Live bidirectional `Student <-> Work` workspace toggle with a mode-colored **Luminous Wavefront Circular Reveal** (`#38BDF8` Sky-Blue for Student Mode, `#10B981` Emerald Green for Work Mode).
-   - Real-time **Next Up** lecture/deadline carousel, financial summary snapshot, active missions counter, collapsible scratchpad notes, and quick-launch tools (Pomodoro Timer, CGPA & Marks Calculator).
-
-2. **Academic & Work Portal (`Portal`)**
-   - **Student Mode:** Enrolled course management with cascade deletion, attendance tracking, homework/practicals breakdown, reactive assessment scheduler (`Subject + Custom Category` composition with 1-tap clear), and instructor/classmate directory.
-   - **Work Mode:** Client order pipeline, deliverable deadlines, and deterministic contact avatars.
-
-3. **Smart Schedule & Hardware Automation (`Schedule`)**
-   - Weekly timetable with exact `AlarmManager` (`setExactAndAllowWhileIdle`) pre-class alerts and live session indicators.
-   - **Auto-Silent During Classes (DND):** Automatically engages device Silent/DND mode via `AudioManager` and `NotificationManager` when a lecture begins, detects consecutive back-to-back classes (`<= 5 min` gap) to keep silent mode uninterrupted, and honors user preference on whether to restore General mode after the final lecture.
-   - **Configurable Exam Reminders:** Pre-exam lead alerts (`24h`/`1h` for Midterms & Finals, `2h`/`20m` for Quizzes & Class Tests) plus a configurable **Default Exam Reminder Time** (or `OFF`) for untimed exams.
-
-4. **Tasks & Milestones (`Tasks`)**
-   - Priority-tagged task management, goal progress tracking, live search/category filtering, and tactile spring completion animations.
-
-5. **Offline Financial Ledger (`Wallet`)**
-   - Multi-account balance tracking, income/expense categorization, subscription renewal alerts, and `Dues & Debts` settlement tracking with optional biometric lock.
+</div>
 
 ---
 
-## Technical Architecture
+## 📱 Interface Walkthrough
 
-| Layer | Technologies & Implementation |
-| :--- | :--- |
-| **Language & UI** | 100% Native **Kotlin**, XML Layouts, Type-Safe **ViewBinding**, Material Components |
-| **Custom Graphics** | Zero third-party animation bloat; custom `Canvas` & `Paint` rendering (`SpeedDialFabView`, `NotificationBadgeView`, `WormDotsIndicatorView`, `DeterministicAvatarHelper`, `RevealWaveRingView`) |
-| **Motion Engine** | `DuoMotionHelper` (`0ms` `ACTION_DOWN` press feedback, Snapshot-Backed Circular Reveal with glowing edge ring, `OvershootInterpolator` spring physics, damped validation shake) |
-| **Persistence** | **SQLite** + **Room Persistence Library** (`DAO` + `DatabaseHelper`) with strict `profileId` multi-profile isolation and `SharedPreferences` |
-| **Background Jobs** | `AlarmManager`, `BroadcastReceiver` (`ClassAlarmReceiver`, `ClassEndReceiver`, `AssessmentAlarmReceiver`), and `WorkManager` (`AutoBackupWorker`, `BriefingAlarmScheduler`) |
-| **Backup & OTA** | Storage Access Framework (SAF) JSON backup/restore + GitHub Releases API in-app OTA updater (`UpdateManager`) |
-| **Verification** | Automated **JUnit4 + Robolectric** Gatekeeper Suite (`DuoRhythmFullAppAuditTest` — 22 automated architectural & UI audits) |
+<div align="center">
+
+| Home & Quick Brief | Wallet & Multi-Bucket | Task & Goal |
+| :---: | :---: | :---: |
+| <img src="screenshots/Home.png" width="230"/> | <img src="screenshots/Wallet.png" width="230"/> | <img src="screenshots/Task.png" width="230"/> |
+
+| Academic Portal | Weekly Routine | Focus Suite |
+| :---: | :---: | :---: |
+| <img src="screenshots/Portal.png" width="230"/> | <img src="screenshots/Schedule.png" width="230"/> | <img src="screenshots/Focus.png" width="230"/> |
+
+</div>
+
+---
+
+## ⚡ Key Architectural Modules
+
+- **💼 Multi-Bucket Financial Ledger:** Fully isolated cash, bank, and mobile financial accounts with automatic rollover, categorized transaction ledgers, and dynamic cash-flow analytics.
+- **⏱️ Intelligent Timetable & Lecture DND Guard:** Exact-alarm lecture dispatcher with zero-delay Doze mode bypass and smart lookahead logic to prevent audio flapping between consecutive back-to-back classes.
+- **📅 Interactive Calendar Attendance Engine:** Draggable monthly attendance ledger with dynamic minimum margin calculations and custom holiday exclusions.
+- **🎓 Dual-Persona Academic & Client Workstation:** Seamless toggle between student semester coursework (exams, credits, routines) and freelance client operations (job specs, invoicing, billing terms).
+- **🛡️ 3-Slot Workspace Isolation & Biometric Shield:** Multi-tenant local SQLite database isolation protected by unified Android BiometricPrompt fingerprint authentication and encrypted credentials.
+
+---
+
+### 📜 Release Notes & Changelog
+Detailed version history and release notes are maintained in the [GitHub Releases](https://github.com/MI-Musanna/DuoRhythm/releases) tab.
+
+---
+
+## 📥 Installation
+
+1. Grab the latest package from [Releases](https://github.com/MI-Musanna/DuoRhythm/releases/latest).
+2. Install `DuoRhythm-v1.0.1-beta.apk` on Android 8.0 (API 26) or higher.
+3. Grant storage permissions for document attachment management if prompted.
+
+---
+
+## 📄 License
+Released under the [MIT License](LICENSE).
 
 ---
 
