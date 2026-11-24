@@ -2,6 +2,7 @@ package com.duorhythm.app
 
 import android.content.Context
 import android.graphics.Rect
+import android.os.Environment
 import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
@@ -12,13 +13,17 @@ import com.duorhythm.app.data.model.DueDebtItem
 import com.duorhythm.app.data.model.TaskItem
 import com.duorhythm.app.data.model.TransactionItem
 import com.duorhythm.app.data.model.WalletBucketItem
+import com.duorhythm.app.data.repository.BackupService
 import com.duorhythm.app.scheduler.AssessmentAlarmScheduler
 import com.duorhythm.app.ui.tasks.TasksAdapter
 import com.duorhythm.app.ui.views.SpeedDialFabView
 import com.duorhythm.app.ui.views.WormDotsIndicatorView
+import com.duorhythm.app.util.BackupSnapshotHelper
 import database.entities.AssessmentEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -29,6 +34,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.ConscryptMode
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.SQLiteMode
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], qualifiers = "w412dp-h915dp-xxhdpi", shadows = [ShadowDatabaseHelper::class])
@@ -790,5 +796,185 @@ class DuoRhythmFullAppAuditTest {
 
         // Restore default 60m
         AssessmentAlarmScheduler.setExamReminderLeadMinutes(context, 60)
+    }
+
+    @Test
+    fun audit24_backupExportToDownloadsAndRoundTripRestore() {
+        // 1. Seed Multi-Profile & Multi-Table Data (Slot 1, Slot 2, Slot 3)
+        val p1 = database.entities.ProfileEntity(
+            slotNumber = 1,
+            name = "Student Alpha",
+            email = "alpha@campus.edu",
+            institution = "MIT",
+            department = "CS",
+            semester = "Fall 2026",
+            passwordHash = "hash1",
+            rememberEmail = true
+        )
+        val p2 = database.entities.ProfileEntity(
+            slotNumber = 2,
+            name = "Student Beta",
+            email = "beta@campus.edu",
+            institution = "Stanford",
+            department = "EE",
+            semester = "Spring 2026",
+            passwordHash = "hash2",
+            rememberEmail = false
+        )
+        val p3 = database.entities.ProfileEntity(
+            slotNumber = 3,
+            name = "Student Gamma",
+            email = "gamma@campus.edu",
+            institution = "Harvard",
+            department = "Bio",
+            semester = "Fall 2026",
+            passwordHash = "hash3",
+            rememberEmail = true
+        )
+        val p1Id = db.insertProfile(p1)
+        val p2Id = db.insertProfile(p2)
+        val p3Id = db.insertProfile(p3)
+        assertTrue(p1Id > 0)
+        assertTrue(p2Id > 0)
+        assertTrue(p3Id > 0)
+
+        // Seed data in tables across slots:
+        // Tasks
+        val taskId = db.insertTask(
+            TaskItem(
+                profileId = p1Id,
+                title = "Complete Audit 24 Assignment",
+                description = "Robolectric Backup & Restore Verification",
+                priority = "HIGH",
+                isCompleted = false,
+                dueDate = "2026-12-01",
+                category = "Study"
+            )
+        )
+        assertTrue(taskId > 0)
+
+        // Task category
+        val catAdded = db.addTaskCategory("Academic Audit")
+        assertTrue(catAdded)
+
+        // Assessment
+        val exam = database.entities.AssessmentEntity(
+            id = 555L,
+            profileId = p2Id,
+            subjectId = 12L,
+            subjectName = "Algorithms",
+            courseCode = "CS201",
+            type = "Midterm",
+            title = "Midterm Exam",
+            date = "2026-11-30",
+            time = "02:00 PM",
+            room = "Room 301",
+            syllabus = "Chapters 1-5",
+            teacher = "Prof. Turing",
+            status = "PENDING"
+        )
+        val examId = db.insertAssessment(exam)
+        assertTrue(examId > 0)
+
+        // Holiday record
+        db.setHoliday("2026-12-25", "Winter Break", p1Id)
+        assertTrue(db.isHoliday("2026-12-25", p1Id))
+
+        // Settings Preferences in duorhythm_prefs
+        AssessmentAlarmScheduler.setExamReminderLeadMinutes(context, 20)
+        AssessmentAlarmScheduler.setDefaultExamReminderTime(context, 11, 45)
+        context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean("pref_missions_collapsed", true)
+            .putInt("pref_class_lead_minutes", 10)
+            .apply()
+
+        // 2. Perform Instant Backup (which writes internal snapshot AND to Downloads/DuoRhythm_Backups)
+        val backupSuccess = BackupSnapshotHelper.createInstantSnapshot(context, isAuto = false)
+        assertTrue("Instant backup snapshot creation must succeed", backupSuccess)
+
+        // 3. Verify Public External Export in Downloads/DuoRhythm_Backups/
+        val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "DuoRhythm_Backups")
+        assertTrue("Downloads/DuoRhythm_Backups directory must exist", downloadsDir.exists())
+        val backupFiles = downloadsDir.listFiles { f ->
+            f.name.startsWith("DuoRhythm_Backup_") && f.name.endsWith(".json")
+        }
+        assertNotNull("Backup files array in Downloads must not be null", backupFiles)
+        assertTrue("At least one timestamped backup file must exist in Downloads", backupFiles!!.isNotEmpty())
+
+        val latestBackup = backupFiles.maxByOrNull { it.lastModified() }!!
+        val jsonContent = latestBackup.readText()
+        val root = org.json.JSONObject(jsonContent)
+
+        // Verify multi-profile data serialization
+        assertTrue("JSON must contain profiles table", root.has("profiles"))
+        val profilesArr = root.getJSONArray("profiles")
+        assertTrue("Must serialize all 3 profiles", profilesArr.length() >= 3)
+
+        // Verify all tables serialized
+        assertTrue("JSON must contain tasks", root.has("tasks"))
+        assertTrue("JSON must contain task_categories", root.has("task_categories"))
+        assertTrue("JSON must contain assessments", root.has("assessments"))
+        assertTrue("JSON must contain assessment_categories", root.has("assessment_categories"))
+        assertTrue("JSON must contain classes", root.has("classes"))
+        assertTrue("JSON must contain holiday_records", root.has("holiday_records"))
+
+        // Verify Settings preferences serialization
+        assertTrue("JSON must contain settings_preferences", root.has("settings_preferences"))
+        val settingsObj = root.getJSONObject("settings_preferences")
+        assertEquals(20, settingsObj.getInt("exam_reminder_lead_minutes"))
+        assertEquals(11, settingsObj.getInt("pref_default_exam_hour"))
+        assertEquals(45, settingsObj.getInt("pref_default_exam_minute"))
+        assertEquals(10, settingsObj.getInt("pref_class_lead_minutes"))
+        assertTrue(settingsObj.getBoolean("pref_missions_collapsed"))
+
+        // 4. Verify Last Backup Timestamp update
+        val lastBackupTime = BackupService.getLastBackupTimestamp(context)
+        assertNotEquals("Never", lastBackupTime)
+        assertTrue("Last backup timestamp must not be blank", lastBackupTime.isNotBlank())
+
+        // 5. Clear Database and Preferences (Empty Database Simulation)
+        db.clearAllUserData()
+        context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE).edit().clear().commit()
+        assertEquals(60, AssessmentAlarmScheduler.getExamReminderLeadMinutes(context))
+        assertTrue("Tasks should be empty after clear", db.getAllTasks().isEmpty())
+        assertTrue("Profiles should be empty after clear", db.getAllProfiles().isEmpty())
+
+        // 6. Round-Trip Restore from Downloaded Backup File
+        val restoreSuccess = BackupSnapshotHelper.restoreSnapshotFromFile(context, latestBackup)
+        assertTrue("Round-trip restore must succeed", restoreSuccess)
+
+        // 7. Verify Data Integrity Post-Restore
+        val restoredProfiles = db.getAllProfiles()
+        assertEquals("All 3 profiles must be restored", 3, restoredProfiles.size)
+        val p1Restored = restoredProfiles.find { it.slotNumber == 1 }
+        assertNotNull(p1Restored)
+        assertEquals("Student Alpha", p1Restored!!.name)
+        assertEquals("MIT", p1Restored.institution)
+
+        val p2Restored = restoredProfiles.find { it.slotNumber == 2 }
+        assertNotNull(p2Restored)
+        assertEquals("Student Beta", p2Restored!!.name)
+
+        val p3Restored = restoredProfiles.find { it.slotNumber == 3 }
+        assertNotNull(p3Restored)
+        assertEquals("Student Gamma", p3Restored!!.name)
+
+        val restoredTasks = db.getAllTasks()
+        assertTrue("Tasks must be restored", restoredTasks.isNotEmpty())
+        assertEquals("Complete Audit 24 Assignment", restoredTasks.first().title)
+
+        // Verify Settings preferences restored
+        assertEquals(20, AssessmentAlarmScheduler.getExamReminderLeadMinutes(context))
+        val restoredExamTime = AssessmentAlarmScheduler.getDefaultExamReminderTime(context)
+        assertNotNull(restoredExamTime)
+        assertEquals(Pair(11, 45), restoredExamTime)
+
+        val restoredPrefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        assertEquals(10, restoredPrefs.getInt("pref_class_lead_minutes", -1))
+        assertTrue(restoredPrefs.getBoolean("pref_missions_collapsed", false))
+
+        // Clean up test backup file
+        latestBackup.delete()
     }
 }

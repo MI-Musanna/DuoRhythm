@@ -32,6 +32,24 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             instance ?: synchronized(this) {
                 instance ?: DatabaseHelper(context).also { instance = it }
             }
+
+        fun reactivateAllAlarms(context: Context) {
+            try {
+                com.duorhythm.app.scheduler.AssessmentAlarmScheduler.rescheduleAll(context)
+            } catch (_: Throwable) {}
+            try {
+                com.duorhythm.app.scheduler.ClassAlarmScheduler.rescheduleAll(context)
+            } catch (_: Throwable) {}
+            try {
+                com.duorhythm.app.scheduler.AlarmSyncManager.resyncAll(context)
+            } catch (_: Throwable) {}
+            try {
+                com.duorhythm.app.service.ReminderManager.rescheduleAll(context)
+            } catch (_: Throwable) {}
+            try {
+                com.duorhythm.app.scheduler.OrderAlarmScheduler.rescheduleAllActiveOrders(context)
+            } catch (_: Throwable) {}
+        }
     }
 
     override fun onConfigure(db: SQLiteDatabase) {
@@ -1013,23 +1031,19 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val db = writableDatabase
         db.beginTransaction()
         try {
-            db.execSQL("DELETE FROM cards")
-            db.execSQL("DELETE FROM transactions")
-            db.execSQL("DELETE FROM transaction_categories")
-            db.execSQL("DELETE FROM tasks")
-            db.execSQL("DELETE FROM classes")
-            db.execSQL("DELETE FROM attendance")
-            db.execSQL("DELETE FROM attendance_records")
-            db.execSQL("DELETE FROM holiday_records")
-            db.execSQL("DELETE FROM student_subjects")
-            db.execSQL("DELETE FROM subject_work_items")
-            db.execSQL("DELETE FROM subject_materials")
-            db.execSQL("DELETE FROM work_orders")
-            db.execSQL("DELETE FROM notes")
-            db.execSQL("DELETE FROM contacts_groups")
-            db.execSQL("DELETE FROM app_settings")
+            val tablesToClear = listOf(
+                "cards", "accounts", "transactions", "transaction_categories", "wallet_buckets",
+                "subscriptions", "currency_rates", "tasks", "task_categories", "classes",
+                "class_types", "attendance", "attendance_records", "holiday_records",
+                "student_subjects", "subject_work_items", "subject_materials", "work_orders",
+                "notes", "contacts_groups", "dues_debts", "profiles", "assessments",
+                "assessment_categories", "app_settings"
+            )
+            for (t in tablesToClear) {
+                try { db.execSQL("DELETE FROM $t") } catch (_: Exception) {}
+            }
             appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
-                .edit().remove("cash_funds_usd").apply()
+                .edit().clear().apply()
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
@@ -5526,10 +5540,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val db = readableDatabase
 
         val tables = listOf(
-            "app_settings", "cards", "transactions", "transaction_categories", "wallet_buckets", "subscriptions",
-            "currency_rates", "tasks", "classes", "attendance", "attendance_records", "student_subjects",
-            "subject_materials", "subject_work_items", "work_orders", "notes", "contacts_groups", "dues_debts",
-            "profiles", "class_types", "assessment_categories"
+            "app_settings", "cards", "accounts", "transactions", "transaction_categories", "wallet_buckets", "subscriptions",
+            "currency_rates", "tasks", "task_categories", "classes", "attendance", "attendance_records", "holiday_records",
+            "student_subjects", "subject_materials", "subject_work_items", "work_orders", "notes", "contacts_groups",
+            "dues_debts", "profiles", "class_types", "assessments", "assessment_categories"
         )
 
         for (table in tables) {
@@ -5554,6 +5568,39 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
             root.put(table, arr)
         }
+
+        // Export duorhythm_prefs settings preferences
+        try {
+            val prefs = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+            val prefsObj = JSONObject()
+            for ((key, value) in prefs.all) {
+                when (value) {
+                    is Boolean -> prefsObj.put(key, value)
+                    is Int -> prefsObj.put(key, value)
+                    is Long -> prefsObj.put(key, value)
+                    is Float -> prefsObj.put(key, value.toDouble())
+                    is Double -> prefsObj.put(key, value)
+                    is String -> prefsObj.put(key, value)
+                    is Set<*> -> {
+                        val arr = JSONArray()
+                        value.forEach { if (it is String) arr.put(it) }
+                        prefsObj.put(key, arr)
+                    }
+                }
+            }
+            // Explicitly ensure critical settings preferences are included
+            if (!prefsObj.has("exam_reminder_lead_minutes")) {
+                prefsObj.put("exam_reminder_lead_minutes", com.duorhythm.app.scheduler.AssessmentAlarmScheduler.getExamReminderLeadMinutes(appContext))
+            }
+            val defaultExamTime = com.duorhythm.app.scheduler.AssessmentAlarmScheduler.getDefaultExamReminderTime(appContext)
+            if (defaultExamTime != null) {
+                prefsObj.put("pref_default_exam_hour", defaultExamTime.first)
+                prefsObj.put("pref_default_exam_minute", defaultExamTime.second)
+            } else {
+                prefsObj.put("pref_default_exam_hour", -1)
+            }
+            root.put("settings_preferences", prefsObj)
+        } catch (_: Exception) {}
 
         // Export Base64 profile avatars
         val avatarsObj = JSONObject()
@@ -5585,10 +5632,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.beginTransaction()
             try {
                 val tables = listOf(
-                    "app_settings", "cards", "transactions", "transaction_categories", "wallet_buckets", "subscriptions",
-                    "currency_rates", "tasks", "classes", "attendance", "attendance_records", "student_subjects",
-                    "subject_materials", "subject_work_items", "work_orders", "notes", "contacts_groups", "dues_debts",
-                    "profiles", "class_types", "assessment_categories"
+                    "app_settings", "cards", "accounts", "transactions", "transaction_categories", "wallet_buckets", "subscriptions",
+                    "currency_rates", "tasks", "task_categories", "classes", "attendance", "attendance_records", "holiday_records",
+                    "student_subjects", "subject_materials", "subject_work_items", "work_orders", "notes", "contacts_groups",
+                    "dues_debts", "profiles", "class_types", "assessments", "assessment_categories"
                 )
                 for (table in tables) {
                     if (root.has(table)) {
@@ -5609,6 +5656,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                                     cv.put(key, (value as Number).toDouble())
                                 } else if (value is String) {
                                     cv.put(key, value)
+                                } else if (value is Boolean) {
+                                    cv.put(key, if (value) 1 else 0)
+                                } else if (value == JSONObject.NULL) {
+                                    cv.putNull(key)
                                 }
                             }
                             try {
@@ -5616,6 +5667,37 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                             } catch (_: Exception) {}
                         }
                     }
+                }
+
+                // Restore duorhythm_prefs settings preferences
+                if (root.has("settings_preferences")) {
+                    try {
+                        val prefsObj = root.optJSONObject("settings_preferences")
+                        if (prefsObj != null) {
+                            val editor = appContext.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE).edit()
+                            val keys = prefsObj.keys()
+                            while (keys.hasNext()) {
+                                val key = keys.next()
+                                val value = prefsObj.get(key)
+                                when (value) {
+                                    is Boolean -> editor.putBoolean(key, value)
+                                    is Int -> editor.putInt(key, value)
+                                    is Long -> editor.putLong(key, value)
+                                    is Double -> editor.putFloat(key, value.toFloat())
+                                    is Float -> editor.putFloat(key, value)
+                                    is String -> editor.putString(key, value)
+                                    is JSONArray -> {
+                                        val set = mutableSetOf<String>()
+                                        for (idx in 0 until value.length()) {
+                                            set.add(value.getString(idx))
+                                        }
+                                        editor.putStringSet(key, set)
+                                    }
+                                }
+                            }
+                            editor.apply()
+                        }
+                    } catch (_: Exception) {}
                 }
 
                 // Restore profile avatars from Base64
@@ -5651,6 +5733,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }.also { success ->
+            if (success) {
+                reactivateAllAlarms(appContext)
+            }
         }
     }
 

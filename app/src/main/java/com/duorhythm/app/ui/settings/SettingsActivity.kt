@@ -173,6 +173,8 @@ class SettingsActivity : AppCompatActivity() {
                 val (success, message) = BackupService.restoreBackupWithVerification(this, it)
                 if (success) {
                     updateBackupUI()
+                    loadSavedSnapshots()
+                    recreate()
                 }
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             }
@@ -897,7 +899,7 @@ class SettingsActivity : AppCompatActivity() {
         setupBackupSnapshotsView()
 
         binding.btnImportBackup.setOnClickListener {
-            importBackupLauncher.launch(arrayOf("application/json", "text/*", "*/*"))
+            importBackupLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
         }
 
         binding.rowExportHistory.setOnClickListener {
@@ -1365,8 +1367,9 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.btnCreateBackup.setOnClickListener {
             BackupSnapshotHelper.createInstantSnapshot(this, isAuto = false)
-            Toast.makeText(this, "Manual Snapshot Created Successfully!", Toast.LENGTH_SHORT).show()
+            updateBackupUI()
             loadSavedSnapshots()
+            Toast.makeText(this, "Backup exported to Downloads/DuoRhythm_Backups/", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -1417,6 +1420,16 @@ class SettingsActivity : AppCompatActivity() {
                             }
                             .setNegativeButton("Cancel", null)
                             .show()
+                    }
+
+                    // Export / Share Snapshot Action
+                    v.findViewById<View>(R.id.btnShareSnapshot)?.setOnClickListener {
+                        try {
+                            val shareIntent = BackupService.shareBackup(this@SettingsActivity, item.file)
+                            startActivity(Intent.createChooser(shareIntent, "Export Snapshot"))
+                        } catch (e: Exception) {
+                            Toast.makeText(this@SettingsActivity, "Failed to share snapshot: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
 
                     // Delete Action

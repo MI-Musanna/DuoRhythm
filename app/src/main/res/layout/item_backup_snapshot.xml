@@ -88,6 +88,17 @@
                 app:strokeWidth="1dp" />
 
             <ImageView
+                android:id="@+id/btnShareSnapshot"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Export Snapshot"
+                android:padding="6dp"
+                android:src="@drawable/ic_share"
+                app:tint="#38BDF8" />
+
+            <ImageView
                 android:id="@+id/btnDeleteSnapshot"
                 android:layout_width="30dp"
                 android:layout_height="30dp"

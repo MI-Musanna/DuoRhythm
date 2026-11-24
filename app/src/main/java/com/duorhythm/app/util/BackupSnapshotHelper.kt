@@ -1,8 +1,13 @@
 package com.duorhythm.app.util
 
+import android.content.ContentValues
 import android.content.Context
+import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.data.repository.BackupService
+import com.duorhythm.app.data.repository.DataBackupHelper
 import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
@@ -24,6 +29,47 @@ object BackupSnapshotHelper {
         val dir = File(context.getExternalFilesDir(null), "DuoRhythm_Snapshots")
         if (!dir.exists()) dir.mkdirs()
         return dir
+    }
+
+    fun getPublicBackupDirectory(): File {
+        val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "DuoRhythm_Backups")
+        if (!dir.exists()) dir.mkdirs()
+        return dir
+    }
+
+    fun exportToPublicDownloads(context: Context, jsonContent: String, fileName: String): File? {
+        var mediaStoreSuccess = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/DuoRhythm_Backups")
+                }
+                val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                if (uri != null) {
+                    context.contentResolver.openOutputStream(uri)?.use { os ->
+                        os.write(jsonContent.toByteArray(Charsets.UTF_8))
+                        os.flush()
+                    }
+                    mediaStoreSuccess = true
+                }
+            } catch (_: Throwable) {
+                mediaStoreSuccess = false
+            }
+        }
+
+        return try {
+            val publicDir = getPublicBackupDirectory()
+            val file = File(publicDir, fileName)
+            if (!mediaStoreSuccess || !file.exists()) {
+                file.writeText(jsonContent)
+            }
+            file
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            null
+        }
     }
 
     fun listAvailableSnapshots(context: Context): List<SnapshotItem> {
@@ -72,6 +118,15 @@ object BackupSnapshotHelper {
                     }
                 }
             }
+
+            // Public external export on CREATE BACKUP (Uninstall-Safe)
+            val publicFileName = "DuoRhythm_Backup_${timestamp}.json"
+            exportToPublicDownloads(context, jsonBackup, publicFileName)
+
+            val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
+            val label = if (isAuto) "$now (Auto)" else now
+            BackupService.setLastBackupTimestamp(context, label)
+
             true
         } catch (_: Exception) {
             false
@@ -82,7 +137,19 @@ object BackupSnapshotHelper {
         return try {
             val content = file.readText()
             val db = DatabaseHelper.getInstance(context)
-            db.importFullDatabaseFromJson(content)
+            val success = db.importFullDatabaseFromJson(content)
+            if (success) {
+                try {
+                    val root = JSONObject(content)
+                    DataBackupHelper.restoreProfileAvatarsFromJson(context, root)
+                    DataBackupHelper.restoreAttachmentsFromJson(context, root)
+                    DataBackupHelper.restoreUiPreferencesFromJson(context, root)
+                } catch (_: Exception) {}
+                DatabaseHelper.reactivateAllAlarms(context)
+                val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
+                BackupService.setLastBackupTimestamp(context, "$now (Restored)")
+            }
+            success
         } catch (_: Exception) {
             false
         }

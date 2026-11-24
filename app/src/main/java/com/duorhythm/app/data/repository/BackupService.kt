@@ -76,6 +76,10 @@ object BackupService {
         }
     }
 
+    fun exportToPublicDownloads(context: Context, jsonContent: String, fileName: String): File? {
+        return com.duorhythm.app.util.BackupSnapshotHelper.exportToPublicDownloads(context, jsonContent, fileName)
+    }
+
     /**
      * Shares backup via Android share chooser (Drive, Gmail, Files, etc.).
      */
@@ -100,9 +104,13 @@ object BackupService {
      */
     fun restoreBackupWithVerification(context: Context, uri: Uri): Pair<Boolean, String> {
         return try {
-            val jsonString = context.contentResolver.openInputStream(uri)?.use { stream ->
-                InputStreamReader(stream, Charsets.UTF_8).use { reader ->
-                    reader.readText()
+            val jsonString = if (uri.scheme == "file" && uri.path != null) {
+                File(uri.path!!).readText(Charsets.UTF_8)
+            } else {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    InputStreamReader(stream, Charsets.UTF_8).use { reader ->
+                        reader.readText()
+                    }
                 }
             } ?: return Pair(false, "Could not open selected backup file.")
 
@@ -115,7 +123,8 @@ object BackupService {
 
             val requiredTableAny = listOf(
                 "tasks", "classes", "cards", "transactions", "wallet_buckets",
-                "student_subjects", "work_orders", "notes", "contacts_groups"
+                "student_subjects", "work_orders", "notes", "contacts_groups",
+                "profiles", "app_settings", "assessments", "task_categories", "accounts"
             )
             val hasValidTables = requiredTableAny.any { root.has(it) }
             if (!hasValidTables) {
@@ -128,6 +137,7 @@ object BackupService {
                 DataBackupHelper.restoreProfileAvatarsFromJson(context, root)
                 DataBackupHelper.restoreAttachmentsFromJson(context, root)
                 DataBackupHelper.restoreUiPreferencesFromJson(context, root)
+                DatabaseHelper.reactivateAllAlarms(context)
                 val exportedTime = root.optString("exported_at", "Unknown date")
                 val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
                 setLastBackupTimestamp(context, "$now (Restored)")
