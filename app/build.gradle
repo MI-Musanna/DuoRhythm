@@ -7,6 +7,15 @@ configurations.all {
     exclude group: 'androidx.lifecycle', module: 'lifecycle-common-java8'
 }
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+if (!keystorePropertiesFile.exists()) {
+    keystorePropertiesFile = file("keystore.properties")
+}
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     testOptions {
         unitTests.includeAndroidResources = true
@@ -24,15 +33,36 @@ android {
         applicationId "com.duorhythm.app"
         minSdk 24
         targetSdk 34
-        versionCode 78
-        versionName "1.6.9-beta"
+        versionCode 79
+        versionName "1.7.0-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables.useSupportLibrary = true
     }
 
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                def sf = keystoreProperties['storeFile']
+                if (sf != null && sf.startsWith("~/")) {
+                    sf = System.getProperty("user.home") + sf.substring(1)
+                }
+                storeFile file(sf)
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

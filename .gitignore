@@ -34,6 +34,7 @@ local.properties
 # Keystore / Signing credentials
 *.jks
 *.keystore
+keystore.properties
 
 # Native build cache
 .externalNativeBuild
