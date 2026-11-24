@@ -36,9 +36,9 @@ An offline, zero-telemetry Android suite built for students and independent buil
 | :---: | :---: | :---: |
 | <img src="screenshots/Home.png" width="230"/> | <img src="screenshots/Wallet.png" width="230"/> | <img src="screenshots/Task.png" width="230"/> |
 
-| Academic Portal | Weekly Routine | Focus Suite |
+| Academic Portal | Weekly Routine | Client Orders & Profiles |
 | :---: | :---: | :---: |
-| <img src="screenshots/Portal.png" width="230"/> | <img src="screenshots/Schedule.png" width="230"/> | <img src="screenshots/Focus.png" width="230"/> |
+| <img src="screenshots/Portal.png" width="230"/> | <img src="screenshots/Schedule.png" width="230"/> | <img src="screenshots/Project.png" width="230"/> |
 
 </div>
 
