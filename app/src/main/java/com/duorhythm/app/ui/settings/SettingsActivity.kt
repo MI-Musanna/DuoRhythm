@@ -288,7 +288,8 @@ class SettingsActivity : AppCompatActivity() {
         searchableItems.add(SettingSearchItem("Class Reminder Lead Time", "Custom minutes before lecture", binding.rowClassLeadTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Auto-Silent During Classes (DND)", "Silences ringer during scheduled lectures", binding.rowClassDnd, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
         searchableItems.add(SettingSearchItem("Restore General Mode After Class", "Return phone to General mode after final class; off stays Silent", binding.rowAutoRestoreGeneral, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
-        searchableItems.add(SettingSearchItem("Default Exam Reminder Time", "Used when an exam has no specific time set", binding.rowDefaultExamTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+        searchableItems.add(SettingSearchItem("Exam Reminder Lead Time", "20M, 1H, 2H or Off before timed exams", binding.rowExamLeadTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
+        searchableItems.add(SettingSearchItem("Default Exam Reminder Time", "Clock time used only when an exam has no specific time", binding.rowDefaultExamTime, binding.cardAcademicAutomations, binding.layoutAcademicAutomationsContent, binding.ivChevronAcademic))
 
         // Financial Ledger
         searchableItems.add(SettingSearchItem("Show Running Balance", "Display remaining balance underneath transactions", binding.rowRunningBalance, binding.cardFinanceAutomations, binding.layoutFinanceAutomationsContent, binding.ivChevronFinance))
@@ -480,6 +481,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.tvClassLeadSubtitle.text = AppPreferences.getClassLeadMinutesDisplayLabel(classMinutes)
         val orderHours = AppPreferences.getOrderLeadHours(this)
         binding.tvClientLeadSubtitle.text = AppPreferences.getOrderLeadHoursDisplayLabel(orderHours)
+        refreshExamLeadTimeUI()
 
         val wasHydrating = isHydratingUI
         isHydratingUI = true
@@ -501,6 +503,55 @@ class SettingsActivity : AppCompatActivity() {
                 Pair(R.id.btnLead10m, binding.btnLead10m),
                 Pair(R.id.btnLead15m, binding.btnLead15m),
                 Pair(R.id.btnLead30m, binding.btnLead30m)
+            )
+            for ((id, btn) in presetButtons) {
+                val selected = (id == targetId)
+                btn.backgroundTintList = ColorStateList.valueOf(if (selected) Color.parseColor("#0284C7") else Color.TRANSPARENT)
+                btn.setTextColor(if (selected) Color.WHITE else Color.parseColor("#94A3B8"))
+            }
+        } finally {
+            isHydratingUI = wasHydrating
+        }
+    }
+
+    private fun refreshExamLeadTimeUI() {
+        val leadMinutes = AppPreferences.getExamReminderLeadMinutes(this)
+        binding.tvExamLeadTimeSubtitle.text = AppPreferences.getExamReminderLeadDisplayLabel(leadMinutes)
+
+        val isMasterEnabled = binding.switchExamReminders.isChecked
+        val alphaVal = if (isMasterEnabled) 1.0f else 0.4f
+
+        binding.rowExamLeadTime.alpha = alphaVal
+        binding.rowExamLeadTime.isEnabled = isMasterEnabled
+        binding.toggleExamLeadPresets.alpha = alphaVal
+        binding.toggleExamLeadPresets.isEnabled = isMasterEnabled
+        for (i in 0 until binding.toggleExamLeadPresets.childCount) {
+            binding.toggleExamLeadPresets.getChildAt(i).isEnabled = isMasterEnabled
+        }
+
+        binding.rowDefaultExamTime.alpha = alphaVal
+        binding.rowDefaultExamTime.isEnabled = isMasterEnabled
+
+        val wasHydrating = isHydratingUI
+        isHydratingUI = true
+        try {
+            val targetId = when (leadMinutes) {
+                20 -> R.id.btnExamLead20m
+                60 -> R.id.btnExamLead1h
+                120 -> R.id.btnExamLead2h
+                -1 -> R.id.btnExamLeadOff
+                else -> View.NO_ID
+            }
+            if (targetId != View.NO_ID) {
+                binding.toggleExamLeadPresets.check(targetId)
+            } else {
+                binding.toggleExamLeadPresets.clearChecked()
+            }
+            val presetButtons = listOf(
+                Pair(R.id.btnExamLead20m, binding.btnExamLead20m),
+                Pair(R.id.btnExamLead1h, binding.btnExamLead1h),
+                Pair(R.id.btnExamLead2h, binding.btnExamLead2h),
+                Pair(R.id.btnExamLeadOff, binding.btnExamLeadOff)
             )
             for ((id, btn) in presetButtons) {
                 val selected = (id == targetId)
@@ -976,6 +1027,27 @@ class SettingsActivity : AppCompatActivity() {
             AlarmSyncManager.resyncAll(this)
             Toast.makeText(this, "Class reminder set to $mins minutes before", Toast.LENGTH_SHORT).show()
         }
+
+        binding.toggleExamLeadPresets.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isHydratingUI || !isChecked) return@addOnButtonCheckedListener
+            val mins = when (checkedId) {
+                R.id.btnExamLead20m -> 20
+                R.id.btnExamLead1h -> 60
+                R.id.btnExamLead2h -> 120
+                R.id.btnExamLeadOff -> -1
+                else -> return@addOnButtonCheckedListener
+            }
+            AppPreferences.setExamReminderLeadMinutes(this, mins)
+            refreshExamLeadTimeUI()
+            com.duorhythm.app.scheduler.AssessmentAlarmScheduler.rescheduleAll(this)
+            val toastMsg = if (mins == -1) {
+                "Exam reminders turned off for timed exams"
+            } else {
+                val label = com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatExamLeadTimeLabel(mins)
+                "Exam reminder set to $label before"
+            }
+            Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
+        }
     
         binding.rowDailyBriefings.setOnClickListener {
             binding.switchDailyBriefings.toggle()
@@ -1147,18 +1219,23 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchExamReminders.isChecked = examReminders
 
         fun refreshDefaultExamTimeUI() {
-            binding.rowDefaultExamTime.visibility = if (binding.switchExamReminders.isChecked) View.VISIBLE else View.GONE
             val label = com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatDefaultExamTimeLabel(this)
             binding.tvDefaultExamTimeBadge.text = label
             binding.tvDefaultExamTimeSubtitle.text = if (label == "OFF") {
                 "Disabled for untimed exams (only exams with a set time alert)"
             } else {
-                "Used when an exam has no specific time set"
+                "Clock time used only when an exam has no specific time"
             }
+            val isMasterEnabled = binding.switchExamReminders.isChecked
+            val alphaVal = if (isMasterEnabled) 1.0f else 0.4f
+            binding.rowDefaultExamTime.alpha = alphaVal
+            binding.rowDefaultExamTime.isEnabled = isMasterEnabled
         }
         refreshDefaultExamTimeUI()
+        refreshExamLeadTimeUI()
 
         binding.rowDefaultExamTime.setOnClickListener {
+            if (!binding.switchExamReminders.isChecked) return@setOnClickListener
             val currentPair = com.duorhythm.app.scheduler.AssessmentAlarmScheduler.getDefaultExamReminderTime(this) ?: Pair(9, 0)
             val picker = android.app.TimePickerDialog(
                 this,
@@ -1188,21 +1265,8 @@ class SettingsActivity : AppCompatActivity() {
                 duoPrefs.edit().putBoolean("pref_exam_reminders_enabled", isChecked).apply()
                 backupPrefs.edit().putBoolean("pref_exam_reminders_enabled", isChecked).apply()
                 refreshDefaultExamTimeUI()
-                if (!isChecked) {
-                    try {
-                        val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this)
-                        db.getAllExams().forEach { pair ->
-                            com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(this, pair.first.id)
-                        }
-                    } catch (_: Exception) {}
-                } else {
-                    try {
-                        dbHelper.getAllExams().forEach { pair ->
-                            val entity = database.entities.AssessmentEntity.fromSubjectWorkItem(pair.first, pair.second.name, pair.second.code, pair.second.teacher)
-                            com.duorhythm.app.scheduler.AssessmentAlarmScheduler.scheduleAssessmentAlarms(this, entity)
-                        }
-                    } catch (_: Exception) {}
-                }
+                refreshExamLeadTimeUI()
+                com.duorhythm.app.scheduler.AssessmentAlarmScheduler.rescheduleAll(this)
                 refreshMasterNotificationTriState()
             }
         }

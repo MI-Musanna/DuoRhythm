@@ -703,4 +703,92 @@ class DuoRhythmFullAppAuditTest {
         // Restore default 09:00 AM
         com.duorhythm.app.scheduler.AssessmentAlarmScheduler.setDefaultExamReminderTime(context, 9, 0)
     }
+
+    @Test
+    fun audit23_examReminderLeadTimeSelectionAndSchedulingAudit() {
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("pref_exam_reminders_enabled", true).apply()
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+        val shadowAlarm = org.robolectric.Shadows.shadowOf(alarmManager)
+
+        // 1. Verify default lead time is 60m (1H)
+        assertEquals(60, AssessmentAlarmScheduler.getExamReminderLeadMinutes(context))
+        assertEquals("1 Hour before timed exams", com.duorhythm.app.data.local.pref.AppPreferences.getExamReminderLeadDisplayLabel(60))
+
+        // 2. Verify selecting 20M, 1H, 2H, and OFF persists and updates display labels
+        val testOptions = listOf(
+            Pair(20, "20 Minutes before timed exams"),
+            Pair(60, "1 Hour before timed exams"),
+            Pair(120, "2 Hours before timed exams"),
+            Pair(-1, "Off for timed exams")
+        )
+        for ((mins, expectedLabel) in testOptions) {
+            AssessmentAlarmScheduler.setExamReminderLeadMinutes(context, mins)
+            assertEquals(mins, AssessmentAlarmScheduler.getExamReminderLeadMinutes(context))
+            assertEquals(expectedLabel, com.duorhythm.app.data.local.pref.AppPreferences.getExamReminderLeadDisplayLabel(mins))
+        }
+
+        // 3. Timed exam scheduling verification:
+        val now = System.currentTimeMillis()
+        val examCal = java.util.Calendar.getInstance().apply {
+            timeInMillis = now + (3 * 60 * 60 * 1000L) // 3 hours in future
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+        val examDateStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(examCal.time)
+        val examTimeStr = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.US).format(examCal.time)
+
+        val timedExam = database.entities.AssessmentEntity(
+            id = 999L,
+            profileId = 1L,
+            subjectId = 5L,
+            subjectName = "Operating Systems",
+            courseCode = "25951",
+            type = "Final Exam",
+            title = "Final Exam",
+            date = examDateStr,
+            time = examTimeStr,
+            room = "Lab 1",
+            syllabus = "All Chapters",
+            teacher = "Dr. Farhan",
+            status = "PENDING"
+        )
+
+        // Test with 1H (60m)
+        AssessmentAlarmScheduler.setExamReminderLeadMinutes(context, 60)
+        shadowAlarm.scheduledAlarms.clear()
+        AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, timedExam)
+        assertEquals("Exactly one alarm must be scheduled for timed exam with 1H lead", 1, shadowAlarm.scheduledAlarms.size)
+        val alarm1h = shadowAlarm.scheduledAlarms.first()
+        val expectedTrigger1h = examCal.timeInMillis - (60 * 60 * 1000L)
+        assertEquals(expectedTrigger1h, alarm1h.triggerAtTime)
+
+        // Test with 20M
+        AssessmentAlarmScheduler.setExamReminderLeadMinutes(context, 20)
+        shadowAlarm.scheduledAlarms.clear()
+        AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, timedExam)
+        assertEquals("Exactly one alarm must be scheduled for timed exam with 20M lead", 1, shadowAlarm.scheduledAlarms.size)
+        val alarm20m = shadowAlarm.scheduledAlarms.first()
+        val expectedTrigger20m = examCal.timeInMillis - (20 * 60 * 1000L)
+        assertEquals(expectedTrigger20m, alarm20m.triggerAtTime)
+
+        // Test with 2H (120m)
+        AssessmentAlarmScheduler.setExamReminderLeadMinutes(context, 120)
+        shadowAlarm.scheduledAlarms.clear()
+        AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, timedExam)
+        assertEquals("Exactly one alarm must be scheduled for timed exam with 2H lead", 1, shadowAlarm.scheduledAlarms.size)
+        val alarm2h = shadowAlarm.scheduledAlarms.first()
+        val expectedTrigger2h = examCal.timeInMillis - (120 * 60 * 1000L)
+        assertEquals(expectedTrigger2h, alarm2h.triggerAtTime)
+
+        // Test with OFF (-1) -> must schedule ZERO alarms
+        AssessmentAlarmScheduler.setExamReminderLeadMinutes(context, -1)
+        shadowAlarm.scheduledAlarms.clear()
+        AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, timedExam)
+        assertTrue("When lead time is OFF, zero alarms must be scheduled", shadowAlarm.scheduledAlarms.isEmpty())
+
+        // Restore default 60m
+        AssessmentAlarmScheduler.setExamReminderLeadMinutes(context, 60)
+    }
 }

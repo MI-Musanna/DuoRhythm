@@ -15,6 +15,35 @@ object AssessmentAlarmScheduler {
 
     const val KEY_DEFAULT_EXAM_HOUR = "pref_default_exam_hour"
     const val KEY_DEFAULT_EXAM_MINUTE = "pref_default_exam_minute"
+    const val KEY_EXAM_REMINDER_LEAD_MINUTES = "exam_reminder_lead_minutes"
+    const val DEFAULT_EXAM_REMINDER_LEAD_MINUTES = 60 // 1H
+
+    fun getExamReminderLeadMinutes(context: Context): Int {
+        val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_EXAM_REMINDER_LEAD_MINUTES, DEFAULT_EXAM_REMINDER_LEAD_MINUTES)
+    }
+
+    fun setExamReminderLeadMinutes(context: Context, minutes: Int) {
+        context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putInt(KEY_EXAM_REMINDER_LEAD_MINUTES, minutes)
+            .apply()
+        try {
+            context.getSharedPreferences("duorhythm_backup_prefs", Context.MODE_PRIVATE)
+                .edit().putInt(KEY_EXAM_REMINDER_LEAD_MINUTES, minutes).apply()
+        } catch (_: Exception) {}
+        rescheduleAll(context)
+    }
+
+    fun formatExamLeadTimeLabel(minutes: Int): String {
+        return when (minutes) {
+            20 -> "20m"
+            60 -> "1h"
+            120 -> "2h"
+            -1 -> "OFF"
+            else -> if (minutes <= 0) "OFF" else if (minutes >= 60 && minutes % 60 == 0) "${minutes / 60}h" else "${minutes}m"
+        }
+    }
 
     /**
      * Returns configured (hour24, minute) for exams saved without a specific time,
@@ -72,78 +101,63 @@ object AssessmentAlarmScheduler {
             cancelAlarmsForAssessment(context, assessment.id)
             return
         }
+
+        // Cleanly cancel any previous alarms for this assessment before scheduling
+        cancelAlarmsForAssessment(context, assessment.id)
+
+        val isTimed = assessment.time.isNotBlank()
         val examStartMs = parseExamStartMs(context, assessment.date, assessment.time)
         if (examStartMs == null) {
-            cancelAlarmsForAssessment(context, assessment.id)
             return
         }
         val now = System.currentTimeMillis()
         if (examStartMs <= now) return
 
-        val (title, body) = buildAssessmentNotification(assessment)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        val isMajor = assessment.type.contains("Final", ignoreCase = true) ||
-                assessment.type.contains("Midterm", ignoreCase = true)
 
-        if (isMajor) {
-            // 1. 24 hours prior (or previous day)
-            val earlyTrigger = examStartMs - (24 * 60 * 60 * 1000L)
-            if (earlyTrigger > now) {
-                val earlyTitle = if (assessment.type.contains("Final", ignoreCase = true)) {
-                    "Semester Final Tomorrow: ${assessment.subjectName}"
-                } else {
-                    "Midterm Exam Tomorrow: ${assessment.subjectName}"
-                }
-                dispatchAlarm(
-                    context, alarmManager, (assessment.id * 10 + 1).toInt(),
-                    earlyTrigger, assessment.id, earlyTitle, body
-                )
+        val category = when {
+            assessment.type.contains("Final", ignoreCase = true) -> "Final Exam"
+            assessment.type.contains("Midterm", ignoreCase = true) -> "Midterm Exam"
+            assessment.type.contains("Quiz", ignoreCase = true) || assessment.type.contains("CT", ignoreCase = true) -> "Quiz"
+            else -> "Assessment"
+        }
+        val roomText = if (assessment.room.isNotBlank()) "Room: ${assessment.room} | " else ""
+        val timeText = if (assessment.time.isNotBlank()) "Time: ${assessment.time} | " else ""
+        val syllabusSnippet = if (assessment.syllabus.isNotBlank()) "Syllabus: ${assessment.syllabus.take(40)}..." else "Review assigned material."
+        val body = "$timeText$roomText$syllabusSnippet"
+
+        if (isTimed) {
+            val leadMinutes = getExamReminderLeadMinutes(context)
+            if (leadMinutes == -1) {
+                // OFF for timed exams: do not schedule a timed pre-exam lead alarm
+                return
             }
 
-            // 2. 1 hour before exam start (with short-window fallback)
-            val finalLeadMs = 60 * 60 * 1000L
-            val finalTrigger = examStartMs - finalLeadMs
-            if (finalTrigger > now) {
-                val finalTitle = "Starting in 1 hour: ${assessment.title} (${assessment.subjectName})"
+            val leadMs = leadMinutes * 60 * 1000L
+            val triggerMs = examStartMs - leadMs
+            val leadLabel = formatExamLeadTimeLabel(leadMinutes)
+
+            if (triggerMs > now) {
+                val title = "Upcoming $category in $leadLabel: ${assessment.subjectName}"
                 dispatchAlarm(
-                    context, alarmManager, (assessment.id * 10 + 2).toInt(),
-                    finalTrigger, assessment.id, finalTitle, body
+                    context, alarmManager, (assessment.id * 10 + 1).toInt(),
+                    triggerMs, assessment.id, title, body
                 )
             } else if (examStartMs > now) {
                 val fallbackTrigger = if (examStartMs - 60_000L > now) examStartMs - 60_000L else examStartMs
-                val fallbackTitle = "Exam Starting Soon: ${assessment.title} (${assessment.subjectName})"
+                val fallbackTitle = "Upcoming $category Starting Soon: ${assessment.subjectName}"
                 dispatchAlarm(
-                    context, alarmManager, (assessment.id * 10 + 2).toInt(),
+                    context, alarmManager, (assessment.id * 10 + 1).toInt(),
                     fallbackTrigger, assessment.id, fallbackTitle, body
                 )
             }
         } else {
-            // 1. Quizzes & Class Tests: 2 hours before
-            val earlyTrigger = examStartMs - (2 * 60 * 60 * 1000L)
-            if (earlyTrigger > now) {
-                val earlyTitle = "Upcoming Quiz in 2h: ${assessment.subjectName}"
+            // Untimed exam: parsed at Default Exam Reminder Time (if not OFF)
+            if (examStartMs > now) {
+                val title = "Today's $category: ${assessment.subjectName}"
                 dispatchAlarm(
                     context, alarmManager, (assessment.id * 10 + 1).toInt(),
-                    earlyTrigger, assessment.id, earlyTitle, body
-                )
-            }
-
-            // 2. Default 20 minutes before start (or lead time) with short-window fallback
-            val leadMinutes = prefs.getInt("pref_exam_lead_minutes", 20).coerceIn(5, 60)
-            val leadMs = leadMinutes * 60 * 1000L
-            val leadTrigger = examStartMs - leadMs
-            if (leadTrigger > now) {
-                val finalTitle = "Quiz Starting in ${leadMinutes}m: ${assessment.title} (${assessment.subjectName})"
-                dispatchAlarm(
-                    context, alarmManager, (assessment.id * 10 + 2).toInt(),
-                    leadTrigger, assessment.id, finalTitle, body
-                )
-            } else if (examStartMs > now) {
-                val fallbackTrigger = if (examStartMs - 60_000L > now) examStartMs - 60_000L else examStartMs
-                val fallbackTitle = "Quiz Starting Soon: ${assessment.title} (${assessment.subjectName})"
-                dispatchAlarm(
-                    context, alarmManager, (assessment.id * 10 + 2).toInt(),
-                    fallbackTrigger, assessment.id, fallbackTitle, body
+                    examStartMs, assessment.id, title, body
                 )
             }
         }
@@ -199,38 +213,42 @@ object AssessmentAlarmScheduler {
         }
     }
 
-    fun resyncAllAssessments(context: Context) {
+    fun rescheduleAll(context: Context) {
         try {
             val db = DatabaseHelper.getInstance(context)
             val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             val enabled = prefs.getBoolean("pref_exam_reminders_enabled", true)
-            val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(context)
+            val profiles = try { db.getAllProfiles() } catch (_: Exception) { emptyList() }
+            val profileIds = if (profiles.isNotEmpty()) profiles.map { it.id }.distinct() else listOf(com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(context))
 
-            if (!enabled) {
-                db.getAllExams(profileId = activeProfileId).forEach { pair ->
-                    cancelAlarmsForAssessment(context, pair.first.id)
+            for (profileId in profileIds) {
+                val exams = try { db.getAllExams(profileId = profileId) } catch (_: Exception) { emptyList() }
+                val widgetExams = try { db.getUpcomingExamsForWidget(profileId) } catch (_: Exception) { emptyList() }
+
+                if (!enabled) {
+                    exams.forEach { pair -> cancelAlarmsForAssessment(context, pair.first.id) }
+                    widgetExams.forEach { widgetEx -> cancelAlarmsForAssessment(context, widgetEx.id) }
+                } else {
+                    exams.forEach { pair ->
+                        val entity = AssessmentEntity.fromSubjectWorkItem(
+                            pair.first,
+                            pair.second.name,
+                            pair.second.code,
+                            pair.second.teacher
+                        )
+                        scheduleAssessmentAlarms(context, entity)
+                    }
+                    widgetExams.forEach { widgetEx ->
+                        val entity = AssessmentEntity.fromLocalEntity(widgetEx)
+                        scheduleAssessmentAlarms(context, entity)
+                    }
                 }
-                db.getUpcomingExamsForWidget(activeProfileId).forEach { widgetEx ->
-                    cancelAlarmsForAssessment(context, widgetEx.id)
-                }
-                return
-            }
-
-            db.getAllExams(profileId = activeProfileId).forEach { pair ->
-                val entity = AssessmentEntity.fromSubjectWorkItem(
-                    pair.first,
-                    pair.second.name,
-                    pair.second.code,
-                    pair.second.teacher
-                )
-                scheduleAssessmentAlarms(context, entity)
-            }
-
-            db.getUpcomingExamsForWidget(activeProfileId).forEach { widgetEx ->
-                val entity = AssessmentEntity.fromLocalEntity(widgetEx)
-                scheduleAssessmentAlarms(context, entity)
             }
         } catch (_: Exception) {}
+    }
+
+    fun resyncAllAssessments(context: Context) {
+        rescheduleAll(context)
     }
 
     private fun parseExamStartMs(context: Context, dateStr: String, timeStr: String): Long? {

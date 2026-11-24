@@ -1136,6 +1136,114 @@
                                 android:layout_marginStart="8dp" />
                         </LinearLayout>
 
+                        <!-- Sub-Row: Exam Reminder Lead Time -->
+                        <LinearLayout
+                            android:id="@+id/rowExamLeadTime"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="48dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="4dp"
+                            android:paddingVertical="8dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Exam Reminder Lead Time"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvExamLeadTimeSubtitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="1 Hour before timed exams"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="11.5sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Segmented Control: Quick Exam Lead-Time Presets (20M | 1H | 2H | OFF) -->
+                        <com.google.android.material.button.MaterialButtonToggleGroup
+                            android:id="@+id/toggleExamLeadPresets"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_marginTop="2dp"
+                            android:layout_marginBottom="6dp"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExamLead20m"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="20M"
+                                android:textColor="#CBD5E1"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                app:strokeColor="#2B303E" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExamLead1h"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="1H"
+                                android:textColor="#CBD5E1"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                app:strokeColor="#2B303E" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExamLead2h"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="2H"
+                                android:textColor="#CBD5E1"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                app:strokeColor="#2B303E" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExamLeadOff"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="OFF"
+                                android:textColor="#CBD5E1"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                app:strokeColor="#2B303E" />
+                        </com.google.android.material.button.MaterialButtonToggleGroup>
+
                         <!-- Sub-Row: Custom Default Exam Reminder Time (for untimed exams) -->
                         <LinearLayout
                             android:id="@+id/rowDefaultExamTime"
@@ -1170,7 +1278,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
-                                    android:text="Used when an exam has no specific time set"
+                                    android:text="Clock time used only when an exam has no specific time"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="11.5sp" />
                             </LinearLayout>

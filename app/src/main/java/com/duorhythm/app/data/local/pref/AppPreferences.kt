@@ -8,6 +8,9 @@ object AppPreferences {
     const val KEY_CLASS_LEAD_MINUTES = "pref_class_lead_minutes"
     const val DEFAULT_CLASS_LEAD_MINUTES = 15
 
+    const val KEY_EXAM_REMINDER_LEAD_MINUTES = "exam_reminder_lead_minutes"
+    const val DEFAULT_EXAM_REMINDER_LEAD_MINUTES = 60 // 1H
+
     const val KEY_ORDER_LEAD_HOURS = "pref_order_lead_hours"
     const val DEFAULT_ORDER_LEAD_HOURS = 2
 
@@ -54,6 +57,40 @@ object AppPreferences {
             minutes <= 0 -> "Disabled"
             minutes == 15 -> "15 Minutes (Default)"
             else -> "$minutes Minutes"
+        }
+    }
+
+    fun getExamReminderLeadMinutes(context: Context): Int {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_EXAM_REMINDER_LEAD_MINUTES, DEFAULT_EXAM_REMINDER_LEAD_MINUTES)
+    }
+
+    fun setExamReminderLeadMinutes(context: Context, minutes: Int) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putInt(KEY_EXAM_REMINDER_LEAD_MINUTES, minutes).apply()
+        try {
+            context.getSharedPreferences("duorhythm_backup_prefs", Context.MODE_PRIVATE)
+                .edit().putInt(KEY_EXAM_REMINDER_LEAD_MINUTES, minutes).apply()
+        } catch (_: Exception) {}
+    }
+
+    fun getExamReminderLeadDisplayLabel(minutes: Int): String {
+        return when (minutes) {
+            20 -> "20 Minutes before timed exams"
+            60 -> "1 Hour before timed exams"
+            120 -> "2 Hours before timed exams"
+            -1 -> "Off for timed exams"
+            else -> if (minutes <= 0) "Off for timed exams" else if (minutes >= 60 && minutes % 60 == 0) "${minutes / 60} Hours before timed exams" else "$minutes Minutes before timed exams"
+        }
+    }
+
+    fun formatLeadTimeLabel(minutes: Int): String {
+        return when (minutes) {
+            20 -> "20m"
+            60 -> "1h"
+            120 -> "2h"
+            -1 -> "OFF"
+            else -> if (minutes <= 0) "OFF" else if (minutes >= 60 && minutes % 60 == 0) "${minutes / 60}h" else "${minutes}m"
         }
     }
 
