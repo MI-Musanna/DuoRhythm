@@ -4,6 +4,8 @@
     <external-path name="external_files" path="." />
     <files-path name="internal_files" path="." />
     <external-files-path name="external_files_dir" path="." />
+    <external-files-path name="updates" path="Download/" />
+    <cache-path name="apk_cache" path="updates/" />
     <cache-path name="cache_files" path="." />
     <root-path name="root" path="." />
 </paths>

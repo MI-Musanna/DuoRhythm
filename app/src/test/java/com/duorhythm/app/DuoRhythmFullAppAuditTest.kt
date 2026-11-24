@@ -19,6 +19,7 @@ import com.duorhythm.app.ui.tasks.TasksAdapter
 import com.duorhythm.app.ui.views.SpeedDialFabView
 import com.duorhythm.app.ui.views.WormDotsIndicatorView
 import com.duorhythm.app.util.BackupSnapshotHelper
+import com.duorhythm.app.util.UpdateManager
 import database.entities.AssessmentEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -976,5 +977,29 @@ class DuoRhythmFullAppAuditTest {
 
         // Clean up test backup file
         latestBackup.delete()
+    }
+
+    @Test
+    fun audit25_updateManagerVersionComparisonAndPackaging() {
+        // Semantic version comparisons
+        assertTrue(UpdateManager.compareVersions("v1.6.9-beta", "v1.6.8") > 0)
+        assertEquals(0, UpdateManager.compareVersions("v1.6.9-beta", "v1.6.9-beta"))
+        assertEquals(0, UpdateManager.compareVersions("1.6.9-beta", "v1.6.9-beta"))
+        assertTrue(UpdateManager.compareVersions("v1.6.9-beta", "v1.6.9") < 0)
+        assertTrue(UpdateManager.compareVersions("v1.6.9", "v1.6.9-beta") > 0)
+        assertTrue(UpdateManager.compareVersions("v1.7.0", "v1.6.9-beta") > 0)
+        assertTrue(UpdateManager.compareVersions("v1.6.8", "v1.6.9-beta") < 0)
+        assertTrue(UpdateManager.compareVersions("1.6.9.1", "1.6.9") > 0)
+
+        // Permission check in Robolectric package manager
+        val packageInfo = context.packageManager.getPackageInfo(
+            context.packageName,
+            android.content.pm.PackageManager.GET_PERMISSIONS
+        )
+        val permissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
+        assertTrue(
+            "REQUEST_INSTALL_PACKAGES must be declared in AndroidManifest",
+            permissions.contains("android.permission.REQUEST_INSTALL_PACKAGES")
+        )
     }
 }

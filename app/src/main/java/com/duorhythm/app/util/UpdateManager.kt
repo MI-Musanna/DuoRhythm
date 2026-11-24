@@ -7,11 +7,13 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.CheckBox
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.duorhythm.app.BuildConfig
@@ -48,6 +50,32 @@ object UpdateManager {
     // Helper: Normalize version string by stripping 'v', 'V' and whitespace
     fun cleanVersion(ver: String): String {
         return ver.trim().removePrefix("v").removePrefix("V").lowercase()
+    }
+
+    // Helper: Semantic version comparison (returns > 0 if v1 > v2, 0 if equal, < 0 if v1 < v2)
+    fun compareVersions(v1: String, v2: String): Int {
+        val clean1 = cleanVersion(v1)
+        val clean2 = cleanVersion(v2)
+        if (clean1 == clean2) return 0
+
+        val numPart1 = clean1.split("-")[0]
+        val numPart2 = clean2.split("-")[0]
+        val parts1 = numPart1.split(".").mapNotNull { it.toIntOrNull() }
+        val parts2 = numPart2.split(".").mapNotNull { it.toIntOrNull() }
+
+        val maxLen = maxOf(parts1.size, parts2.size)
+        for (i in 0 until maxLen) {
+            val p1 = parts1.getOrElse(i) { 0 }
+            val p2 = parts2.getOrElse(i) { 0 }
+            if (p1 != p2) return p1.compareTo(p2)
+        }
+
+        val suffix1 = if (clean1.contains("-")) clean1.substringAfter("-") else ""
+        val suffix2 = if (clean2.contains("-")) clean2.substringAfter("-") else ""
+        if (suffix1 == suffix2) return 0
+        if (suffix1.isEmpty()) return 1 // Stable > Beta
+        if (suffix2.isEmpty()) return -1 // Beta < Stable
+        return suffix1.compareTo(suffix2)
     }
 
     // 1. AUTOMATIC CLEANUP: Purges leftover .apk files from downloads directory
@@ -188,42 +216,61 @@ object UpdateManager {
         }
 
         downloadJob = CoroutineScope(Dispatchers.IO).launch {
+            // Check if installed version already matches or exceeds the release tag
+            val versionTag = fileName.removeSuffix(".apk")
+            if (compareVersions(BuildConfig.VERSION_NAME, versionTag) >= 0) {
+                withContext(Dispatchers.Main) {
+                    tvTitle?.text = "Already Up to Date 🎉"
+                    tvProgress?.text = "You are already running version ${BuildConfig.VERSION_NAME}."
+                    progressBar?.progress = 100
+                    btnCancel?.text = "Close"
+                }
+                return@launch
+            }
+
             var inputStream: InputStream? = null
             var outputStream: FileOutputStream? = null
             var connection: HttpURLConnection? = null
 
             try {
-                val url = URL(apkUrl)
-                connection = url.openConnection() as HttpURLConnection
-                connection.setRequestProperty("User-Agent", "DuoRhythm-Android")
-                connection.connect()
-
-                // Resolve HTTP 302 redirects from GitHub to AWS S3 CDN
-                var responseCode = connection.responseCode
-                if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-                    responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
-                    responseCode == 307 || responseCode == 308) {
-                    val newUrl = connection.getHeaderField("Location")
-                    connection.disconnect()
-                    connection = URL(newUrl).openConnection() as HttpURLConnection
+                var currentUrl = apkUrl
+                var redirects = 0
+                while (redirects < 5) {
+                    val url = URL(currentUrl)
+                    connection = url.openConnection() as HttpURLConnection
+                    connection.instanceFollowRedirects = false
                     connection.setRequestProperty("User-Agent", "DuoRhythm-Android")
+                    connection.connectTimeout = 15000
+                    connection.readTimeout = 30000
                     connection.connect()
+
+                    val responseCode = connection.responseCode
+                    if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                        responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+                        responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+                        responseCode == 307 || responseCode == 308) {
+                        val newUrl = connection.getHeaderField("Location") ?: break
+                        connection.disconnect()
+                        currentUrl = newUrl
+                        redirects++
+                    } else {
+                        break
+                    }
                 }
 
-                val totalLength = connection.contentLengthLong
-                inputStream = connection.inputStream
+                val totalLength = connection?.contentLengthLong ?: -1L
+                inputStream = connection?.inputStream
                 outputStream = FileOutputStream(destinationFile)
 
                 val buffer = ByteArray(8192)
                 var bytesRead: Int
                 var totalBytesRead = 0L
+                val totalMB = if (totalLength > 0) totalLength.toDouble() / (1024 * 1024) else 0.0
 
-                val totalMB = totalLength.toDouble() / (1024 * 1024)
-
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                while (inputStream?.read(buffer).also { bytesRead = it ?: -1 } != -1) {
                     if (!isActive) {
                         outputStream.close()
-                        inputStream.close()
+                        inputStream?.close()
                         destinationFile.delete()
                         return@launch
                     }
@@ -235,35 +282,47 @@ object UpdateManager {
                     val progressPercent = if (totalLength > 0) ((totalBytesRead * 100) / totalLength).toInt() else 0
 
                     withContext(Dispatchers.Main) {
-                        progressBar.progress = progressPercent
-                        tvProgress.text = String.format(
-                            Locale.US,
-                            "%d%% (%.2f MB / %.2f MB)",
-                            progressPercent,
-                            downloadedMB,
-                            totalMB
-                        )
+                        progressBar?.progress = progressPercent
+                        if (totalLength > 0) {
+                            tvProgress?.text = String.format(
+                                Locale.US,
+                                "%d%% (%.2f MB / %.2f MB)",
+                                progressPercent,
+                                downloadedMB,
+                                totalMB
+                            )
+                        } else {
+                            tvProgress?.text = String.format(
+                                Locale.US,
+                                "%.2f MB downloaded",
+                                downloadedMB
+                            )
+                        }
                     }
                 }
 
                 outputStream.flush()
 
                 withContext(Dispatchers.Main) {
-                    progressBar.progress = 100
-                    tvTitle.text = "Update Downloaded 🎉"
-                    tvProgress.text = "Ready to install • Tap Install to restart"
-                    btnCancel.visibility = View.GONE
-                    btnInstall.visibility = View.VISIBLE
-                    btnInstall.setOnClickListener {
-                        dialog.dismiss()
-                        launchPackageInstaller(context, destinationFile)
+                    progressBar?.progress = 100
+                    tvTitle?.text = "Update Downloaded 🎉"
+                    tvProgress?.text = "Ready to install • Tap Install to restart"
+                    btnCancel?.visibility = View.GONE
+                    btnInstall?.visibility = View.VISIBLE
+                    btnInstall?.setOnClickListener {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+                            launchPackageInstaller(context, destinationFile)
+                        } else {
+                            dialog.dismiss()
+                            launchPackageInstaller(context, destinationFile)
+                        }
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    tvTitle.text = "Download Failed"
-                    tvProgress.text = e.localizedMessage ?: "Network interrupted"
-                    btnCancel.text = "Close"
+                    tvTitle?.text = "Download Failed"
+                    tvProgress?.text = e.localizedMessage ?: "Network interrupted"
+                    btnCancel?.text = "Close"
                     if (destinationFile.exists()) destinationFile.delete()
                 }
             } finally {
@@ -276,17 +335,45 @@ object UpdateManager {
         dialog.show()
     }
 
-    private fun launchPackageInstaller(context: Context, file: File) {
-        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-        } else {
-            Uri.fromFile(file)
+    fun launchPackageInstaller(context: Context, file: File) {
+        if (!file.exists()) {
+            Toast.makeText(context, "Installation file not found.", Toast.LENGTH_SHORT).show()
+            return
         }
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!context.packageManager.canRequestPackageInstalls()) {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:${context.packageName}")
+                ).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+                Toast.makeText(
+                    context,
+                    "Please allow DuoRhythm to install updates, then tap Install again.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
         }
-        context.startActivity(intent)
+
+        try {
+            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            } else {
+                Uri.fromFile(file)
+            }
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "Failed to start installer: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // 4. WHAT'S NEW MODAL: Dynamically Fetches GitHub Release Body with Normalized Tags
@@ -401,7 +488,7 @@ object UpdateManager {
             val btnStable = view.findViewById<MaterialButton>(R.id.btnInstallStable)
             tvStable?.text = "${stable.tagName} • Verified Stable"
 
-            val isStableCurrent = cleanVersion(stable.tagName) == cleanCurrent
+            val isStableCurrent = compareVersions(currentVersion, stable.tagName) >= 0
             if (isStableCurrent) {
                 btnStable?.text = "INSTALLED"
                 btnStable?.isEnabled = false
@@ -431,7 +518,7 @@ object UpdateManager {
         if (beta != null) {
             tvBeta?.text = "${beta.tagName} • Bleeding-Edge Preview"
 
-            val isBetaCurrent = cleanVersion(beta.tagName) == cleanCurrent
+            val isBetaCurrent = compareVersions(currentVersion, beta.tagName) >= 0
             if (isBetaCurrent) {
                 // Version currently running on phone -> Mark as INSTALLED, Gray out, and disable click!
                 btnBeta?.text = "INSTALLED"
