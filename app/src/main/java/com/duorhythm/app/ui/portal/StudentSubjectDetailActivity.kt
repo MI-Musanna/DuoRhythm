@@ -147,7 +147,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             emptyList(),
             onToggleStatus = { item, newStatus ->
                 dbHelper.updateSubjectWorkItemStatus(item.id, newStatus)
-                if (newStatus == "COMPLETED") {
+                if (newStatus == "COMPLETED" || newStatus == "DONE") {
                     com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
                 }
                 loadItems()

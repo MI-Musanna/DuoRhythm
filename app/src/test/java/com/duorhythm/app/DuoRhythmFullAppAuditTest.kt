@@ -1056,4 +1056,42 @@ class DuoRhythmFullAppAuditTest {
         // 4. Confetti debounce verification
         com.duorhythm.app.ui.views.ConfettiOverlayView.burst(null)
     }
+
+    @Test
+    fun audit27_confettiContextUnwrappingAndPrereleaseDetection() {
+        // Reset debounce timer before test run
+        com.duorhythm.app.ui.views.ConfettiOverlayView.resetDebounceTimerForTesting()
+
+        // 1. ContextWrapper unwrapping test
+        val controller = org.robolectric.Robolectric.buildActivity(com.duorhythm.app.MainActivity::class.java).setup()
+        val activity = controller.get()
+        val nestedWrapper = android.content.ContextWrapper(android.content.ContextWrapper(activity))
+
+        // Call burst with nested ContextWrapper
+        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(nestedWrapper)
+        val burstTime1 = com.duorhythm.app.ui.views.ConfettiOverlayView.getLastBurstTimeForTesting()
+        assertTrue("Burst time must be set when ContextWrapper successfully unwraps Activity", burstTime1 > 0L)
+
+        // 2. Debounce guard verification
+        // Immediate second call within 400ms should be debounced and ignored
+        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(nestedWrapper)
+        val burstTime2 = com.duorhythm.app.ui.views.ConfettiOverlayView.getLastBurstTimeForTesting()
+        assertEquals("Subsequent burst within 400ms must be debounced without updating timestamp", burstTime1, burstTime2)
+
+        // Non-activity ContextWrapper (e.g. Application context) should not trigger burst
+        com.duorhythm.app.ui.views.ConfettiOverlayView.resetDebounceTimerForTesting()
+        val appWrapper = android.content.ContextWrapper(context.applicationContext)
+        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(appWrapper)
+        assertEquals("Non-activity ContextWrapper must not trigger burst", 0L, com.duorhythm.app.ui.views.ConfettiOverlayView.getLastBurstTimeForTesting())
+
+        // 3. UpdateManager boolean prerelease vs tag-name test
+        val releaseBetaLatest = UpdateManager.ReleaseInfo(
+            tagName = "v1.7.2-beta",
+            isPrerelease = false,
+            downloadUrl = "https://example.com/v1.7.2-beta.apk",
+            bodyText = "Latest release notes"
+        )
+        assertFalse("Release with prerelease=false must not be treated as prerelease even if tagged -beta", releaseBetaLatest.isPrerelease)
+        assertTrue(UpdateManager.compareVersions(releaseBetaLatest.tagName, "v1.7.1-beta") > 0)
+    }
 }

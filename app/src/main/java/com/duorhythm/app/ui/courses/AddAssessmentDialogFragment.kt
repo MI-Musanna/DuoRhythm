@@ -286,6 +286,7 @@ class AddAssessmentDialogFragment : DialogFragment() {
             val savedEntity = entity.copy(id = newId)
             AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, savedEntity)
 
+            com.duorhythm.app.ui.views.ConfettiOverlayView.burst(context)
             Toast.makeText(context, "Assessment scheduled successfully!", Toast.LENGTH_SHORT).show()
             dismiss()
             onSavedListener?.invoke()

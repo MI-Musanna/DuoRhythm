@@ -3,6 +3,7 @@ package com.duorhythm.app.ui.views
 import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -126,13 +127,33 @@ class ConfettiOverlayView(context: Context) : View(context) {
     companion object {
         private var lastBurstTime = 0L
 
+        fun burst(context: Context?) {
+            var ctx = context
+            while (ctx is ContextWrapper) {
+                if (ctx is Activity) {
+                    burst(ctx)
+                    return
+                }
+                ctx = ctx.baseContext
+            }
+            if (ctx is Activity) {
+                burst(ctx)
+            }
+        }
+
+        internal fun resetDebounceTimerForTesting() {
+            lastBurstTime = 0L
+        }
+
+        internal fun getLastBurstTimeForTesting(): Long = lastBurstTime
+
         fun burst(activity: Activity?) {
+            val decor = activity?.window?.decorView as? ViewGroup ?: return
             val now = System.currentTimeMillis()
             if (now - lastBurstTime < 400L) return
             lastBurstTime = now
 
-            val decor = activity?.window?.decorView as? ViewGroup ?: return
-            decor.post {
+            activity.runOnUiThread {
                 for (i in decor.childCount - 1 downTo 0) {
                     val child = decor.getChildAt(i)
                     if (child is ConfettiOverlayView) {

@@ -124,20 +124,17 @@ object UpdateManager {
                         }
 
                         if (apkUrl.isNotEmpty()) {
-                            val isBeta = item.optBoolean("prerelease", false) ||
-                                    tag.contains("beta", ignoreCase = true) ||
-                                    tag.contains("alpha", ignoreCase = true) ||
-                                    tag.contains("rc", ignoreCase = true)
+                            val isPrerelease = item.optBoolean("prerelease", false)
 
-                            val release = ReleaseInfo(tag, isBeta, apkUrl, body)
+                            val release = ReleaseInfo(tag, isPrerelease, apkUrl, body)
 
                             // Permanently cache the release body using normalized key
                             prefs.edit().putString("online_body_${cleanVersion(tag)}", body).apply()
 
-                            if (!isBeta && latestStable == null) {
+                            if (!isPrerelease && latestStable == null) {
                                 latestStable = release
                             }
-                            if (isBeta && latestBeta == null) {
+                            if (isPrerelease && latestBeta == null) {
                                 latestBeta = release
                             }
                         }
@@ -490,13 +487,14 @@ object UpdateManager {
         val cardStable = view.findViewById<View>(R.id.cardStableTrack)
         val tvNoStable = view.findViewById<View>(R.id.tvNoStableBanner)
 
-        // --- STABLE TRACK ---
-        if (stable != null && !stable.tagName.contains("beta", ignoreCase = true)) {
+        // --- STABLE / LATEST TRACK ---
+        var stableHasUpdate = false
+        if (stable != null && !stable.isPrerelease) {
             cardStable?.visibility = View.VISIBLE
             tvNoStable?.visibility = View.GONE
             val tvStable = view.findViewById<TextView>(R.id.tvStableVersion)
             val btnStable = view.findViewById<MaterialButton>(R.id.btnInstallStable)
-            tvStable?.text = "${stable.tagName} • Verified Stable"
+            tvStable?.text = "${stable.tagName} • Verified Latest"
 
             val isStableCurrent = compareVersions(currentVersion, stable.tagName) >= 0
             if (isStableCurrent) {
@@ -506,7 +504,8 @@ object UpdateManager {
                 btnStable?.setTextColor(Color.parseColor("#64748B"))
                 btnStable?.strokeColor = null
             } else {
-                btnStable?.text = "SWITCH TO STABLE"
+                stableHasUpdate = true
+                btnStable?.text = "INSTALL LATEST"
                 btnStable?.isEnabled = true
                 btnStable?.setBackgroundColor(Color.parseColor("#10B981"))
                 btnStable?.setTextColor(Color.parseColor("#0A0B0E"))
@@ -531,9 +530,15 @@ object UpdateManager {
 
             val isBetaCurrent = compareVersions(currentVersion, beta.tagName) >= 0
             if (isBetaCurrent) {
-                tvStatusPill?.text = "UP TO DATE"
-                tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
-                tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
+                if (stableHasUpdate) {
+                    tvStatusPill?.text = "UPDATE AVAILABLE • ${stable?.tagName}"
+                    tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
+                    tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
+                } else {
+                    tvStatusPill?.text = "UP TO DATE"
+                    tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
+                    tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
+                }
 
                 badgeBeta?.text = "CURRENT"
                 badgeBeta?.setTextColor(Color.parseColor("#10B981"))
@@ -562,8 +567,14 @@ object UpdateManager {
                 btnActionBeta?.setOnClickListener(clickAction)
             }
         } else {
-            tvStatusPill?.text = "UP TO DATE"
-            tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
+            if (stableHasUpdate) {
+                tvStatusPill?.text = "UPDATE AVAILABLE • ${stable?.tagName}"
+                tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
+                tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
+            } else {
+                tvStatusPill?.text = "UP TO DATE"
+                tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
+            }
         }
 
         dialog.show()

@@ -154,6 +154,9 @@ class SubjectItemsAdapter(
 
             binding.btnToggleComplete.setOnClickListener {
                 val nextStatus = if (item.status == "DONE") "PENDING" else "DONE"
+                if (nextStatus == "DONE" || nextStatus == "COMPLETED") {
+                    com.duorhythm.app.ui.views.ConfettiOverlayView.burst(itemView.context)
+                }
                 onToggleStatus(item, nextStatus)
             }
 

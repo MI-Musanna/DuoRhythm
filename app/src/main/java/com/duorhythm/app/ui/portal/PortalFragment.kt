@@ -255,6 +255,7 @@ class PortalFragment : Fragment() {
                 dbHelper.updateWorkOrderStatus(order.id, nextStatus)
                 if (nextStatus == "COMPLETED") {
                     com.duorhythm.app.scheduler.OrderAlarmScheduler.cancelOrderReminders(requireContext(), order.id)
+                    com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                 } else {
                     com.duorhythm.app.scheduler.OrderAlarmScheduler.scheduleOrderReminders(requireContext(), order.copy(status = nextStatus))
                 }
@@ -278,6 +279,9 @@ class PortalFragment : Fragment() {
             emptyList(),
             onToggleStatus = { entity, nextStatus ->
                 dbHelper.updateAssessmentStatus(entity.id, nextStatus)
+                if (nextStatus == "DONE" || nextStatus == "COMPLETED") {
+                    com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
+                }
                 com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(requireContext())
                 loadStudentData()
             },
@@ -1454,6 +1458,7 @@ class PortalFragment : Fragment() {
             com.duorhythm.app.scheduler.OrderAlarmScheduler.scheduleOrderReminders(requireContext(), savedOrder)
             dialog.dismiss()
             loadWorkData()
+            com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
             Toast.makeText(requireContext(), "Work order created!", Toast.LENGTH_SHORT).show()
         }
 
