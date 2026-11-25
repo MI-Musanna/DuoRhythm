@@ -46,7 +46,7 @@ object CropAvatarDialog {
                 dialog.dismiss()
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "Error cropping avatar: ${e.message}", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Error cropping avatar: ${e.message}")
             }
         }
 

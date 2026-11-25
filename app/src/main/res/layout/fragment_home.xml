@@ -251,6 +251,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
+                        android:fontFeatureSettings="tnum"
+                        android:letterSpacing="-0.03"
                         android:textColor="#F8FAFC"
                         android:textSize="17sp"
                         android:textStyle="bold" />

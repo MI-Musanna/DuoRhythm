@@ -180,7 +180,7 @@ class AddHomeworkDialogFragment : DialogFragment() {
 
     private fun showManageCategoriesOverviewDialog(categories: List<String>) {
         if (categories.isEmpty()) {
-            Toast.makeText(requireContext(), "No custom categories found. Tap '+ Add' to create one.", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "No custom categories found. Tap '+ Add' to create one.")
             return
         }
         val items = categories.toTypedArray()
@@ -274,7 +274,7 @@ class AddHomeworkDialogFragment : DialogFragment() {
             return
         }
         if (selectedCategory.isBlank()) {
-            Toast.makeText(requireContext(), "Please select a category", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please select a category")
             return
         }
 

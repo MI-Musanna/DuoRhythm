@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
+import com.duorhythm.app.data.repository.ProfileRepository
+import com.duorhythm.app.ui.custom.DuoAlertBanner
 import com.duorhythm.app.databinding.DialogProfileCreateBinding
 import com.duorhythm.app.util.AnimationUtils
 import database.entities.ProfileEntity
@@ -41,7 +43,7 @@ class CreateProfileDialog(
             val semester = dialogBinding.etCreateSemester.text?.toString()?.trim() ?: ""
 
             if (name.isBlank()) {
-                Toast.makeText(activity, "Please enter your full name", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(activity, "Please enter your full name")
                 return@setOnClickListener
             }
 
@@ -62,11 +64,12 @@ class CreateProfileDialog(
                 val createdProfile = newProfile.copy(id = newId)
                 ProfileManager.setActiveProfileId(activity, newId)
                 ProfileManager.syncUserProfile(activity, createdProfile)
-                Toast.makeText(activity, "Workspace created: $name", Toast.LENGTH_SHORT).show()
+                ProfileRepository.refreshProfiles(activity)
+                DuoAlertBanner.success(activity, "Workspace created: $name")
                 dialog.dismiss()
                 onProfileCreated?.invoke(createdProfile)
             } else {
-                Toast.makeText(activity, "Failed to create profile", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.error(activity, "Failed to create profile")
             }
         }
 

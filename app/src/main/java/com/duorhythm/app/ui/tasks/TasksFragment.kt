@@ -278,7 +278,7 @@ class TasksFragment : Fragment() {
             val progress = dialogBinding.sbGoalProgress.progress
 
             if (title.isEmpty()) {
-                Toast.makeText(requireContext(), "Goal title is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Goal title is required")
                 return@setOnClickListener
             }
 
@@ -300,7 +300,7 @@ class TasksFragment : Fragment() {
             loadTasks()
             if (progress == 100) { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity) }
             val msg = if (progress == 100) "Goal achieved (100%)!" else "Goal updated ($progress%)"
-            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), msg)
         }
 
         dialog.show()
@@ -366,7 +366,7 @@ class TasksFragment : Fragment() {
             val priority = priorities[dialogBinding.spTaskPriority.selectedItemPosition]
 
             if (title.isEmpty()) {
-                Toast.makeText(requireContext(), "Task title is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Task title is required")
                 return@setOnClickListener
             }
 
@@ -387,7 +387,7 @@ class TasksFragment : Fragment() {
             }
             dialog.dismiss()
             loadTasks()
-            Toast.makeText(requireContext(), if (isGoal) "Goal updated!" else "Task updated!", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), if (isGoal) "Goal updated!" else "Task updated!")
         }
 
         dialog.show()
@@ -450,9 +450,9 @@ class TasksFragment : Fragment() {
                         val added = dbHelper.addTaskCategory(name)
                         if (added) {
                             populateCategoryChips()
-                            Toast.makeText(requireContext(), "Category '$name' created", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Category '$name' created")
                         } else {
-                            Toast.makeText(requireContext(), "Category already exists", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Category already exists")
                         }
                     }
                 }
@@ -544,7 +544,7 @@ class TasksFragment : Fragment() {
                 }
                 populateCategoryChips()
                 loadTasks()
-                Toast.makeText(requireContext(), "Category '$category' removed", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Category '$category' removed")
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -718,7 +718,7 @@ class TasksFragment : Fragment() {
             val priority = priorities[dialogBinding.spTaskPriority.selectedItemPosition]
 
             if (title.isEmpty()) {
-                Toast.makeText(requireContext(), "Task title is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Task title is required")
                 return@setOnClickListener
             }
 
@@ -740,7 +740,7 @@ class TasksFragment : Fragment() {
             dialog.dismiss()
             loadTasks()
             com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-            Toast.makeText(requireContext(), if (markedGoal) "Goal created!" else "Task created!", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), if (markedGoal) "Goal created!" else "Task created!")
         }
 
         dialog.show()

@@ -94,12 +94,12 @@ class ContactsAdapter(
                             val callIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$cleanPhone"))
                             context.startActivity(callIntent)
                         } catch (_: ActivityNotFoundException) {
-                            Toast.makeText(context, "No dialer app installed on this device", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "No dialer app installed on this device")
                         } catch (_: Exception) {
-                            Toast.makeText(context, "Cannot open dialer: $normalizedPhone", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Cannot open dialer: $normalizedPhone")
                         }
                     } else {
-                        Toast.makeText(context, "No phone number available", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "No phone number available")
                     }
                 }
 
@@ -117,15 +117,15 @@ class ContactsAdapter(
                                 val fallbackIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://api.whatsapp.com/send?phone=$digitsOnly"))
                                 context.startActivity(fallbackIntent)
                             } catch (_: ActivityNotFoundException) {
-                                Toast.makeText(context, "WhatsApp is not installed on this device", Toast.LENGTH_SHORT).show()
+                                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "WhatsApp is not installed on this device")
                             } catch (_: Exception) {
-                                Toast.makeText(context, "WhatsApp is not installed on this device", Toast.LENGTH_SHORT).show()
+                                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "WhatsApp is not installed on this device")
                             }
                         } catch (e: Exception) {
-                            Toast.makeText(context, "WhatsApp is not installed on this device", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "WhatsApp is not installed on this device")
                         }
                     } else {
-                        Toast.makeText(context, "No valid phone number for WhatsApp", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "No valid phone number for WhatsApp")
                     }
                 }
 
@@ -145,11 +145,11 @@ class ContactsAdapter(
                                 }
                                 context.startActivity(shareIntent)
                             } catch (_: Exception) {
-                                Toast.makeText(context, "Cannot open Telegram for $normalizedPhone", Toast.LENGTH_SHORT).show()
+                                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Cannot open Telegram for $normalizedPhone")
                             }
                         }
                     } else {
-                        Toast.makeText(context, "No valid phone number for Telegram", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "No valid phone number for Telegram")
                     }
                 }
             } else {
@@ -168,7 +168,7 @@ class ContactsAdapter(
                         val target = if (item.targetLink.startsWith("http")) item.targetLink else "https://${item.targetLink}"
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(target)))
                     } catch (_: Exception) {
-                        Toast.makeText(context, "Cannot open link", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Cannot open link")
                     }
                 }
             } else {

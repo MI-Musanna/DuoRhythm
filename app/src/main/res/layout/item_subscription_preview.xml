@@ -59,6 +59,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="1dp"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="-0.03"
             android:text="In 6 days"
             android:textColor="@color/water_cyan_bright"
             android:textSize="11sp"

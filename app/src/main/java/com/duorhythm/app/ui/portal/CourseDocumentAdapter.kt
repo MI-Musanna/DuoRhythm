@@ -89,7 +89,7 @@ class CourseDocumentAdapter(
 
             binding.root.setOnClickListener {
                 if (!file.exists()) {
-                    Toast.makeText(context, "File does not exist: ${file.name}", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "File does not exist: ${file.name}")
                     return@setOnClickListener
                 }
                 try {
@@ -111,7 +111,7 @@ class CourseDocumentAdapter(
                     }
                     context.startActivity(Intent.createChooser(intent, "Open Document"))
                 } catch (e: Exception) {
-                    Toast.makeText(context, "Could not open file: ${e.message}", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Could not open file: ${e.message}")
                 }
             }
 

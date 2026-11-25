@@ -95,7 +95,7 @@ class VerifyCredentialsDialog() : DialogFragment() {
 
             if (profile != null && profile.passwordHash.isNotBlank()) {
                 if (enteredPassword.isBlank()) {
-                    Toast.makeText(act, "Please enter your password", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.warning(act, "Please enter your password")
                     return@setOnClickListener
                 }
 
@@ -103,7 +103,7 @@ class VerifyCredentialsDialog() : DialogFragment() {
                 if (enteredPassword != profile.password && enteredHash != profile.passwordHash) {
                     com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.layoutLoginPassword)
                     com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.etLoginPassword)
-                    Toast.makeText(act, "Incorrect password", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.error(act, "Incorrect password")
                     return@setOnClickListener
                 }
             }
@@ -170,7 +170,7 @@ class VerifyCredentialsDialog() : DialogFragment() {
 
             if (profile != null && profile.passwordHash.isNotBlank()) {
                 if (enteredPassword.isBlank()) {
-                    Toast.makeText(act, "Please enter your password", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.warning(act, "Please enter your password")
                     return@setOnClickListener
                 }
 
@@ -178,7 +178,7 @@ class VerifyCredentialsDialog() : DialogFragment() {
                 if (enteredPassword != profile.password && enteredHash != profile.passwordHash) {
                     com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.layoutLoginPassword)
                     com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.etLoginPassword)
-                    Toast.makeText(act, "Incorrect password", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.error(act, "Incorrect password")
                     return@setOnClickListener
                 }
             }

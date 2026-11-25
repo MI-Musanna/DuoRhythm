@@ -93,7 +93,7 @@ class WorkOrdersAdapter(
                         }
                         context.startActivity(Intent.createChooser(intent, "Open File"))
                     } catch (_: Exception) {
-                        Toast.makeText(context, "Attachment saved at: ${file.name}", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Attachment saved at: ${file.name}")
                     }
                 }
             } else {

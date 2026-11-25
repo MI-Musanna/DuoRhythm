@@ -145,7 +145,7 @@ object BiometricAuthHelper {
 
                         override fun onAuthenticationFailed() {
                             super.onAuthenticationFailed()
-                            Toast.makeText(activity, "Biometric unrecognized. Try again.", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Biometric unrecognized. Try again.")
                         }
                     }
                 )

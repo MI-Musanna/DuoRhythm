@@ -6,5 +6,5 @@
         android:startColor="#19273E"
         android:endColor="#111A29"
         android:type="linear" />
-    <corners android:radius="20dp" />
+    <corners android:radius="@dimen/radius_card_hero" />
 </shape>

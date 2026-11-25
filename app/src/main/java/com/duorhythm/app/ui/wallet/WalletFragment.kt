@@ -300,7 +300,7 @@ class WalletFragment : Fragment() {
                 }
                 loadData()
                 WalletDataSyncManager.notifyChanged()
-                Toast.makeText(requireContext(), "All account balances reset to 0.00", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "All account balances reset to 0.00")
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -314,7 +314,7 @@ class WalletFragment : Fragment() {
                 dbHelper.clearAllTransactions()
                 loadData()
                 WalletDataSyncManager.notifyChanged()
-                Toast.makeText(requireContext(), "All ledger records have been cleared", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "All ledger records have been cleared")
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -459,10 +459,10 @@ class WalletFragment : Fragment() {
                     WalletSessionManager.isWalletUnlockedForSession = true
                     DuoRhythmSecurityManager.setSessionUnlocked(true)
                     loadData()
-                    Toast.makeText(requireContext(), "Wallet Unlocked", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Wallet Unlocked")
                 },
                 onError = { err ->
-                    Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), err)
                 }
             )
         }
@@ -479,7 +479,7 @@ class WalletFragment : Fragment() {
                             WalletSessionManager.isWalletUnlockedForSession = false
                             DuoRhythmSecurityManager.lockSession()
                             loadData()
-                            Toast.makeText(ctx, "Wallet Locked", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(ctx, "Wallet Locked")
                         }
                         .setNegativeButton("Cancel", null)
                         .show()
@@ -499,10 +499,10 @@ class WalletFragment : Fragment() {
                                 AppPreferences.setWalletBiometricLocked(ctx, true)
                                 WalletSessionManager.isWalletUnlockedForSession = true
                                 loadData()
-                                Toast.makeText(ctx, "Biometric Lock Enabled!", Toast.LENGTH_SHORT).show()
+                                com.duorhythm.app.ui.custom.DuoAlertBanner.show(ctx, "Biometric Lock Enabled!")
                             },
                             onError = { err ->
-                                Toast.makeText(ctx, "Could not enable: $err", Toast.LENGTH_SHORT).show()
+                                com.duorhythm.app.ui.custom.DuoAlertBanner.show(ctx, "Could not enable: $err")
                             }
                         )
                     }
@@ -888,7 +888,7 @@ class WalletFragment : Fragment() {
                 dbHelper.deleteWalletBucket(bucket.id)
                 loadData()
                 WalletDataSyncManager.notifyChanged()
-                Toast.makeText(requireContext(), "Deleted '${bucket.name}'", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Deleted '${bucket.name}'")
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -972,7 +972,7 @@ class WalletFragment : Fragment() {
             val balanceStr = dialogBinding.etBucketBalance.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty()) {
-                Toast.makeText(requireContext(), "Account name is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Account name is required")
                 return@setOnClickListener
             }
 
@@ -991,7 +991,7 @@ class WalletFragment : Fragment() {
                 dialog.dismiss()
                 loadData()
                 WalletDataSyncManager.notifyChanged()
-                Toast.makeText(requireContext(), "Updated '$name'", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Updated '$name'")
             } else {
                 val activeProfileId = ProfileManager.getActiveProfileId(requireContext())
                 val newBucket = WalletBucketItem(
@@ -1009,9 +1009,9 @@ class WalletFragment : Fragment() {
                     loadData()
                     WalletDataSyncManager.notifyChanged()
                     com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                    Toast.makeText(requireContext(), "Created '$name' account", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Created '$name' account")
                 } else {
-                    Toast.makeText(requireContext(), "Maximum of 5 accounts reached", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Maximum of 5 accounts reached")
                 }
             }
         }
@@ -1218,14 +1218,14 @@ class WalletFragment : Fragment() {
         dialogBinding.btnSaveTx.setOnClickListener {
             val amountStr = dialogBinding.etTxAmount.text?.toString()?.trim().orEmpty()
             if (amountStr.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter an amount", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please enter an amount")
                 dialogBinding.etTxAmount.requestFocus()
                 return@setOnClickListener
             }
 
             val enteredAmount = amountStr.toDoubleOrNull() ?: 0.0
             if (enteredAmount <= 0.0) {
-                Toast.makeText(requireContext(), "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please enter a valid amount greater than 0")
                 return@setOnClickListener
             }
 
@@ -1235,7 +1235,7 @@ class WalletFragment : Fragment() {
 
             if (txType == "TRANSFER") {
                 if (buckets.size < 2) {
-                    Toast.makeText(requireContext(), "Transfer requires at least 2 accounts", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Transfer requires at least 2 accounts")
                     return@setOnClickListener
                 }
                 val fromName = dialogBinding.actvTxCard.text?.toString()?.trim().orEmpty()
@@ -1245,7 +1245,7 @@ class WalletFragment : Fragment() {
                 val toBucket = buckets.firstOrNull { it.name.equals(toName, ignoreCase = true) }
 
                 if (fromBucket == null || toBucket == null || fromBucket.id == toBucket.id) {
-                    Toast.makeText(requireContext(), "Please select different source and destination accounts", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please select different source and destination accounts")
                     return@setOnClickListener
                 }
 
@@ -1265,14 +1265,14 @@ class WalletFragment : Fragment() {
                     loadData()
                     WalletDataSyncManager.notifyChanged()
                     val formatted = CurrencyUtils.formatRawCurrency(enteredAmount, currentSymbol)
-                    Toast.makeText(requireContext(), "Transferred $formatted from ${fromBucket.name} to ${toBucket.name}", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Transferred $formatted from ${fromBucket.name} to ${toBucket.name}")
                 } else {
-                    Toast.makeText(requireContext(), "Failed to execute transfer", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Failed to execute transfer")
                 }
             } else {
                 val category = categoryHelper.getSelectedCategoryAndEnsurePersisted()
                 if (category.isBlank()) {
-                    Toast.makeText(requireContext(), "Please select or create a category", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please select or create a category")
                     dialogBinding.actvTxCategory.requestFocus()
                     return@setOnClickListener
                 }
@@ -1301,7 +1301,7 @@ class WalletFragment : Fragment() {
                 loadData()
                 WalletDataSyncManager.notifyChanged()
                 com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                Toast.makeText(requireContext(), "$txType recorded in ${selectedBucket.name}", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "$txType recorded in ${selectedBucket.name}")
             }
         }
 

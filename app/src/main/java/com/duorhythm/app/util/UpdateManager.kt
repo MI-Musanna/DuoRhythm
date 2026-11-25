@@ -334,7 +334,7 @@ object UpdateManager {
 
     fun launchPackageInstaller(context: Context, file: File) {
         if (!file.exists()) {
-            Toast.makeText(context, "Installation file not found.", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Installation file not found.")
             return
         }
 
@@ -347,11 +347,7 @@ object UpdateManager {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 context.startActivity(intent)
-                Toast.makeText(
-                    context,
-                    "Please allow DuoRhythm to install updates, then tap Install again.",
-                    Toast.LENGTH_LONG
-                ).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Please allow DuoRhythm to install updates, then tap Install again.")
                 return
             }
         }
@@ -369,7 +365,7 @@ object UpdateManager {
             context.startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(context, "Failed to start installer: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Failed to start installer: ${e.message}")
         }
     }
 

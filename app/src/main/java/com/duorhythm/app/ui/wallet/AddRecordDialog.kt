@@ -320,14 +320,14 @@ class AddRecordDialog(
     private fun handleSaveTransaction(dialog: AlertDialog, buckets: List<WalletBucketItem>, currentCurrency: String) {
         val amountStr = dialogBinding.etTxAmount.text?.toString()?.trim().orEmpty()
         if (amountStr.isEmpty()) {
-            Toast.makeText(context, "Please enter an amount", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Please enter an amount")
             dialogBinding.etTxAmount.requestFocus()
             return
         }
 
         val enteredAmount = amountStr.toDoubleOrNull() ?: 0.0
         if (enteredAmount <= 0.0) {
-            Toast.makeText(context, "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Please enter a valid amount greater than 0")
             return
         }
 
@@ -337,7 +337,7 @@ class AddRecordDialog(
 
         if (selectedType == TransactionType.TRANSFER) {
             if (buckets.size < 2) {
-                Toast.makeText(context, "Transfer requires at least 2 accounts", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Transfer requires at least 2 accounts")
                 return
             }
             val fromName = dialogBinding.actvTxCard.text?.toString()?.trim().orEmpty()
@@ -347,7 +347,7 @@ class AddRecordDialog(
             val toBucket = buckets.find { it.name.equals(toName, ignoreCase = true) }
 
             if (fromBucket == null || toBucket == null || fromBucket.id == toBucket.id) {
-                Toast.makeText(context, "Select two different accounts for transfer", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Select two different accounts for transfer")
                 return
             }
 
@@ -361,7 +361,7 @@ class AddRecordDialog(
                 note = notes,
                 title = transferTitle
             )
-            Toast.makeText(context, "Transfer completed successfully", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Transfer completed successfully")
         } else {
             val accountName = dialogBinding.actvTxCard.text?.toString()?.trim().orEmpty()
             val chosenBucket = buckets.find { it.name.equals(accountName, ignoreCase = true) }
@@ -394,7 +394,7 @@ class AddRecordDialog(
 
             onTransactionSaved?.invoke(savedTx)
             WalletDataSyncManager.notifyChanged()
-            Toast.makeText(context, "${selectedType.name} recorded in ${chosenBucket?.name ?: "account"}", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "${selectedType.name} recorded in ${chosenBucket?.name ?: "account"}")
         }
         dialog.dismiss()
     }

@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
+import com.duorhythm.app.data.repository.ProfileRepository
+import com.duorhythm.app.ui.custom.DuoAlertBanner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -37,7 +39,7 @@ class ProfileActivity : AppCompatActivity() {
                 try {
                     val sampled = ImageUtils.decodeSampledBitmapFromUri(this, it, 1080, 1080)
                     if (sampled == null) {
-                        Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show()
+                        DuoAlertBanner.error(this, "Failed to load image")
                         return@registerForActivityResult
                     }
                     CropAvatarDialog.show(this, sampled) { cropped512 ->
@@ -51,18 +53,19 @@ class ProfileActivity : AppCompatActivity() {
                                 val updated = profile.copy(avatarUri = uniqueUriString)
                                 dbHelper.profileDao.updateProfile(updated)
                                 UserProfileManager.setAvatarUri(this, uniqueUriString)
+                                ProfileRepository.refreshProfiles(this)
                                 currentProfile = updated
                                 loadProfileData()
-                                Toast.makeText(this, "Profile picture updated (512x512)", Toast.LENGTH_SHORT).show()
+                                DuoAlertBanner.success(this, "Profile picture updated (512x512)")
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
-                            Toast.makeText(this, "Failed to save avatar", Toast.LENGTH_SHORT).show()
+                            DuoAlertBanner.error(this, "Failed to save avatar")
                         }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show()
+                    DuoAlertBanner.error(this, "Failed to load image")
                 }
             }
         }
@@ -221,11 +224,12 @@ class ProfileActivity : AppCompatActivity() {
             UserProfileManager.setUserName(this, finalName)
             UserProfileManager.setInstitutionName(this, newInst)
             UserProfileManager.setAcademicFaculty(this, newDept)
+            ProfileRepository.refreshProfiles(this)
 
             currentProfile = updated
             loadProfileData()
 
-            Toast.makeText(this, "Academic info updated", Toast.LENGTH_SHORT).show()
+            DuoAlertBanner.success(this, "Academic info updated")
             dialog.dismiss()
         }
 
@@ -253,32 +257,33 @@ class ProfileActivity : AppCompatActivity() {
             val confirmPass = dialogBinding.etConfirmPassword.text?.toString() ?: ""
 
             if (currentPass.isBlank()) {
-                Toast.makeText(this, "Please enter your current password", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(this, "Please enter your current password")
                 return@setOnClickListener
             }
 
             val currentHash = ProfileManager.hashPassword(currentPass)
             if (currentHash != profile.passwordHash) {
-                Toast.makeText(this, "Current password is incorrect", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.error(this, "Current password is incorrect")
                 return@setOnClickListener
             }
 
             if (newPass.isBlank()) {
-                Toast.makeText(this, "New password cannot be empty", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(this, "New password cannot be empty")
                 return@setOnClickListener
             }
 
             if (newPass != confirmPass) {
-                Toast.makeText(this, "New passwords do not match", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(this, "New passwords do not match")
                 return@setOnClickListener
             }
 
             val newHash = ProfileManager.hashPassword(newPass)
             val updated = profile.copy(passwordHash = newHash)
             dbHelper.profileDao.updateProfile(updated)
+            ProfileRepository.refreshProfiles(this)
             currentProfile = updated
 
-            Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show()
+            DuoAlertBanner.success(this, "Password updated successfully")
             dialog.dismiss()
         }
 
@@ -306,10 +311,11 @@ class ProfileActivity : AppCompatActivity() {
                 UserProfileManager.setInstitutionName(this, "")
                 UserProfileManager.setAcademicFaculty(this, "")
                 UserProfileManager.setAvatarUri(this, "")
+                ProfileRepository.refreshProfiles(this)
 
                 currentProfile = updated
                 loadProfileData()
-                Toast.makeText(this, "Profile data cleared", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.info(this, "Profile data cleared")
             }
             .setNegativeButton("Cancel", null)
             .show()

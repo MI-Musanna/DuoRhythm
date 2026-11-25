@@ -181,7 +181,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                             File(material.filePath).delete()
                         } catch (_: Exception) {}
                         loadMaterials()
-                        Toast.makeText(this, "Document removed", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Document removed")
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -234,7 +234,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                     }
                     startActivity(intent)
                 } catch (_: Exception) {
-                    Toast.makeText(this, "Email: $email", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Email: $email")
                 }
             }
         }
@@ -275,7 +275,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
     private fun loadSubject() {
         currentSubject = dbHelper.getStudentSubjectById(subjectId)
         if (currentSubject == null) {
-            Toast.makeText(this, "Subject not found", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Subject not found")
             finish()
             return
         }
@@ -311,9 +311,9 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                         val cleanPhone = Uri.encode(clean)
                         startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$cleanPhone")))
                     } catch (_: ActivityNotFoundException) {
-                        Toast.makeText(this, "No dialer app installed on this device", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "No dialer app installed on this device")
                     } catch (_: Exception) {
-                        Toast.makeText(this, "Cannot open dialer for $clean", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Cannot open dialer for $clean")
                     }
                 }
             }
@@ -447,12 +447,12 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 loadMaterials()
                 com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
                 val msg = if (savedCount == 1) "Document attached successfully!" else "$savedCount documents attached successfully!"
-                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
             } else {
-                Toast.makeText(this, "Failed to attach documents", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Failed to attach documents")
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to attach documents: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Failed to attach documents: ${e.message}")
         }
     }
 
@@ -477,10 +477,10 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 dbHelper.updateStudentSubject(updated)
                 loadSubject()
                 com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
-                Toast.makeText(this, "Syllabus document attached!", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Syllabus document attached!")
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to attach syllabus: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Failed to attach syllabus: ${e.message}")
         }
     }
 
@@ -489,7 +489,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         if (path.isEmpty()) return
         val file = File(path)
         if (!file.exists()) {
-            Toast.makeText(this, "Syllabus file not found", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Syllabus file not found")
             return
         }
         try {
@@ -501,7 +501,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             }
             startActivity(Intent.createChooser(intent, "Open Syllabus"))
         } catch (e: Exception) {
-            Toast.makeText(this, "Cannot open syllabus: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Cannot open syllabus: ${e.message}")
         }
     }
 
@@ -530,7 +530,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             val syllabus = dialogBinding.etEditSubjectSyllabus.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty()) {
-                Toast.makeText(this, "Subject name is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Subject name is required")
                 return@setOnClickListener
             }
 
@@ -548,7 +548,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             dialog.dismiss()
             loadSubject()
             com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
-            Toast.makeText(this, "Course info & timetable synced!", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Course info & timetable synced!")
         }
 
         dialogBinding.btnDeleteSubject.setOnClickListener {
@@ -559,7 +559,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 .setPositiveButton("Delete") { _, _ ->
                     val repo = com.duorhythm.app.data.repository.CourseRepository(this)
                     repo.deleteCourseCascadeSync(subject.id, subject.code, subject.profileId)
-                    Toast.makeText(this, "Course and all related records deleted.", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Course and all related records deleted.")
                     finish()
                 }
                 .setNegativeButton("Cancel", null)
@@ -589,7 +589,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             activeDialogBinding?.tvAttachmentPreview?.text = "Attached: $originalName"
             activeDialogBinding?.tvAttachmentPreview?.setTextColor(0xFF10B981.toInt())
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to copy attachment", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Failed to copy attachment")
         }
     }
 

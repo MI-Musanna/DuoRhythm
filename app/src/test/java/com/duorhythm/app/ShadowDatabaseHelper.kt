@@ -113,6 +113,26 @@ class ShadowDatabaseHelper {
     }
 
     @Implementation
+    fun getProfileBySlot(slotNumber: Int): ProfileEntity? {
+        return profiles.find { it.slotNumber == slotNumber }
+    }
+
+    @Implementation
+    fun updateProfile(profile: ProfileEntity) {
+        val idx = profiles.indexOfFirst { it.id == profile.id || it.slotNumber == profile.slotNumber }
+        if (idx >= 0) {
+            profiles[idx] = profile
+        } else {
+            profiles.add(profile)
+        }
+    }
+
+    @Implementation
+    fun deleteProfile(profile: ProfileEntity) {
+        profiles.removeAll { it.id == profile.id }
+    }
+
+    @Implementation
     fun insertTask(task: TaskItem): Long {
         val id = if (task.id > 0) task.id else nextTaskId++
         tasks.add(task.copy(id = id))

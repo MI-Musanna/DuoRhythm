@@ -23,6 +23,8 @@ import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.data.local.pref.UserProfileManager
+import com.duorhythm.app.data.repository.ProfileRepository
+import com.duorhythm.app.ui.custom.DuoAlertBanner
 import com.duorhythm.app.databinding.BottomSheetWorkspaceProfilesBinding
 import com.duorhythm.app.databinding.DialogProfileCreateBinding
 import com.duorhythm.app.databinding.DialogProfileEditBinding
@@ -54,7 +56,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                 try {
                     val sampled = com.duorhythm.app.util.ImageUtils.decodeSampledBitmapFromUri(ctx, uri, 1080, 1080)
                     if (sampled == null) {
-                        Toast.makeText(ctx, "Failed to load image", Toast.LENGTH_SHORT).show()
+                        DuoAlertBanner.error(ctx, "Failed to load image")
                         return@registerForActivityResult
                     }
                     CropAvatarDialog.show(ctx, sampled) { cropped512 ->
@@ -65,12 +67,12 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                             pendingAvatarCallback?.invoke(uniqueUriString)
                         } catch (e: Exception) {
                             e.printStackTrace()
-                            Toast.makeText(ctx, "Failed to save cropped avatar", Toast.LENGTH_SHORT).show()
+                            DuoAlertBanner.error(ctx, "Failed to save cropped avatar")
                         }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    Toast.makeText(ctx, "Failed to load image", Toast.LENGTH_SHORT).show()
+                    DuoAlertBanner.error(ctx, "Failed to load image")
                 }
             }
         }
@@ -192,7 +194,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
 
             if (profile.passwordHash.isNotBlank()) {
                 if (enteredPassword.isBlank()) {
-                    Toast.makeText(act, "Please enter your password", Toast.LENGTH_SHORT).show()
+                    DuoAlertBanner.warning(act, "Please enter your password")
                     return@setOnClickListener
                 }
 
@@ -200,7 +202,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                 if (enteredPassword != profile.password && enteredHash != profile.passwordHash) {
                     com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.layoutLoginPassword)
                     com.duorhythm.app.util.ViewAnimationExtensions.shakeError(dialogBinding.etLoginPassword)
-                    Toast.makeText(act, "Incorrect password", Toast.LENGTH_SHORT).show()
+                    DuoAlertBanner.error(act, "Incorrect password")
                     return@setOnClickListener
                 }
             }
@@ -245,7 +247,8 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         val act = activity ?: return
         ProfileManager.setActiveProfileId(act, profile.id)
         ProfileManager.syncUserProfile(act, profile)
-        Toast.makeText(act, "Switched to ${profile.name}", Toast.LENGTH_SHORT).show()
+        ProfileRepository.refreshProfiles(act)
+        DuoAlertBanner.success(act, "Switched to ${profile.name}")
         dismiss()
         if (onProfileSwitched != null) {
             onProfileSwitched?.invoke()
@@ -335,7 +338,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         dialogBinding.btnEditSubmit.setOnClickListener {
             val newName = dialogBinding.etEditName.text?.toString()?.trim() ?: ""
             if (newName.isBlank()) {
-                Toast.makeText(act, "Please enter your name", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(act, "Please enter your name")
                 return@setOnClickListener
             }
 
@@ -358,8 +361,9 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
             if (activeId == profile.id) {
                 ProfileManager.syncUserProfile(act, updated)
             }
+            ProfileRepository.refreshProfiles(act)
 
-            Toast.makeText(act, "Profile updated", Toast.LENGTH_SHORT).show()
+            DuoAlertBanner.success(act, "Profile updated")
             dialog.dismiss()
             refreshProfilesList()
             onProfileSwitched?.invoke()
@@ -426,10 +430,12 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                 if (newSlot1 != null) {
                     ProfileManager.syncUserProfile(act, newSlot1)
                 }
-                Toast.makeText(act, "Workspace Slot 1 deleted. Promoted active workspace to Slot 1.", Toast.LENGTH_SHORT).show()
+                ProfileRepository.refreshProfiles(act)
+                DuoAlertBanner.info(act, "Workspace Slot 1 deleted. Promoted active workspace to Slot 1.")
             } else {
                 dbHelper.deleteAndResetProfileSlot(act, targetProfile.id)
-                Toast.makeText(act, "Workspace Slot ${targetProfile.slotNumber} deleted", Toast.LENGTH_SHORT).show()
+                ProfileRepository.refreshProfiles(act)
+                DuoAlertBanner.info(act, "Workspace Slot ${targetProfile.slotNumber} deleted")
             }
 
             refreshProfilesList()
@@ -440,7 +446,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(act, "Failed to delete workspace: ${e.message}", Toast.LENGTH_SHORT).show()
+            DuoAlertBanner.error(act, "Failed to delete workspace: ${e.message}")
         }
     }
 
@@ -470,7 +476,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
             val rememberEmail = false
 
             if (name.isBlank()) {
-                Toast.makeText(act, "Please enter your full name", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(act, "Please enter your full name")
                 return@setOnClickListener
             }
 
@@ -489,7 +495,8 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
             if (newId > 0) {
                 ProfileManager.setActiveProfileId(act, newId)
                 ProfileManager.syncUserProfile(act, newProfile.copy(id = newId))
-                Toast.makeText(act, "Workspace created: $name", Toast.LENGTH_SHORT).show()
+                ProfileRepository.refreshProfiles(act)
+                DuoAlertBanner.success(act, "Workspace created: $name")
                 dialog.dismiss()
                 dismiss()
                 if (onProfileSwitched != null) {
@@ -498,7 +505,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                     act.recreate()
                 }
             } else {
-                Toast.makeText(act, "Failed to create profile", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.error(act, "Failed to create profile")
             }
         }
 
@@ -588,7 +595,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                         itemBinding.btnSwitchProfile.text = "✓ ACTIVE"
                         itemBinding.btnSwitchProfile.setBackgroundResource(R.drawable.bg_ocean_pill_btn)
                         val onActiveClick = View.OnClickListener {
-                            Toast.makeText(ctx, "Currently in ${profile.name}'s workspace", Toast.LENGTH_SHORT).show()
+                            DuoAlertBanner.info(ctx, "Currently in ${profile.name}'s workspace")
                         }
                         itemBinding.cardProfileSlot.setOnClickListener(onActiveClick)
                         itemBinding.btnSwitchProfile.setOnClickListener(onActiveClick)

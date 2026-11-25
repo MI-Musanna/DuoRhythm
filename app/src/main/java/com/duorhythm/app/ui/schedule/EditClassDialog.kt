@@ -150,7 +150,7 @@ class EditClassDialog(
             }
 
             if (subject.isEmpty() || startTime.isEmpty() || endTime.isEmpty()) {
-                Toast.makeText(context, "Subject name and times are required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Subject name and times are required")
                 return@setOnClickListener
             }
 

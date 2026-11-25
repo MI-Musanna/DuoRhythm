@@ -52,7 +52,7 @@ class AboutBottomSheetDialog(context: Context) : BottomSheetDialog(context) {
             }
             context.startActivity(intent)
         } catch (_: Exception) {
-            Toast.makeText(context, "Could not open link: $url", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Could not open link: $url")
         }
     }
 }

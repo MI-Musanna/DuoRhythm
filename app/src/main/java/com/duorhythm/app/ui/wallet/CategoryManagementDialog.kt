@@ -87,7 +87,7 @@ object CategoryManagementDialog {
                         .setMessage("There are $linkedCount recorded transactions linked to '${item.name}'. Deleting it will reassign these records to 'Uncategorized'. Delete anyway?")
                         .setPositiveButton("Reassign & Delete") { _, _ ->
                             dbHelper.deleteCategoryAndReassignTransactions(item.id, item.name, "Uncategorized")
-                            Toast.makeText(context, "Deleted '${item.name}' and reassigned $linkedCount transactions to 'Uncategorized'", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Deleted '${item.name}' and reassigned $linkedCount transactions to 'Uncategorized'")
                             refreshList()
                         }
                         .setNegativeButton("Cancel", null)
@@ -98,7 +98,7 @@ object CategoryManagementDialog {
                         .setMessage("Are you sure you want to delete '${item.name}'?")
                         .setPositiveButton("Delete") { _, _ ->
                             dbHelper.deleteTransactionCategory(item.id)
-                            Toast.makeText(context, "Deleted '${item.name}'", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Deleted '${item.name}'")
                             refreshList()
                         }
                         .setNegativeButton("Cancel", null)
@@ -223,7 +223,7 @@ object CategoryManagementDialog {
         binding.btnSaveCategory.setOnClickListener {
             val name = binding.etCategoryName.text?.toString()?.trim().orEmpty()
             if (name.isBlank()) {
-                Toast.makeText(context, "Category name cannot be empty", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category name cannot be empty")
                 return@setOnClickListener
             }
 
@@ -236,11 +236,11 @@ object CategoryManagementDialog {
             if (itemToEdit == null) {
                 val existing = dbHelper.getTransactionCategoryByName(name)
                 if (existing != null) {
-                    Toast.makeText(context, "Category '$name' already exists", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category '$name' already exists")
                     onSaved?.invoke(existing)
                 } else {
                     val newId = dbHelper.insertTransactionCategory(name, type, selectedColor, selectedIcon)
-                    Toast.makeText(context, "Category '$name' created", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category '$name' created")
                     val created = TransactionCategoryItem(
                         id = newId,
                         name = name,
@@ -253,7 +253,7 @@ object CategoryManagementDialog {
                 }
             } else {
                 dbHelper.updateTransactionCategory(itemToEdit.id, name, type, selectedColor, selectedIcon)
-                Toast.makeText(context, "Category updated", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category updated")
                 val updated = itemToEdit.copy(
                     name = name,
                     type = type,

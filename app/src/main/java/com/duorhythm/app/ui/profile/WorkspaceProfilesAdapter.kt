@@ -100,7 +100,7 @@ class WorkspaceProfilesAdapter(
                     binding.btnSwitchProfile.text = "✓ ACTIVE"
                     binding.btnSwitchProfile.setBackgroundResource(R.drawable.bg_ocean_pill_btn)
                     val onActiveClick = View.OnClickListener {
-                        Toast.makeText(ctx, "Currently in ${profile.name}'s workspace", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.info(ctx, "Currently in ${profile.name}'s workspace")
                     }
                     binding.cardProfileSlot.setOnClickListener(onActiveClick)
                     binding.btnSwitchProfile.setOnClickListener(onActiveClick)

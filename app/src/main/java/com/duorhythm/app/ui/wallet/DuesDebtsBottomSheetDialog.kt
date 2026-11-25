@@ -228,20 +228,20 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
         dialogBinding.btnSaveDueDebt.setOnClickListener {
             val amountStr = dialogBinding.etDueAmount.text?.toString()?.trim().orEmpty()
             if (amountStr.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter an amount", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please enter an amount")
                 dialogBinding.etDueAmount.requestFocus()
                 return@setOnClickListener
             }
 
             val enteredAmount = amountStr.toDoubleOrNull() ?: 0.0
             if (enteredAmount <= 0.0) {
-                Toast.makeText(requireContext(), "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please enter a valid amount greater than 0")
                 return@setOnClickListener
             }
 
             val personName = dialogBinding.etDuePersonName.text?.toString()?.trim().orEmpty()
             if (personName.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter person's name", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please enter person's name")
                 dialogBinding.etDuePersonName.requestFocus()
                 return@setOnClickListener
             }
@@ -274,7 +274,7 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
             WalletDataSyncManager.notifyChanged()
             com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
             val typeLabel = if (selectedType == "LENT") "Lent due" else "Borrowed debt"
-            Toast.makeText(requireContext(), "Recorded $typeLabel for $personName", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Recorded $typeLabel for $personName")
         }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
@@ -357,9 +357,9 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
                 loadData()
                 WalletDataSyncManager.notifyChanged()
                 com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                Toast.makeText(requireContext(), "Settled with ${item.personName}", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Settled with ${item.personName}")
             } else {
-                Toast.makeText(requireContext(), "Failed to settle record", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Failed to settle record")
             }
         }
 
@@ -378,7 +378,7 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
                 com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_WALLET)
                 loadData()
                 WalletDataSyncManager.notifyChanged()
-                Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Record deleted")
             }
             .setNegativeButton("Cancel", null)
             .show()

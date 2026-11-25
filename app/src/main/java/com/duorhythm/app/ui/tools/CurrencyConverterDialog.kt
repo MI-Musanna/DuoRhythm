@@ -178,7 +178,7 @@ class CurrencyConverterDialog(context: Context) : BottomSheetDialog(context) {
                         loadCachedRates()
                         recalculate()
                         binding.tvSyncStatus.text = "Rates updated live (${getLatestSyncTimestamp()})"
-                        Toast.makeText(context, "Live exchange rates synced successfully!", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Live exchange rates synced successfully!")
                     }
                 }
 
@@ -187,7 +187,7 @@ class CurrencyConverterDialog(context: Context) : BottomSheetDialog(context) {
                         binding.btnSyncRates.isEnabled = true
                         binding.btnSyncRates.text = "Sync"
                         binding.tvSyncStatus.text = "Offline cached rates active"
-                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, errorMessage)
                     }
                 }
             })

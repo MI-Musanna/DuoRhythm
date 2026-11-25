@@ -131,7 +131,7 @@ class ScheduleFragment : Fragment() {
                         timetableRepository.deleteClass(item.id)
                         loadClasses()
                         TimetableGlanceWidget.pushUpdate(requireContext())
-                        Toast.makeText(requireContext(), "Class deleted", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Class deleted")
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -330,7 +330,7 @@ class ScheduleFragment : Fragment() {
             timetableRepository.insertClass(classWithProfile)
             loadData()
             TimetableGlanceWidget.pushUpdate(requireContext())
-            Toast.makeText(requireContext(), "${scheduledItem.classType} scheduled with alarm reminder", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "${scheduledItem.classType} scheduled with alarm reminder")
         }.show()
     }
 
@@ -370,7 +370,7 @@ class ScheduleFragment : Fragment() {
             val autoTrack = AppSettings.isAutoTrackAttendanceEnabled(activity)
             dbHelper.insertStudentSubject(subject, autoTrackAttendance = autoTrack)
             dialog.dismiss()
-            Toast.makeText(activity, "Subject created!", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Subject created!")
         }
 
         dialog.window?.apply {
@@ -391,7 +391,7 @@ class ScheduleFragment : Fragment() {
             timetableRepository.updateClass(updated)
             loadData()
             TimetableGlanceWidget.pushUpdate(requireContext())
-            Toast.makeText(requireContext(), "Class schedule updated", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Class schedule updated")
         }.show()
     }
 

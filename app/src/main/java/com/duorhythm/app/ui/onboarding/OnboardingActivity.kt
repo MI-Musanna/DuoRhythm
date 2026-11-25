@@ -38,7 +38,7 @@ class OnboardingActivity : AppCompatActivity() {
                             prefs.edit().putBoolean("pref_onboarding_completed", true).apply()
                             getSharedPreferences(packageName + "_preferences", Context.MODE_PRIVATE).edit().putBoolean("pref_onboarding_completed", true).apply()
 
-                            android.widget.Toast.makeText(this, "Backup restored successfully!", android.widget.Toast.LENGTH_LONG).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.success(this, "Backup restored successfully!")
                             val intent = Intent(this, MainActivity::class.java).apply {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                             }
@@ -47,9 +47,9 @@ class OnboardingActivity : AppCompatActivity() {
                             return@registerForActivityResult
                         }
                     }
-                    android.widget.Toast.makeText(this, "Failed to restore backup file.", android.widget.Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.error(this, "Failed to restore backup file.")
                 } catch (e: Exception) {
-                    android.widget.Toast.makeText(this, "Error reading backup: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.error(this, "Error reading backup: ${e.message}")
                 }
             }
         }

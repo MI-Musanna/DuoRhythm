@@ -126,7 +126,7 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
         binding.btnAddTag.setOnClickListener {
             val name = binding.etNewTag.text?.toString()?.trim().orEmpty()
             if (name.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a name", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please enter a name")
                 return@setOnClickListener
             }
             scope.launch {

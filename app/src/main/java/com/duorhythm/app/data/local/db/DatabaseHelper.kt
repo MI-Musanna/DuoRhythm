@@ -5742,6 +5742,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     if (activeProfile != null) {
                         com.duorhythm.app.data.local.pref.ProfileManager.syncUserProfile(appContext, activeProfile)
                     }
+                    com.duorhythm.app.data.repository.ProfileRepository.refreshProfiles(appContext)
                 } catch (_: Exception) {}
             }
         }

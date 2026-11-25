@@ -181,7 +181,7 @@ class ScheduleAssessmentDialogFragment : DialogFragment() {
         }
 
         com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-        Toast.makeText(requireContext(), if (isCreateMode) "Assessment scheduled!" else "Assessment updated!", Toast.LENGTH_SHORT).show()
+        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), if (isCreateMode) "Assessment scheduled!" else "Assessment updated!")
         onSavedListener?.invoke()
         dismiss()
     }

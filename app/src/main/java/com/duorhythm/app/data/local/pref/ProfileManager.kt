@@ -42,12 +42,14 @@ object ProfileManager {
         val slotLong = newSlot.toLong()
         cachedActiveProfileId = slotLong
         getPrefs(context).edit().putLong(KEY_ACTIVE_PROFILE_ID, slotLong).apply()
+        com.duorhythm.app.data.repository.ProfileRepository.refreshProfiles(context)
     }
 
     fun setActiveProfileId(context: Context, id: Long) {
         val resolvedId = if (id <= 0L) 1L else id
         cachedActiveProfileId = resolvedId
         getPrefs(context).edit().putLong(KEY_ACTIVE_PROFILE_ID, resolvedId).apply()
+        com.duorhythm.app.data.repository.ProfileRepository.refreshProfiles(context)
     }
 
     fun isOnboardingCompleted(context: Context): Boolean {

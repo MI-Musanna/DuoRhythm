@@ -11,6 +11,10 @@
     <dimen name="radius_card_main">16dp</dimen>
     <dimen name="radius_card_compact">14dp</dimen>
     <dimen name="radius_pill">999dp</dimen>
+    <!-- Concentric Corner Radii (Inner Radius = Outer Radius - Padding) -->
+    <dimen name="radius_card_hero">20dp</dimen>
+    <dimen name="radius_inner_nested">8dp</dimen>
+    <dimen name="radius_inner_hero_nested">12dp</dimen>
     <!-- Strict 3-Size Avatar Scale & Accessible Touch Target -->
     <dimen name="avatar_size_row">24dp</dimen>
     <dimen name="avatar_size_card">32dp</dimen>

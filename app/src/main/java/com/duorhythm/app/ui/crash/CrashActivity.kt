@@ -89,7 +89,7 @@ class CrashActivity : AppCompatActivity() {
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("Crash StackTrace", stackTrace)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(this@CrashActivity, "Stacktrace copied to clipboard", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this@CrashActivity, "Stacktrace copied to clipboard")
             }
         }
         buttonBar.addView(btnCopy)

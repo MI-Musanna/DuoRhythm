@@ -134,7 +134,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
             repository.updatePaidMonth(sub.id, null)
             loadSubscriptions()
             onDataChangedListener?.invoke()
-            Toast.makeText(requireContext(), "Unmarked '${sub.name}' as paid", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Unmarked '${sub.name}' as paid")
         } else {
             if (sub.linkedAccountId != null && sub.linkedAccountId > 0L) {
                 AlertDialog.Builder(requireContext())
@@ -156,13 +156,13 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
                         repository.updatePaidMonth(sub.id, currentMonthYear)
                         loadSubscriptions()
                         onDataChangedListener?.invoke()
-                        Toast.makeText(requireContext(), "Deducted and marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Deducted and marked '${sub.name}' as paid!")
                     }
                     .setNeutralButton("JUST MARK PAID") { _, _ ->
                         repository.updatePaidMonth(sub.id, currentMonthYear)
                         loadSubscriptions()
                         onDataChangedListener?.invoke()
-                        Toast.makeText(requireContext(), "Marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Marked '${sub.name}' as paid!")
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -170,7 +170,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
                 repository.updatePaidMonth(sub.id, currentMonthYear)
                 loadSubscriptions()
                 onDataChangedListener?.invoke()
-                Toast.makeText(requireContext(), "Marked '${sub.name}' as paid (External payer)", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Marked '${sub.name}' as paid (External payer)")
             }
         }
     }
@@ -183,7 +183,7 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
                 repository.deleteSubscription(sub.id)
                 loadSubscriptions()
                 onDataChangedListener?.invoke()
-                Toast.makeText(requireContext(), "Deleted '${sub.name}'", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Deleted '${sub.name}'")
             }
             .setNegativeButton("Cancel", null)
             .show()

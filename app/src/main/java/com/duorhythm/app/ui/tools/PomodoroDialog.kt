@@ -114,7 +114,7 @@ class PomodoroDialog(private val context: Context) {
                     } catch (_: Exception) {}
 
                     (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
-                    Toast.makeText(context, "Pomodoro cycle complete!", Toast.LENGTH_LONG).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Pomodoro cycle complete!")
                 }
             }.start()
 

@@ -90,9 +90,9 @@ class SystemInfoBottomSheetDialog(context: Context) : BottomSheetDialog(context)
             val cacheDir = context.cacheDir
             deleteDir(cacheDir)
             updateMemoryStats()
-            Toast.makeText(context, "System memory cache cleared successfully", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "System memory cache cleared successfully")
         } catch (e: Exception) {
-            Toast.makeText(context, "Cache cleaned", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Cache cleaned")
         }
     }
 

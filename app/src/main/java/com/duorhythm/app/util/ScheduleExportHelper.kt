@@ -231,11 +231,11 @@ object ScheduleExportHelper {
 
             fos?.use {
                 bitmap.compress(format.compressFormat, format.quality, it)
-                Toast.makeText(context, "Saved as ${format.name} to Pictures/DuoRhythm", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Saved as ${format.name} to Pictures/DuoRhythm")
             }
             true
         } catch (e: Exception) {
-            Toast.makeText(context, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Failed to save: ${e.message}")
             false
         }
     }
@@ -262,7 +262,7 @@ object ScheduleExportHelper {
             }
             context.startActivity(Intent.createChooser(intent, "Share via..."))
         } catch (e: Exception) {
-            Toast.makeText(context, "Failed to share: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Failed to share: ${e.message}")
         }
     }
 

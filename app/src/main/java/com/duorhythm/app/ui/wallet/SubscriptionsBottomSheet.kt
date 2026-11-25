@@ -120,7 +120,7 @@ class SubscriptionsBottomSheet : BottomSheetDialogFragment() {
         if (isSettledThisMonth) {
             dbHelper.subscriptionDao.updatePaidMonth(sub.id, null)
             onDataChangedListener?.invoke()
-            Toast.makeText(requireContext(), "Unmarked '${sub.name}' as paid", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Unmarked '${sub.name}' as paid")
         } else {
             if (sub.linkedAccountId != null && sub.linkedAccountId > 0L) {
                 AlertDialog.Builder(requireContext())
@@ -142,13 +142,13 @@ class SubscriptionsBottomSheet : BottomSheetDialogFragment() {
                         dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                         onDataChangedListener?.invoke()
                         com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                        Toast.makeText(requireContext(), "Deducted and marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Deducted and marked '${sub.name}' as paid!")
                     }
                     .setNeutralButton("JUST MARK PAID") { _, _ ->
                         dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                         onDataChangedListener?.invoke()
                         com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                        Toast.makeText(requireContext(), "Marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Marked '${sub.name}' as paid!")
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -156,7 +156,7 @@ class SubscriptionsBottomSheet : BottomSheetDialogFragment() {
                 dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                 onDataChangedListener?.invoke()
                 com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                Toast.makeText(requireContext(), "Marked '${sub.name}' as paid (External payer)", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Marked '${sub.name}' as paid (External payer)")
             }
         }
     }
@@ -168,7 +168,7 @@ class SubscriptionsBottomSheet : BottomSheetDialogFragment() {
             .setPositiveButton("Delete") { _, _ ->
                 dbHelper.subscriptionDao.deleteSubscription(sub.id)
                 onDataChangedListener?.invoke()
-                Toast.makeText(requireContext(), "Deleted '${sub.name}'", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Deleted '${sub.name}'")
             }
             .setNegativeButton("Cancel", null)
             .show()

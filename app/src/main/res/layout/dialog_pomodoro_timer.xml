@@ -77,6 +77,8 @@
                 android:id="@+id/tvPomodoroTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFeatureSettings="tnum"
+                android:letterSpacing="-0.03"
                 android:text="25:00"
                 android:textColor="#FFFFFF"
                 android:textSize="38sp"

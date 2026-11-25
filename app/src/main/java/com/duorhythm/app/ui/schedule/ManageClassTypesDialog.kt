@@ -74,7 +74,7 @@ class ManageClassTypesDialog(
         binding.btnAddClassType.setOnClickListener {
             val name = binding.etNewClassType.text?.toString()?.trim().orEmpty()
             if (name.isBlank()) {
-                Toast.makeText(context, "Please enter a class type name", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Please enter a class type name")
                 return@setOnClickListener
             }
             dbHelper.classTypeDao.insertType(

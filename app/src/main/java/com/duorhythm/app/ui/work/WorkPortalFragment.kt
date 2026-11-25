@@ -297,7 +297,7 @@ class WorkPortalFragment : Fragment() {
                         amount = orderAmount
                     )
                     if (success) {
-                        Toast.makeText(requireContext(), "৳${order.amount} deposited into ${acc.name}! Order Completed.", Toast.LENGTH_LONG).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "৳${order.amount} deposited into ${acc.name}! Order Completed.")
                         loadOrdersAndStats()
                     }
                 }
@@ -308,7 +308,7 @@ class WorkPortalFragment : Fragment() {
         view.findViewById<View>(R.id.btnSkipDeposit).setOnClickListener {
             depositDialog.dismiss()
             db.updateClientOrderStatus(order.id, "COMPLETED")
-            Toast.makeText(requireContext(), "Order marked as completed without wallet deposit.", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Order marked as completed without wallet deposit.")
             loadOrdersAndStats()
         }
 

@@ -121,6 +121,8 @@
                         android:id="@+id/tvTaskProgressPercent"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFeatureSettings="tnum"
+                        android:letterSpacing="-0.03"
                         android:text="0%"
                         android:textColor="@color/accent_cyan_primary"
                         android:textSize="18sp"

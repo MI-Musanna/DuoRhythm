@@ -168,11 +168,7 @@ class CreateWorkOrderDialogFragment : DialogFragment() {
         )
 
         db.insertClientOrder(order)
-        Toast.makeText(
-            requireContext(),
-            if (editingOrderId > 0) "Order updated successfully!" else "Work order created!",
-            Toast.LENGTH_SHORT
-        ).show()
+        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), if (editingOrderId > 0) "Order updated successfully!" else "Work order created!")
 
         onOrderSaved?.invoke()
         dismiss()

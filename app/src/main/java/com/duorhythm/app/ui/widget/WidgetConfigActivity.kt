@@ -62,7 +62,7 @@ class WidgetConfigActivity : AppCompatActivity() {
             // Push refresh to homescreen widget
             AcademicHubWidget.pushUpdate(this)
 
-            Toast.makeText(this, "Academic Hub Widget updated", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Academic Hub Widget updated")
 
             val resultValue = Intent().apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)

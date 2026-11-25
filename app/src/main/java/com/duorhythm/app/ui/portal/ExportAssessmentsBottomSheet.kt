@@ -171,7 +171,7 @@ class ExportAssessmentsBottomSheet : BottomSheetDialogFragment() {
         binding.btnSaveImage.setOnClickListener {
             val bmp = currentGeneratedBitmap
             if (bmp == null) {
-                Toast.makeText(requireContext(), "No matching assessments to export", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "No matching assessments to export")
                 return@setOnClickListener
             }
             val format = if (binding.switchExamFormatJpeg.isChecked) {
@@ -186,7 +186,7 @@ class ExportAssessmentsBottomSheet : BottomSheetDialogFragment() {
         binding.btnShareExams.setOnClickListener {
             val bmp = currentGeneratedBitmap
             if (bmp == null) {
-                Toast.makeText(requireContext(), "No matching assessments to export", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "No matching assessments to export")
                 return@setOnClickListener
             }
             val format = if (binding.switchExamFormatJpeg.isChecked) {

@@ -67,9 +67,9 @@ class DndRulesActivity : AppCompatActivity() {
                 } else {
                     audioManager.ringerMode = AudioManager.RINGER_MODE_SILENT
                 }
-                Toast.makeText(context, "Class DND Mode Engaged", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Class DND Mode Engaged")
             } catch (e: Exception) {
-                Toast.makeText(context, "Failed to toggle DND: ${e.message}", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Failed to toggle DND: ${e.message}")
             }
         }
 
@@ -82,7 +82,7 @@ class DndRulesActivity : AppCompatActivity() {
                     notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
                 }
                 audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
-                Toast.makeText(context, "Class DND Mode Disengaged", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Class DND Mode Disengaged")
             } catch (_: Exception) {}
         }
     }

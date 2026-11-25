@@ -14,6 +14,12 @@ import com.duorhythm.app.MainActivity
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
+import com.duorhythm.app.data.repository.ProfileRepository
+import com.duorhythm.app.ui.custom.DuoAlertBanner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
+import kotlinx.coroutines.launch
 import com.duorhythm.app.data.model.ClassEntity
 import com.duorhythm.app.data.model.ClientOrder
 import com.duorhythm.app.data.model.ClassStatus
@@ -112,6 +118,21 @@ class HomeFragment : Fragment() {
             )
             binding.rvHomeQuickNotes.adapter = quickNotesAdapter
             setupBlurEffects()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    ProfileRepository.activeProfileFlow.collect { profile ->
+                        if (profile != null && _binding != null) {
+                            binding.tvWelcomeUser.text = "Welcome back, ${profile.name}"
+                            com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(
+                                binding.ivUserProfile,
+                                profile.avatarUri,
+                                profile.name
+                            )
+                        }
+                    }
+                }
+            }
+            ProfileRepository.refreshProfiles(requireContext())
             loadUserProfile()
             setupGreetingAndDate()
 
@@ -190,7 +211,7 @@ class HomeFragment : Fragment() {
             dialogBinding.btnSaveTask.setOnClickListener {
                 val title = dialogBinding.etTaskTitle.text?.toString()?.trim().orEmpty()
                 if (title.isEmpty()) {
-                    Toast.makeText(requireContext(), "Title is required", Toast.LENGTH_SHORT).show()
+                    DuoAlertBanner.warning(requireContext(), "Title is required")
                     return@setOnClickListener
                 }
                 val desc = dialogBinding.etTaskDescription.text?.toString()?.trim().orEmpty()
@@ -212,7 +233,7 @@ class HomeFragment : Fragment() {
                 com.duorhythm.app.scheduler.TaskAlarmScheduler.scheduleTaskReminder(requireContext(), item.copy(id = newId))
                 dialog.dismiss()
                 loadDashboardData()
-                Toast.makeText(requireContext(), if (markedGoal) "Goal created!" else "Task created!", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.success(requireContext(), if (markedGoal) "Goal created!" else "Task created!")
             }
             dialog.show()
             com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
@@ -264,8 +285,8 @@ class HomeFragment : Fragment() {
         if (_binding == null) return
         try {
             val context = context ?: return
-            val activeId = ProfileManager.getActiveProfileId(context)
-            val activeProfile = dbHelper.profileDao.getProfileById(activeId)
+            ProfileRepository.refreshProfiles(context)
+            val activeProfile = ProfileRepository.getActiveProfile(context) ?: dbHelper.profileDao.getProfileById(ProfileManager.getActiveProfileId(context))
 
             val profilePrefs = context.getSharedPreferences("duorhythm_user_profile_prefs", Context.MODE_PRIVATE)
             val savedName = profilePrefs.getString(com.duorhythm.app.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.trim()
@@ -919,7 +940,7 @@ class HomeFragment : Fragment() {
             val category = categories[dialogBinding.spNoteCategory.selectedItemPosition]
 
             if (title.isEmpty() && content.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a title or note content", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(requireContext(), "Please enter a title or note content")
                 return@setOnClickListener
             }
 
@@ -933,7 +954,7 @@ class HomeFragment : Fragment() {
             dbHelper.insertNote(note)
             dialog.dismiss()
             loadDashboardNotes()
-            Toast.makeText(requireContext(), "Note saved to Scratchpad!", Toast.LENGTH_SHORT).show()
+            DuoAlertBanner.success(requireContext(), "Note saved to Scratchpad!")
         }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
@@ -977,7 +998,7 @@ class HomeFragment : Fragment() {
             val category = categories[dialogBinding.spNoteCategory.selectedItemPosition]
 
             if (title.isEmpty() && content.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a title or note content", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(requireContext(), "Please enter a title or note content")
                 return@setOnClickListener
             }
 
@@ -991,7 +1012,7 @@ class HomeFragment : Fragment() {
             dbHelper.updateNote(updated)
             dialog.dismiss()
             loadDashboardNotes()
-            Toast.makeText(requireContext(), "Note updated!", Toast.LENGTH_SHORT).show()
+            DuoAlertBanner.success(requireContext(), "Note updated!")
         }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
@@ -1005,7 +1026,7 @@ class HomeFragment : Fragment() {
             .setPositiveButton("Delete") { _, _ ->
                 dbHelper.deleteNote(note.id)
                 loadDashboardNotes()
-                Toast.makeText(requireContext(), "Note deleted", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.info(requireContext(), "Note deleted")
             }
             .setNegativeButton("Cancel", null)
             .show()

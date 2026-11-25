@@ -249,7 +249,7 @@ class AddAssessmentDialogFragment : DialogFragment() {
             binding.tilAssessmentTitle.error = null
 
             if (date.isBlank()) {
-                Toast.makeText(context, "Please select an assessment date", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Please select an assessment date")
                 return@setOnClickListener
             }
 
@@ -287,7 +287,7 @@ class AddAssessmentDialogFragment : DialogFragment() {
             AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, savedEntity)
 
             com.duorhythm.app.ui.views.ConfettiOverlayView.burst(context)
-            Toast.makeText(context, "Assessment scheduled successfully!", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Assessment scheduled successfully!")
             dismiss()
             onSavedListener?.invoke()
         }

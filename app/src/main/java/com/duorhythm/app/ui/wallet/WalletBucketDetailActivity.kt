@@ -344,7 +344,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 dbHelper.updateBucketBalance(bucket.id, baseBalance)
                 loadBucketData()
                 WalletDataSyncManager.notifyChanged()
-                Toast.makeText(context, "${bucket.name} balance set to $currentSymbol${String.format(Locale.US, "%.2f", entered)}", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "${bucket.name} balance set to $currentSymbol${String.format(Locale.US, "%.2f", entered)}")
             }
             .setNeutralButton("RESET TO ৳0") { _, _ ->
                 AlertDialog.Builder(context)
@@ -354,7 +354,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                         dbHelper.updateBucketBalance(bucket.id, 0.0)
                         loadBucketData()
                         WalletDataSyncManager.notifyChanged()
-                        Toast.makeText(context, "${bucket.name} balance reset to ${currentSymbol}0.00", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "${bucket.name} balance reset to ${currentSymbol}0.00")
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -431,7 +431,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             val balanceStr = dialogBinding.etBucketBalance.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty()) {
-                Toast.makeText(this, "Account name is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Account name is required")
                 return@setOnClickListener
             }
 
@@ -449,7 +449,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             dialog.dismiss()
             loadBucketData()
             WalletDataSyncManager.notifyChanged()
-            Toast.makeText(this, "Account updated", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Account updated")
         }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
@@ -466,7 +466,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             .setPositiveButton("Delete") { _, _ ->
                 dbHelper.deleteWalletBucket(bucket.id)
                 WalletDataSyncManager.notifyChanged()
-                Toast.makeText(this, "Category deleted", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Category deleted")
                 finish()
             }
             .setNegativeButton("Cancel", null)
@@ -477,7 +477,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         currentBucket = dbHelper.getWalletBucketById(bucketId)
         val bucket = currentBucket
         if (bucket == null) {
-            Toast.makeText(this, "Bucket not found", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Bucket not found")
             finish()
             return
         }
@@ -1231,13 +1231,13 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         dialogBinding.btnSaveTx.setOnClickListener {
             val amountStr = dialogBinding.etTxAmount.text?.toString()?.trim().orEmpty()
             if (amountStr.isEmpty()) {
-                Toast.makeText(this, "Amount is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Amount is required")
                 return@setOnClickListener
             }
 
             val enteredAmount = amountStr.toDoubleOrNull() ?: 0.0
             if (enteredAmount <= 0.0) {
-                Toast.makeText(this, "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Please enter a valid amount greater than 0")
                 return@setOnClickListener
             }
 
@@ -1247,7 +1247,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
 
             if (txType == "TRANSFER") {
                 if (allBuckets.size < 2) {
-                    Toast.makeText(this, "Transfer requires at least 2 accounts", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Transfer requires at least 2 accounts")
                     return@setOnClickListener
                 }
                 val fromName = dialogBinding.actvTxCard.text?.toString()?.trim().orEmpty()
@@ -1257,7 +1257,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 val toBucket = allBuckets.firstOrNull { it.name.equals(toName, ignoreCase = true) }
 
                 if (toBucket == null || fromBucket.id == toBucket.id) {
-                    Toast.makeText(this, "Please select different source and destination accounts", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Please select different source and destination accounts")
                     return@setOnClickListener
                 }
 
@@ -1276,14 +1276,14 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                     loadBucketData()
                     WalletDataSyncManager.notifyChanged()
                     val formatted = CurrencyUtils.formatRawCurrency(enteredAmount, currentSymbol)
-                    Toast.makeText(this, "Transferred $formatted from ${fromBucket.name} to ${toBucket.name}", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Transferred $formatted from ${fromBucket.name} to ${toBucket.name}")
                 } else {
-                    Toast.makeText(this, "Failed to execute transfer", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Failed to execute transfer")
                 }
             } else {
                 val category = categoryHelper.getSelectedCategoryAndEnsurePersisted()
                 if (category.isBlank()) {
-                    Toast.makeText(this, "Please select or create a category", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Please select or create a category")
                     dialogBinding.actvTxCategory.requestFocus()
                     return@setOnClickListener
                 }
@@ -1305,7 +1305,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 loadBucketData()
                 WalletDataSyncManager.notifyChanged()
                 com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
-                Toast.makeText(this, "Recorded to ${bucket.name}", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Recorded to ${bucket.name}")
             }
         }
 
@@ -1379,7 +1379,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             val notes = dialogBinding.etTxNotes.text?.toString()?.trim().orEmpty()
 
             if (amountStr.isEmpty()) {
-                Toast.makeText(this, "Amount is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Amount is required")
                 return@setOnClickListener
             }
 
@@ -1387,7 +1387,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             val baseAmount = enteredAmount
             val category = categoryHelper.getSelectedCategoryAndEnsurePersisted()
             if (category.isBlank()) {
-                Toast.makeText(this, "Please select or create a category", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Please select or create a category")
                 dialogBinding.actvTxCategory.requestFocus()
                 return@setOnClickListener
             }
@@ -1405,7 +1405,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
             dialog.dismiss()
             loadBucketData()
             WalletDataSyncManager.notifyChanged()
-            Toast.makeText(this, "Record updated", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Record updated")
         }
 
         dialogBinding.etTxAmount.requestFocus()
@@ -1556,10 +1556,10 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                     }
                     loadAccountData()
                     com.duorhythm.app.ui.wallet.WalletDataSyncManager.notifyChanged()
-                    android.widget.Toast.makeText(ctx, "Transaction updated & balance synced", android.widget.Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(ctx, "Transaction updated & balance synced")
                     dialog.dismiss()
                 } catch (e: Exception) {
-                    android.widget.Toast.makeText(ctx, "Update failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(ctx, "Update failed: ${e.message}")
                 }
             }
         }

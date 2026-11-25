@@ -98,7 +98,7 @@ class AddCategoryDialogFragment : DialogFragment() {
         binding.btnSaveCategory.setOnClickListener {
             val name = binding.etCategoryName.text?.toString()?.trim().orEmpty()
             if (name.isBlank()) {
-                Toast.makeText(context, "Category name cannot be empty", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category name cannot be empty")
                 return@setOnClickListener
             }
 
@@ -110,10 +110,10 @@ class AddCategoryDialogFragment : DialogFragment() {
 
             val existing = dbHelper.getTransactionCategoryByName(name)
             if (existing != null) {
-                Toast.makeText(context, "Category '$name' already exists", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category '$name' already exists")
             } else {
                 dbHelper.insertTransactionCategory(name, type, selectedColor, selectedIcon)
-                Toast.makeText(context, "Category '$name' added", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category '$name' added")
             }
 
             onCategoryCreatedListener?.invoke()

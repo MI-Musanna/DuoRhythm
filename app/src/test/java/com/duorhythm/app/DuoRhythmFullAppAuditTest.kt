@@ -21,6 +21,8 @@ import com.duorhythm.app.ui.views.WormDotsIndicatorView
 import com.duorhythm.app.util.BackupSnapshotHelper
 import com.duorhythm.app.util.UpdateManager
 import database.entities.AssessmentEntity
+import database.entities.ProfileEntity
+import com.duorhythm.app.data.local.pref.ProfileManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -1093,5 +1095,82 @@ class DuoRhythmFullAppAuditTest {
         )
         assertFalse("Release with prerelease=false must not be treated as prerelease even if tagged -beta", releaseBetaLatest.isPrerelease)
         assertTrue(UpdateManager.compareVersions(releaseBetaLatest.tagName, "v1.7.1-beta") > 0)
+    }
+
+    @Test
+    fun audit28_profileRepositoryStateFlowAndDuoAlertBanner() {
+        // 1. ProfileRepository reactive StateFlow test
+        val p1 = ProfileEntity(
+            id = 1L,
+            slotNumber = 1,
+            name = "Musanna Primary",
+            email = "musanna@example.com",
+            passwordHash = "",
+            institution = "BUET",
+            department = "CSE",
+            semester = "L-4 T-1"
+        )
+        val p2 = ProfileEntity(
+            id = 2L,
+            slotNumber = 2,
+            name = "Work Studio",
+            email = "work@example.com",
+            passwordHash = "",
+            institution = "DuoRhythm Labs",
+            department = "Engineering",
+            semester = "Q4"
+        )
+        db.insertProfile(p1)
+        db.insertProfile(p2)
+
+        ProfileManager.setActiveProfileId(context, 1L)
+        com.duorhythm.app.data.repository.ProfileRepository.refreshProfiles(context)
+
+        val initialActive = com.duorhythm.app.data.repository.ProfileRepository.activeProfileFlow.value
+        assertNotNull("Active profile flow must emit initial active profile", initialActive)
+        assertEquals("Initial active profile name mismatch", "Musanna Primary", initialActive?.name)
+        assertEquals(2, com.duorhythm.app.data.repository.ProfileRepository.allProfilesFlow.value.size)
+
+        // Switch to slot 2 and verify StateFlow reacts
+        ProfileManager.switchProfile(context, 2)
+        val switchedActive = com.duorhythm.app.data.repository.ProfileRepository.activeProfileFlow.value
+        assertNotNull("Active profile flow must update after switchProfile", switchedActive)
+        assertEquals("Switched active profile name mismatch", "Work Studio", switchedActive?.name)
+
+        // 2. DuoAlertBanner & DuoMorphBannerView lifecycle, debounce, and context unwrapping test
+        com.duorhythm.app.ui.custom.DuoAlertBanner.resetForTesting()
+        val controller = org.robolectric.Robolectric.buildActivity(com.duorhythm.app.MainActivity::class.java).setup()
+        val activity = controller.get()
+        val nestedWrapper = android.content.ContextWrapper(android.content.ContextWrapper(activity))
+
+        com.duorhythm.app.ui.custom.DuoAlertBanner.show(nestedWrapper, "Test Banner Success", com.duorhythm.app.ui.custom.DuoAlertBanner.BannerType.SUCCESS)
+
+        assertEquals("Test Banner Success", com.duorhythm.app.ui.custom.DuoAlertBanner.getLastMessageForTesting())
+        val showTime1 = com.duorhythm.app.ui.custom.DuoAlertBanner.getLastShowTimeForTesting()
+        assertTrue("Show timestamp must be recorded", showTime1 > 0L)
+
+        // Verify debounce guard (same message within 300ms is debounced)
+        com.duorhythm.app.ui.custom.DuoAlertBanner.show(nestedWrapper, "Test Banner Success", com.duorhythm.app.ui.custom.DuoAlertBanner.BannerType.SUCCESS)
+        val showTime2 = com.duorhythm.app.ui.custom.DuoAlertBanner.getLastShowTimeForTesting()
+        assertEquals("Subsequent identical alert banner within 300ms must be debounced", showTime1, showTime2)
+
+        // Verify DuoMorphBannerView instantiation & setup
+        val bannerView = com.duorhythm.app.ui.custom.DuoMorphBannerView(activity)
+        bannerView.setBanner("Morphing Banner Active", com.duorhythm.app.ui.custom.DuoAlertBanner.BannerType.SUCCESS)
+        assertNotNull("DuoMorphBannerView must initialize successfully", bannerView)
+
+        // 3. Concentric Radii and Typography dimensions verification
+        val res = context.resources
+        val cardHeroRadius = res.getDimension(R.dimen.radius_card_hero)
+        val innerHeroRadius = res.getDimension(R.dimen.radius_inner_hero_nested)
+        val innerNestedRadius = res.getDimension(R.dimen.radius_inner_nested)
+        assertTrue("radius_card_hero must be defined and > 0", cardHeroRadius > 0f)
+        assertTrue("radius_inner_hero_nested must be defined and > 0", innerHeroRadius > 0f)
+        assertTrue("radius_inner_nested must be defined and > 0", innerNestedRadius > 0f)
+        assertTrue("Concentric relationship: hero outer > hero inner", cardHeroRadius > innerHeroRadius)
+
+        // Verify NumericDisplay style identifier exists in styles
+        val styleResId = res.getIdentifier("TextAppearance.DuoRhythm.NumericDisplay", "style", context.packageName)
+        assertTrue("TextAppearance.DuoRhythm.NumericDisplay style must exist", styleResId != 0)
     }
 }

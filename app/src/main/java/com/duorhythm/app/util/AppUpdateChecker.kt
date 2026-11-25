@@ -52,11 +52,7 @@ object AppUpdateChecker {
                 if (manual) {
                     mainHandler.post {
                         if (!activity.isFinishing && !activity.isDestroyed) {
-                            Toast.makeText(
-                                activity,
-                                "Could not check for updates. Check your connection.",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Could not check for updates. Check your connection.")
                         }
                     }
                 }
@@ -68,11 +64,7 @@ object AppUpdateChecker {
                         if (manual) {
                             mainHandler.post {
                                 if (!activity.isFinishing && !activity.isDestroyed) {
-                                    Toast.makeText(
-                                        activity,
-                                        "Could not check for updates (${res.code}).",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Could not check for updates (${res.code}).")
                                 }
                             }
                         }
@@ -109,11 +101,7 @@ object AppUpdateChecker {
                             if (isNewer) {
                                 showUpdateDialog(activity, tagName, releaseNotes, apkDownloadUrl)
                             } else if (manual) {
-                                Toast.makeText(
-                                    activity,
-                                    "DuoRhythm is already up to date! (v$currentVersion)",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "DuoRhythm is already up to date! (v$currentVersion)")
                             }
                         }
                     } catch (e: Exception) {
@@ -121,11 +109,7 @@ object AppUpdateChecker {
                         if (manual) {
                             mainHandler.post {
                                 if (!activity.isFinishing && !activity.isDestroyed) {
-                                    Toast.makeText(
-                                        activity,
-                                        "Error parsing update info.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Error parsing update info.")
                                 }
                             }
                         }
@@ -152,7 +136,7 @@ object AppUpdateChecker {
                     }
                     activity.startActivity(intent)
                 } catch (_: Exception) {
-                    Toast.makeText(activity, "Could not open download link.", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Could not open download link.")
                 }
             }
             .setNegativeButton("Later", null)

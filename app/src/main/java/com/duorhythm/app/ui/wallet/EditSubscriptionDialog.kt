@@ -89,7 +89,7 @@ class EditSubscriptionDialog(
             val costText = binding.etSubCost.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty() || costText.isEmpty()) {
-                Toast.makeText(context, "Service name and cost are required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Service name and cost are required")
                 return@setOnClickListener
             }
 
@@ -119,7 +119,7 @@ class EditSubscriptionDialog(
             onSubscriptionUpdatedListener?.invoke()
 
             SubscriptionAlarmScheduler.scheduleDailyAlarms(context)
-            Toast.makeText(context, "Updated '$name'", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Updated '$name'")
             dialog.dismiss()
         }
 

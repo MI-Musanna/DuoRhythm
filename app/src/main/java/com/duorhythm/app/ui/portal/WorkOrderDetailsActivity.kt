@@ -95,7 +95,7 @@ class WorkOrderDetailsActivity : AppCompatActivity() {
         currentOrder = updated
         binding.tvAttachmentStatus.text = "Attached: ${uri.lastPathSegment ?: uri.toString()}"
         com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
-        Toast.makeText(this, "Attachment saved successfully", Toast.LENGTH_SHORT).show()
+        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Attachment saved successfully")
     }
 
     companion object {

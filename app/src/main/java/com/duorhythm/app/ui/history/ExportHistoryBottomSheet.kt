@@ -69,7 +69,7 @@ class ExportHistoryBottomSheet : BottomSheetDialogFragment() {
                     filesToDelete.forEach { f ->
                         if (f.delete()) deletedCount++
                     }
-                    Toast.makeText(requireContext(), "Deleted $deletedCount files", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Deleted $deletedCount files")
                     exitSelectionMode()
                     loadHistoryFiles()
                 }
@@ -116,7 +116,7 @@ class ExportHistoryBottomSheet : BottomSheetDialogFragment() {
             }
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "No app found to open image", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "No app found to open image")
         }
     }
 
@@ -130,7 +130,7 @@ class ExportHistoryBottomSheet : BottomSheetDialogFragment() {
             }
             startActivity(Intent.createChooser(intent, "Share via..."))
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Share failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Share failed: ${e.message}")
         }
     }
 
@@ -141,10 +141,10 @@ class ExportHistoryBottomSheet : BottomSheetDialogFragment() {
             .setNegativeButton("CANCEL", null)
             .setPositiveButton("DELETE") { _, _ ->
                 if (file.delete()) {
-                    Toast.makeText(requireContext(), "Deleted ${file.name}", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Deleted ${file.name}")
                     loadHistoryFiles()
                 } else {
-                    Toast.makeText(requireContext(), "Failed to delete file", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Failed to delete file")
                 }
             }
             .show()

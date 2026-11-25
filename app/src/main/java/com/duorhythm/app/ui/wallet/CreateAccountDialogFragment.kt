@@ -97,11 +97,11 @@ class CreateAccountDialogFragment : DialogFragment() {
             val id = dbHelper.insertWalletBucket(item)
             if (id != -1L) {
                 com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                Toast.makeText(context, "Account '$name' created", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Account '$name' created")
                 onAccountCreatedListener?.invoke()
                 dialog.dismiss()
             } else {
-                Toast.makeText(context, "Maximum of 5 accounts reached", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Maximum of 5 accounts reached")
             }
         }
 

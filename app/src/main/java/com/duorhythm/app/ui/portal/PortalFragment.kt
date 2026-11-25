@@ -382,7 +382,7 @@ class PortalFragment : Fragment() {
 
             if (checkedId == R.id.btnProfileWork) {
                 if (!workCurrentlyEnabled) {
-                    android.widget.Toast.makeText(requireContext(), "Work Portal is disabled in Settings", android.widget.Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Work Portal is disabled in Settings")
                     isSwitchingMode = true
                     try {
                         group.check(R.id.btnProfileStudent)
@@ -933,7 +933,7 @@ class PortalFragment : Fragment() {
                     )
                     if (success) {
                         com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                        Toast.makeText(requireContext(), "৳${order.amount} deposited into ${acc.name}! Order Completed.", Toast.LENGTH_LONG).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "৳${order.amount} deposited into ${acc.name}! Order Completed.")
                         setupWorkPortalView()
                     }
                 }
@@ -944,7 +944,7 @@ class PortalFragment : Fragment() {
         view.findViewById<View>(R.id.btnSkipDeposit).setOnClickListener {
             depositDialog.dismiss()
             db.updateClientOrderStatus(order.id, "COMPLETED")
-            Toast.makeText(requireContext(), "Order marked as completed without wallet deposit.", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Order marked as completed without wallet deposit.")
             setupWorkPortalView()
         }
 
@@ -1051,7 +1051,7 @@ class PortalFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     dialog.dismiss()
                     if (isStudentContext) loadStudentContacts() else loadWorkContacts()
-                    Toast.makeText(activity, "Contact saved to Directory!", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Contact saved to Directory!")
                 }
             }
         }
@@ -1142,7 +1142,7 @@ class PortalFragment : Fragment() {
                     dialog.dismiss()
                     loadStudentContacts()
                     loadWorkContacts()
-                    Toast.makeText(ctx, "Contact updated!", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(ctx, "Contact updated!")
                 } catch (e: Exception) {
                     Log.e("DirectoryFragment", "Error updating contact", e)
                 }
@@ -1219,7 +1219,7 @@ class PortalFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     dialog.dismiss()
                     if (isStudentContext) loadStudentContacts() else loadWorkContacts()
-                    Toast.makeText(activity, "Community group link saved!", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Community group link saved!")
                 }
             }
         }
@@ -1292,7 +1292,7 @@ class PortalFragment : Fragment() {
                     dialog.dismiss()
                     loadStudentContacts()
                     loadWorkContacts()
-                    Toast.makeText(activity, "Community group link updated!", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Community group link updated!")
                 }
             }
         }
@@ -1345,7 +1345,7 @@ class PortalFragment : Fragment() {
                     dialog.dismiss()
                     loadStudentData()
                     com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                    Toast.makeText(activity, "Subject created!", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Subject created!")
                 }
             }
         }
@@ -1373,7 +1373,7 @@ class PortalFragment : Fragment() {
             activeOrderDialogBinding?.tvOrderAttachmentPreview?.text = "Attached: ${destFile.name}"
             activeOrderDialogBinding?.tvOrderAttachmentPreview?.setTextColor(0xFF10B981.toInt())
         } catch (_: Exception) {
-            Toast.makeText(requireContext(), "Failed to attach file", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Failed to attach file")
         }
     }
 
@@ -1432,7 +1432,7 @@ class PortalFragment : Fragment() {
             val notes = dialogBinding.etOrderNotes.text?.toString()?.trim().orEmpty()
 
             if (title.isEmpty()) {
-                Toast.makeText(requireContext(), "Order title is required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Order title is required")
                 return@setOnClickListener
             }
 
@@ -1459,7 +1459,7 @@ class PortalFragment : Fragment() {
             dialog.dismiss()
             loadWorkData()
             com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-            Toast.makeText(requireContext(), "Work order created!", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Work order created!")
         }
 
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
@@ -1538,7 +1538,7 @@ class PortalFragment : Fragment() {
                 com.duorhythm.app.data.local.pref.UserProfileManager.setInstitutionName(context, newInst)
                 com.duorhythm.app.data.local.pref.UserProfileManager.setAcademicFaculty(context, newFaculty)
                 loadAcademicIdentity()
-                Toast.makeText(context, "Academic info updated", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Academic info updated")
             }
             .setNeutralButton("Open Settings") { _, _ ->
                 startActivity(Intent(context, com.duorhythm.app.ui.settings.SettingsActivity::class.java))

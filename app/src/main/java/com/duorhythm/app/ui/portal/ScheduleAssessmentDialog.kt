@@ -511,7 +511,7 @@ class ScheduleAssessmentDialog(
             binding.tilAssessmentTitle.error = null
 
             if (date.isBlank()) {
-                Toast.makeText(context, "Please select an assessment date", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Please select an assessment date")
                 return@setOnClickListener
             }
 
@@ -554,7 +554,7 @@ class ScheduleAssessmentDialog(
                 AssessmentAlarmScheduler.cancelAlarmsForAssessment(context, existingItem.id)
                 AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, entity)
 
-                Toast.makeText(context, "Assessment updated successfully!", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Assessment updated successfully!")
             } else {
                 val assessmentEntity = AssessmentEntity(
                     profileId = profileId,
@@ -577,7 +577,7 @@ class ScheduleAssessmentDialog(
                 AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, finalEntity)
 
                 (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
-                Toast.makeText(context, "Assessment scheduled with smart notifications!", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Assessment scheduled with smart notifications!")
             }
 
             com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_PORTAL)

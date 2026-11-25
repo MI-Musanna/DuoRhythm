@@ -82,7 +82,7 @@ class SubscriptionManagerDialog(
             dbHelper.subscriptionDao.updatePaidMonth(sub.id, null)
             loadSubscriptions(binding)
             onDataChanged()
-            Toast.makeText(context, "Unmarked '${sub.name}' as paid", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Unmarked '${sub.name}' as paid")
         } else {
             // Currently unpaid
             if (sub.linkedAccountId != null && sub.linkedAccountId > 0L) {
@@ -107,14 +107,14 @@ class SubscriptionManagerDialog(
                         WalletDataSyncManager.notifyChanged()
                         loadSubscriptions(binding)
                         onDataChanged()
-                        Toast.makeText(context, "Deducted and marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Deducted and marked '${sub.name}' as paid!")
                     }
                     .setNeutralButton("JUST MARK PAID") { _, _ ->
                         dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                         loadSubscriptions(binding)
                         onDataChanged()
                         (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
-                        Toast.makeText(context, "Marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Marked '${sub.name}' as paid!")
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -124,7 +124,7 @@ class SubscriptionManagerDialog(
                 loadSubscriptions(binding)
                 onDataChanged()
                 (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
-                Toast.makeText(context, "Marked '${sub.name}' as paid (External payer)", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Marked '${sub.name}' as paid (External payer)")
             }
         }
     }
@@ -137,7 +137,7 @@ class SubscriptionManagerDialog(
                 dbHelper.subscriptionDao.deleteSubscription(sub.id)
                 loadSubscriptions(binding)
                 onDataChanged()
-                Toast.makeText(context, "Deleted '${sub.name}'", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Deleted '${sub.name}'")
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -255,7 +255,7 @@ class SubscriptionManagerDialog(
             val costStr = addBinding.etSubCost.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty() || costStr.isEmpty()) {
-                Toast.makeText(context, "Service name and cost are required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Service name and cost are required")
                 return@setOnClickListener
             }
 
@@ -282,7 +282,7 @@ class SubscriptionManagerDialog(
                     linkedAccountId = linkedAccountId
                 )
                 dbHelper.subscriptionDao.updateSubscription(updated)
-                Toast.makeText(context, "Updated '$name'", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Updated '$name'")
             } else {
                 val newSub = SubscriptionEntity(
                     profileId = activeProfileId, // Ensure NOT 0 or null
@@ -297,7 +297,7 @@ class SubscriptionManagerDialog(
                 )
                 dbHelper.subscriptionDao.insertSubscription(newSub)
                 (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
-                Toast.makeText(context, "Added '$name' subscription", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Added '$name' subscription")
             }
 
             SubscriptionAlarmScheduler.scheduleDailyAlarms(context)

@@ -156,11 +156,11 @@ class SettingsActivity : AppCompatActivity() {
                     BackupService.setLastBackupTimestamp(this@SettingsActivity, now)
                     withContext(Dispatchers.Main) {
                         updateBackupUI()
-                        Toast.makeText(this@SettingsActivity, "Backup saved to chosen folder!", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this@SettingsActivity, "Backup saved to chosen folder!")
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@SettingsActivity, "Failed to write backup file.", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this@SettingsActivity, "Failed to write backup file.")
                     }
                 }
             }
@@ -176,7 +176,7 @@ class SettingsActivity : AppCompatActivity() {
                     loadSavedSnapshots()
                     recreate()
                 }
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, message)
             }
         }
 
@@ -470,7 +470,7 @@ class SettingsActivity : AppCompatActivity() {
                     val newStart = AppSettings.START_OF_WEEK_OPTIONS[which]
                     AppSettings.setStartOfWeek(this, newStart)
                     refreshStartOfWeekUI()
-                    Toast.makeText(this, "Start of week set to ${AppSettings.START_OF_WEEK_LABELS[which]}", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Start of week set to ${AppSettings.START_OF_WEEK_LABELS[which]}")
                 }
                 dialog.dismiss()
             }
@@ -652,7 +652,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 refreshLeadTimesUI()
                 AlarmSyncManager.resyncAll(this)
-                Toast.makeText(this, "Reminder alert disabled", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Reminder alert disabled")
                 dialog.dismiss()
                 return@setOnClickListener
             }
@@ -668,11 +668,11 @@ class SettingsActivity : AppCompatActivity() {
             if (isClassMode) {
                 AppPreferences.setClassLeadMinutes(this, inputNum)
                 prefs.edit().putBoolean("pref_class_reminder_enabled", true).apply()
-                Toast.makeText(this, "Class reminder lead time set to $inputNum minutes", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Class reminder lead time set to $inputNum minutes")
             } else {
                 AppPreferences.setOrderLeadHours(this, inputNum)
                 prefs.edit().putBoolean("pref_order_reminder_enabled", true).apply()
-                Toast.makeText(this, "Deadline alert set to $inputNum hours before", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Deadline alert set to $inputNum hours before")
             }
 
             refreshLeadTimesUI()
@@ -719,7 +719,7 @@ class SettingsActivity : AppCompatActivity() {
             }
             BriefingAlarmScheduler.resyncBriefings(this)
             refreshMasterNotificationTriState()
-            Toast.makeText(this, "Briefing time updated to $formatted", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Briefing time updated to $formatted")
         }
 
         picker.show(supportFragmentManager, "BRIEFING_TIME_PICKER")
@@ -772,10 +772,10 @@ class SettingsActivity : AppCompatActivity() {
             if (isChecked) {
                 val currentHours = prefs.getInt("pref_auto_backup_interval_hours", 24)
                 AutoBackupWorker.schedulePeriodicBackup(this, currentHours)
-                Toast.makeText(this, "Automatic local backup scheduled (${getBackupIntervalLabel(currentHours)})", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Automatic local backup scheduled (${getBackupIntervalLabel(currentHours)})")
             } else {
                 AutoBackupWorker.cancel(this)
-                Toast.makeText(this, "Automatic local backup disabled", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Automatic local backup disabled")
             }
         }
 
@@ -803,7 +803,7 @@ class SettingsActivity : AppCompatActivity() {
                     if (binding.switchAutoBackup.isChecked) {
                         AutoBackupWorker.schedulePeriodicBackup(this, chosenHours)
                     }
-                    Toast.makeText(this, "Auto-backup interval set to ${backupIntervalLabels[which]}", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Auto-backup interval set to ${backupIntervalLabels[which]}")
                 }
                 dialog.dismiss()
             }
@@ -863,7 +863,7 @@ class SettingsActivity : AppCompatActivity() {
             if (cbSlot3.isChecked) chosen.add(3)
 
             if (chosen.isEmpty()) {
-                Toast.makeText(this, "Please select at least one workspace profile", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Please select at least one workspace profile")
                 return@setOnClickListener
             }
 
@@ -917,7 +917,7 @@ class SettingsActivity : AppCompatActivity() {
                     dbHelper.clearAllUserData()
                     getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
                         .edit().remove("cash_funds_usd").apply()
-                    Toast.makeText(this, "All data has been reset", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "All data has been reset")
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -932,7 +932,7 @@ class SettingsActivity : AppCompatActivity() {
                 .setMessage("Populate sample preview data across wallet, tasks, and timetable?")
                 .setPositiveButton("Load Demo") { _, _ ->
                     dbHelper.seedDemoData()
-                    Toast.makeText(this, "Sample demo data loaded", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Sample demo data loaded")
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -1027,7 +1027,7 @@ class SettingsActivity : AppCompatActivity() {
             refreshLeadTimesUI()
             syncSwitchStates()
             AlarmSyncManager.resyncAll(this)
-            Toast.makeText(this, "Class reminder set to $mins minutes before", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Class reminder set to $mins minutes before")
         }
 
         binding.toggleExamLeadPresets.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -1048,7 +1048,7 @@ class SettingsActivity : AppCompatActivity() {
                 val label = com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatExamLeadTimeLabel(mins)
                 "Exam reminder set to $label before"
             }
-            Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, toastMsg)
         }
     
         binding.rowDailyBriefings.setOnClickListener {
@@ -1084,11 +1084,11 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.btnTestNotificationNow.setOnClickListener {
             com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(this, isEveningReview = false, isManualTest = true)
-            android.widget.Toast.makeText(this, "Morning Briefing Fired! Pull down notification shade.", android.widget.Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Morning Briefing Fired! Pull down notification shade.")
         }
         binding.btnTestNotificationNow.setOnLongClickListener {
             com.duorhythm.app.util.NotificationHelper.showUnifiedDailyBriefing(this, isEveningReview = true, isManualTest = true)
-            android.widget.Toast.makeText(this, "Evening Review (Tomorrow's Preview) Fired!", android.widget.Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Evening Review (Tomorrow's Preview) Fired!")
             true
         }
 
@@ -1124,7 +1124,7 @@ class SettingsActivity : AppCompatActivity() {
             }
             startActivity(intent)
         } catch (_: Exception) {
-            Toast.makeText(this, "Could not open link: $url", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Could not open link: $url")
         }
     }
 
@@ -1153,7 +1153,7 @@ class SettingsActivity : AppCompatActivity() {
             BriefingAlarmScheduler.resyncBriefings(this)
             refreshMasterNotificationTriState()
             val msg = if (isChecked) "Daily briefings enabled" else "Daily briefings disabled"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
         }
 
         binding.rowMorningBriefing.setOnClickListener {
@@ -1175,7 +1175,7 @@ class SettingsActivity : AppCompatActivity() {
             AlarmSyncManager.resyncAll(this)
             refreshMasterNotificationTriState()
             val msg = if (isChecked) "Class alarms enabled" else "Class alarms disabled"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
         }
 
         // Card 2: Academic - Auto-Silent During Classes (DND)
@@ -1191,7 +1191,7 @@ class SettingsActivity : AppCompatActivity() {
             SmartAutomationManager.setAutoSilentClassesEnabled(this, isChecked)
             AlarmSyncManager.resyncAll(this)
             val msg = if (isChecked) "Auto-silent during classes activated" else "Auto-silent disabled"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
         }
 
         // Card 2: Academic - Restore General Mode After Class
@@ -1201,7 +1201,7 @@ class SettingsActivity : AppCompatActivity() {
             if (isHydratingUI) return@setOnCheckedChangeListener
             SmartAutomationManager.setAutoRestoreGeneralAfterClassEnabled(this, isChecked)
             val msg = if (isChecked) "Phone will return to General mode after class" else "Phone will stay in Silent mode after class"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
         }
 
         // Card 2: Academic - Show Course Progress Bar
@@ -1244,11 +1244,7 @@ class SettingsActivity : AppCompatActivity() {
                 { _, hourOfDay, minute ->
                     com.duorhythm.app.scheduler.AssessmentAlarmScheduler.setDefaultExamReminderTime(this, hourOfDay, minute)
                     refreshDefaultExamTimeUI()
-                    Toast.makeText(
-                        this,
-                        "Default exam reminder time set to ${com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatDefaultExamTimeLabel(this)}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Default exam reminder time set to ${com.duorhythm.app.scheduler.AssessmentAlarmScheduler.formatDefaultExamTimeLabel(this)}")
                 },
                 currentPair.first,
                 currentPair.second,
@@ -1257,7 +1253,7 @@ class SettingsActivity : AppCompatActivity() {
             picker.setButton(android.content.DialogInterface.BUTTON_NEUTRAL, "Turn Off") { _, _ ->
                 com.duorhythm.app.scheduler.AssessmentAlarmScheduler.setDefaultExamReminderTime(this, -1, 0)
                 refreshDefaultExamTimeUI()
-                Toast.makeText(this, "Untimed exam reminders turned off", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Untimed exam reminders turned off")
             }
             picker.show()
         }
@@ -1283,7 +1279,7 @@ class SettingsActivity : AppCompatActivity() {
                 duoPrefs.edit().putBoolean("pref_task_reminders_enabled", isChecked).apply()
                 com.duorhythm.app.scheduler.TaskAlarmScheduler.resyncAllTaskReminders(this)
                 refreshMasterNotificationTriState()
-                Toast.makeText(this, if (isChecked) "Task & goal alerts enabled" else "Task & goal alerts disabled", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, if (isChecked) "Task & goal alerts enabled" else "Task & goal alerts disabled")
             }
         }
     
@@ -1299,7 +1295,7 @@ class SettingsActivity : AppCompatActivity() {
             SmartAutomationManager.setSubscriptionAlertsEnabled(this, isChecked)
             refreshMasterNotificationTriState()
             val msg = if (isChecked) "Subscription alerts & auto-log enabled" else "Subscription alerts disabled"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
         }
 
         // Card 3: Financial - Auto SMS & Notification Expense Detection
@@ -1312,7 +1308,7 @@ class SettingsActivity : AppCompatActivity() {
             }
             SmartAutomationManager.setExpenseDetectionEnabled(this, isChecked)
             val msg = if (isChecked) "Smart expense detection activated" else "Smart expense detection disabled"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
         }
 
         // Card 4: Work - Work Portal Module & Client Deadline Alerts
@@ -1325,7 +1321,7 @@ class SettingsActivity : AppCompatActivity() {
             dbHelper.setWorkPortalEnabled(isChecked)
             binding.rowClientLeadTime.visibility = if (isChecked) View.VISIBLE else View.GONE
             val msg = if (isChecked) "Work Portal module enabled" else "Work Portal disabled (Student Mode only)"
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
         }
 
         // Card 5: Security - Wallet Biometric Lock
@@ -1341,17 +1337,17 @@ class SettingsActivity : AppCompatActivity() {
                     onSuccess = {
                         AppPreferences.setWalletBiometricLocked(this, true)
                         backupPrefs.edit().putBoolean("pref_wallet_biometric_locked", true).apply()
-                        Toast.makeText(this, "Wallet Biometric Lock Activated", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Wallet Biometric Lock Activated")
                     },
                     onError = { err ->
                         binding.switchWalletBiometric.isChecked = false
-                        Toast.makeText(this, "Lock not enabled: $err", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Lock not enabled: $err")
                     }
                 )
             } else {
                 AppPreferences.setWalletBiometricLocked(this, false)
                 backupPrefs.edit().putBoolean("pref_wallet_biometric_locked", false).apply()
-                Toast.makeText(this, "Wallet Biometric Lock Disabled", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Wallet Biometric Lock Disabled")
             }
         }
         refreshMasterNotificationTriState()
@@ -1369,7 +1365,7 @@ class SettingsActivity : AppCompatActivity() {
             BackupSnapshotHelper.createInstantSnapshot(this, isAuto = false)
             updateBackupUI()
             loadSavedSnapshots()
-            Toast.makeText(this, "Backup exported to Downloads/DuoRhythm_Backups/", Toast.LENGTH_LONG).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Backup exported to Downloads/DuoRhythm_Backups/")
         }
     }
 
@@ -1412,10 +1408,10 @@ class SettingsActivity : AppCompatActivity() {
                             .setPositiveButton("Restore") { _, _ ->
                                 val success = BackupSnapshotHelper.restoreSnapshotFromFile(this@SettingsActivity, item.file)
                                 if (success) {
-                                    Toast.makeText(this@SettingsActivity, "Database restored successfully!", Toast.LENGTH_LONG).show()
+                                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this@SettingsActivity, "Database restored successfully!")
                                     recreate() // Reload activity with restored data
                                 } else {
-                                    Toast.makeText(this@SettingsActivity, "Failed to parse snapshot file.", Toast.LENGTH_SHORT).show()
+                                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(this@SettingsActivity, "Failed to parse snapshot file.")
                                 }
                             }
                             .setNegativeButton("Cancel", null)
@@ -1428,7 +1424,7 @@ class SettingsActivity : AppCompatActivity() {
                             val shareIntent = BackupService.shareBackup(this@SettingsActivity, item.file)
                             startActivity(Intent.createChooser(shareIntent, "Export Snapshot"))
                         } catch (e: Exception) {
-                            Toast.makeText(this@SettingsActivity, "Failed to share snapshot: ${e.message}", Toast.LENGTH_SHORT).show()
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.show(this@SettingsActivity, "Failed to share snapshot: ${e.message}")
                         }
                     }
 
@@ -1440,7 +1436,7 @@ class SettingsActivity : AppCompatActivity() {
                             .setPositiveButton("Delete") { _, _ ->
                                 BackupSnapshotHelper.deleteSnapshot(this@SettingsActivity, item.file)
                                 loadSavedSnapshots()
-                                Toast.makeText(this@SettingsActivity, "Snapshot deleted.", Toast.LENGTH_SHORT).show()
+                                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this@SettingsActivity, "Snapshot deleted.")
                             }
                             .setNegativeButton("Cancel", null)
                             .show()
@@ -1538,11 +1534,7 @@ class SettingsActivity : AppCompatActivity() {
         isHydratingUI = true
         syncSwitchStates()
         isHydratingUI = false
-        Toast.makeText(
-            this,
-            if (enableAll) "All 5 notification channels enabled" else "All notification channels muted",
-            Toast.LENGTH_SHORT
-        ).show()
+        com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, if (enableAll) "All 5 notification channels enabled" else "All notification channels muted")
     }
     
 }

@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
+import com.duorhythm.app.data.repository.ProfileRepository
+import com.duorhythm.app.ui.custom.DuoAlertBanner
 import com.duorhythm.app.databinding.DialogProfileEditBinding
 import com.duorhythm.app.util.AnimationUtils
 import database.entities.ProfileEntity
@@ -39,7 +41,7 @@ class EditProfileDialog(
         dialogBinding.btnEditSubmit.setOnClickListener {
             val newName = dialogBinding.etEditName.text?.toString()?.trim() ?: ""
             if (newName.isBlank()) {
-                Toast.makeText(activity, "Please enter your name", Toast.LENGTH_SHORT).show()
+                DuoAlertBanner.warning(activity, "Please enter your name")
                 return@setOnClickListener
             }
 
@@ -62,8 +64,9 @@ class EditProfileDialog(
             if (activeId == profile.id) {
                 ProfileManager.syncUserProfile(activity, updated)
             }
+            ProfileRepository.refreshProfiles(activity)
 
-            Toast.makeText(activity, "Profile updated", Toast.LENGTH_SHORT).show()
+            DuoAlertBanner.success(activity, "Profile updated")
             dialog.dismiss()
             onProfileUpdated?.invoke(updated)
         }

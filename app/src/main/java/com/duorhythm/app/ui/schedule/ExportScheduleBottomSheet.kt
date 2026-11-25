@@ -97,7 +97,7 @@ class ExportScheduleBottomSheet : BottomSheetDialogFragment() {
         binding.btnSaveSchedule.setOnClickListener {
             val bmp = currentGeneratedBitmap
             if (bmp == null) {
-                Toast.makeText(requireContext(), "Select at least one day", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Select at least one day")
                 return@setOnClickListener
             }
             val format = if (binding.switchScheduleFormatJpeg.isChecked) {
@@ -112,7 +112,7 @@ class ExportScheduleBottomSheet : BottomSheetDialogFragment() {
         binding.btnShareSchedule.setOnClickListener {
             val bmp = currentGeneratedBitmap
             if (bmp == null) {
-                Toast.makeText(requireContext(), "Select at least one day", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Select at least one day")
                 return@setOnClickListener
             }
             val format = if (binding.switchScheduleFormatJpeg.isChecked) {

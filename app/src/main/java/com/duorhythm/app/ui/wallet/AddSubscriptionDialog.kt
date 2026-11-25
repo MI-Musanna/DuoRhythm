@@ -82,7 +82,7 @@ class AddSubscriptionDialog : DialogFragment {
             val costStr = binding.etCostAmount.text?.toString()?.trim().orEmpty()
 
             if (name.isEmpty() || costStr.isEmpty()) {
-                Toast.makeText(requireContext(), "Service name and cost are required", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Service name and cost are required")
                 return@setOnClickListener
             }
 
@@ -114,12 +114,12 @@ class AddSubscriptionDialog : DialogFragment {
             val rowId = DatabaseHelper.getInstance(requireContext()).insertSubscription(sub)
             if (rowId > 0L) {
                 com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
-                Toast.makeText(requireContext(), "Added '${sub.name}' subscription", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Added '${sub.name}' subscription")
                 onSubscriptionAddedListener?.invoke()
                 SubscriptionAlarmScheduler.scheduleDailyAlarms(requireContext())
                 dismiss()
             } else {
-                Toast.makeText(requireContext(), "Failed to save subscription. Check logcat.", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Failed to save subscription. Check logcat.")
             }
         }
 

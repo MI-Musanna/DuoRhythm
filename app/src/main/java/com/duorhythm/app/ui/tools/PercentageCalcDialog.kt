@@ -66,7 +66,7 @@ class PercentageCalcDialog(private val context: Context) {
             val y = val2Str.toDoubleOrNull()
 
             if (x == null || y == null) {
-                Toast.makeText(context, "Please enter valid numbers", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Please enter valid numbers")
                 return@setOnClickListener
             }
 
@@ -81,7 +81,7 @@ class PercentageCalcDialog(private val context: Context) {
                 1 -> {
                     // X is what % of Y?
                     if (y == 0.0) {
-                        Toast.makeText(context, "Division by zero", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Division by zero")
                         return@setOnClickListener
                     }
                     val result = (x / y) * 100.0
@@ -98,7 +98,7 @@ class PercentageCalcDialog(private val context: Context) {
                 3 -> {
                     // Exam marks: X out of Y
                     if (y == 0.0) {
-                        Toast.makeText(context, "Max marks cannot be 0", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Max marks cannot be 0")
                         return@setOnClickListener
                     }
                     val pct = (x / y) * 100.0
@@ -116,7 +116,7 @@ class PercentageCalcDialog(private val context: Context) {
                 4 -> {
                     // % Change
                     if (x == 0.0) {
-                        Toast.makeText(context, "Initial value cannot be 0", Toast.LENGTH_SHORT).show()
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Initial value cannot be 0")
                         return@setOnClickListener
                     }
                     val diff = y - x

@@ -173,7 +173,7 @@ class TransactionCategoryHelper(
         val existing = dbHelper.getTransactionCategoryByName(trimmed)
         if (existing == null) {
             dbHelper.insertTransactionCategory(trimmed, currentTxType)
-            Toast.makeText(context, "Category '$trimmed' created", Toast.LENGTH_SHORT).show()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category '$trimmed' created")
         }
         loadCategoriesFromDb()
         adapter.updateCategories(categoriesList)
@@ -274,7 +274,7 @@ class TransactionCategoryHelper(
             .setMessage("Are you sure you want to delete '${item.name}'? Existing transaction records will retain this category tag.")
             .setPositiveButton("Delete") { _, _ ->
                 dbHelper.deleteTransactionCategory(item.id)
-                Toast.makeText(context, "Category '${item.name}' deleted", Toast.LENGTH_SHORT).show()
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(context, "Category '${item.name}' deleted")
 
                 loadCategoriesFromDb()
                 adapter.updateCategories(categoriesList)

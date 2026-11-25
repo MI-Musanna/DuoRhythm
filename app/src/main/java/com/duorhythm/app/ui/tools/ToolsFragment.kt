@@ -58,7 +58,7 @@ class ToolsFragment : Fragment() {
                     val intent = Intent(Settings.ACTION_SOUND_SETTINGS)
                     startActivity(intent)
                 } catch (_: Exception) {
-                    Toast.makeText(requireContext(), "Please adjust DND settings in system Settings > Sound", Toast.LENGTH_SHORT).show()
+                    com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Please adjust DND settings in system Settings > Sound")
                 }
             }
         }
