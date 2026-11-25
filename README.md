@@ -34,11 +34,11 @@ An offline, zero-telemetry Android suite built for students and independent buil
 
 | Home & Quick Brief | Wallet & Multi-Bucket | Task & Goal |
 | :---: | :---: | :---: |
-| <img src="screenshots/Home.png" width="230"/> | <img src="screenshots/Wallet.png" width="230"/> | <img src="screenshots/Task.png" width="230"/> |
+| <img src="screenshots/home.png" width="230"/> | <img src="screenshots/wallet.png" width="230"/> | <img src="screenshots/task.png" width="230"/> |
 
 | Academic Portal | Weekly Routine | Client Orders & Profiles |
 | :---: | :---: | :---: |
-| <img src="screenshots/Portal.png" width="230"/> | <img src="screenshots/Schedule.png" width="230"/> | <img src="screenshots/Project.png" width="230"/> |
+| <img src="screenshots/portal.png" width="230"/> | <img src="screenshots/schedule.png" width="230"/> | <img src="screenshots/project.png" width="230"/> |
 
 </div>
 
