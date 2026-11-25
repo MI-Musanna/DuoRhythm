@@ -965,7 +965,10 @@ class PortalFragment : Fragment() {
             context = requireContext(),
             fragmentManager = parentFragmentManager,
             defaultType = preselectedExamType,
-            onSaved = { loadStudentData() }
+            onSaved = {
+                loadStudentData()
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
+            }
         ).show()
     }
 
@@ -974,7 +977,10 @@ class PortalFragment : Fragment() {
             context = requireContext(),
             fragmentManager = parentFragmentManager,
             defaultType = "CLASS_TEST_QUIZ",
-            onSaved = { loadStudentData() }
+            onSaved = {
+                loadStudentData()
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
+            }
         ).show()
     }
 
@@ -984,7 +990,10 @@ class PortalFragment : Fragment() {
             fragmentManager = parentFragmentManager,
             existingItem = entity.toSubjectWorkItem(),
             existingEntity = entity,
-            onSaved = { loadStudentData() }
+            onSaved = {
+                loadStudentData()
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
+            }
         ).show()
     }
 
@@ -1331,6 +1340,7 @@ class PortalFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     dialog.dismiss()
                     loadStudentData()
+                    com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                     Toast.makeText(activity, "Subject created!", Toast.LENGTH_SHORT).show()
                 }
             }

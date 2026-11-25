@@ -113,6 +113,7 @@ class AddSubscriptionDialog : DialogFragment {
 
             val rowId = DatabaseHelper.getInstance(requireContext()).insertSubscription(sub)
             if (rowId > 0L) {
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                 Toast.makeText(requireContext(), "Added '${sub.name}' subscription", Toast.LENGTH_SHORT).show()
                 onSubscriptionAddedListener?.invoke()
                 SubscriptionAlarmScheduler.scheduleDailyAlarms(requireContext())

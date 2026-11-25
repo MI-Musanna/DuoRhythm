@@ -225,6 +225,23 @@
                     app:backgroundTint="@color/primary"
                     app:cornerRadius="12dp" />
 
+                <!-- Restore from Backup Shortcut Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRestoreFromBackup"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Restore from Backup"
+                    android:textColor="@color/primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/primary"
+                    app:strokeWidth="1.5dp" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

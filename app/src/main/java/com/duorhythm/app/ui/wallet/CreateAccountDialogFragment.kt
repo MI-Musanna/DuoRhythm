@@ -96,6 +96,7 @@ class CreateAccountDialogFragment : DialogFragment() {
             )
             val id = dbHelper.insertWalletBucket(item)
             if (id != -1L) {
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                 Toast.makeText(context, "Account '$name' created", Toast.LENGTH_SHORT).show()
                 onAccountCreatedListener?.invoke()
                 dialog.dismiss()

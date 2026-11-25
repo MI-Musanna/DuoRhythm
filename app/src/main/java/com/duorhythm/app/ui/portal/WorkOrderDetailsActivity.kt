@@ -94,6 +94,7 @@ class WorkOrderDetailsActivity : AppCompatActivity() {
         dbHelper.updateWorkOrder(updated)
         currentOrder = updated
         binding.tvAttachmentStatus.text = "Attached: ${uri.lastPathSegment ?: uri.toString()}"
+        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
         Toast.makeText(this, "Attachment saved successfully", Toast.LENGTH_SHORT).show()
     }
 

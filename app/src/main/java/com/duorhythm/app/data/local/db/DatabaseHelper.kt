@@ -5607,8 +5607,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val profiles = getAllProfiles()
             for (p in profiles) {
-                val avatarFile = java.io.File(appContext.filesDir, "avatar_profile_${p.id}.jpg")
-                val b64 = com.duorhythm.app.util.ImageUtils.encodeFileToBase64(avatarFile)
+                val avatarFile = com.duorhythm.app.util.ProfileAvatarHelper.resolveAvatarFile(appContext, p.id, p.avatarUri)
+                val b64 = if (avatarFile != null && avatarFile.exists()) com.duorhythm.app.util.ImageUtils.encodeFileToBase64(avatarFile) else null
                 if (!b64.isNullOrBlank()) {
                     avatarsObj.put(p.id.toString(), b64)
                     avatarsObj.put("slot_${p.slotNumber}", b64)
@@ -5736,6 +5736,13 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }.also { success ->
             if (success) {
                 reactivateAllAlarms(appContext)
+                try {
+                    val activeId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(appContext)
+                    val activeProfile = profileDao.getProfileById(activeId) ?: getAllProfiles().firstOrNull()
+                    if (activeProfile != null) {
+                        com.duorhythm.app.data.local.pref.ProfileManager.syncUserProfile(appContext, activeProfile)
+                    }
+                } catch (_: Exception) {}
             }
         }
     }

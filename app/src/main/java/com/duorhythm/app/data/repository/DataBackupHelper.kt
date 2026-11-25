@@ -52,8 +52,8 @@ object DataBackupHelper {
         val avatarsObj = root.optJSONObject("profile_avatars") ?: JSONObject()
         val profiles = dbHelper.getAllProfiles().filter { it.slotNumber in selectedSlots }
         for (profile in profiles) {
-            val file = File(ctx.filesDir, "avatar_profile_${profile.id}.jpg")
-            val base64 = ImageUtils.encodeFileToBase64(file)
+            val file = com.duorhythm.app.util.ProfileAvatarHelper.resolveAvatarFile(ctx, profile.id, profile.avatarUri)
+            val base64 = if (file != null && file.exists()) ImageUtils.encodeFileToBase64(file) else null
             if (!base64.isNullOrBlank()) {
                 avatarsObj.put(profile.id.toString(), base64)
                 avatarsObj.put("slot_${profile.slotNumber}", base64)
@@ -116,7 +116,12 @@ object DataBackupHelper {
                 val destFile = File(context.filesDir, "avatar_profile_${profile.id}.jpg")
                 if (ImageUtils.decodeBase64ToFile(b64, destFile)) {
                     val updatedUri = Uri.fromFile(destFile).toString() + "?t=" + System.currentTimeMillis()
-                    dbHelper.profileDao.updateProfile(profile.copy(avatarUri = updatedUri))
+                    val updatedProfile = profile.copy(avatarUri = updatedUri)
+                    dbHelper.profileDao.updateProfile(updatedProfile)
+                    val activeId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(context)
+                    if (profile.id == activeId || activeId == profile.slotNumber.toLong()) {
+                        com.duorhythm.app.data.local.pref.ProfileManager.syncUserProfile(context, updatedProfile)
+                    }
                 }
             }
         }

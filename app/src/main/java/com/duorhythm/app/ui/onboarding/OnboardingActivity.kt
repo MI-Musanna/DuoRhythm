@@ -18,6 +18,42 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOnboardingBinding
     private var selectedAvatarUriString: String? = null
 
+    private val restoreBackupLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                try {
+                    val content = contentResolver.openInputStream(it)?.bufferedReader()?.use { reader -> reader.readText() }
+                    if (!content.isNullOrBlank()) {
+                        val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(this)
+                        val success = db.importFullDatabaseFromJson(content)
+                        if (success) {
+                            try {
+                                val root = org.json.JSONObject(content)
+                                com.duorhythm.app.data.repository.DataBackupHelper.restoreProfileAvatarsFromJson(this, root)
+                                com.duorhythm.app.data.repository.DataBackupHelper.restoreAttachmentsFromJson(this, root)
+                                com.duorhythm.app.data.repository.DataBackupHelper.restoreUiPreferencesFromJson(this, root)
+                            } catch (_: Exception) {}
+                            ProfileManager.setOnboardingCompleted(this, true)
+                            val prefs = getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+                            prefs.edit().putBoolean("pref_onboarding_completed", true).apply()
+                            getSharedPreferences(packageName + "_preferences", Context.MODE_PRIVATE).edit().putBoolean("pref_onboarding_completed", true).apply()
+
+                            android.widget.Toast.makeText(this, "Backup restored successfully!", android.widget.Toast.LENGTH_LONG).show()
+                            val intent = Intent(this, MainActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            }
+                            startActivity(intent)
+                            finish()
+                            return@registerForActivityResult
+                        }
+                    }
+                    android.widget.Toast.makeText(this, "Failed to restore backup file.", android.widget.Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(this, "Error reading backup: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
     private val pickAvatarLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
@@ -72,7 +108,11 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun setupCompletion() {
-        AnimationUtils.attachTactileFeedback(binding.btnCompleteOnboarding, binding.btnChooseAvatar)
+        AnimationUtils.attachTactileFeedback(binding.btnCompleteOnboarding, binding.btnChooseAvatar, binding.btnRestoreFromBackup)
+
+        binding.btnRestoreFromBackup.setOnClickListener {
+            restoreBackupLauncher.launch("*/*")
+        }
 
         binding.btnCompleteOnboarding.setOnClickListener {
             val name = binding.etUserName.text.toString().trim()

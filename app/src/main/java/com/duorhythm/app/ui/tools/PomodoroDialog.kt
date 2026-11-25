@@ -113,6 +113,7 @@ class PomodoroDialog(private val context: Context) {
                         vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
                     } catch (_: Exception) {}
 
+                    (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
                     Toast.makeText(context, "Pomodoro cycle complete!", Toast.LENGTH_LONG).show()
                 }
             }.start()

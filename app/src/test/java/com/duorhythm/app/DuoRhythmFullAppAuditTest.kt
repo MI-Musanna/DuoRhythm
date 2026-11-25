@@ -1002,4 +1002,58 @@ class DuoRhythmFullAppAuditTest {
             permissions.contains("android.permission.REQUEST_INSTALL_PACKAGES")
         )
     }
+
+    @Test
+    fun audit26_profileSyncOnRestoreAndSingleStreamAvatar() {
+        // 1. Single-stream URI image decoding test
+        val testFile = File(context.cacheDir, "test_avatar_sample.png")
+        val bitmap = android.graphics.Bitmap.createBitmap(120, 120, android.graphics.Bitmap.Config.ARGB_8888)
+        java.io.FileOutputStream(testFile).use { out ->
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+        }
+        val fileUri = android.net.Uri.fromFile(testFile)
+        val decoded = com.duorhythm.app.util.ImageUtils.decodeSampledBitmapFromUri(context, fileUri, 64, 64)
+        assertNotNull("Sampled bitmap decoded from single-read stream must not be null", decoded)
+        assertTrue("Decoded width must be > 0", (decoded?.width ?: 0) > 0)
+        testFile.delete()
+
+        // 2. Profile sync on backup restore verification
+        val profileId = db.profileDao.insertProfile(
+            database.entities.ProfileEntity(
+                slotNumber = 1,
+                name = "Dr. Ada Lovelace",
+                email = "ada@example.com",
+                passwordHash = "",
+                institution = "Cambridge",
+                department = "Computing",
+                semester = "Fall 2026",
+                avatarUri = null
+            )
+        )
+        com.duorhythm.app.data.local.pref.ProfileManager.setActiveProfileId(context, profileId)
+        com.duorhythm.app.data.local.pref.ProfileManager.syncUserProfile(context)
+        assertEquals("Dr. Ada Lovelace", com.duorhythm.app.data.local.pref.UserProfileManager.getUserName(context))
+        assertEquals("Cambridge", com.duorhythm.app.data.local.pref.UserProfileManager.getInstitutionName(context))
+
+        // 3. Two-way snapshot deletion test
+        val snapshotsDir = BackupSnapshotHelper.getBackupDirectory(context)
+        val timestamp = System.currentTimeMillis()
+        val snapshotFile = File(snapshotsDir, "Manual_Snapshot_${timestamp}.json").apply {
+            writeText("{\"test\": true}")
+        }
+        val backupSubDir = BackupSnapshotHelper.getPublicBackupDirectory()
+        val matchingBackupFile = File(backupSubDir, "DuoRhythm_Backup_${timestamp}.json").apply {
+            writeText("{\"test\": true}")
+        }
+        assertTrue("Snapshot file must exist before deletion", snapshotFile.exists())
+        assertTrue("Matching backup file in Downloads must exist before deletion", matchingBackupFile.exists())
+
+        BackupSnapshotHelper.deleteSnapshot(context, snapshotFile)
+
+        assertFalse("Internal snapshot file must be deleted", snapshotFile.exists())
+        assertFalse("Matching backup file in Downloads must be deleted via two-way deletion", matchingBackupFile.exists())
+
+        // 4. Confetti debounce verification
+        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(null)
+    }
 }

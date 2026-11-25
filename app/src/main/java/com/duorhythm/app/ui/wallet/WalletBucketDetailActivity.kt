@@ -1304,7 +1304,7 @@ class WalletBucketDetailActivity : AppCompatActivity() {
                 dialog.dismiss()
                 loadBucketData()
                 WalletDataSyncManager.notifyChanged()
-                if (txType == "INCOME") { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this) }
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
                 Toast.makeText(this, "Recorded to ${bucket.name}", Toast.LENGTH_SHORT).show()
             }
         }

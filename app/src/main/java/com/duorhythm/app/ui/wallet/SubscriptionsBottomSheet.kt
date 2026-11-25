@@ -141,11 +141,13 @@ class SubscriptionsBottomSheet : BottomSheetDialogFragment() {
                         dbHelper.insertTransaction(tx)
                         dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                         onDataChangedListener?.invoke()
+                        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                         Toast.makeText(requireContext(), "Deducted and marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
                     }
                     .setNeutralButton("JUST MARK PAID") { _, _ ->
                         dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                         onDataChangedListener?.invoke()
+                        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                         Toast.makeText(requireContext(), "Marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("Cancel", null)
@@ -153,6 +155,7 @@ class SubscriptionsBottomSheet : BottomSheetDialogFragment() {
             } else {
                 dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                 onDataChangedListener?.invoke()
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                 Toast.makeText(requireContext(), "Marked '${sub.name}' as paid (External payer)", Toast.LENGTH_SHORT).show()
             }
         }

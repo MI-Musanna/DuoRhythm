@@ -87,4 +87,40 @@ object ProfileAvatarHelper {
             sourceUri.toString()
         }
     }
+
+    /**
+     * Resolves the actual File on disk representing the profile's avatar,
+     * checking workspace_avatars/, custom paths, and avatar_profile_${profileId}.jpg fallback.
+     */
+    fun resolveAvatarFile(context: Context, profileId: Long, avatarUriString: String?): File? {
+        if (!avatarUriString.isNullOrBlank()) {
+            val cleanPath = when {
+                avatarUriString.startsWith("file://") -> Uri.parse(avatarUriString).path ?: avatarUriString.removePrefix("file://")
+                avatarUriString.contains("?") -> avatarUriString.substringBefore("?")
+                else -> avatarUriString
+            }
+            val cleanNoQuery = if (cleanPath.contains("?")) cleanPath.substringBefore("?") else cleanPath
+            val f = File(cleanNoQuery)
+            if (f.exists() && f.isFile) return f
+
+            val relFile = File(context.filesDir, cleanNoQuery.removePrefix("/"))
+            if (relFile.exists() && relFile.isFile) return relFile
+
+            val wsFile = File(context.filesDir, "workspace_avatars/${File(cleanNoQuery).name}")
+            if (wsFile.exists() && wsFile.isFile) return wsFile
+        }
+
+        // Check fallback standard file
+        val fallback = File(context.filesDir, "avatar_profile_${profileId}.jpg")
+        if (fallback.exists() && fallback.isFile) return fallback
+
+        // Check latest file in workspace_avatars for this profileId
+        val wsDir = File(context.filesDir, "workspace_avatars")
+        if (wsDir.exists()) {
+            val match = wsDir.listFiles { _, name -> name.startsWith("avatar_slot_${profileId}_") }?.maxByOrNull { it.lastModified() }
+            if (match != null && match.exists() && match.isFile) return match
+        }
+
+        return fallback
+    }
 }

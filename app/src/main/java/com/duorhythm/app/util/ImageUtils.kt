@@ -21,6 +21,7 @@ object ImageUtils {
 
     /**
      * Decodes a downsampled Bitmap from a Content URI to prevent OutOfMemoryError on 4K/high-res photos.
+     * Reads URI stream once into memory to prevent SecurityException/empty stream on transient URIs.
      */
     fun decodeSampledBitmapFromUri(
         context: Context,
@@ -29,13 +30,19 @@ object ImageUtils {
         reqHeight: Int = 1080
     ): Bitmap? {
         return try {
+            val bytes = context.contentResolver.openInputStream(uri)?.use { stream ->
+                stream.readBytes()
+            } ?: return null
+
+            if (bytes.isEmpty()) return null
+
             // 1. Decode bounds only
             val options = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
             }
-            context.contentResolver.openInputStream(uri)?.use { stream ->
+            java.io.ByteArrayInputStream(bytes).use { stream ->
                 BitmapFactory.decodeStream(stream, null, options)
-            } ?: return null
+            }
 
             if (options.outWidth <= 0 || options.outHeight <= 0) return null
 
@@ -52,22 +59,22 @@ object ImageUtils {
                 this.inSampleSize = inSampleSize
                 inPreferredConfig = Bitmap.Config.ARGB_8888
             }
-            val sampledBitmap = context.contentResolver.openInputStream(uri)?.use { stream ->
+            val sampledBitmap = java.io.ByteArrayInputStream(bytes).use { stream ->
                 BitmapFactory.decodeStream(stream, null, decodeOptions)
             } ?: return null
 
-            // 4. Handle EXIF orientation
-            fixOrientationFromUri(context, uri, sampledBitmap)
+            // 4. Handle EXIF orientation using the same bytes
+            fixOrientationFromBytes(bytes, sampledBitmap)
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
     }
 
-    private fun fixOrientationFromUri(context: Context, uri: Uri, bitmap: Bitmap): Bitmap {
+    private fun fixOrientationFromBytes(bytes: ByteArray, bitmap: Bitmap): Bitmap {
         return try {
             var orientation = ExifInterface.ORIENTATION_NORMAL
-            context.contentResolver.openInputStream(uri)?.use { stream ->
+            java.io.ByteArrayInputStream(bytes).use { stream ->
                 val exif = ExifInterface(stream)
                 orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
             }

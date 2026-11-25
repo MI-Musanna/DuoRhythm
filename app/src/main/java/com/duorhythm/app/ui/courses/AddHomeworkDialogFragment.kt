@@ -300,6 +300,7 @@ class AddHomeworkDialogFragment : DialogFragment() {
         )
 
         dismiss()
+        activity?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
         onSavedListener?.invoke()
     }
 

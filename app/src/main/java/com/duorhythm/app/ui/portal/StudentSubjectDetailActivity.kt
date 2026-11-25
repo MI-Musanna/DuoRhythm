@@ -147,6 +147,9 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             emptyList(),
             onToggleStatus = { item, newStatus ->
                 dbHelper.updateSubjectWorkItemStatus(item.id, newStatus)
+                if (newStatus == "COMPLETED") {
+                    com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
+                }
                 loadItems()
             },
             onDeleteClick = { item ->
@@ -442,6 +445,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
 
             if (savedCount > 0) {
                 loadMaterials()
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
                 val msg = if (savedCount == 1) "Document attached successfully!" else "$savedCount documents attached successfully!"
                 Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
             } else {
@@ -472,6 +476,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
                 val updated = subject.copy(syllabusPath = destFile.absolutePath)
                 dbHelper.updateStudentSubject(updated)
                 loadSubject()
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
                 Toast.makeText(this, "Syllabus document attached!", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
@@ -542,6 +547,7 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             repo.updateCourseAndSyncDependencies(subject, updated)
             dialog.dismiss()
             loadSubject()
+            com.duorhythm.app.ui.views.ConfettiOverlayView.burst(this)
             Toast.makeText(this, "Course info & timetable synced!", Toast.LENGTH_SHORT).show()
         }
 

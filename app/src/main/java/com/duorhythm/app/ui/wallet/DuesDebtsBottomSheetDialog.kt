@@ -272,6 +272,7 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
             dialog.dismiss()
             loadData()
             WalletDataSyncManager.notifyChanged()
+            com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
             val typeLabel = if (selectedType == "LENT") "Lent due" else "Borrowed debt"
             Toast.makeText(requireContext(), "Recorded $typeLabel for $personName", Toast.LENGTH_SHORT).show()
         }
@@ -355,7 +356,7 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
                 dialog.dismiss()
                 loadData()
                 WalletDataSyncManager.notifyChanged()
-                if (isLent) { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity) }
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                 Toast.makeText(requireContext(), "Settled with ${item.personName}", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), "Failed to settle record", Toast.LENGTH_SHORT).show()

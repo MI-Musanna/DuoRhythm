@@ -468,14 +468,24 @@ object UpdateManager {
             .trim()
     }
 
-    // 5. MANUAL RELEASE CHANNEL DIALOG (Settings Hub) - Fixes Button Disabled State
+    // 5. MANUAL RELEASE CHANNEL DIALOG (Settings Hub) - High-Contrast Material 3 UI
     fun showModernDualChannelDialog(context: Context, stable: ReleaseInfo?, beta: ReleaseInfo?) {
         val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_updater, null)
         dialog.setContentView(view)
 
         val currentVersion = BuildConfig.VERSION_NAME
-        val cleanCurrent = cleanVersion(currentVersion)
+
+        val btnClose = view.findViewById<View>(R.id.btnCloseUpdateDialog)
+        btnClose?.setOnClickListener { dialog.dismiss() }
+
+        val tvStatusPill = view.findViewById<TextView>(R.id.tvUpdateStatusPill)
+        val tvInstalledVersion = view.findViewById<TextView>(R.id.tvCurrentInstalledVersion)
+        tvInstalledVersion?.text = "Installed: v$currentVersion"
+
+        val tvReleaseNotes = view.findViewById<TextView>(R.id.tvReleaseNotesPreview)
+        val notes = beta?.bodyText?.takeIf { it.isNotBlank() } ?: stable?.bodyText ?: "No release notes available."
+        tvReleaseNotes?.text = formatReleaseNotes(notes)
 
         val cardStable = view.findViewById<View>(R.id.cardStableTrack)
         val tvNoStable = view.findViewById<View>(R.id.tvNoStableBanner)
@@ -496,7 +506,7 @@ object UpdateManager {
                 btnStable?.setTextColor(Color.parseColor("#64748B"))
                 btnStable?.strokeColor = null
             } else {
-                btnStable?.text = "Install"
+                btnStable?.text = "SWITCH TO STABLE"
                 btnStable?.isEnabled = true
                 btnStable?.setBackgroundColor(Color.parseColor("#10B981"))
                 btnStable?.setTextColor(Color.parseColor("#0A0B0E"))
@@ -513,37 +523,49 @@ object UpdateManager {
         // --- BETA / PREVIEW TRACK ---
         val cardBeta = view.findViewById<View>(R.id.cardBetaTrack)
         val tvBeta = view.findViewById<TextView>(R.id.tvBetaVersion)
-        val btnBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
+        val badgeBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
+        val btnActionBeta = view.findViewById<MaterialButton>(R.id.btnActionBeta)
 
         if (beta != null) {
             tvBeta?.text = "${beta.tagName} • Bleeding-Edge Preview"
 
             val isBetaCurrent = compareVersions(currentVersion, beta.tagName) >= 0
             if (isBetaCurrent) {
-                // Version currently running on phone -> Mark as INSTALLED, Gray out, and disable click!
-                btnBeta?.text = "INSTALLED"
-                btnBeta?.setTextColor(Color.parseColor("#64748B"))
-                btnBeta?.setBackgroundResource(R.drawable.bg_pill_dark)
-                btnBeta?.isClickable = false
-                btnBeta?.setOnClickListener(null)
-                cardBeta?.isClickable = false
-                cardBeta?.setOnClickListener(null)
+                tvStatusPill?.text = "UP TO DATE"
+                tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
+                tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
+
+                badgeBeta?.text = "CURRENT"
+                badgeBeta?.setTextColor(Color.parseColor("#10B981"))
+
+                btnActionBeta?.text = "INSTALLED"
+                btnActionBeta?.isEnabled = false
+                btnActionBeta?.setBackgroundColor(Color.parseColor("#1E293B"))
+                btnActionBeta?.setTextColor(Color.parseColor("#64748B"))
             } else {
-                // Newer beta available -> Active Update Button
-                btnBeta?.text = "UPDATE"
-                btnBeta?.setTextColor(Color.parseColor("#38BDF8"))
-                btnBeta?.setBackgroundResource(R.drawable.bg_pill_blue)
-                btnBeta?.isClickable = true
+                tvStatusPill?.text = "UPDATE AVAILABLE • ${beta.tagName}"
+                tvStatusPill?.setTextColor(Color.parseColor("#38BDF8"))
+                tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_blue)
+
+                badgeBeta?.text = "UPDATE"
+                badgeBeta?.setTextColor(Color.parseColor("#38BDF8"))
+
+                btnActionBeta?.text = "DOWNLOAD UPDATE"
+                btnActionBeta?.isEnabled = true
+                btnActionBeta?.setBackgroundColor(Color.parseColor("#38BDF8"))
+                btnActionBeta?.setTextColor(Color.parseColor("#0A0B0E"))
+
                 val clickAction = View.OnClickListener {
                     dialog.dismiss()
                     showInAppDownloadDialog(context, beta.downloadUrl, "${beta.tagName}.apk")
                 }
-                btnBeta?.setOnClickListener(clickAction)
-                cardBeta?.setOnClickListener(clickAction)
+                btnActionBeta?.setOnClickListener(clickAction)
             }
+        } else {
+            tvStatusPill?.text = "UP TO DATE"
+            tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
         }
 
-        view.findViewById<View>(R.id.btnCloseUpdateDialog)?.setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 }

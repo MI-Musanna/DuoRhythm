@@ -97,6 +97,15 @@ object ProfileManager {
         }
     }
 
+    fun syncUserProfile(context: Context) {
+        val dbHelper = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(context)
+        val activeId = getActiveProfileId(context)
+        val activeProfile = dbHelper.profileDao.getProfileById(activeId) ?: dbHelper.profileDao.getProfileBySlot(1)
+        if (activeProfile != null) {
+            syncUserProfile(context, activeProfile)
+        }
+    }
+
     fun syncUserProfile(context: Context, profile: ProfileEntity) {
         if (profile.name.isNotBlank()) {
             UserProfileManager.setUserName(context, profile.name)

@@ -113,6 +113,7 @@ class SubscriptionManagerDialog(
                         dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                         loadSubscriptions(binding)
                         onDataChanged()
+                        (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
                         Toast.makeText(context, "Marked '${sub.name}' as paid!", Toast.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("Cancel", null)
@@ -122,6 +123,7 @@ class SubscriptionManagerDialog(
                 dbHelper.subscriptionDao.updatePaidMonth(sub.id, currentMonthYear)
                 loadSubscriptions(binding)
                 onDataChanged()
+                (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
                 Toast.makeText(context, "Marked '${sub.name}' as paid (External payer)", Toast.LENGTH_SHORT).show()
             }
         }
@@ -294,6 +296,7 @@ class SubscriptionManagerDialog(
                     lastPaidMonthYear = null
                 )
                 dbHelper.subscriptionDao.insertSubscription(newSub)
+                (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
                 Toast.makeText(context, "Added '$name' subscription", Toast.LENGTH_SHORT).show()
             }
 

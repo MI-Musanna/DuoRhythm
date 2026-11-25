@@ -130,6 +130,7 @@ class TasksFragment : Fragment() {
                 dbHelper.updateTaskCompletion(task.id, isCompleted)
                 if (isCompleted) {
                     TaskAlarmScheduler.cancelTaskReminder(requireContext(), task.id)
+                    com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                 } else {
                     TaskAlarmScheduler.scheduleTaskReminder(requireContext(), task.copy(isCompleted = false))
                 }
@@ -738,6 +739,7 @@ class TasksFragment : Fragment() {
             TaskAlarmScheduler.scheduleTaskReminder(requireContext(), task.copy(id = newId))
             dialog.dismiss()
             loadTasks()
+            com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
             Toast.makeText(requireContext(), if (markedGoal) "Goal created!" else "Task created!", Toast.LENGTH_SHORT).show()
         }
 

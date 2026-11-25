@@ -124,9 +124,21 @@ class ConfettiOverlayView(context: Context) : View(context) {
     }
 
     companion object {
+        private var lastBurstTime = 0L
+
         fun burst(activity: Activity?) {
+            val now = System.currentTimeMillis()
+            if (now - lastBurstTime < 400L) return
+            lastBurstTime = now
+
             val decor = activity?.window?.decorView as? ViewGroup ?: return
             decor.post {
+                for (i in decor.childCount - 1 downTo 0) {
+                    val child = decor.getChildAt(i)
+                    if (child is ConfettiOverlayView) {
+                        decor.removeViewAt(i)
+                    }
+                }
                 val overlay = ConfettiOverlayView(activity).apply {
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,

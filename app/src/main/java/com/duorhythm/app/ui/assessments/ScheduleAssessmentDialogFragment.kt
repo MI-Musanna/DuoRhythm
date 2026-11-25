@@ -180,6 +180,7 @@ class ScheduleAssessmentDialogFragment : DialogFragment() {
             db.updateAssessment(entityToSave)
         }
 
+        com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
         Toast.makeText(requireContext(), if (isCreateMode) "Assessment scheduled!" else "Assessment updated!", Toast.LENGTH_SHORT).show()
         onSavedListener?.invoke()
         dismiss()

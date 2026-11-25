@@ -264,14 +264,15 @@ class HomeFragment : Fragment() {
         if (_binding == null) return
         try {
             val context = context ?: return
+            val activeId = ProfileManager.getActiveProfileId(context)
+            val activeProfile = dbHelper.profileDao.getProfileById(activeId)
+
             val profilePrefs = context.getSharedPreferences("duorhythm_user_profile_prefs", Context.MODE_PRIVATE)
             val savedName = profilePrefs.getString(com.duorhythm.app.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.trim()
                 ?: profilePrefs.getString("user_display_name", null)?.trim()
-            val profileName = if (!savedName.isNullOrEmpty()) savedName else "Scholar"
+            val profileName = activeProfile?.name?.takeIf { it.isNotBlank() }
+                ?: if (!savedName.isNullOrEmpty()) savedName else "Scholar"
             binding.tvWelcomeUser.text = "Welcome back, $profileName"
-
-            val activeId = ProfileManager.getActiveProfileId(context)
-            val activeProfile = dbHelper.profileDao.getProfileById(activeId)
 
             binding.ivUserProfile.setImageDrawable(null)
             binding.ivUserProfile.setImageBitmap(null)
@@ -440,10 +441,13 @@ class HomeFragment : Fragment() {
             binding.btnWorkMode.setTextColor(Color.parseColor("#64748B"))
 
             // Restore Student Header & Portal Banner
+            val activeId = ProfileManager.getActiveProfileId(context)
+            val activeProfile = db.profileDao.getProfileById(activeId)
             val profilePrefs = context.getSharedPreferences("duorhythm_user_profile_prefs", Context.MODE_PRIVATE)
             val savedName = profilePrefs.getString(com.duorhythm.app.data.local.pref.UserProfileManager.KEY_USER_NAME, null)?.trim()
                 ?: profilePrefs.getString("user_display_name", null)?.trim()
-            val displayName = if (!savedName.isNullOrBlank()) savedName else "Mahdi Islam Musanna"
+            val displayName = activeProfile?.name?.takeIf { it.isNotBlank() }
+                ?: if (!savedName.isNullOrBlank()) savedName else "Scholar"
             binding.tvWelcomeUser.text = "Welcome back, $displayName"
             binding.tvPortalCardTitle.text = "Study Portal"
             val courses = db.getCourses(profileId)

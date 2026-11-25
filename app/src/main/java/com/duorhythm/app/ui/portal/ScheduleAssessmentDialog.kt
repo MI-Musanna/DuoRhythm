@@ -576,6 +576,7 @@ class ScheduleAssessmentDialog(
                 val finalEntity = assessmentEntity.copy(id = newId)
                 AssessmentAlarmScheduler.scheduleAssessmentAlarms(context, finalEntity)
 
+                (context as? android.app.Activity)?.let { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(it) }
                 Toast.makeText(context, "Assessment scheduled with smart notifications!", Toast.LENGTH_SHORT).show()
             }
 

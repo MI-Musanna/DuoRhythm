@@ -1432,10 +1432,18 @@ class SettingsActivity : AppCompatActivity() {
                         }
                     }
 
-                    // Delete Action
+                    // Delete Action with Confirmation Dialog & Two-Way Sync
                     v.findViewById<View>(R.id.btnDeleteSnapshot).setOnClickListener {
-                        BackupSnapshotHelper.deleteSnapshot(item.file)
-                        loadSavedSnapshots()
+                        androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                            .setTitle("Delete Backup Snapshot?")
+                            .setMessage("Permanently delete snapshot (${item.formattedDate}) and its matching public export from Downloads/DuoRhythm_Backups/?")
+                            .setPositiveButton("Delete") { _, _ ->
+                                BackupSnapshotHelper.deleteSnapshot(this@SettingsActivity, item.file)
+                                loadSavedSnapshots()
+                                Toast.makeText(this@SettingsActivity, "Snapshot deleted.", Toast.LENGTH_SHORT).show()
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
                     }
                 }
 

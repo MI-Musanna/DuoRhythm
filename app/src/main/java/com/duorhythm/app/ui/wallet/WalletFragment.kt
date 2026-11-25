@@ -1008,6 +1008,7 @@ class WalletFragment : Fragment() {
                     dialog.dismiss()
                     loadData()
                     WalletDataSyncManager.notifyChanged()
+                    com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                     Toast.makeText(requireContext(), "Created '$name' account", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(requireContext(), "Maximum of 5 accounts reached", Toast.LENGTH_SHORT).show()
@@ -1299,7 +1300,7 @@ class WalletFragment : Fragment() {
                 dialog.dismiss()
                 loadData()
                 WalletDataSyncManager.notifyChanged()
-                if (txType == "INCOME") { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity) }
+                com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
                 Toast.makeText(requireContext(), "$txType recorded in ${selectedBucket.name}", Toast.LENGTH_SHORT).show()
             }
         }

@@ -145,6 +145,13 @@ object BackupSnapshotHelper {
                     DataBackupHelper.restoreAttachmentsFromJson(context, root)
                     DataBackupHelper.restoreUiPreferencesFromJson(context, root)
                 } catch (_: Exception) {}
+                try {
+                    val activeId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(context)
+                    val activeProfile = db.profileDao.getProfileById(activeId) ?: db.getAllProfiles().firstOrNull()
+                    if (activeProfile != null) {
+                        com.duorhythm.app.data.local.pref.ProfileManager.syncUserProfile(context, activeProfile)
+                    }
+                } catch (_: Exception) {}
                 DatabaseHelper.reactivateAllAlarms(context)
                 val now = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
                 BackupService.setLastBackupTimestamp(context, "$now (Restored)")
@@ -155,11 +162,62 @@ object BackupSnapshotHelper {
         }
     }
 
-    fun deleteSnapshot(file: File): Boolean {
-        return try {
-            file.delete()
-        } catch (_: Exception) {
-            false
-        }
+    fun deleteSnapshot(file: File): Boolean = deleteSnapshot(null, file)
+
+    fun deleteSnapshot(context: Context?, file: File): Boolean {
+        var deletedInternal = false
+        try {
+            deletedInternal = file.delete()
+        } catch (_: Exception) {}
+
+        // Match public backup file name in Downloads/DuoRhythm_Backups/
+        try {
+            val fileName = file.name
+            val timestamp = when {
+                fileName.contains("_Snapshot_") -> fileName.substringAfter("_Snapshot_").substringBefore(".")
+                fileName.contains("DuoRhythm_Backup_") -> fileName.substringAfter("DuoRhythm_Backup_").substringBefore(".")
+                else -> ""
+            }
+
+            if (timestamp.isNotBlank()) {
+                val publicTargetName = "DuoRhythm_Backup_${timestamp}.json"
+                val publicDir = getPublicBackupDirectory()
+                val publicFile = File(publicDir, publicTargetName)
+                if (publicFile.exists()) {
+                    publicFile.delete()
+                }
+
+                if (context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    try {
+                        val projection = arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME)
+                        val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+                        val selectionArgs = arrayOf(publicTargetName)
+                        context.contentResolver.query(
+                            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                            projection,
+                            selection,
+                            selectionArgs,
+                            null
+                        )?.use { cursor ->
+                            val idCol = cursor.getColumnIndex(MediaStore.MediaColumns._ID)
+                            if (idCol >= 0) {
+                                while (cursor.moveToNext()) {
+                                    val id = cursor.getLong(idCol)
+                                    val uri = android.content.ContentUris.withAppendedId(
+                                        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                                        id
+                                    )
+                                    try {
+                                        context.contentResolver.delete(uri, null, null)
+                                    } catch (_: Exception) {}
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {}
+                }
+            }
+        } catch (_: Exception) {}
+
+        return deletedInternal
     }
 }
