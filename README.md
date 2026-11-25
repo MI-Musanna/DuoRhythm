@@ -62,7 +62,7 @@ Detailed version history and release notes are maintained in the [GitHub Release
 ## 📥 Installation
 
 1. Grab the latest package from [Releases](https://github.com/MI-Musanna/DuoRhythm/releases/latest).
-2. Install `DuoRhythm-v1.0.1-beta.apk` on Android 8.0 (API 26) or higher.
+2. Install `The Latest apk` on Android 8.0 (API 26) or higher.
 3. Grant storage permissions for document attachment management if prompted.
 
 ---
