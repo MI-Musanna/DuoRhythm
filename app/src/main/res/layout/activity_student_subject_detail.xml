@@ -337,32 +337,12 @@
                 tools:listitem="@layout/item_course_document" />
 
             <!-- Empty Materials Placeholder -->
-            <LinearLayout
+            <com.duorhythm.app.ui.custom.DuoEmptyStateView
                 android:id="@+id/layoutEmptyMaterials"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_empty_state_card"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="24dp"
-                android:visibility="gone">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_article"
-                    app:tint="@color/text_muted"
-                    android:contentDescription="No documents" />
-
-                <TextView
-                    android:id="@+id/tvEmptyMaterials"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="No attached PDF documents or note images yet."
-                    android:textColor="@color/text_muted"
-                    android:textSize="12sp" />
-            </LinearLayout>
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
 
             <!-- Dynamic Tasks & Assessments Header & Dynamic Filter Strip -->
             <LinearLayout
@@ -437,64 +417,12 @@
                 tools:listitem="@layout/item_subject_work" />
 
             <!-- Empty Subject Items Placeholder -->
-            <LinearLayout
+            <com.duorhythm.app.ui.custom.DuoEmptyStateView
                 android:id="@+id/layoutEmptySubjectItems"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_empty_state_card"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="24dp"
-                android:visibility="gone">
-
-                <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="@drawable/bg_glass_capsule_icon">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_tasks"
-                        app:tint="@color/empty_state_icon_tint" />
-                </FrameLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="No Items in this Category"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center"
-                    android:text="Add homework, practical exercises, exam dates, or assignments"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnEmptyAddSubjectItem"
-                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:layout_marginTop="14dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:paddingHorizontal="16dp"
-                    android:text="+ Add Entry"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="@color/primary"
-                    app:strokeWidth="0dp"
-                    app:cornerRadius="16dp" />
-            </LinearLayout>
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

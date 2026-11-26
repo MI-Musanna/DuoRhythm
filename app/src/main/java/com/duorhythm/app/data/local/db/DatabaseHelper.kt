@@ -2136,6 +2136,23 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
+    val taskUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    val timetableUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+
+    fun getTasksFlow(profileId: Long = getActiveProfileId(), isGoal: Boolean? = null): kotlinx.coroutines.flow.Flow<List<TaskItem>> = kotlinx.coroutines.flow.flow {
+        emit(getAllTasks("ALL", isGoal, profileId))
+        taskUpdateFlow.collect {
+            emit(getAllTasks("ALL", isGoal, profileId))
+        }
+    }
+
+    fun getScheduleForDayFlow(dayOfWeek: Int, profileId: Long = getActiveProfileId()): kotlinx.coroutines.flow.Flow<List<ClassScheduleItem>> = kotlinx.coroutines.flow.flow {
+        emit(getScheduleForDay(dayOfWeek, profileId))
+        timetableUpdateFlow.collect {
+            emit(getScheduleForDay(dayOfWeek, profileId))
+        }
+    }
+
     fun getTasks(profileId: Long = getActiveProfileId()): List<TaskItem> = getAllTasks("ALL", null, profileId)
 
     fun insertTask(task: TaskItem): Long {
@@ -2161,7 +2178,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("is_goal", if (task.isGoal) 1 else 0)
             put("progress", task.progress)
         }
-        return db.insertWithOnConflict("tasks", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val rowId = db.insertWithOnConflict("tasks", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        taskUpdateFlow.tryEmit(Unit)
+        return rowId
     }
 
     fun updateTaskCompletion(taskId: Long, isCompleted: Boolean) {
@@ -2170,6 +2189,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("is_completed", if (isCompleted) 1 else 0)
         }
         db.update("tasks", cv, "id = ?", arrayOf(taskId.toString()))
+        taskUpdateFlow.tryEmit(Unit)
     }
 
     fun updateTaskProgress(taskId: Long, progress: Int) {
@@ -2182,6 +2202,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
         }
         db.update("tasks", cv, "id = ?", arrayOf(taskId.toString()))
+        taskUpdateFlow.tryEmit(Unit)
     }
 
     fun updateTask(task: TaskItem): Int {
@@ -2205,7 +2226,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("is_goal", if (task.isGoal) 1 else 0)
             put("progress", task.progress)
         }
-        return db.update("tasks", cv, "id = ?", arrayOf(task.id.toString()))
+        val rows = db.update("tasks", cv, "id = ?", arrayOf(task.id.toString()))
+        taskUpdateFlow.tryEmit(Unit)
+        return rows
     }
 
     fun deleteTask(taskId: Long): Int {
@@ -2213,7 +2236,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             com.duorhythm.app.scheduler.TaskAlarmScheduler.cancelTaskReminder(appContext, taskId)
         } catch (_: Exception) {}
         val db = writableDatabase
-        return db.delete("tasks", "id = ?", arrayOf(taskId.toString()))
+        val rows = db.delete("tasks", "id = ?", arrayOf(taskId.toString()))
+        taskUpdateFlow.tryEmit(Unit)
+        return rows
     }
 
     // ==========================================
@@ -3160,6 +3185,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         // Auto add to attendance if not already present
         ensureSubjectAttendance(item.subjectName)
         val res = db.insertWithOnConflict("classes", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        timetableUpdateFlow.tryEmit(Unit)
         try {
             com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
         } catch (_: Exception) {}
@@ -3180,6 +3206,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("building_or_link", item.buildingOrLink)
         }
         val res = db.update("classes", cv, "id = ?", arrayOf(item.id.toString()))
+        timetableUpdateFlow.tryEmit(Unit)
         try {
             com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
         } catch (_: Exception) {}
@@ -3193,6 +3220,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } catch (_: Exception) {}
         val db = writableDatabase
         val res = db.delete("classes", "id = ?", arrayOf(id.toString()))
+        timetableUpdateFlow.tryEmit(Unit)
         try {
             com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
         } catch (_: Exception) {}
@@ -4967,6 +4995,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.delete("student_subjects", "id = ?", arrayOf(courseId.toString()))
 
             db.setTransactionSuccessful()
+            timetableUpdateFlow.tryEmit(Unit)
             try {
                 com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
             } catch (_: Exception) {}

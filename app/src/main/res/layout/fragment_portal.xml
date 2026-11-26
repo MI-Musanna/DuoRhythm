@@ -531,80 +531,13 @@
                 android:layout_height="0dp"
                 android:visibility="gone" />
 
-            <!-- Clean Onboarding Empty State Card -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Clean Onboarding Empty State -->
+            <com.duorhythm.app.ui.custom.DuoEmptyStateView
                 android:id="@+id/layoutEmptyStudentSubjects"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/card_stroke"
-                app:cardBackgroundColor="@color/surface_card"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="28dp">
-
-                    <FrameLayout
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
-                        android:background="@drawable/bg_icon_badge_cyan">
-
-                        <ImageView
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_school"
-                            app:tint="#38BDF8" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:text="Start Tracking Your Courses"
-                        android:textColor="@color/text_primary"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="Organize homework, practicals, exams, and attendance."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEnrollFirstSubject"
-                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:layout_marginTop="18dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="20dp"
-                        android:text="+ Enroll First Subject"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="#0284C7"
-                        app:cornerRadius="16dp" />
-
-                    <View
-                        android:id="@+id/btnEmptyAddSubject"
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:visibility="gone" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                android:visibility="gone" />
 
             </LinearLayout>
             <!-- END OF layoutSegmentCourses -->
@@ -784,16 +717,11 @@
                     tools:listitem="@layout/item_subject_work" />
 
                 <!-- Empty state for assessments -->
-                <TextView
-                    android:id="@+id/tvEmptyAssessments"
+                <com.duorhythm.app.ui.custom.DuoEmptyStateView
+                    android:id="@+id/emptyAssessmentsView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:background="@drawable/bg_glass_squircle_action"
-                    android:padding="14dp"
-                    android:text="No upcoming exams or assessments scheduled. Tap + SCHEDULE ASSESSMENT to add one!"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"
+                    android:layout_marginTop="8dp"
                     android:visibility="gone" />
 
             </LinearLayout>
@@ -928,16 +856,11 @@
                     android:nestedScrollingEnabled="false"
                     tools:listitem="@layout/item_contact_group" />
 
-                <TextView
-                    android:id="@+id/tvEmptyStudentContacts"
+                <com.duorhythm.app.ui.custom.DuoEmptyStateView
+                    android:id="@+id/emptyStudentContactsView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:background="@drawable/bg_glass_squircle_action"
-                    android:padding="12dp"
-                    android:text="No contacts recorded yet. Tap + Contact to save teachers or classmates!"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"
+                    android:layout_marginTop="8dp"
                     android:visibility="gone" />
 
             </LinearLayout>
@@ -1046,16 +969,11 @@
                 android:nestedScrollingEnabled="false"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-            <TextView
-                android:id="@+id/tvEmptyWorkOrders"
+            <com.duorhythm.app.ui.custom.DuoEmptyStateView
+                android:id="@+id/emptyWorkOrdersView"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/bg_pill_dark"
-                android:gravity="center"
-                android:text="No client orders recorded. Tap '+ NEW ORDER' above."
-                android:textColor="@color/text_tertiary_muted"
-                android:textSize="12sp"
                 android:visibility="gone" />
 
             <!-- Directory & Communities Section -->
@@ -1095,16 +1013,12 @@
                 android:nestedScrollingEnabled="false"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-            <TextView
-                android:id="@+id/tvEmptyWorkContacts"
+            <com.duorhythm.app.ui.custom.DuoEmptyStateView
+                android:id="@+id/emptyWorkContactsView"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_pill_dark"
-                android:gravity="center"
-                android:text="No client contacts saved. Tap '+ CONTACT' above."
-                android:textColor="@color/text_tertiary_muted"
-                android:textSize="11.5sp" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
         </LinearLayout>
 
     </LinearLayout>

@@ -2383,15 +2383,11 @@
                                 android:nestedScrollingEnabled="false"
                                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-                            <TextView
+                            <com.duorhythm.app.ui.custom.DuoEmptyStateView
                                 android:id="@+id/tvEmptySnapshots"
                                 android:layout_width="match_parent"
-                                android:layout_height="56dp"
-                                android:background="@drawable/bg_pill_dark"
-                                android:gravity="center"
-                                android:text="No snapshots saved yet. Tap 'CREATE BACKUP' above."
-                                android:textColor="#64748B"
-                                android:textSize="11.5sp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
                                 android:visibility="gone" />
                         </LinearLayout>
 

@@ -26,8 +26,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
+import androidx.core.text.HtmlCompat
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
+import java.io.StringReader
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -37,14 +39,17 @@ import java.util.Locale
 
 object UpdateManager {
 
-    private const val GITHUB_RELEASES_API = "https://api.github.com/repos/MI-Musanna/DuoRhythm/releases"
+    private const val GITHUB_RELEASES_ATOM = "https://github.com/MI-Musanna/DuoRhythm/releases.atom"
+    private const val GITHUB_RELEASES_LATEST_URL = "https://github.com/MI-Musanna/DuoRhythm/releases/latest"
+    private const val GITHUB_DOWNLOAD_BASE = "https://github.com/MI-Musanna/DuoRhythm/releases/download"
     private var downloadJob: Job? = null
 
     @Volatile
     var isChecking: Boolean = false
         internal set
 
-    internal var releasesApiUrl: String = GITHUB_RELEASES_API
+    internal var releasesAtomUrl: String = GITHUB_RELEASES_ATOM
+    internal var releasesLatestUrl: String = GITHUB_RELEASES_LATEST_URL
     internal var ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
     internal var mainDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Main
 
@@ -99,49 +104,147 @@ object UpdateManager {
         } catch (_: Exception) {}
     }
 
-    // 2. CHECK UPDATES: Strictly discriminates between Stable and Beta
-    fun parseReleasesJson(
-        rawJson: String,
+    // 2. CHECK UPDATES: Zero-Rate-Limit GitHub CDN (releases.atom + /releases/latest redirect)
+    fun buildCdnApkUrl(tag: String): String {
+        val normalizedTag = if (tag.startsWith("v", ignoreCase = true)) tag else "v$tag"
+        return "$GITHUB_DOWNLOAD_BASE/$normalizedTag/DuoRhythm-$normalizedTag.apk"
+    }
+
+    fun parseReleasesAtom(
+        xml: String,
         prefs: android.content.SharedPreferences? = null
     ): Pair<ReleaseInfo?, ReleaseInfo?> {
-        val array = JSONArray(rawJson)
         var latestStable: ReleaseInfo? = null
         var latestBeta: ReleaseInfo? = null
 
-        for (i in 0 until array.length()) {
-            val item = array.optJSONObject(i) ?: continue
-            if (item.optBoolean("draft", false)) continue
-            val tag = item.optString("tag_name", "").trim()
-            if (tag.isEmpty()) continue
+        val factory = XmlPullParserFactory.newInstance().apply { isNamespaceAware = false }
+        val parser = factory.newPullParser()
+        parser.setInput(StringReader(xml))
 
-            val body = item.optString("body", "Bug fixes and performance improvements.")
-            val assets = item.optJSONArray("assets")
-            var apkUrl = ""
-            if (assets != null) {
-                for (a in 0 until assets.length()) {
-                    val asset = assets.optJSONObject(a) ?: continue
-                    if (asset.optString("name", "").endsWith(".apk", ignoreCase = true)) {
-                        apkUrl = asset.optString("browser_download_url", "")
-                        if (apkUrl.isNotEmpty()) break
+        var eventType = parser.eventType
+        var inEntry = false
+        var currentTag = ""
+        var entryTitle = ""
+        var entryTag = ""
+        var entryContentHtml = ""
+        var entryIsPrerelease = false
+
+        val editor = prefs?.edit()
+
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    currentTag = parser.name.orEmpty().lowercase(Locale.US)
+                    if (currentTag == "entry") {
+                        inEntry = true
+                        entryTitle = ""
+                        entryTag = ""
+                        entryContentHtml = ""
+                        entryIsPrerelease = false
+                    } else if (inEntry && currentTag == "link") {
+                        val href = parser.getAttributeValue(null, "href").orEmpty()
+                        if (href.contains("/releases/tag/")) {
+                            entryTag = href.substringAfter("/releases/tag/").substringBefore("?").substringBefore("#").trim()
+                        }
+                    } else if (inEntry && currentTag == "category") {
+                        val term = parser.getAttributeValue(null, "term").orEmpty()
+                        if (term.equals("prerelease", ignoreCase = true)) {
+                            entryIsPrerelease = true
+                        }
                     }
                 }
-            }
-
-            if (apkUrl.isNotEmpty()) {
-                val isPrerelease = item.optBoolean("prerelease", false)
-                val release = ReleaseInfo(tag, isPrerelease, apkUrl, body)
-
-                prefs?.edit()?.putString("online_body_${cleanVersion(tag)}", body)?.apply()
-
-                if (!isPrerelease && (latestStable == null || compareVersions(release.tagName, latestStable.tagName) > 0)) {
-                    latestStable = release
+                XmlPullParser.TEXT -> {
+                    if (inEntry) {
+                        val text = parser.text.orEmpty()
+                        when (currentTag) {
+                            "title" -> entryTitle += text
+                            "content" -> entryContentHtml += text
+                            "id" -> if (entryTag.isEmpty() && text.contains("/")) {
+                                val candidate = text.substringAfterLast("/").trim()
+                                if (candidate.startsWith("v", ignoreCase = true) || candidate.firstOrNull()?.isDigit() == true) {
+                                    entryTag = candidate
+                                }
+                            }
+                        }
+                    }
                 }
-                if (isPrerelease && (latestBeta == null || compareVersions(release.tagName, latestBeta.tagName) > 0)) {
-                    latestBeta = release
+                XmlPullParser.END_TAG -> {
+                    val endName = parser.name.orEmpty().lowercase(Locale.US)
+                    if (endName == "entry" && inEntry) {
+                        inEntry = false
+                        val resolvedTag = entryTag.ifBlank {
+                            entryTitle.trim().split(Regex("\\s+")).lastOrNull {
+                                it.startsWith("v", ignoreCase = true) || it.firstOrNull()?.isDigit() == true
+                            }.orEmpty()
+                        }.trim()
+
+                        if (resolvedTag.isNotEmpty()) {
+                            val rawText = if (entryContentHtml.isNotBlank()) {
+                                HtmlCompat.fromHtml(entryContentHtml, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                                    .toString()
+                                    .replace('\u00A0', ' ')
+                                    .lines()
+                                    .map { it.trimEnd() }
+                                    .joinToString("\n")
+                                    .replace(Regex("\n{3,}"), "\n\n")
+                                    .trim()
+                            } else {
+                                entryTitle.trim().ifBlank { "Bug fixes and performance improvements." }
+                            }
+
+                            val release = ReleaseInfo(
+                                tagName = resolvedTag,
+                                isPrerelease = entryIsPrerelease,
+                                downloadUrl = buildCdnApkUrl(resolvedTag),
+                                bodyText = rawText
+                            )
+
+                            editor?.putString("online_body_${cleanVersion(resolvedTag)}", rawText)
+                            editor?.putString("online_body_$resolvedTag", rawText)
+
+                            if (!entryIsPrerelease && (latestStable == null || compareVersions(release.tagName, latestStable.tagName) > 0)) {
+                                latestStable = release
+                            }
+                            if (entryIsPrerelease && (latestBeta == null || compareVersions(release.tagName, latestBeta.tagName) > 0)) {
+                                latestBeta = release
+                            }
+                        }
+                    }
+                    currentTag = ""
                 }
             }
+            eventType = parser.next()
         }
+        editor?.apply()
         return Pair(latestStable, latestBeta)
+    }
+
+    fun resolveLatestTagRedirect(
+        latestUrl: String = releasesLatestUrl,
+        prefs: android.content.SharedPreferences? = null
+    ): ReleaseInfo? {
+        val conn = URL(latestUrl).openConnection() as HttpURLConnection
+        conn.instanceFollowRedirects = false
+        conn.setRequestProperty("User-Agent", "DuoRhythm-Android")
+        conn.connectTimeout = 8000
+        conn.readTimeout = 8000
+        return try {
+            val code = conn.responseCode
+            val location = conn.getHeaderField("Location").orEmpty()
+            if (code in 300..399 && location.contains("/releases/tag/")) {
+                val tag = location.substringAfter("/releases/tag/").substringBefore("?").substringBefore("#").trim()
+                if (tag.isNotEmpty()) {
+                    val cachedBody = prefs?.getString("online_body_${cleanVersion(tag)}", null)
+                        ?: prefs?.getString("online_body_$tag", null)
+                        ?: "Latest release $tag available on GitHub."
+                    ReleaseInfo(tag, isPrerelease = false, downloadUrl = buildCdnApkUrl(tag), bodyText = cachedBody)
+                } else null
+            } else {
+                null
+            }
+        } finally {
+            try { conn.disconnect() } catch (_: Exception) {}
+        }
     }
 
     fun checkForUpdates(
@@ -158,35 +261,55 @@ object UpdateManager {
         isChecking = true
         CoroutineScope(ioDispatcher).launch {
             try {
-                val conn = URL(releasesApiUrl).openConnection() as HttpURLConnection
-                conn.setRequestProperty("User-Agent", "DuoRhythm-Android")
-                conn.connectTimeout = 8000
-                conn.readTimeout = 8000
+                val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
+                var latestStable: ReleaseInfo? = null
+                var latestBeta: ReleaseInfo? = null
+                var primaryError: Exception? = null
 
-                val code = conn.responseCode
-                if (code == 200) {
-                    val rawJson = conn.inputStream.bufferedReader().use { it.readText() }
-                    val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
-                    val (latestStable, latestBeta) = parseReleasesJson(rawJson, prefs)
-
-                    withContext(mainDispatcher) {
-                        if (onResult != null) {
-                            onResult(latestStable, latestBeta)
-                        } else if (isManualCheck) {
-                            showModernDualChannelDialog(context, latestStable, latestBeta)
-                        } else {
-                            handleAutoStablePrompt(context, latestStable)
-                        }
+                // Primary: GitHub CDN releases.atom (zero rate limit + full release notes)
+                try {
+                    val conn = URL(releasesAtomUrl).openConnection() as HttpURLConnection
+                    conn.setRequestProperty("User-Agent", "DuoRhythm-Android")
+                    conn.connectTimeout = 8000
+                    conn.readTimeout = 8000
+                    val code = conn.responseCode
+                    if (code == 200) {
+                        val rawXml = conn.inputStream.bufferedReader().use { it.readText() }
+                        val parsed = parseReleasesAtom(rawXml, prefs)
+                        latestStable = parsed.first
+                        latestBeta = parsed.second
+                    } else {
+                        primaryError = java.io.IOException("CDN feed returned HTTP $code")
                     }
-                } else {
-                    withContext(mainDispatcher) {
-                        if (isManualCheck) {
-                            com.duorhythm.app.ui.custom.DuoAlertBanner.error(
-                                context,
-                                "Update check failed: GitHub API returned HTTP $code"
-                            )
-                        }
-                        onResult?.invoke(null, null)
+                    conn.disconnect()
+                } catch (e: Exception) {
+                    primaryError = e
+                }
+
+                // Fallback: /releases/latest redirect resolution
+                if (latestStable == null) {
+                    val fallbackStable = try {
+                        resolveLatestTagRedirect(releasesLatestUrl, prefs)
+                    } catch (e: Exception) {
+                        if (primaryError == null) primaryError = e
+                        null
+                    }
+                    if (fallbackStable != null) {
+                        latestStable = fallbackStable
+                    }
+                }
+
+                if (latestStable == null && latestBeta == null && primaryError != null) {
+                    throw primaryError!!
+                }
+
+                withContext(mainDispatcher) {
+                    if (onResult != null) {
+                        onResult(latestStable, latestBeta)
+                    } else if (isManualCheck) {
+                        showModernDualChannelDialog(context, latestStable, latestBeta)
+                    } else {
+                        handleAutoStablePrompt(context, latestStable)
                     }
                 }
             } catch (e: Exception) {
@@ -452,31 +575,28 @@ object UpdateManager {
             tvBody?.visibility = View.VISIBLE
             tvBody?.text = formatReleaseNotes(localChangelog)
         } else {
-            // 3. Query GitHub using properly normalized tag (with 'v')
-            CoroutineScope(Dispatchers.IO).launch {
+            // 3. Query GitHub CDN releases.atom using properly normalized tag (with 'v')
+            CoroutineScope(ioDispatcher).launch {
                 var fetchedBody: String? = null
 
                 try {
-                    val url = URL("$GITHUB_RELEASES_API/tags/$targetTag")
+                    val url = URL(releasesAtomUrl)
                     val conn = url.openConnection() as HttpURLConnection
                     conn.setRequestProperty("User-Agent", "DuoRhythm-Android")
                     conn.connectTimeout = 6000
                     conn.readTimeout = 6000
 
                     if (conn.responseCode == 200) {
-                        val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-                        fetchedBody = json.optString("body", "")
-                        if (!fetchedBody.isNullOrBlank()) {
-                            prefs.edit()
-                                .putString("online_body_$targetTag", fetchedBody)
-                                .putString("online_body_$cleanVer", fetchedBody)
-                                .putString("online_body_$currentVer", fetchedBody)
-                                .apply()
-                        }
+                        val xml = conn.inputStream.bufferedReader().use { it.readText() }
+                        parseReleasesAtom(xml, prefs)
+                        fetchedBody = prefs.getString("online_body_$targetTag", null)
+                            ?: prefs.getString("online_body_$cleanVer", null)
+                            ?: prefs.getString("online_body_$currentVer", null)
                     }
+                    conn.disconnect()
                 } catch (_: Exception) {}
 
-                withContext(Dispatchers.Main) {
+                withContext(mainDispatcher) {
                     progressBar?.visibility = View.GONE
                     tvBody?.visibility = View.VISIBLE
                     if (!fetchedBody.isNullOrBlank()) {
@@ -484,7 +604,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Fixed Settings Check Updates dialog & null beta release handling.\n• Enforced finally-block lock reset & Activity-scoped alert feedback.\n• Verified 4-segment semantic version parsing (-beta suffix stripping)."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Zero-rate-limit GitHub CDN releases.atom updater & offline notes cache.\n• Reactive Flow SSOT for Tasks, Goals, and Class Schedules.\n• Unified DuoEmptyStateView & Home 1/3 Resumable Get-Started Checklist."
                     }
                 }
             }

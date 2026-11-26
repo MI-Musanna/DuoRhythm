@@ -206,7 +206,6 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
 
         binding.btnAddSubjectItem.setOnClickListener { showAddItemDialog() }
         binding.btnAddTaskExam.setOnClickListener { showAddItemDialog() }
-        binding.btnEmptyAddSubjectItem.setOnClickListener { showAddItemDialog() }
 
         binding.btnAddMaterial.setOnClickListener { pickMaterialLauncher.launch("*/*") }
 
@@ -218,7 +217,6 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         AnimationUtils.attachTactileFeedback(
             binding.btnAddSubjectItem,
             binding.btnAddTaskExam,
-            binding.btnEmptyAddSubjectItem,
             binding.btnAddMaterial,
             binding.btnAttachSyllabusFile,
             binding.btnViewSyllabusFile,
@@ -359,11 +357,19 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         if (filtered.isEmpty()) {
             binding.rvSubjectMaterials.visibility = View.GONE
             binding.layoutEmptyMaterials.visibility = View.VISIBLE
-            binding.tvEmptyMaterials.text = if (allMaterials.isEmpty()) {
-                "No attached PDF documents or note images yet."
-            } else {
-                "No documents found matching this filter."
+            binding.layoutEmptyMaterials.setState(
+                iconRes = R.drawable.ic_file_pdf,
+                title = if (allMaterials.isEmpty()) "No study materials attached" else "No matching materials",
+                subtitle = if (allMaterials.isEmpty()) {
+                    "Attach lecture PDFs, formula sheets, or note images for quick revision."
+                } else {
+                    "Switch filters above or attach another document for this course."
+                },
+                actionText = "+ Attach File"
+            ) {
+                pickMaterialLauncher.launch("*/*")
             }
+            binding.layoutEmptyMaterials.setAccentColor(Color.parseColor("#38BDF8"))
         } else {
             binding.rvSubjectMaterials.visibility = View.VISIBLE
             binding.layoutEmptyMaterials.visibility = View.GONE
@@ -786,6 +792,15 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
         if (filtered.isEmpty()) {
             binding.rvSubjectItems.visibility = View.GONE
             binding.layoutEmptySubjectItems.visibility = View.VISIBLE
+            binding.layoutEmptySubjectItems.setState(
+                iconRes = R.drawable.ic_tasks,
+                title = if (category.equals("All", ignoreCase = true)) "No course items yet" else "No items in $category",
+                subtitle = "Add homework, practical exercises, exam dates, or assignments.",
+                actionText = "+ Add Entry"
+            ) {
+                showAddItemDialog()
+            }
+            binding.layoutEmptySubjectItems.setAccentColor(Color.parseColor("#38BDF8"))
         } else {
             binding.rvSubjectItems.visibility = View.VISIBLE
             binding.layoutEmptySubjectItems.visibility = View.GONE

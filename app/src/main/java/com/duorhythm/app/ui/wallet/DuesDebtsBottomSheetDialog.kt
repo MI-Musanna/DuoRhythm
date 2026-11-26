@@ -144,6 +144,15 @@ class DuesDebtsBottomSheetDialog : BottomSheetDialogFragment() {
         if (filtered.isEmpty()) {
             binding.rvDuesDebts.visibility = View.GONE
             binding.layoutEmptyDues.visibility = View.VISIBLE
+            binding.layoutEmptyDues.setState(
+                iconRes = R.drawable.ic_verified,
+                title = "No pending dues or debts",
+                subtitle = "All loans and receivables are settled. Record one whenever needed.",
+                actionText = "+ Add Record"
+            ) {
+                showAddDueDebtDialog()
+            }
+            binding.layoutEmptyDues.setAccentColor(Color.parseColor("#34D399"))
         } else {
             binding.rvDuesDebts.visibility = View.VISIBLE
             binding.layoutEmptyDues.visibility = View.GONE

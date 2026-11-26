@@ -103,14 +103,11 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <TextView
+    <com.duorhythm.app.ui.custom.DuoEmptyStateView
         android:id="@+id/tvEmptyHistory"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:gravity="center"
-        android:text="No exported timetable or exam snapshots found."
-        android:textColor="#64748B"
-        android:textSize="14sp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView

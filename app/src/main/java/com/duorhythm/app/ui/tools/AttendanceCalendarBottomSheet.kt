@@ -232,7 +232,14 @@ open class AttendanceCalendarBottomSheet(context: Context) : BottomSheetDialog(c
         if (currentClasses.isEmpty()) {
             binding.rvAttendanceClasses.visibility = View.GONE
             binding.layoutEmptyAttendanceClasses.visibility = View.VISIBLE
-            binding.tvEmptyTitle.text = "No classes scheduled for $dayOfWeekName"
+            binding.layoutEmptyAttendanceClasses.setState(
+                iconRes = com.duorhythm.app.R.drawable.ic_schedule,
+                title = "No classes scheduled for $dayOfWeekName",
+                subtitle = "Classes configured in your Timetable screen appear here automatically for logging attendance.",
+                actionText = "Done"
+            ) {
+                dismiss()
+            }
         } else {
             binding.rvAttendanceClasses.visibility = View.VISIBLE
             binding.layoutEmptyAttendanceClasses.visibility = View.GONE

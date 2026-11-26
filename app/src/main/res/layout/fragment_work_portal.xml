@@ -138,16 +138,11 @@
             android:layout_marginTop="10dp"
             android:nestedScrollingEnabled="false" />
 
-        <TextView
-            android:id="@+id/tvEmptyOrders"
+        <com.duorhythm.app.ui.custom.DuoEmptyStateView
+            android:id="@+id/emptyOrdersView"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/bg_pill_dark"
-            android:gravity="center"
-            android:text="No client orders recorded. Tap '+ NEW ORDER' above."
-            android:textColor="@color/text_secondary_slate"
-            android:textSize="12sp"
             android:visibility="gone" />
 
         <!-- Directory & Communities Section -->
@@ -185,5 +180,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:nestedScrollingEnabled="false" />
+
+        <com.duorhythm.app.ui.custom.DuoEmptyStateView
+            android:id="@+id/emptyWorkContactsView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

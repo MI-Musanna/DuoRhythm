@@ -178,14 +178,11 @@
                 android:nestedScrollingEnabled="false" />
 
             <!-- Empty State -->
-            <TextView
+            <com.duorhythm.app.ui.custom.DuoEmptyStateView
                 android:id="@+id/tvEmptyBucketHistory"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:gravity="center"
-                android:text="No transactions recorded yet"
-                android:textColor="@color/text_secondary_slate"
-                android:textSize="13sp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:visibility="gone" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -307,15 +307,24 @@ class PortalFragment : Fragment() {
         unifiedAssessmentsAdapter.onFilterApplied = { filtered ->
             if (filtered.isEmpty()) {
                 binding.rvUnifiedAssessments.visibility = View.GONE
-                binding.tvEmptyAssessments.visibility = View.VISIBLE
-                binding.tvEmptyAssessments.text = if (unifiedAssessmentsAdapter.masterItemCount == 0) {
-                    "No upcoming exams or assessments scheduled. Tap + SCHEDULE ASSESSMENT to add one!"
-                } else {
-                    "No assessments found matching filter."
+                binding.emptyAssessmentsView.visibility = View.VISIBLE
+                val isFilteredEmpty = unifiedAssessmentsAdapter.masterItemCount > 0
+                binding.emptyAssessmentsView.setState(
+                    iconRes = R.drawable.ic_assignment,
+                    title = if (isFilteredEmpty) "No matching assessments" else "No assessments scheduled",
+                    subtitle = if (isFilteredEmpty) {
+                        "Try clearing your search or category filter to view scheduled exams."
+                    } else {
+                        "Track upcoming midterms, finals, quizzes, and lab practicals here."
+                    },
+                    actionText = "+ Schedule Assessment"
+                ) {
+                    binding.btnScheduleAssessment.performClick()
                 }
+                binding.emptyAssessmentsView.setAccentColor(Color.parseColor("#38BDF8"))
             } else {
                 binding.rvUnifiedAssessments.visibility = View.VISIBLE
-                binding.tvEmptyAssessments.visibility = View.GONE
+                binding.emptyAssessmentsView.visibility = View.GONE
             }
         }
         binding.rvUnifiedAssessments.layoutManager = LinearLayoutManager(requireContext())
@@ -408,20 +417,6 @@ class PortalFragment : Fragment() {
             }
         }
         binding.btnAddSubject.setOnClickListener {
-            try {
-                showAddSubjectDialog()
-            } catch (e: Throwable) {
-                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
-            }
-        }
-        binding.btnEnrollFirstSubject.setOnClickListener {
-            try {
-                showAddSubjectDialog()
-            } catch (e: Throwable) {
-                android.util.Log.e("FATAL_DUORHYTHM", "Crash cause: ", e)
-            }
-        }
-        binding.btnEmptyAddSubject.setOnClickListener {
             try {
                 showAddSubjectDialog()
             } catch (e: Throwable) {
@@ -664,6 +659,15 @@ class PortalFragment : Fragment() {
         if (subjects.isEmpty()) {
             binding.rvEnrolledCourses.visibility = View.GONE
             binding.layoutEmptyStudentSubjects.visibility = View.VISIBLE
+            binding.layoutEmptyStudentSubjects.setState(
+                iconRes = R.drawable.ic_school,
+                title = "Start tracking your courses",
+                subtitle = "Organize homework, practicals, exams, and attendance in one place.",
+                actionText = "+ Enroll First Subject"
+            ) {
+                showAddSubjectDialog()
+            }
+            binding.layoutEmptyStudentSubjects.setAccentColor(Color.parseColor("#38BDF8"))
         } else {
             val isCollapsed = requireContext().getSharedPreferences("duorhythm_prefs", android.content.Context.MODE_PRIVATE).getBoolean("pref_courses_collapsed", false)
             binding.rvEnrolledCourses.visibility = if (isCollapsed) View.GONE else View.VISIBLE
@@ -719,15 +723,23 @@ class PortalFragment : Fragment() {
         studentContactsAdapter.updateList(contacts)
         if (contacts.isEmpty()) {
             binding.rvStudentContacts.visibility = View.GONE
-            binding.tvEmptyStudentContacts.visibility = View.VISIBLE
-            binding.tvEmptyStudentContacts.text = if (isStudentContactsTab) {
-                "No contacts recorded yet. Tap + Contact to save teachers or classmates!"
-            } else {
-                "No community or study group links saved yet. Tap + Add Link to save Discord, Telegram, or WhatsApp groups."
+            binding.emptyStudentContactsView.visibility = View.VISIBLE
+            binding.emptyStudentContactsView.setState(
+                iconRes = R.drawable.ic_contacts,
+                title = if (isStudentContactsTab) "No contacts saved" else "No study groups saved",
+                subtitle = if (isStudentContactsTab) {
+                    "Save faculty, advisors, or classmates for quick access."
+                } else {
+                    "Bookmark Discord, Telegram, or WhatsApp study groups here."
+                },
+                actionText = if (isStudentContactsTab) "+ Add Contact" else "+ Add Link"
+            ) {
+                if (isStudentContactsTab) showAddContactDialog(true) else showAddGroupLinkDialog(true)
             }
+            binding.emptyStudentContactsView.setAccentColor(Color.parseColor("#38BDF8"))
         } else {
             binding.rvStudentContacts.visibility = View.VISIBLE
-            binding.tvEmptyStudentContacts.visibility = View.GONE
+            binding.emptyStudentContactsView.visibility = View.GONE
         }
     }
 
@@ -752,10 +764,19 @@ class PortalFragment : Fragment() {
 
         if (orders.isEmpty()) {
             binding.rvWorkClientOrders.visibility = View.GONE
-            binding.tvEmptyWorkOrders.visibility = View.VISIBLE
+            binding.emptyWorkOrdersView.visibility = View.VISIBLE
+            binding.emptyWorkOrdersView.setState(
+                iconRes = R.drawable.ic_work,
+                title = "No client orders yet",
+                subtitle = "Log freelance commissions, deliverables, due dates, and client invoices.",
+                actionText = "+ New Order"
+            ) {
+                showCreateOrderDialog()
+            }
+            binding.emptyWorkOrdersView.setAccentColor(Color.parseColor("#10B981"))
         } else {
             binding.rvWorkClientOrders.visibility = View.VISIBLE
-            binding.tvEmptyWorkOrders.visibility = View.GONE
+            binding.emptyWorkOrdersView.visibility = View.GONE
 
             binding.rvWorkClientOrders.adapter = ClientOrdersAdapter(
                 orders = orders,
@@ -957,10 +978,19 @@ class PortalFragment : Fragment() {
         workContactsAdapter.updateList(all)
         if (all.isEmpty()) {
             binding.rvWorkPortalContacts.visibility = View.GONE
-            binding.tvEmptyWorkContacts.visibility = View.VISIBLE
+            binding.emptyWorkContactsView.visibility = View.VISIBLE
+            binding.emptyWorkContactsView.setState(
+                iconRes = R.drawable.ic_contacts,
+                title = "No client contacts saved",
+                subtitle = "Keep key clients, collaborators, and agency contacts one tap away.",
+                actionText = "+ Add Contact"
+            ) {
+                showAddContactDialog(false)
+            }
+            binding.emptyWorkContactsView.setAccentColor(Color.parseColor("#10B981"))
         } else {
             binding.rvWorkPortalContacts.visibility = View.VISIBLE
-            binding.tvEmptyWorkContacts.visibility = View.GONE
+            binding.emptyWorkContactsView.visibility = View.GONE
         }
     }
 

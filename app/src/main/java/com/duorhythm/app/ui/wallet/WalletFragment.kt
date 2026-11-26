@@ -392,7 +392,6 @@ class WalletFragment : Fragment() {
         }
         binding.btnAddAccount.setOnClickListener { onAddAccountClick() }
         binding.btnAddBucket.setOnClickListener { onAddAccountClick() }
-        binding.btnEmptyAddBucket.setOnClickListener { onAddAccountClick() }
         binding.btnSetupFirstAccount.setOnClickListener { onAddAccountClick() }
 
         // Active Subscriptions Pill: opens recurring bills manager
@@ -439,7 +438,6 @@ class WalletFragment : Fragment() {
             binding.btnHeroDuesDebts,
             binding.btnAddAccount,
             binding.btnAddBucket,
-            binding.btnEmptyAddBucket,
             binding.btnManageSubscriptions,
             binding.btnAddTransaction,
             binding.btnRecordTransaction,

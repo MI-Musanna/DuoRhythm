@@ -46,7 +46,7 @@ object CategoryManagementDialog {
     ): AlertDialog {
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_manage_categories, null)
         val rv = view.findViewById<RecyclerView>(R.id.rvManageCategories)
-        val layoutEmpty = view.findViewById<View>(R.id.layoutEmptyCategories)
+        val layoutEmpty = view.findViewById<com.duorhythm.app.ui.custom.DuoEmptyStateView>(R.id.layoutEmptyCategories)
         val btnAdd = view.findViewById<MaterialButton>(R.id.btnDialogAddCategory)
         val btnDone = view.findViewById<MaterialButton>(R.id.btnDoneManageCategories)
 
@@ -63,6 +63,14 @@ object CategoryManagementDialog {
             if (categories.isEmpty()) {
                 layoutEmpty.visibility = View.VISIBLE
                 rv.visibility = View.GONE
+                layoutEmpty.setState(
+                    iconRes = R.drawable.ic_category,
+                    title = "No categories yet",
+                    subtitle = "Create custom categories to classify your wallet transactions.",
+                    actionText = "+ Add Category"
+                ) {
+                    btnAdd.performClick()
+                }
             } else {
                 layoutEmpty.visibility = View.GONE
                 rv.visibility = View.VISIBLE

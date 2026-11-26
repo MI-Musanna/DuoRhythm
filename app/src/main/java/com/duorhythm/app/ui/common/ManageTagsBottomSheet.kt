@@ -181,6 +181,22 @@ class ManageTagsBottomSheet : BottomSheetDialogFragment() {
                 }
             }
             adapter.submitList(tags)
+            if (tags.isEmpty()) {
+                binding.rvTags.visibility = View.GONE
+                binding.emptyTagsView.visibility = View.VISIBLE
+                binding.emptyTagsView.setState(
+                    iconRes = R.drawable.ic_category,
+                    title = if (isClassTypeMode) "No class types yet" else "No assessment tags yet",
+                    subtitle = "Enter a tag name above and tap + Add to create your first tag.",
+                    actionText = "+ Focus Input"
+                ) {
+                    binding.etNewTag.requestFocus()
+                }
+                binding.emptyTagsView.setAccentColor(Color.parseColor("#38BDF8"))
+            } else {
+                binding.rvTags.visibility = View.VISIBLE
+                binding.emptyTagsView.visibility = View.GONE
+            }
         }
     }
 

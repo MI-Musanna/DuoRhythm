@@ -213,37 +213,11 @@
         tools:listitem="@layout/item_due_debt" />
 
     <!-- Empty State -->
-    <LinearLayout
+    <com.duorhythm.app.ui.custom.DuoEmptyStateView
         android:id="@+id/layoutEmptyDues"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="24dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_verified"
-            app:tint="#34D399" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="No Pending Dues or Debts"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="All loans and receivables are completely settled."
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
-    </LinearLayout>
+        android:layout_marginVertical="16dp"
+        android:visibility="gone" />
 
 </LinearLayout>

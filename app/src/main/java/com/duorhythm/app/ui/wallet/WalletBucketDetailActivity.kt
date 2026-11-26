@@ -43,7 +43,7 @@ import android.widget.TextView
 val ActivityWalletBucketDetailBinding.btnBucketBack: ImageView get() = btnBackBucketDetail
 val ActivityWalletBucketDetailBinding.tvBucketDetailTitle: TextView get() = tvBucketTitleHeader
 val ActivityWalletBucketDetailBinding.tvBucketTotalBalance: TextView get() = tvBucketBalanceAmount
-val ActivityWalletBucketDetailBinding.tvEmptyBucketTransactions: TextView get() = tvEmptyBucketHistory
+val ActivityWalletBucketDetailBinding.tvEmptyBucketTransactions: com.duorhythm.app.ui.custom.DuoEmptyStateView get() = tvEmptyBucketHistory
 
 class WalletBucketDetailActivity : AppCompatActivity() {
 
@@ -662,11 +662,19 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         if (filtered.isEmpty()) {
             binding.rvBucketTransactions.visibility = View.GONE
             binding.tvEmptyBucketTransactions.visibility = View.VISIBLE
-            binding.tvEmptyBucketTransactions.text = if (allTransactions.isEmpty()) {
-                "No transactions recorded for this bucket yet.\nTap '+ Add Record' below to record a transaction."
-            } else {
-                "No transactions matching the selected filters."
+            binding.tvEmptyBucketTransactions.setState(
+                iconRes = R.drawable.ic_wallet,
+                title = if (allTransactions.isEmpty()) "No transactions yet" else "No matching transactions",
+                subtitle = if (allTransactions.isEmpty()) {
+                    "Record inflows, expenses, or transfers for this account."
+                } else {
+                    "No transactions matched the active filter criteria."
+                },
+                actionText = "+ Add Record"
+            ) {
+                showAddTransactionDialog()
             }
+            binding.tvEmptyBucketTransactions.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
         } else {
             binding.rvBucketTransactions.visibility = View.VISIBLE
             binding.tvEmptyBucketTransactions.visibility = View.GONE

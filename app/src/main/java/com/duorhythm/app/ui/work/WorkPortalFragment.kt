@@ -116,10 +116,19 @@ class WorkPortalFragment : Fragment() {
         // 2. Bind Orders List to rvClientOrders
         if (orders.isEmpty()) {
             binding.rvClientOrders.visibility = View.GONE
-            binding.tvEmptyOrders.visibility = View.VISIBLE
+            binding.emptyOrdersView.visibility = View.VISIBLE
+            binding.emptyOrdersView.setState(
+                iconRes = R.drawable.ic_work,
+                title = "No client orders yet",
+                subtitle = "Log freelance commissions, deliverables, due dates, and client invoices.",
+                actionText = "+ New Order"
+            ) {
+                showAddOrderDialog()
+            }
+            binding.emptyOrdersView.setAccentColor(android.graphics.Color.parseColor("#10B981"))
         } else {
             binding.rvClientOrders.visibility = View.VISIBLE
-            binding.tvEmptyOrders.visibility = View.GONE
+            binding.emptyOrdersView.visibility = View.GONE
 
             binding.rvClientOrders.adapter = ClientOrdersAdapter(
                 orders = orders,
@@ -134,10 +143,26 @@ class WorkPortalFragment : Fragment() {
     }
 
     private fun loadWorkContacts() {
-        if (!isAdded) return
+        if (!isAdded || _binding == null) return
         val db = DatabaseHelper.getInstance(requireContext())
         val contacts = db.getContactsForPortal(isStudent = false)
         workContactsAdapter.updateList(contacts)
+        if (contacts.isEmpty()) {
+            binding.rvWorkContacts.visibility = View.GONE
+            binding.emptyWorkContactsView.visibility = View.VISIBLE
+            binding.emptyWorkContactsView.setState(
+                iconRes = R.drawable.ic_contacts,
+                title = "No client contacts saved",
+                subtitle = "Keep key clients, collaborators, and agency contacts one tap away.",
+                actionText = "+ Add Contact"
+            ) {
+                binding.btnAddWorkContact.performClick()
+            }
+            binding.emptyWorkContactsView.setAccentColor(android.graphics.Color.parseColor("#10B981"))
+        } else {
+            binding.rvWorkContacts.visibility = View.VISIBLE
+            binding.emptyWorkContactsView.visibility = View.GONE
+        }
     }
 
     private fun showAddOrderDialog() {

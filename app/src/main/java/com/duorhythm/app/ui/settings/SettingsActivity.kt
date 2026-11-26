@@ -1375,6 +1375,15 @@ class SettingsActivity : AppCompatActivity() {
         if (snapshots.isEmpty()) {
             binding.rvBackupSnapshots.visibility = View.GONE
             binding.tvEmptySnapshots.visibility = View.VISIBLE
+            binding.tvEmptySnapshots.setState(
+                iconRes = R.drawable.ic_backup,
+                title = "No backup snapshots yet",
+                subtitle = "Save an instant local snapshot to protect your courses, tasks, and ledger.",
+                actionText = "+ Create Backup"
+            ) {
+                binding.btnCreateBackup.performClick()
+            }
+            binding.tvEmptySnapshots.setAccentColor(Color.parseColor("#10B981"))
         } else {
             binding.rvBackupSnapshots.visibility = View.VISIBLE
             binding.tvEmptySnapshots.visibility = View.GONE

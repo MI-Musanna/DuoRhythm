@@ -174,16 +174,11 @@
         tools:listitem="@layout/item_subject_work" />
 
     <!-- Empty state for assessments -->
-    <TextView
-        android:id="@+id/tvEmptyAssessments"
+    <com.duorhythm.app.ui.custom.DuoEmptyStateView
+        android:id="@+id/emptyAssessmentsView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/bg_glass_squircle_action"
-        android:padding="14dp"
-        android:text="No upcoming exams or assessments scheduled. Tap + SCHEDULE ASSESSMENT to add one!"
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp"
+        android:layout_marginTop="8dp"
         android:visibility="gone" />
 
 </LinearLayout>

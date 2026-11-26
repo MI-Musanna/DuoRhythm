@@ -66,8 +66,22 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
         }
         val totalProjected = items.sumOf { it.amount }
         binding.tvHeaderSubtitle.text = "Total Projected: ৳${totalProjected.toInt()} / mo • ${items.size} Tracked"
-        binding.tvEmptyState.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
-        binding.rvSubscriptions.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+        if (items.isEmpty()) {
+            binding.tvEmptyState.visibility = View.VISIBLE
+            binding.rvSubscriptions.visibility = View.GONE
+            binding.tvEmptyState.setState(
+                iconRes = com.duorhythm.app.R.drawable.ic_subscription,
+                title = "No recurring subscriptions",
+                subtitle = "Track monthly services and receive upcoming renewal alerts.",
+                actionText = "+ Add Subscription"
+            ) {
+                binding.btnAddSubscription.performClick()
+            }
+            binding.tvEmptyState.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
+        } else {
+            binding.tvEmptyState.visibility = View.GONE
+            binding.rvSubscriptions.visibility = View.VISIBLE
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

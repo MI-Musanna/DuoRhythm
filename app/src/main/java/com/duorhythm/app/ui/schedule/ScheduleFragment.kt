@@ -10,7 +10,11 @@ import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
+import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.duorhythm.app.R
@@ -67,7 +71,7 @@ class ScheduleFragment : Fragment() {
             setupListeners()
             setupSpeedDial()
             setupCalendarDateStrip()
-            loadData()
+            observeScheduleState()
 
             ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
                 try {
@@ -95,9 +99,7 @@ class ScheduleFragment : Fragment() {
         if (_binding != null) {
             try {
                 setupCalendarDateStrip()
-                val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
-                scheduleViewModel.loadClassesForDay(activeProfileId, selectedDay)
-                loadData()
+                scheduleViewModel.selectDay(selectedDay)
                 context?.let { ctx ->
                     AlarmSyncManager.resyncAll(ctx)
                 }
@@ -112,9 +114,19 @@ class ScheduleFragment : Fragment() {
         if (!hidden && _binding != null) {
             try {
                 setupCalendarDateStrip()
-                loadData()
+                renderScheduleClasses(scheduleViewModel.classesFlow.value)
             } catch (e: Throwable) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    private fun observeScheduleState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.classesFlow.collect { classes ->
+                    renderScheduleClasses(classes)
+                }
             }
         }
     }
@@ -129,7 +141,6 @@ class ScheduleFragment : Fragment() {
                     .setMessage("Remove '${item.subjectName}' from timetable?")
                     .setPositiveButton("Delete") { _, _ ->
                         timetableRepository.deleteClass(item.id)
-                        loadClasses()
                         TimetableGlanceWidget.pushUpdate(requireContext())
                         com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Class deleted")
                     }
@@ -221,7 +232,7 @@ class ScheduleFragment : Fragment() {
                         if (selectedDay != dayInfo.dbDay) {
                             selectedDay = dayInfo.dbDay
                             setupCalendarDateStrip()
-                            loadClasses()
+                            scheduleViewModel.selectDay(selectedDay)
                         }
                     }
                 }
@@ -233,18 +244,11 @@ class ScheduleFragment : Fragment() {
     }
 
     fun loadData() {
-        if (_binding == null || !isAdded || !::dbHelper.isInitialized || !::classesAdapter.isInitialized) return
-        try {
-            loadClasses()
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
+        scheduleViewModel.selectDay(selectedDay)
     }
 
-    private fun loadClasses() {
-        if (_binding == null) return
-        val classes = dbHelper.getScheduleForDay(selectedDay)
-        scheduleViewModel.setClassesForDay(classes)
+    private fun renderScheduleClasses(classes: List<ClassScheduleItem>) {
+        if (_binding == null || !isAdded || !::classesAdapter.isInitialized) return
         classesAdapter.updateList(classes, selectedDay)
 
         val dayName = TimetableUtils.getDayFullName(selectedDay)
@@ -253,10 +257,19 @@ class ScheduleFragment : Fragment() {
 
         if (classes.isEmpty()) {
             binding.rvClasses.visibility = View.GONE
-            binding.tvEmptySchedule.visibility = View.VISIBLE
+            binding.emptyScheduleView.visibility = View.VISIBLE
+            binding.emptyScheduleView.setState(
+                iconRes = R.drawable.ic_schedule,
+                title = "No classes scheduled",
+                subtitle = "Keep your $dayName timetable organized by adding lectures, labs, or studio sessions.",
+                actionText = "+ Add Class"
+            ) {
+                showAddClassDialog()
+            }
+            binding.emptyScheduleView.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
         } else {
             binding.rvClasses.visibility = View.VISIBLE
-            binding.tvEmptySchedule.visibility = View.GONE
+            binding.emptyScheduleView.visibility = View.GONE
         }
     }
 
@@ -328,7 +341,6 @@ class ScheduleFragment : Fragment() {
 
             val classWithProfile = scheduledItem.copy(profileId = activeProfileId)
             timetableRepository.insertClass(classWithProfile)
-            loadData()
             TimetableGlanceWidget.pushUpdate(requireContext())
             com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "${scheduledItem.classType} scheduled with alarm reminder")
         }.show()
@@ -397,7 +409,6 @@ class ScheduleFragment : Fragment() {
             defaultDayOfWeek = selectedDay
         ) { updated ->
             timetableRepository.updateClass(updated)
-            loadData()
             TimetableGlanceWidget.pushUpdate(requireContext())
             com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), "Class schedule updated")
         }.show()

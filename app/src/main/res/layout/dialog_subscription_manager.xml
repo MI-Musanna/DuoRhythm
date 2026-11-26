@@ -71,15 +71,11 @@
             android:nestedScrollingEnabled="false"
             tools:listitem="@layout/item_subscription" />
 
-        <TextView
+        <com.duorhythm.app.ui.custom.DuoEmptyStateView
             android:id="@+id/tvEmptySubscriptions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:gravity="center"
-            android:text="No active subscriptions tracked yet.\nTap '+ Add' to track recurring services."
-            android:textColor="@color/text_muted"
-            android:textSize="13sp"
+            android:layout_marginTop="16dp"
             android:visibility="gone" />
 
     </LinearLayout>

@@ -23,6 +23,7 @@ import com.duorhythm.app.util.UpdateManager
 import database.entities.AssessmentEntity
 import database.entities.ProfileEntity
 import com.duorhythm.app.data.local.pref.ProfileManager
+import kotlinx.coroutines.launch
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -1392,26 +1393,25 @@ class DuoRhythmFullAppAuditTest {
         assertTrue("1.7.3.2-beta must be > 1.7.1-beta", UpdateManager.compareVersions("1.7.3.2-beta", "1.7.1-beta") > 0)
         assertEquals(0, UpdateManager.compareVersions("v1.7.3.3-beta", "1.7.3.3-beta"))
 
-        // 2. GitHub JSON parsing with 0 prereleases (betaRelease == null) & dialog rendering
-        val jsonNoBeta = """
-            [
-              {
-                "tag_name": "v1.7.3.3-beta",
-                "prerelease": false,
-                "draft": false,
-                "body": "Release 1.7.3.3-beta highlights",
-                "assets": [
-                  {
-                    "name": "DuoRhythm-v1.7.3.3-beta.apk",
-                    "browser_download_url": "https://example.com/DuoRhythm-v1.7.3.3-beta.apk"
-                  }
-                ]
-              }
-            ]
+        // 2. GitHub Atom XML parsing with 0 prereleases (betaRelease == null) & dialog rendering
+        val atomNoBeta = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom">
+              <entry>
+                <id>tag:github.com,2008:Repository/12345/v1.7.3.3-beta</id>
+                <link rel="alternate" type="text/html" href="https://github.com/MI-Musanna/DuoRhythm/releases/tag/v1.7.3.3-beta"/>
+                <title>DuoRhythm v1.7.3.3-beta</title>
+                <content type="html">&lt;p&gt;Release 1.7.3.3-beta highlights&lt;/p&gt;</content>
+              </entry>
+            </feed>
         """.trimIndent()
-        val (stable, beta) = UpdateManager.parseReleasesJson(jsonNoBeta, activity.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE))
+        val (stable, beta) = UpdateManager.parseReleasesAtom(atomNoBeta, activity.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE))
         assertNotNull("Stable release must be parsed", stable)
         assertEquals("v1.7.3.3-beta", stable?.tagName)
+        assertEquals(
+            "https://github.com/MI-Musanna/DuoRhythm/releases/download/v1.7.3.3-beta/DuoRhythm-v1.7.3.3-beta.apk",
+            stable?.downloadUrl
+        )
         assertNull("Beta release must be null when 0 prereleases exist", beta)
 
         // Render dual channel dialog with beta == null
@@ -1431,13 +1431,15 @@ class DuoRhythmFullAppAuditTest {
         latestDialog.dismiss()
 
         // 3. Verify isChecking resets to false on exception and DuoAlertBanner reports error
-        val origUrl = UpdateManager.releasesApiUrl
+        val origAtomUrl = UpdateManager.releasesAtomUrl
+        val origLatestUrl = UpdateManager.releasesLatestUrl
         val origIo = UpdateManager.ioDispatcher
         val origMain = UpdateManager.mainDispatcher
         try {
             com.duorhythm.app.ui.custom.DuoAlertBanner.resetForTesting()
             UpdateManager.isChecking = false
-            UpdateManager.releasesApiUrl = "http://invalid-protocol-test://"
+            UpdateManager.releasesAtomUrl = "http://invalid-protocol-test://"
+            UpdateManager.releasesLatestUrl = "http://invalid-protocol-test://"
             UpdateManager.ioDispatcher = kotlinx.coroutines.Dispatchers.Unconfined
             UpdateManager.mainDispatcher = kotlinx.coroutines.Dispatchers.Unconfined
 
@@ -1454,10 +1456,170 @@ class DuoRhythmFullAppAuditTest {
                 com.duorhythm.app.ui.custom.DuoAlertBanner.getLastMessageForTesting().startsWith("Update check failed:")
             )
         } finally {
-            UpdateManager.releasesApiUrl = origUrl
+            UpdateManager.releasesAtomUrl = origAtomUrl
+            UpdateManager.releasesLatestUrl = origLatestUrl
             UpdateManager.ioDispatcher = origIo
             UpdateManager.mainDispatcher = origMain
             UpdateManager.isChecking = false
         }
+    }
+
+    @Test
+    fun audit32_v174_phase2Verification() {
+        val controller = org.robolectric.Robolectric.buildActivity(androidx.appcompat.app.AppCompatActivity::class.java)
+        val activity = controller.get()
+        activity.setTheme(R.style.Theme_DuoRhythm)
+        controller.setup()
+        val ctx = ApplicationProvider.getApplicationContext<Context>()
+
+        // (a) Zero-rate-limit GitHub CDN URLs & Atom XML changelog parsing
+        assertFalse(
+            "releasesAtomUrl must use GitHub CDN, never api.github.com",
+            UpdateManager.releasesAtomUrl.contains("api.github.com")
+        )
+        assertFalse(
+            "releasesLatestUrl must use GitHub CDN, never api.github.com",
+            UpdateManager.releasesLatestUrl.contains("api.github.com")
+        )
+        val metaPrefs = ctx.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
+        val dualFeedXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom">
+              <entry>
+                <link rel="alternate" type="text/html" href="https://github.com/MI-Musanna/DuoRhythm/releases/tag/v1.7.5-rc1"/>
+                <category term="prerelease"/>
+                <title>DuoRhythm v1.7.5-rc1</title>
+                <content type="html">&lt;ul&gt;&lt;li&gt;Preview feature X&lt;/li&gt;&lt;/ul&gt;</content>
+              </entry>
+              <entry>
+                <link rel="alternate" type="text/html" href="https://github.com/MI-Musanna/DuoRhythm/releases/tag/v1.7.4-beta"/>
+                <title>DuoRhythm v1.7.4-beta</title>
+                <content type="html">&lt;p&gt;&lt;strong&gt;Phase 2 Highlights&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Zero-rate-limit updater &amp;amp; Flow SSOT&lt;/p&gt;</content>
+              </entry>
+            </feed>
+        """.trimIndent()
+        val (stableRel, betaRel) = UpdateManager.parseReleasesAtom(dualFeedXml, metaPrefs)
+        assertEquals("v1.7.4-beta", stableRel?.tagName)
+        assertTrue(stableRel?.bodyText?.contains("Phase 2 Highlights") == true)
+        assertTrue(stableRel?.bodyText?.contains("Zero-rate-limit updater & Flow SSOT") == true)
+        assertEquals(
+            "https://github.com/MI-Musanna/DuoRhythm/releases/download/v1.7.4-beta/DuoRhythm-v1.7.4-beta.apk",
+            stableRel?.downloadUrl
+        )
+        assertEquals("v1.7.5-rc1", betaRel?.tagName)
+        assertTrue(metaPrefs.getString("online_body_1.7.4-beta", "")?.contains("Phase 2 Highlights") == true)
+
+        // (b) Reactive Flow SSOT for TaskRepository & TimetableRepository
+        ShadowDatabaseHelper.reset()
+        val taskRepo = com.duorhythm.app.data.repository.TaskRepository(ctx)
+        val timetableRepo = com.duorhythm.app.data.repository.TimetableRepository(ctx)
+
+        val taskSnapshots = mutableListOf<List<com.duorhythm.app.data.model.TaskItem>>()
+        kotlinx.coroutines.runBlocking {
+            val job = launch(kotlinx.coroutines.Dispatchers.Unconfined) {
+                taskRepo.observeTasks(profileId = 1L, isGoal = false).collect { list ->
+                    taskSnapshots.add(list)
+                }
+            }
+            val newTaskId = taskRepo.insertTask(
+                com.duorhythm.app.data.model.TaskItem(
+                    profileId = 1L,
+                    title = "Phase 2 Flow Task",
+                    isGoal = false
+                )
+            )
+            val inserted = taskSnapshots.last().firstOrNull { it.id == newTaskId }
+            assertNotNull("Task Flow must emit inserted task automatically", inserted)
+            taskRepo.updateTask(inserted!!.copy(title = "Updated Flow Task"))
+            assertEquals(
+                "Updated Flow Task",
+                taskSnapshots.last().firstOrNull { it.id == newTaskId }?.title
+            )
+            taskRepo.deleteTask(newTaskId)
+            assertTrue("Task Flow must reflect deletion automatically", taskSnapshots.last().none { it.id == newTaskId })
+            job.cancel()
+        }
+
+        val scheduleSnapshots = mutableListOf<List<com.duorhythm.app.data.model.ClassScheduleItem>>()
+        kotlinx.coroutines.runBlocking {
+            val job = launch(kotlinx.coroutines.Dispatchers.Unconfined) {
+                timetableRepo.observeScheduleForDay(dayOfWeek = 1, profileId = 1L).collect { list ->
+                    scheduleSnapshots.add(list)
+                }
+            }
+            val newClassId = timetableRepo.insertClass(
+                com.duorhythm.app.data.model.ClassScheduleItem(
+                    profileId = 1L,
+                    subjectName = "Distributed Systems",
+                    dayOfWeek = 1,
+                    startTime = "09:00 AM",
+                    endTime = "10:30 AM",
+                    room = "R-402"
+                )
+            )
+            assertTrue(
+                "Schedule Flow must emit newly inserted class",
+                scheduleSnapshots.last().any { it.id == newClassId }
+            )
+            val existingClass = scheduleSnapshots.last().first { it.id == newClassId }
+            timetableRepo.updateClass(existingClass.copy(room = "Lab-2"))
+            assertEquals("Lab-2", scheduleSnapshots.last().first { it.id == newClassId }.room)
+            timetableRepo.deleteClass(newClassId)
+            assertTrue(
+                "Schedule Flow must remove deleted class",
+                scheduleSnapshots.last().none { it.id == newClassId }
+            )
+            job.cancel()
+        }
+
+        // (c) Reusable DuoEmptyStateView binding & CTA action
+        val emptyView = com.duorhythm.app.ui.custom.DuoEmptyStateView(activity)
+        var emptyActionClicked = false
+        emptyView.setState(
+            iconRes = R.drawable.ic_tasks,
+            title = "No tasks yet",
+            subtitle = "Create your first priority",
+            actionText = "+ Add Task"
+        ) {
+            emptyActionClicked = true
+        }
+        assertEquals("No tasks yet", emptyView.tvEmptyTitle.text.toString())
+        assertEquals("Create your first priority", emptyView.tvEmptySubtitle.text.toString())
+        assertEquals(View.VISIBLE, emptyView.btnEmptyAction.visibility)
+        assertEquals("+ Add Task", emptyView.btnEmptyAction.text.toString())
+        emptyView.btnEmptyAction.performClick()
+        assertTrue("DuoEmptyStateView primary CTA must fire onAction callback", emptyActionClicked)
+
+        // (d) Resumable Home 1/3 Get-Started Checklist progress & dismissal logic
+        val step1 = com.duorhythm.app.ui.home.HomeFragment.computeChecklistState(
+            profileDone = true, firstItemDone = false, backupDone = false, isDismissed = false
+        )
+        assertEquals(1, step1.completedCount)
+        assertEquals(3, step1.totalCount)
+        assertTrue("1/3 state should show checklist", step1.shouldShow)
+
+        val step2 = com.duorhythm.app.ui.home.HomeFragment.computeChecklistState(
+            profileDone = true, firstItemDone = true, backupDone = false, isDismissed = false
+        )
+        assertEquals(2, step2.completedCount)
+        assertTrue("2/3 state should keep checklist visible", step2.shouldShow)
+
+        val step3 = com.duorhythm.app.ui.home.HomeFragment.computeChecklistState(
+            profileDone = true, firstItemDone = true, backupDone = true, isDismissed = false
+        )
+        assertEquals(3, step3.completedCount)
+        assertFalse("3/3 completed state should auto-hide checklist", step3.shouldShow)
+
+        val dismissed = com.duorhythm.app.ui.home.HomeFragment.computeChecklistState(
+            profileDone = true, firstItemDone = false, backupDone = false, isDismissed = true
+        )
+        assertFalse("Dismissed checklist must stay hidden", dismissed.shouldShow)
+
+        // Inflate FragmentHomeBinding to ensure checklist card and DuoEmptyStateView inflate cleanly
+        val homeBinding = com.duorhythm.app.databinding.FragmentHomeBinding.inflate(activity.layoutInflater)
+        assertNotNull(homeBinding.cardOnboardingChecklist)
+        assertNotNull(homeBinding.tvChecklistProgress)
+        assertNotNull(homeBinding.progressChecklist)
+        assertTrue(homeBinding.tvNoClassesScheduled is com.duorhythm.app.ui.custom.DuoEmptyStateView)
     }
 }

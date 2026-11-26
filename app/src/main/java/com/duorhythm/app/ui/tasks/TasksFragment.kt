@@ -17,7 +17,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.launch
 import com.duorhythm.app.R
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.TaskItem
@@ -67,7 +71,7 @@ class TasksFragment : Fragment() {
             KeyboardUtils.attachScrollDismiss(binding.rvTasks, activity)
             setupListeners()
             populateCategoryChips()
-            loadTasks()
+            observeTasksState()
             setupSpeedDial()
 
             ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
@@ -101,11 +105,10 @@ class TasksFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (_binding != null) {
+        // Reactive Flow SSOT handles updates automatically; refresh category chips if changed externally
+        if (_binding != null && ::dbHelper.isInitialized) {
             try {
-                val activeProfileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(requireContext())
-                tasksViewModel.loadTasks(activeProfileId)
-                loadTasks()
+                populateCategoryChips()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
@@ -114,11 +117,32 @@ class TasksFragment : Fragment() {
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden && _binding != null) {
+        if (!hidden && _binding != null && ::dbHelper.isInitialized) {
             try {
-                loadTasks()
+                renderTaskList(tasksViewModel.tasksFlow.value, tasksViewModel.goalsFlow.value)
             } catch (e: Throwable) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    private fun observeTasksState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    tasksViewModel.tasksFlow.collect { tasks ->
+                        if (currentTab == TaskTab.TASKS) {
+                            renderTaskList(tasks, tasksViewModel.goalsFlow.value)
+                        }
+                    }
+                }
+                launch {
+                    tasksViewModel.goalsFlow.collect { goals ->
+                        if (currentTab == TaskTab.GOALS) {
+                            renderTaskList(tasksViewModel.tasksFlow.value, goals)
+                        }
+                    }
+                }
             }
         }
     }
@@ -134,7 +158,6 @@ class TasksFragment : Fragment() {
                 } else {
                     TaskAlarmScheduler.scheduleTaskReminder(requireContext(), task.copy(isCompleted = false))
                 }
-                loadTasks()
             },
             onTaskClick = { task ->
                 if (task.isGoal) {
@@ -297,7 +320,6 @@ class TasksFragment : Fragment() {
                 TaskAlarmScheduler.scheduleTaskReminder(requireContext(), updated)
             }
             dialog.dismiss()
-            loadTasks()
             if (progress == 100) { com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity) }
             val msg = if (progress == 100) "Goal achieved (100%)!" else "Goal updated ($progress%)"
             com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), msg)
@@ -386,7 +408,6 @@ class TasksFragment : Fragment() {
                 TaskAlarmScheduler.scheduleTaskReminder(requireContext(), updated)
             }
             dialog.dismiss()
-            loadTasks()
             com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), if (isGoal) "Goal updated!" else "Task updated!")
         }
 
@@ -485,7 +506,7 @@ class TasksFragment : Fragment() {
                 binding.btnNewTaskTop.visibility = View.GONE
                 binding.btnAddGoal.visibility = View.GONE
             }
-            loadTasks()
+            renderTaskList(tasksViewModel.tasksFlow.value, tasksViewModel.goalsFlow.value)
         }
 
         binding.btnNewTaskTop.visibility = View.GONE
@@ -498,15 +519,11 @@ class TasksFragment : Fragment() {
             binding.toggleTasksGoals.check(R.id.btnTabGoals)
             showCreateTaskDialog(isGoal = true)
         }
-        binding.btnAddFirstTask.setOnClickListener { showCreateTaskDialog(isGoal = false) }
-        binding.btnAddFirstGoal.setOnClickListener { showCreateTaskDialog(isGoal = true) }
 
         AnimationUtils.attachTactileFeedback(
             binding.btnNewTaskTop,
             binding.fabAddTask,
             binding.btnAddGoal,
-            binding.btnAddFirstTask,
-            binding.btnAddFirstGoal,
             binding.btnAddCustomCategory
         )
     }
@@ -558,6 +575,15 @@ class TasksFragment : Fragment() {
                 binding.rvTasks.visibility = View.GONE
                 binding.layoutEmptyTasks.visibility = View.VISIBLE
                 binding.layoutEmptyGoals.visibility = View.GONE
+                binding.layoutEmptyTasks.setState(
+                    iconRes = R.drawable.ic_tasks,
+                    title = "No tasks yet",
+                    subtitle = "Stay organized by adding your priorities for today.",
+                    actionText = "+ Add Your First Task"
+                ) {
+                    showCreateTaskDialog(isGoal = false)
+                }
+                binding.layoutEmptyTasks.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
             } else {
                 binding.rvTasks.visibility = View.VISIBLE
                 binding.layoutEmptyTasks.visibility = View.GONE
@@ -568,6 +594,15 @@ class TasksFragment : Fragment() {
                 binding.rvTasks.visibility = View.GONE
                 binding.layoutEmptyTasks.visibility = View.GONE
                 binding.layoutEmptyGoals.visibility = View.VISIBLE
+                binding.layoutEmptyGoals.setState(
+                    iconRes = R.drawable.ic_target,
+                    title = "No milestone goals yet",
+                    subtitle = "Track long-term achievements and milestones.",
+                    actionText = "+ Set Your First Goal"
+                ) {
+                    showCreateTaskDialog(isGoal = true)
+                }
+                binding.layoutEmptyGoals.setAccentColor(android.graphics.Color.parseColor("#F59E0B"))
             } else {
                 binding.rvTasks.visibility = View.VISIBLE
                 binding.layoutEmptyTasks.visibility = View.GONE
@@ -578,10 +613,13 @@ class TasksFragment : Fragment() {
     }
 
     fun loadTasks() {
+        tasksViewModel.loadTasks()
+    }
+
+    private fun renderTaskList(allTasks: List<TaskItem>, goals: List<TaskItem>) {
         if (_binding == null || !isAdded || !::dbHelper.isInitialized || !::tasksAdapter.isInitialized) return
         try {
             if (currentTab == TaskTab.TASKS) {
-                val allTasks = dbHelper.getAllTasks("ALL", isGoal = false)
                 tasksAdapter.updateFilterType(currentFilter)
                 tasksAdapter.setMasterTasks(allTasks)
 
@@ -608,7 +646,6 @@ class TasksFragment : Fragment() {
 
                 updateEmptyState()
             } else {
-                val goals = dbHelper.getAllTasks("ALL", isGoal = true)
                 tasksAdapter.updateFilterType(currentFilter)
                 tasksAdapter.setMasterTasks(goals)
 
@@ -738,7 +775,6 @@ class TasksFragment : Fragment() {
             val newId = dbHelper.insertTask(task)
             TaskAlarmScheduler.scheduleTaskReminder(requireContext(), task.copy(id = newId))
             dialog.dismiss()
-            loadTasks()
             com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
             com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), if (markedGoal) "Goal created!" else "Task created!")
         }

@@ -105,6 +105,15 @@ class SubscriptionsBottomSheet : BottomSheetDialogFragment() {
                 if (list.isEmpty()) {
                     binding.rvManagerSubscriptions.visibility = View.GONE
                     binding.tvEmptySubscriptions.visibility = View.VISIBLE
+                    binding.tvEmptySubscriptions.setState(
+                        iconRes = com.duorhythm.app.R.drawable.ic_subscription,
+                        title = "No subscriptions tracked",
+                        subtitle = "Monitor recurring bills, streaming services, and renewal dates.",
+                        actionText = "+ Add Subscription"
+                    ) {
+                        binding.btnAddNewSubscription.performClick()
+                    }
+                    binding.tvEmptySubscriptions.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
                 } else {
                     binding.rvManagerSubscriptions.visibility = View.VISIBLE
                     binding.tvEmptySubscriptions.visibility = View.GONE

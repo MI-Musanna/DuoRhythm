@@ -115,6 +115,193 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Resumable Get-Started Checklist Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardOnboardingChecklist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_between_sections"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/surface_card"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/card_stroke"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Get Started"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvChecklistSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Complete your workspace setup"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11.5sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvChecklistProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_pill_blue_subtle"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="1/3"
+                        android:textColor="#38BDF8"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/btnDismissChecklist"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Dismiss checklist"
+                        android:padding="5dp"
+                        android:src="@drawable/ic_close"
+                        app:tint="@color/text_secondary" />
+                </LinearLayout>
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressChecklist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:max="3"
+                    android:progress="1"
+                    app:indicatorColor="#38BDF8"
+                    app:trackColor="#1E293B"
+                    app:trackCornerRadius="4dp"
+                    app:trackThickness="6dp" />
+
+                <LinearLayout
+                    android:id="@+id/rowChecklistProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="7dp">
+
+                    <ImageView
+                        android:id="@+id/ivCheckProfile"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_checkbox_checked"
+                        app:tint="#38BDF8" />
+
+                    <TextView
+                        android:id="@+id/tvChecklistProfile"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="Set profile name &amp; security PIN"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12.5sp" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_tertiary_muted" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rowChecklistFirstItem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="7dp">
+
+                    <ImageView
+                        android:id="@+id/ivCheckFirstItem"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/bg_circle_dot"
+                        app:tint="@color/text_tertiary_muted" />
+
+                    <TextView
+                        android:id="@+id/tvChecklistFirstItem"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="Add first course, task, or class"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12.5sp" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_tertiary_muted" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rowChecklistBackup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="7dp">
+
+                    <ImageView
+                        android:id="@+id/ivCheckBackup"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/bg_circle_dot"
+                        app:tint="@color/text_tertiary_muted" />
+
+                    <TextView
+                        android:id="@+id/tvChecklistBackup"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="Create a local safety backup"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12.5sp" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/text_tertiary_muted" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Next Up Section -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -185,16 +372,11 @@
             app:tabRippleColor="@null"
             app:tabUnboundedRipple="false" />
 
-        <TextView
+        <com.duorhythm.app.ui.custom.DuoEmptyStateView
             android:id="@+id/tvNoClassesScheduled"
             android:layout_width="match_parent"
-            android:layout_height="90dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/bg_card_dark"
-            android:gravity="center"
-            android:text="All lectures finished • Rest and recharge"
-            android:textColor="@color/text_on_canvas_muted"
-            android:textSize="12.5sp"
             android:visibility="gone" />
 
         <!-- Symmetrical Ledger & Missions -->

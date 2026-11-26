@@ -14,12 +14,16 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
+import org.robolectric.annotation.RealObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Implements(DatabaseHelper::class)
 class ShadowDatabaseHelper {
+
+    @RealObject
+    private lateinit var realDbHelper: DatabaseHelper
 
     companion object {
         private val buckets = mutableMapOf<Long, WalletBucketItem>()
@@ -146,12 +150,58 @@ class ShadowDatabaseHelper {
     fun insertTask(task: TaskItem): Long {
         val id = if (task.id > 0) task.id else nextTaskId++
         tasks.add(task.copy(id = id))
+        if (::realDbHelper.isInitialized) realDbHelper.taskUpdateFlow.tryEmit(Unit)
         return id
     }
 
     @Implementation
+    fun updateTask(task: TaskItem): Int {
+        val idx = tasks.indexOfFirst { it.id == task.id }
+        if (idx >= 0) {
+            tasks[idx] = task
+            if (::realDbHelper.isInitialized) realDbHelper.taskUpdateFlow.tryEmit(Unit)
+            return 1
+        }
+        return 0
+    }
+
+    @Implementation
+    fun updateTaskCompletion(taskId: Long, isCompleted: Boolean) {
+        val idx = tasks.indexOfFirst { it.id == taskId }
+        if (idx >= 0) {
+            val cur = tasks[idx]
+            tasks[idx] = cur.copy(isCompleted = isCompleted, progress = if (isCompleted) 100 else 0)
+            if (::realDbHelper.isInitialized) realDbHelper.taskUpdateFlow.tryEmit(Unit)
+        }
+    }
+
+    @Implementation
+    fun updateTaskProgress(taskId: Long, progress: Int) {
+        val idx = tasks.indexOfFirst { it.id == taskId }
+        if (idx >= 0) {
+            val cur = tasks[idx]
+            val clamped = progress.coerceIn(0, 100)
+            tasks[idx] = cur.copy(progress = clamped, isCompleted = clamped >= 100)
+            if (::realDbHelper.isInitialized) realDbHelper.taskUpdateFlow.tryEmit(Unit)
+        }
+    }
+
+    @Implementation
+    fun deleteTask(taskId: Long): Int {
+        val before = tasks.size
+        tasks.removeAll { it.id == taskId }
+        val deleted = if (tasks.size < before) 1 else 0
+        if (deleted > 0 && ::realDbHelper.isInitialized) realDbHelper.taskUpdateFlow.tryEmit(Unit)
+        return deleted
+    }
+
+    @Implementation
     fun getAllTasks(filter: String = "ALL", isGoal: Boolean? = null, profileId: Long = 1L): List<TaskItem> {
-        return tasks.toList()
+        return tasks.filter { task ->
+            val matchesGoal = (isGoal == null || task.isGoal == isGoal)
+            val matchesProfile = (profileId <= 0L || task.profileId == profileId || task.profileId == 0L)
+            matchesGoal && matchesProfile
+        }
     }
 
     @Implementation
@@ -221,7 +271,26 @@ class ShadowDatabaseHelper {
     fun insertClassSchedule(item: ClassScheduleItem): Long {
         val id = if (item.id > 0) item.id else nextClassId++
         classes.add(item.copy(id = id))
+        if (::realDbHelper.isInitialized) realDbHelper.timetableUpdateFlow.tryEmit(Unit)
         return id
+    }
+
+    @Implementation
+    fun updateClassSchedule(item: ClassScheduleItem): Int {
+        val idx = classes.indexOfFirst { it.id == item.id }
+        if (idx >= 0) {
+            classes[idx] = item
+            if (::realDbHelper.isInitialized) realDbHelper.timetableUpdateFlow.tryEmit(Unit)
+            return 1
+        }
+        return 0
+    }
+
+    @Implementation
+    fun getScheduleForDay(dayOfWeek: Int, profileId: Long = 1L): List<ClassScheduleItem> {
+        return classes.filter {
+            it.dayOfWeek == dayOfWeek && (profileId <= 0L || it.profileId == profileId || it.profileId == 0L)
+        }
     }
 
     @Implementation
@@ -233,7 +302,9 @@ class ShadowDatabaseHelper {
     fun deleteClassSchedule(id: Long): Int {
         val before = classes.size
         classes.removeAll { it.id == id }
-        return if (classes.size < before) 1 else 0
+        val deleted = if (classes.size < before) 1 else 0
+        if (deleted > 0 && ::realDbHelper.isInitialized) realDbHelper.timetableUpdateFlow.tryEmit(Unit)
+        return deleted
     }
 
     @Implementation
@@ -250,6 +321,7 @@ class ShadowDatabaseHelper {
         }
         assessments.removeAll { it.subjectId == courseId }
         studentSubjects.removeAll { it.id == courseId }
+        if (::realDbHelper.isInitialized) realDbHelper.timetableUpdateFlow.tryEmit(Unit)
         return true
     }
 

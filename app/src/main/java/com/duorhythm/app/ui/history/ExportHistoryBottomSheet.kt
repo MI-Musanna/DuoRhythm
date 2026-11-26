@@ -102,8 +102,21 @@ class ExportHistoryBottomSheet : BottomSheetDialogFragment() {
             emptyList()
         }
 
-        binding.tvEmptyHistory.visibility = if (files.isEmpty()) View.VISIBLE else View.GONE
-        binding.rvExportHistory.visibility = if (files.isEmpty()) View.GONE else View.VISIBLE
+        if (files.isEmpty()) {
+            binding.tvEmptyHistory.visibility = View.VISIBLE
+            binding.rvExportHistory.visibility = View.GONE
+            binding.tvEmptyHistory.setState(
+                iconRes = com.duorhythm.app.R.drawable.ic_export,
+                title = "No exported snapshots yet",
+                subtitle = "Export your weekly timetable or exam schedule from Schedule or Portal.",
+                actionText = "Close"
+            ) {
+                dismiss()
+            }
+        } else {
+            binding.tvEmptyHistory.visibility = View.GONE
+            binding.rvExportHistory.visibility = View.VISIBLE
+        }
         adapter.setFiles(files)
     }
 

@@ -130,6 +130,7 @@ class HomeFragment : Fragment() {
                                 profile.avatarUri,
                                 profile.name
                             )
+                            updateGetStartedChecklist(profile)
                         }
                     }
                 }
@@ -455,7 +456,17 @@ class HomeFragment : Fragment() {
                 binding.dotsIndicatorNextUp.visibility = View.GONE
                 binding.wormDotsIndicator.visibility = View.GONE
                 binding.tvNoClassesScheduled.visibility = View.VISIBLE
-                binding.tvNoClassesScheduled.text = "No pending client deliverables • All clear"
+                binding.tvNoClassesScheduled.setState(
+                    iconRes = R.drawable.ic_work,
+                    title = "No pending client deliverables",
+                    subtitle = "All clear! Add a new client order whenever you're ready.",
+                    actionText = "+ New Order"
+                ) {
+                    val dlg = com.duorhythm.app.ui.work.CreateWorkOrderDialogFragment()
+                    dlg.setOnOrderSavedListener { loadDashboardData() }
+                    dlg.show(parentFragmentManager, "HOME_WORK_ORDER")
+                }
+                binding.tvNoClassesScheduled.setAccentColor(Color.parseColor("#10B981"))
             }
         } else {
             // --- STUDENT MODE ---
@@ -559,7 +570,15 @@ class HomeFragment : Fragment() {
             binding.dotsIndicatorNextUp.visibility = View.GONE
             binding.wormDotsIndicator.visibility = View.GONE
             binding.tvNoClassesScheduled.visibility = View.VISIBLE
-            binding.tvNoClassesScheduled.text = "No upcoming lectures scheduled"
+            binding.tvNoClassesScheduled.setState(
+                iconRes = R.drawable.ic_schedule,
+                title = "No upcoming lectures scheduled",
+                subtitle = "Rest and recharge, or schedule classes in your weekly timetable.",
+                actionText = "+ Add Class"
+            ) {
+                (activity as? MainActivity)?.selectNavTab(R.id.nav_schedule)
+            }
+            binding.tvNoClassesScheduled.setAccentColor(Color.parseColor("#38BDF8"))
         }
     }
 
@@ -823,6 +842,9 @@ class HomeFragment : Fragment() {
 
             // 4. Quick Notes & Scratchpad
             loadDashboardNotes()
+
+            // 5. Resumable Get-Started Checklist
+            updateGetStartedChecklist()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -1119,6 +1141,112 @@ class HomeFragment : Fragment() {
                 hours > 0 -> Pair("Due in ${hours}h", Color.parseColor("#052E16"))
                 else -> Pair("Due Soon", Color.parseColor("#052E16"))
             }
+        }
+    }
+
+    data class OnboardingChecklistState(
+        val completedCount: Int,
+        val totalCount: Int,
+        val shouldShow: Boolean,
+        val profileDone: Boolean,
+        val firstItemDone: Boolean,
+        val backupDone: Boolean
+    )
+
+    companion object {
+        fun computeChecklistState(
+            profileDone: Boolean,
+            firstItemDone: Boolean,
+            backupDone: Boolean,
+            isDismissed: Boolean
+        ): OnboardingChecklistState {
+            val done = (if (profileDone) 1 else 0) +
+                (if (firstItemDone) 1 else 0) +
+                (if (backupDone) 1 else 0)
+            return OnboardingChecklistState(
+                completedCount = done,
+                totalCount = 3,
+                shouldShow = !isDismissed && done < 3,
+                profileDone = profileDone,
+                firstItemDone = firstItemDone,
+                backupDone = backupDone
+            )
+        }
+    }
+
+    private fun updateGetStartedChecklist(profileOverride: database.entities.ProfileEntity? = null) {
+        if (_binding == null || !isAdded) return
+        val ctx = context ?: return
+        try {
+            val prefs = ctx.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
+            val activeProfile = profileOverride
+                ?: ProfileRepository.getActiveProfile(ctx)
+                ?: dbHelper.profileDao.getProfileById(ProfileManager.getActiveProfileId(ctx))
+            val activeId = activeProfile?.id?.takeIf { it > 0L } ?: ProfileManager.getActiveProfileId(ctx)
+            val dismissKey = "checklist_dismissed_$activeId"
+            val isDismissed = prefs.getBoolean(dismissKey, false)
+
+            val profileDone = activeProfile != null &&
+                activeProfile.name.isNotBlank() &&
+                !activeProfile.name.equals("Scholar", ignoreCase = true) &&
+                !activeProfile.name.equals("Default Profile", ignoreCase = true) &&
+                activeProfile.passwordHash.isNotBlank()
+
+            val firstItemDone = dbHelper.getAllStudentSubjects().isNotEmpty() ||
+                dbHelper.getAllTasks("ALL").isNotEmpty() ||
+                dbHelper.getAllClasses().isNotEmpty() ||
+                dbHelper.getAllWorkOrders().isNotEmpty()
+
+            val backupDone = com.duorhythm.app.data.repository.BackupService.getLastBackupTimestamp(ctx) != "Never" ||
+                com.duorhythm.app.util.BackupSnapshotHelper.listAvailableSnapshots(ctx).isNotEmpty()
+
+            val state = computeChecklistState(profileDone, firstItemDone, backupDone, isDismissed)
+            if (!state.shouldShow) {
+                binding.cardOnboardingChecklist.visibility = View.GONE
+                return
+            }
+
+            binding.cardOnboardingChecklist.visibility = View.VISIBLE
+            binding.tvChecklistProgress.text = "${state.completedCount}/${state.totalCount}"
+            binding.progressChecklist.max = state.totalCount
+            binding.progressChecklist.progress = state.completedCount
+
+            val applyRowStyle: (android.widget.ImageView, android.widget.TextView, Boolean) -> Unit = { icon, label, done ->
+                if (done) {
+                    icon.setImageResource(R.drawable.ic_checkbox_checked)
+                    icon.imageTintList = ColorStateList.valueOf(Color.parseColor("#10B981"))
+                    label.alpha = 0.65f
+                } else {
+                    icon.setImageResource(R.drawable.bg_circle_dot)
+                    icon.imageTintList = ColorStateList.valueOf(Color.parseColor("#64748B"))
+                    label.alpha = 1.0f
+                }
+            }
+            applyRowStyle(binding.ivCheckProfile, binding.tvChecklistProfile, state.profileDone)
+            applyRowStyle(binding.ivCheckFirstItem, binding.tvChecklistFirstItem, state.firstItemDone)
+            applyRowStyle(binding.ivCheckBackup, binding.tvChecklistBackup, state.backupDone)
+
+            binding.btnDismissChecklist.setOnClickListener {
+                prefs.edit().putBoolean(dismissKey, true).apply()
+                binding.cardOnboardingChecklist.visibility = View.GONE
+            }
+            binding.rowChecklistProfile.setOnClickListener {
+                startActivity(Intent(ctx, ProfileActivity::class.java))
+            }
+            binding.rowChecklistFirstItem.setOnClickListener {
+                (activity as? MainActivity)?.selectNavTab(R.id.nav_portal)
+            }
+            binding.rowChecklistBackup.setOnClickListener {
+                val ok = com.duorhythm.app.util.BackupSnapshotHelper.createInstantSnapshot(ctx, isAuto = false)
+                if (ok) {
+                    DuoAlertBanner.success(ctx, "Safety backup created!")
+                } else {
+                    DuoAlertBanner.warning(ctx, "Could not write backup snapshot")
+                }
+                updateGetStartedChecklist(activeProfile)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

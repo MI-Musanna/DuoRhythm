@@ -150,8 +150,25 @@ class IconPickerBottomSheet : BottomSheetDialogFragment() {
         }
 
         iconAdapter.submitList(filtered)
-        binding.tvEmptyIcons.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
-        binding.rvIcons.visibility = if (filtered.isEmpty()) View.GONE else View.VISIBLE
+        if (filtered.isEmpty()) {
+            binding.tvEmptyIcons.visibility = View.VISIBLE
+            binding.rvIcons.visibility = View.GONE
+            binding.tvEmptyIcons.setState(
+                iconRes = R.drawable.ic_search,
+                title = "No matching icons found",
+                subtitle = if (currentSearchQuery.isNotBlank()) {
+                    "No icons matched \"$currentSearchQuery\". Clear your search to browse all icons."
+                } else {
+                    "No icons available in this category."
+                },
+                actionText = "Clear Search"
+            ) {
+                binding.etSearchIcons.setText("")
+            }
+        } else {
+            binding.tvEmptyIcons.visibility = View.GONE
+            binding.rvIcons.visibility = View.VISIBLE
+        }
     }
 
     override fun onDestroyView() {

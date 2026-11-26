@@ -55,39 +55,12 @@
     </LinearLayout>
 
     <!-- Empty State -->
-    <LinearLayout
+    <com.duorhythm.app.ui.custom.DuoEmptyStateView
         android:id="@+id/layoutEmptyCategories"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingVertical="32dp"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/ic_tasks"
-            app:tint="@color/text_muted" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="No Categories Yet"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center"
-            android:text="Categories start completely empty.\nTap '+ Add' to create your first category."
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
-    </LinearLayout>
+        android:layout_marginVertical="12dp"
+        android:visibility="gone" />
 
     <!-- Categories List -->
     <androidx.recyclerview.widget.RecyclerView

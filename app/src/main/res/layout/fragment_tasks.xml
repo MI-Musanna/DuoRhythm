@@ -377,148 +377,28 @@
             app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Task Empty State Container -->
-        <com.google.android.material.card.MaterialCardView
+        <com.duorhythm.app.ui.custom.DuoEmptyStateView
             android:id="@+id/layoutEmptyTasks"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="0dp"
-            android:layout_marginBottom="0dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintVertical_bias="0.5"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/card_stroke"
-            app:cardBackgroundColor="@color/surface_card"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="28dp">
-
-                <ImageView
-                    android:id="@+id/ivEmptyTasks"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:src="@drawable/ic_tasks"
-                    app:tint="@color/water_cyan_bright" />
-
-                <TextView
-                    android:id="@+id/tvNoTasks"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:text="No tasks yet"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvEmptyTasksSubtitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center"
-                    android:text="Stay organized by adding your priorities for today."
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="13sp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddFirstTask"
-                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:layout_marginTop="18dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:paddingHorizontal="20dp"
-                    android:text="+ Add Your First Task"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="#0284C7"
-                    app:cornerRadius="16dp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            app:layout_constraintVertical_bias="0.45"
+            android:visibility="gone" />
 
         <!-- Goal Empty State Container -->
-        <com.google.android.material.card.MaterialCardView
+        <com.duorhythm.app.ui.custom.DuoEmptyStateView
             android:id="@+id/layoutEmptyGoals"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="0dp"
-            android:layout_marginBottom="0dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintVertical_bias="0.5"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/card_stroke"
-            app:cardBackgroundColor="@color/surface_card"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="28dp">
-
-                <ImageView
-                    android:id="@+id/ivEmptyGoals"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:src="@drawable/ic_target"
-                    app:tint="@color/accent_amber" />
-
-                <TextView
-                    android:id="@+id/tvNoGoals"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:text="No milestone goals yet"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvEmptyGoalsSubtitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center"
-                    android:text="Track long-term achievements and milestones."
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="13sp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddFirstGoal"
-                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:layout_marginTop="18dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:paddingHorizontal="20dp"
-                    android:text="+ Set Your First Goal"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="#D97706"
-                    app:cornerRadius="16dp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            app:layout_constraintVertical_bias="0.45"
+            android:visibility="gone" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
