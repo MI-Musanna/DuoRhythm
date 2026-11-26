@@ -989,13 +989,14 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.tvCurrentVersionBadge.text = "v${com.duorhythm.app.BuildConfig.VERSION_NAME}"
         binding.cardSystemUpdateEngine.setOnClickListener {
-            com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this, forceManual = true)
+            com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this@SettingsActivity, forceManual = true)
         }
         binding.btnCheckUpdatesTop.setOnClickListener {
-            com.duorhythm.app.util.UpdateManager.checkForUpdates(this, isManualCheck = true)
+            com.duorhythm.app.ui.custom.DuoAlertBanner.info(this@SettingsActivity, "Checking for updates...")
+            com.duorhythm.app.util.UpdateManager.checkForUpdates(this@SettingsActivity, isManualCheck = true)
         }
         binding.btnViewWhatsNewManual.setOnClickListener {
-            com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this, forceManual = true)
+            com.duorhythm.app.util.UpdateManager.showWhatsNewDialog(this@SettingsActivity, forceManual = true)
         }
 
         binding.rowClassLeadTime.setOnClickListener {

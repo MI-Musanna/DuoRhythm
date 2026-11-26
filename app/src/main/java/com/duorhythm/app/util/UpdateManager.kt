@@ -40,6 +40,14 @@ object UpdateManager {
     private const val GITHUB_RELEASES_API = "https://api.github.com/repos/MI-Musanna/DuoRhythm/releases"
     private var downloadJob: Job? = null
 
+    @Volatile
+    var isChecking: Boolean = false
+        internal set
+
+    internal var releasesApiUrl: String = GITHUB_RELEASES_API
+    internal var ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
+    internal var mainDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Main
+
     data class ReleaseInfo(
         val tagName: String,
         val isPrerelease: Boolean,
@@ -92,59 +100,76 @@ object UpdateManager {
     }
 
     // 2. CHECK UPDATES: Strictly discriminates between Stable and Beta
+    fun parseReleasesJson(
+        rawJson: String,
+        prefs: android.content.SharedPreferences? = null
+    ): Pair<ReleaseInfo?, ReleaseInfo?> {
+        val array = JSONArray(rawJson)
+        var latestStable: ReleaseInfo? = null
+        var latestBeta: ReleaseInfo? = null
+
+        for (i in 0 until array.length()) {
+            val item = array.optJSONObject(i) ?: continue
+            if (item.optBoolean("draft", false)) continue
+            val tag = item.optString("tag_name", "").trim()
+            if (tag.isEmpty()) continue
+
+            val body = item.optString("body", "Bug fixes and performance improvements.")
+            val assets = item.optJSONArray("assets")
+            var apkUrl = ""
+            if (assets != null) {
+                for (a in 0 until assets.length()) {
+                    val asset = assets.optJSONObject(a) ?: continue
+                    if (asset.optString("name", "").endsWith(".apk", ignoreCase = true)) {
+                        apkUrl = asset.optString("browser_download_url", "")
+                        if (apkUrl.isNotEmpty()) break
+                    }
+                }
+            }
+
+            if (apkUrl.isNotEmpty()) {
+                val isPrerelease = item.optBoolean("prerelease", false)
+                val release = ReleaseInfo(tag, isPrerelease, apkUrl, body)
+
+                prefs?.edit()?.putString("online_body_${cleanVersion(tag)}", body)?.apply()
+
+                if (!isPrerelease && (latestStable == null || compareVersions(release.tagName, latestStable.tagName) > 0)) {
+                    latestStable = release
+                }
+                if (isPrerelease && (latestBeta == null || compareVersions(release.tagName, latestBeta.tagName) > 0)) {
+                    latestBeta = release
+                }
+            }
+        }
+        return Pair(latestStable, latestBeta)
+    }
+
     fun checkForUpdates(
         context: Context,
         isManualCheck: Boolean,
         onResult: ((ReleaseInfo?, ReleaseInfo?) -> Unit)? = null
     ) {
-        CoroutineScope(Dispatchers.IO).launch {
+        if (isChecking) {
+            if (isManualCheck) {
+                com.duorhythm.app.ui.custom.DuoAlertBanner.info(context, "Checking for updates...")
+            }
+            return
+        }
+        isChecking = true
+        CoroutineScope(ioDispatcher).launch {
             try {
-                val conn = URL(GITHUB_RELEASES_API).openConnection() as HttpURLConnection
+                val conn = URL(releasesApiUrl).openConnection() as HttpURLConnection
                 conn.setRequestProperty("User-Agent", "DuoRhythm-Android")
                 conn.connectTimeout = 8000
                 conn.readTimeout = 8000
 
-                if (conn.responseCode == 200) {
+                val code = conn.responseCode
+                if (code == 200) {
                     val rawJson = conn.inputStream.bufferedReader().use { it.readText() }
-                    val array = JSONArray(rawJson)
-
-                    var latestStable: ReleaseInfo? = null
-                    var latestBeta: ReleaseInfo? = null
-
                     val prefs = context.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE)
+                    val (latestStable, latestBeta) = parseReleasesJson(rawJson, prefs)
 
-                    for (i in 0 until array.length()) {
-                        val item = array.getJSONObject(i)
-                        val tag = item.getString("tag_name")
-                        val body = item.optString("body", "Bug fixes and performance improvements.")
-                        val assets = item.getJSONArray("assets")
-                        var apkUrl = ""
-                        for (a in 0 until assets.length()) {
-                            val asset = assets.getJSONObject(a)
-                            if (asset.getString("name").endsWith(".apk")) {
-                                apkUrl = asset.getString("browser_download_url")
-                                break
-                            }
-                        }
-
-                        if (apkUrl.isNotEmpty()) {
-                            val isPrerelease = item.optBoolean("prerelease", false)
-
-                            val release = ReleaseInfo(tag, isPrerelease, apkUrl, body)
-
-                            // Permanently cache the release body using normalized key
-                            prefs.edit().putString("online_body_${cleanVersion(tag)}", body).apply()
-
-                            if (!isPrerelease && (latestStable == null || compareVersions(release.tagName, latestStable.tagName) > 0)) {
-                                latestStable = release
-                            }
-                            if (isPrerelease && (latestBeta == null || compareVersions(release.tagName, latestBeta.tagName) > 0)) {
-                                latestBeta = release
-                            }
-                        }
-                    }
-
-                    withContext(Dispatchers.Main) {
+                    withContext(mainDispatcher) {
                         if (onResult != null) {
                             onResult(latestStable, latestBeta)
                         } else if (isManualCheck) {
@@ -153,17 +178,29 @@ object UpdateManager {
                             handleAutoStablePrompt(context, latestStable)
                         }
                     }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    if (isManualCheck) {
-                        AlertDialog.Builder(context)
-                            .setTitle("Update Check Failed")
-                            .setMessage("Network error or GitHub API limit: ${e.localizedMessage}")
-                            .setPositiveButton("OK", null)
-                            .show()
+                } else {
+                    withContext(mainDispatcher) {
+                        if (isManualCheck) {
+                            com.duorhythm.app.ui.custom.DuoAlertBanner.error(
+                                context,
+                                "Update check failed: GitHub API returned HTTP $code"
+                            )
+                        }
+                        onResult?.invoke(null, null)
                     }
                 }
+            } catch (e: Exception) {
+                withContext(mainDispatcher) {
+                    if (isManualCheck) {
+                        com.duorhythm.app.ui.custom.DuoAlertBanner.error(
+                            context,
+                            "Update check failed: ${e.localizedMessage ?: "Unable to reach GitHub"}"
+                        )
+                    }
+                    onResult?.invoke(null, null)
+                }
+            } finally {
+                isChecking = false
             }
         }
     }
@@ -447,7 +484,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Enforced explicit oval outline clipping for Home & Profile avatars.\n• Required profile password validation across all workspace creation slots.\n• Fixed 4-segment updater version check & blocked ghost notifications for deleted classes."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Fixed Settings Check Updates dialog & null beta release handling.\n• Enforced finally-block lock reset & Activity-scoped alert feedback.\n• Verified 4-segment semantic version parsing (-beta suffix stripping)."
                     }
                 }
             }
@@ -473,6 +510,9 @@ object UpdateManager {
 
     // 5. MANUAL RELEASE CHANNEL DIALOG (Settings Hub) - High-Contrast Material 3 UI
     fun showModernDualChannelDialog(context: Context, stable: ReleaseInfo?, beta: ReleaseInfo?) {
+        if (context is android.app.Activity && (context.isFinishing || context.isDestroyed)) {
+            return
+        }
         val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_modern_updater, null)
         dialog.setContentView(view)
@@ -552,7 +592,7 @@ object UpdateManager {
             }
             btnActionBeta?.setOnClickListener(clickAction)
         } else {
-            tvBeta?.text = if (beta != null) "${beta.tagName} • Up To Date" else "v$currentVersion • Up To Date"
+            tvBeta?.text = if (beta != null) "${beta.tagName} • Up To Date" else "No active beta preview"
             if (stableHasUpdate) {
                 tvStatusPill?.text = "UPDATE AVAILABLE • ${stable?.tagName}"
                 tvStatusPill?.setTextColor(Color.parseColor("#10B981"))

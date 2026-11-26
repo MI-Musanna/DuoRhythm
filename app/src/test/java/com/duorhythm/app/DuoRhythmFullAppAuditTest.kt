@@ -1379,4 +1379,85 @@ class DuoRhythmFullAppAuditTest {
 
         assertEquals("Deleted/non-existent items must post 0 ghost notifications", 0, shadowNm.allNotifications.size)
     }
+
+    @Test
+    fun audit31_v1733_checkUpdatesVerification() {
+        val controller = org.robolectric.Robolectric.buildActivity(androidx.appcompat.app.AppCompatActivity::class.java)
+        val activity = controller.get()
+        activity.setTheme(R.style.Theme_DuoRhythm)
+        controller.setup()
+
+        // 1. Version comparison with -beta suffix stripping & multi-segment parsing
+        assertTrue("v1.7.3.3-beta must be > v1.7.3.2-beta", UpdateManager.compareVersions("v1.7.3.3-beta", "v1.7.3.2-beta") > 0)
+        assertTrue("1.7.3.2-beta must be > 1.7.1-beta", UpdateManager.compareVersions("1.7.3.2-beta", "1.7.1-beta") > 0)
+        assertEquals(0, UpdateManager.compareVersions("v1.7.3.3-beta", "1.7.3.3-beta"))
+
+        // 2. GitHub JSON parsing with 0 prereleases (betaRelease == null) & dialog rendering
+        val jsonNoBeta = """
+            [
+              {
+                "tag_name": "v1.7.3.3-beta",
+                "prerelease": false,
+                "draft": false,
+                "body": "Release 1.7.3.3-beta highlights",
+                "assets": [
+                  {
+                    "name": "DuoRhythm-v1.7.3.3-beta.apk",
+                    "browser_download_url": "https://example.com/DuoRhythm-v1.7.3.3-beta.apk"
+                  }
+                ]
+              }
+            ]
+        """.trimIndent()
+        val (stable, beta) = UpdateManager.parseReleasesJson(jsonNoBeta, activity.getSharedPreferences("app_version_meta", Context.MODE_PRIVATE))
+        assertNotNull("Stable release must be parsed", stable)
+        assertEquals("v1.7.3.3-beta", stable?.tagName)
+        assertNull("Beta release must be null when 0 prereleases exist", beta)
+
+        // Render dual channel dialog with beta == null
+        UpdateManager.showModernDualChannelDialog(activity, stable, null)
+        val latestDialog = org.robolectric.shadows.ShadowDialog.getLatestDialog()
+        assertNotNull("Dual channel update dialog must be shown when beta == null", latestDialog)
+        val tvStable = latestDialog.findViewById<android.widget.TextView>(R.id.tvStableVersion)
+        val tvBeta = latestDialog.findViewById<android.widget.TextView>(R.id.tvBetaVersion)
+        val badgeBeta = latestDialog.findViewById<android.widget.TextView>(R.id.badgeBetaInstalled)
+        val btnActionBeta = latestDialog.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnActionBeta)
+
+        assertEquals("v1.7.3.3-beta • Verified Latest", tvStable?.text?.toString())
+        assertEquals("No active beta preview", tvBeta?.text?.toString())
+        assertEquals("UP TO DATE", badgeBeta?.text?.toString())
+        assertFalse("Beta button must be disabled when beta == null", btnActionBeta?.isEnabled ?: true)
+        assertEquals("NO NEWER BETA", btnActionBeta?.text?.toString())
+        latestDialog.dismiss()
+
+        // 3. Verify isChecking resets to false on exception and DuoAlertBanner reports error
+        val origUrl = UpdateManager.releasesApiUrl
+        val origIo = UpdateManager.ioDispatcher
+        val origMain = UpdateManager.mainDispatcher
+        try {
+            com.duorhythm.app.ui.custom.DuoAlertBanner.resetForTesting()
+            UpdateManager.isChecking = false
+            UpdateManager.releasesApiUrl = "http://invalid-protocol-test://"
+            UpdateManager.ioDispatcher = kotlinx.coroutines.Dispatchers.Unconfined
+            UpdateManager.mainDispatcher = kotlinx.coroutines.Dispatchers.Unconfined
+
+            var callbackInvoked = false
+            UpdateManager.checkForUpdates(activity, isManualCheck = true) { s, b ->
+                callbackInvoked = true
+                assertNull(s)
+                assertNull(b)
+            }
+            assertTrue("Callback must be invoked on error", callbackInvoked)
+            assertFalse("isChecking lock MUST reset to false in finally block after exception", UpdateManager.isChecking)
+            assertTrue(
+                "Error banner must report update check failure",
+                com.duorhythm.app.ui.custom.DuoAlertBanner.getLastMessageForTesting().startsWith("Update check failed:")
+            )
+        } finally {
+            UpdateManager.releasesApiUrl = origUrl
+            UpdateManager.ioDispatcher = origIo
+            UpdateManager.mainDispatcher = origMain
+            UpdateManager.isChecking = false
+        }
+    }
 }
