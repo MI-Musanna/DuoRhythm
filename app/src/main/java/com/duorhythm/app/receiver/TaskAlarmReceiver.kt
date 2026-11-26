@@ -25,7 +25,13 @@ class TaskAlarmReceiver : BroadcastReceiver() {
         val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         if (!prefs.getBoolean("pref_task_reminders_enabled", true)) return
 
-        val taskId = intent.getLongExtra(EXTRA_TASK_ID, System.currentTimeMillis())
+        val taskId = intent.getLongExtra(EXTRA_TASK_ID, -1L)
+        val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(context)
+        if (taskId <= 0L || !db.doesTaskExistForActiveProfile(taskId)) {
+            if (taskId > 0L) TaskAlarmScheduler.cancelTaskReminder(context, taskId)
+            return
+        }
+
         val taskTitle = intent.getStringExtra(EXTRA_TASK_TITLE) ?: "Untitled Task"
         val taskDueDate = intent.getStringExtra(EXTRA_TASK_DUE_DATE) ?: "Today"
         val taskPriority = intent.getStringExtra(EXTRA_TASK_PRIORITY) ?: "MEDIUM"

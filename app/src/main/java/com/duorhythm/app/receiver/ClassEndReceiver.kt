@@ -46,6 +46,18 @@ class ClassEndReceiver : BroadcastReceiver() {
         val dayOfWeek = intent.getIntExtra(ClassAlarmScheduler.EXTRA_DAY_OF_WEEK, -1)
 
         val db = DatabaseHelper.getInstance(context)
+        if (classId <= 0L || !db.doesClassExistForActiveProfile(classId)) {
+            if (classId > 0L) com.duorhythm.app.scheduler.AlarmSyncManager.cancelClassAlarms(context, classId)
+            if (prefs.getBoolean(ClassAlarmScheduler.KEY_IN_CLASS_DND, false)) {
+                if (SmartAutomationManager.isAutoRestoreGeneralAfterClassEnabled(context)) {
+                    val savedMode = prefs.getInt(ClassAlarmScheduler.KEY_SAVED_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL)
+                    try { audioManager.ringerMode = savedMode } catch (_: Exception) {}
+                }
+                prefs.edit().putBoolean(ClassAlarmScheduler.KEY_IN_CLASS_DND, false).apply()
+            }
+            nm?.cancel(30101)
+            return
+        }
 
         // Determine current day of week (1=Mon ... 7=Sun)
         val cal = Calendar.getInstance()

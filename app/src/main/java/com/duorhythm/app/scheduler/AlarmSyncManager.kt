@@ -47,17 +47,34 @@ object AlarmSyncManager {
      * Explicit Alarm Cancellation (Purge Zombie Alarms)
      */
     fun cancelClassAlarms(context: Context, classId: Long) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        val receivers = listOf(
-            ClassAlarmReceiver::class.java,
-            ScheduleReceiver::class.java,
-            ClassEndReceiver::class.java
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+        val receiverActions = listOf(
+            Triple(ClassAlarmReceiver::class.java, 1, ACTION_CLASS_LEAD_ALERT),
+            Triple(ClassAlarmReceiver::class.java, 1, ClassAlarmScheduler.ACTION_CLASS_PRE_ALERT),
+            Triple(ClassAlarmReceiver::class.java, 1, null),
+            Triple(ClassAlarmReceiver::class.java, 2, ACTION_CLASS_START_DND),
+            Triple(ClassAlarmReceiver::class.java, 2, ClassAlarmScheduler.ACTION_CLASS_START),
+            Triple(ClassAlarmReceiver::class.java, 2, null),
+            Triple(ClassAlarmReceiver::class.java, 3, ACTION_CLASS_END_RESTORE),
+            Triple(ClassAlarmReceiver::class.java, 3, ClassAlarmScheduler.ACTION_CLASS_END),
+            Triple(ClassAlarmReceiver::class.java, 3, null),
+            Triple(ScheduleReceiver::class.java, 1, ClassAlarmScheduler.ACTION_CLASS_PRE_ALERT),
+            Triple(ScheduleReceiver::class.java, 1, null),
+            Triple(ScheduleReceiver::class.java, 2, ClassAlarmScheduler.ACTION_CLASS_START),
+            Triple(ScheduleReceiver::class.java, 2, null),
+            Triple(ClassEndReceiver::class.java, 3, ClassAlarmScheduler.ACTION_CLASS_END),
+            Triple(ClassEndReceiver::class.java, 3, "com.duorhythm.app.ACTION_CLASS_END"),
+            Triple(ClassEndReceiver::class.java, 3, null),
+            Triple(com.duorhythm.app.receiver.ClassDndReceiver::class.java, 2, com.duorhythm.app.receiver.ClassDndReceiver.ACTION_CLASS_START),
+            Triple(com.duorhythm.app.receiver.ClassDndReceiver::class.java, 3, com.duorhythm.app.receiver.ClassDndReceiver.ACTION_CLASS_END)
         )
 
-        for (type in 1..3) {
-            val reqCode = getRequestCode(classId, type)
-            for (receiver in receivers) {
-                val intent = Intent(context, receiver)
+        if (alarmManager != null) {
+            for ((receiver, type, actionStr) in receiverActions) {
+                val reqCode = getRequestCode(classId, type)
+                val intent = Intent(context, receiver).apply {
+                    if (actionStr != null) action = actionStr
+                }
                 val pi = PendingIntent.getBroadcast(
                     context,
                     reqCode,
@@ -69,7 +86,31 @@ object AlarmSyncManager {
                     pi.cancel()
                 }
             }
+
+            // Also cancel any snoozed alarm for this classId
+            val snoozeReqCode = (950000 + (classId % 40000)).toInt()
+            val snoozeIntent = Intent(context, ClassAlarmReceiver::class.java).apply {
+                action = ACTION_CLASS_LEAD_ALERT
+            }
+            val snoozePi = PendingIntent.getBroadcast(
+                context,
+                snoozeReqCode,
+                snoozeIntent,
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )
+            if (snoozePi != null) {
+                alarmManager.cancel(snoozePi)
+                snoozePi.cancel()
+            }
         }
+
+        // Also dismiss any active notification posted for this class
+        try {
+            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+            if (classId > 0) {
+                nm?.cancel(classId.toInt() + 10000)
+            }
+        } catch (_: Exception) {}
     }
 
     /**
@@ -80,14 +121,17 @@ object AlarmSyncManager {
         try {
             val db = DatabaseHelper.getInstance(context)
             val classes = db.getAllClasses()
-            val receivers = listOf(
-                ClassAlarmReceiver::class.java,
-                ScheduleReceiver::class.java
+            val receiverActions = listOf(
+                Pair(ClassAlarmReceiver::class.java, ACTION_CLASS_LEAD_ALERT),
+                Pair(ClassAlarmReceiver::class.java, ClassAlarmScheduler.ACTION_CLASS_PRE_ALERT),
+                Pair(ScheduleReceiver::class.java, ClassAlarmScheduler.ACTION_CLASS_PRE_ALERT)
             )
             for (cls in classes) {
                 val reqCode = getRequestCode(cls.id, 1)
-                for (receiver in receivers) {
-                    val intent = Intent(context, receiver)
+                for ((receiver, actionStr) in receiverActions) {
+                    val intent = Intent(context, receiver).apply {
+                        action = actionStr
+                    }
                     val pi = PendingIntent.getBroadcast(
                         context,
                         reqCode,

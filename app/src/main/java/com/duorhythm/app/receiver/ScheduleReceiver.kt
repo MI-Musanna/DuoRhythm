@@ -42,6 +42,11 @@ class ScheduleReceiver : BroadcastReceiver() {
         if (!ReminderManager.isRemindersEnabled(context)) return
 
         val classId = intent.getLongExtra(ClassAlarmScheduler.EXTRA_CLASS_ID, -1L)
+        val db = DatabaseHelper.getInstance(context)
+        if (classId <= 0L || !db.doesClassExistForActiveProfile(classId)) {
+            if (classId > 0L) ClassAlarmScheduler.cancelClassAlarms(context, classId)
+            return
+        }
         val subjectName = intent.getStringExtra(ClassAlarmScheduler.EXTRA_SUBJECT_NAME) ?: "Class"
         val room = intent.getStringExtra(ClassAlarmScheduler.EXTRA_ROOM) ?: ""
         val teacher = intent.getStringExtra(ClassAlarmScheduler.EXTRA_TEACHER) ?: ""
@@ -111,6 +116,13 @@ class ScheduleReceiver : BroadcastReceiver() {
 
     private fun handleClassStart(context: Context, intent: Intent) {
         if (!SmartAutomationManager.isAutoSilentClassesEnabled(context)) return
+
+        val classId = intent.getLongExtra(ClassAlarmScheduler.EXTRA_CLASS_ID, -1L)
+        val db = DatabaseHelper.getInstance(context)
+        if (classId <= 0L || !db.doesClassExistForActiveProfile(classId)) {
+            if (classId > 0L) ClassAlarmScheduler.cancelClassAlarms(context, classId)
+            return
+        }
 
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
         val prefs = context.getSharedPreferences(ClassAlarmScheduler.PREFS_NAME, Context.MODE_PRIVATE)

@@ -58,10 +58,14 @@ object UpdateManager {
         val clean2 = cleanVersion(v2)
         if (clean1 == clean2) return 0
 
-        val numPart1 = clean1.split("-")[0]
-        val numPart2 = clean2.split("-")[0]
-        val parts1 = numPart1.split(".").mapNotNull { it.toIntOrNull() }
-        val parts2 = numPart2.split(".").mapNotNull { it.toIntOrNull() }
+        val numPart1 = clean1.substringBefore("-")
+        val numPart2 = clean2.substringBefore("-")
+        val parts1 = numPart1.split(".").map { seg ->
+            seg.takeWhile { it.isDigit() }.toIntOrNull() ?: 0
+        }
+        val parts2 = numPart2.split(".").map { seg ->
+            seg.takeWhile { it.isDigit() }.toIntOrNull() ?: 0
+        }
 
         val maxLen = maxOf(parts1.size, parts2.size)
         for (i in 0 until maxLen) {
@@ -131,10 +135,10 @@ object UpdateManager {
                             // Permanently cache the release body using normalized key
                             prefs.edit().putString("online_body_${cleanVersion(tag)}", body).apply()
 
-                            if (!isPrerelease && latestStable == null) {
+                            if (!isPrerelease && (latestStable == null || compareVersions(release.tagName, latestStable.tagName) > 0)) {
                                 latestStable = release
                             }
-                            if (isPrerelease && latestBeta == null) {
+                            if (isPrerelease && (latestBeta == null || compareVersions(release.tagName, latestBeta.tagName) > 0)) {
                                 latestBeta = release
                             }
                         }
@@ -168,7 +172,7 @@ object UpdateManager {
         if (stable == null) return
         val currentVer = BuildConfig.VERSION_NAME
 
-        if (cleanVersion(stable.tagName) != cleanVersion(currentVer) && !currentVer.contains("dev", ignoreCase = true)) {
+        if (compareVersions(currentVer, stable.tagName) < 0 && !currentVer.contains("dev", ignoreCase = true)) {
             val dialog = BottomSheetDialog(context, R.style.CustomBottomSheetDialog)
             val view = LayoutInflater.from(context).inflate(R.layout.dialog_auto_stable_update, null)
             dialog.setContentView(view)
@@ -443,7 +447,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Restored circular profile avatar clipping on Home & Profile.\n• Enforced numeric keypad & digit validation on Subject Code fields.\n• Required profile password validation & reactive ProfileRepository sync."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Enforced explicit oval outline clipping for Home & Profile avatars.\n• Required profile password validation across all workspace creation slots.\n• Fixed 4-segment updater version check & blocked ghost notifications for deleted classes."
                     }
                 }
             }
@@ -502,14 +506,14 @@ object UpdateManager {
             if (isStableCurrent) {
                 btnStable?.text = "INSTALLED"
                 btnStable?.isEnabled = false
-                btnStable?.setBackgroundColor(Color.parseColor("#1E293B"))
+                btnStable?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#1E293B"))
                 btnStable?.setTextColor(Color.parseColor("#64748B"))
                 btnStable?.strokeColor = null
             } else {
                 stableHasUpdate = true
                 btnStable?.text = "INSTALL LATEST"
                 btnStable?.isEnabled = true
-                btnStable?.setBackgroundColor(Color.parseColor("#10B981"))
+                btnStable?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#10B981"))
                 btnStable?.setTextColor(Color.parseColor("#0A0B0E"))
                 btnStable?.setOnClickListener {
                     dialog.dismiss()
@@ -527,48 +531,28 @@ object UpdateManager {
         val badgeBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
         val btnActionBeta = view.findViewById<MaterialButton>(R.id.btnActionBeta)
 
-        if (beta != null) {
+        val isBetaCurrent = beta == null || compareVersions(currentVersion, beta.tagName) >= 0
+        if (!isBetaCurrent && beta != null) {
             tvBeta?.text = "${beta.tagName} • Bleeding-Edge Preview"
+            tvStatusPill?.text = "UPDATE AVAILABLE • ${beta.tagName}"
+            tvStatusPill?.setTextColor(Color.parseColor("#38BDF8"))
+            tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_blue)
 
-            val isBetaCurrent = compareVersions(currentVersion, beta.tagName) >= 0
-            if (isBetaCurrent) {
-                if (stableHasUpdate) {
-                    tvStatusPill?.text = "UPDATE AVAILABLE • ${stable?.tagName}"
-                    tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
-                    tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
-                } else {
-                    tvStatusPill?.text = "UP TO DATE"
-                    tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
-                    tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
-                }
+            badgeBeta?.text = "UPDATE"
+            badgeBeta?.setTextColor(Color.parseColor("#38BDF8"))
 
-                badgeBeta?.text = "CURRENT"
-                badgeBeta?.setTextColor(Color.parseColor("#10B981"))
+            btnActionBeta?.text = "DOWNLOAD UPDATE"
+            btnActionBeta?.isEnabled = true
+            btnActionBeta?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+            btnActionBeta?.setTextColor(Color.parseColor("#0A0B0E"))
 
-                btnActionBeta?.text = "INSTALLED"
-                btnActionBeta?.isEnabled = false
-                btnActionBeta?.setBackgroundColor(Color.parseColor("#1E293B"))
-                btnActionBeta?.setTextColor(Color.parseColor("#64748B"))
-            } else {
-                tvStatusPill?.text = "UPDATE AVAILABLE • ${beta.tagName}"
-                tvStatusPill?.setTextColor(Color.parseColor("#38BDF8"))
-                tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_blue)
-
-                badgeBeta?.text = "UPDATE"
-                badgeBeta?.setTextColor(Color.parseColor("#38BDF8"))
-
-                btnActionBeta?.text = "DOWNLOAD UPDATE"
-                btnActionBeta?.isEnabled = true
-                btnActionBeta?.setBackgroundColor(Color.parseColor("#38BDF8"))
-                btnActionBeta?.setTextColor(Color.parseColor("#0A0B0E"))
-
-                val clickAction = View.OnClickListener {
-                    dialog.dismiss()
-                    showInAppDownloadDialog(context, beta.downloadUrl, "${beta.tagName}.apk")
-                }
-                btnActionBeta?.setOnClickListener(clickAction)
+            val clickAction = View.OnClickListener {
+                dialog.dismiss()
+                showInAppDownloadDialog(context, beta.downloadUrl, "${beta.tagName}.apk")
             }
+            btnActionBeta?.setOnClickListener(clickAction)
         } else {
+            tvBeta?.text = if (beta != null) "${beta.tagName} • Up To Date" else "v$currentVersion • Up To Date"
             if (stableHasUpdate) {
                 tvStatusPill?.text = "UPDATE AVAILABLE • ${stable?.tagName}"
                 tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
@@ -576,7 +560,17 @@ object UpdateManager {
             } else {
                 tvStatusPill?.text = "UP TO DATE"
                 tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
+                tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
             }
+
+            badgeBeta?.text = "UP TO DATE"
+            badgeBeta?.setTextColor(Color.parseColor("#10B981"))
+
+            btnActionBeta?.text = "NO NEWER BETA"
+            btnActionBeta?.isEnabled = false
+            btnActionBeta?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#1E293B"))
+            btnActionBeta?.setTextColor(Color.parseColor("#64748B"))
+            btnActionBeta?.setOnClickListener(null)
         }
 
         dialog.show()

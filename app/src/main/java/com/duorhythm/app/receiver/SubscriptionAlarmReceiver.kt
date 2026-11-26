@@ -40,6 +40,10 @@ class SubscriptionAlarmReceiver : BroadcastReceiver() {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
 
         for (sub in activeSubs) {
+            // DB Existence Guard: ensure subscription is active & belongs to active profile
+            if (!db.doesSubscriptionExistForActiveProfile(sub.id, activeProfileId)) {
+                continue
+            }
             // Check if due today with safe monthly date-roll clamping
             if (!DateRollValidator.isDueToday(sub, cal)) {
                 continue

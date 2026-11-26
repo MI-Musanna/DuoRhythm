@@ -3,6 +3,8 @@ package com.duorhythm.app
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.duorhythm.app.data.local.db.DatabaseHelper
+import com.duorhythm.app.data.model.ClassScheduleItem
+import com.duorhythm.app.data.model.StudentSubject
 import com.duorhythm.app.data.model.TaskItem
 import com.duorhythm.app.data.model.TransactionItem
 import com.duorhythm.app.data.model.WalletBucketItem
@@ -26,12 +28,16 @@ class ShadowDatabaseHelper {
         private val assessments = mutableListOf<AssessmentEntity>()
         private val taskCategories = mutableListOf<String>()
         private val holidays = mutableMapOf<String, String>()
+        private val studentSubjects = mutableListOf<StudentSubject>()
+        private val classes = mutableListOf<ClassScheduleItem>()
         private val genericTables = mutableMapOf<String, MutableList<Map<String, Any?>>>()
         private var nextBucketId = 1L
         private var nextTxId = 1L
         private var nextProfileId = 1L
         private var nextTaskId = 1L
         private var nextAssessmentId = 1L
+        private var nextSubjectId = 1L
+        private var nextClassId = 1L
 
         fun reset() {
             buckets.clear()
@@ -40,12 +46,16 @@ class ShadowDatabaseHelper {
             assessments.clear()
             taskCategories.clear()
             holidays.clear()
+            studentSubjects.clear()
+            classes.clear()
             genericTables.clear()
             nextBucketId = 1L
             nextTxId = 1L
             nextProfileId = 1L
             nextTaskId = 1L
             nextAssessmentId = 1L
+            nextSubjectId = 1L
+            nextClassId = 1L
         }
     }
 
@@ -187,11 +197,85 @@ class ShadowDatabaseHelper {
         assessments.clear()
         taskCategories.clear()
         holidays.clear()
+        studentSubjects.clear()
+        classes.clear()
         genericTables.clear()
         val context: Context = ApplicationProvider.getApplicationContext()
         context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
             .edit().clear().apply()
     }
+
+    @Implementation
+    fun insertStudentSubject(subject: StudentSubject, autoTrackAttendance: Boolean): Long {
+        val id = if (subject.id > 0) subject.id else nextSubjectId++
+        studentSubjects.add(subject.copy(id = id))
+        return id
+    }
+
+    @Implementation
+    fun getStudentSubjectById(subjectId: Long): StudentSubject? {
+        return studentSubjects.firstOrNull { it.id == subjectId }
+    }
+
+    @Implementation
+    fun insertClassSchedule(item: ClassScheduleItem): Long {
+        val id = if (item.id > 0) item.id else nextClassId++
+        classes.add(item.copy(id = id))
+        return id
+    }
+
+    @Implementation
+    fun getAllClasses(profileId: Long): List<ClassScheduleItem> {
+        return classes.filter { it.profileId == profileId || it.profileId == 0L }
+    }
+
+    @Implementation
+    fun deleteClassSchedule(id: Long): Int {
+        val before = classes.size
+        classes.removeAll { it.id == id }
+        return if (classes.size < before) 1 else 0
+    }
+
+    @Implementation
+    fun deleteCourseCascade(courseId: Long, courseCode: String, profileId: Long): Boolean {
+        val course = studentSubjects.firstOrNull { it.id == courseId }
+        val courseName = course?.name?.trim() ?: ""
+        val code = (if (courseCode.isNotBlank()) courseCode else (course?.code ?: "")).trim()
+        classes.removeAll { cls ->
+            val clsSub = cls.subjectName.trim()
+            (cls.profileId == profileId || cls.profileId == 0L) && (
+                (courseName.isNotBlank() && (clsSub.equals(courseName, ignoreCase = true) || clsSub.startsWith("$courseName (", ignoreCase = true))) ||
+                    (code.isNotBlank() && clsSub.contains(code, ignoreCase = true))
+            )
+        }
+        assessments.removeAll { it.subjectId == courseId }
+        studentSubjects.removeAll { it.id == courseId }
+        return true
+    }
+
+    @Implementation
+    fun doesClassExistForActiveProfile(classId: Long, profileId: Long): Boolean {
+        return classes.any { it.id == classId && (it.profileId == profileId || it.profileId == 0L) }
+    }
+
+    @Implementation
+    fun doesAssessmentExistForActiveProfile(assessmentId: Long, profileId: Long): Boolean {
+        return assessments.any { it.id == assessmentId && (it.profileId == profileId || it.profileId == 0L) && it.status != "DONE" }
+    }
+
+    @Implementation
+    fun doesTaskExistForActiveProfile(taskId: Long, profileId: Long): Boolean {
+        return tasks.any { it.id == taskId && (it.profileId == profileId || it.profileId == 0L) && !it.isCompleted }
+    }
+
+    @Implementation
+    fun doesSubscriptionExistForActiveProfile(subId: Long, profileId: Long): Boolean = false
+
+    @Implementation
+    fun doesDueDebtExistForActiveProfile(debtId: Long, profileId: Long): Boolean = false
+
+    @Implementation
+    fun doesWorkOrderExist(orderId: Long): Boolean = false
 
     @Implementation
     fun exportDatabaseToJson(): String {

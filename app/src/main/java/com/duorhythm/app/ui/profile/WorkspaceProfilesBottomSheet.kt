@@ -480,11 +480,17 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
                 return@setOnClickListener
             }
 
+            val trimmedPassword = password.trim()
+            if (trimmedPassword.length < 4) {
+                DuoAlertBanner.warning(act, "Please enter a profile password (at least 4 characters)")
+                return@setOnClickListener
+            }
+
             val newProfile = ProfileEntity(
                 slotNumber = slotNumber,
                 name = name,
                 email = email,
-                passwordHash = if (password.isNotBlank()) ProfileManager.hashPassword(password) else "",
+                passwordHash = ProfileManager.hashPassword(trimmedPassword),
                 institution = institution,
                 department = department,
                 semester = semester,

@@ -189,7 +189,11 @@ object AssessmentAlarmScheduler {
 
     fun cancelAlarmsForAssessment(context: Context, assessmentId: Long) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        val codes = listOf((assessmentId * 10 + 1).toInt(), (assessmentId * 10 + 2).toInt())
+        val codes = listOf(
+            (assessmentId * 10 + 1).toInt(),
+            (assessmentId * 10 + 2).toInt(),
+            (950000 + (assessmentId % 40000)).toInt()
+        )
         for (code in codes) {
             val intent = Intent(context, AssessmentAlarmReceiver::class.java).apply {
                 action = AssessmentAlarmReceiver.ACTION_ASSESSMENT_ALERT
@@ -198,10 +202,12 @@ object AssessmentAlarmScheduler {
                 context,
                 code,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
             )
-            alarmManager.cancel(pi)
-            pi.cancel()
+            if (pi != null) {
+                alarmManager.cancel(pi)
+                pi.cancel()
+            }
         }
     }
 

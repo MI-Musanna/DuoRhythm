@@ -80,6 +80,12 @@ class ClassAlarmReceiver : BroadcastReceiver() {
         if (!ReminderManager.isRemindersEnabled(context)) return
 
         val classId = intent.getLongExtra(AlarmSyncManager.EXTRA_CLASS_ID, -1L)
+        val db = DatabaseHelper.getInstance(context)
+        if (classId <= 0L || !db.doesClassExistForActiveProfile(classId)) {
+            if (classId > 0L) AlarmSyncManager.cancelClassAlarms(context, classId)
+            return
+        }
+
         val subjectName = intent.getStringExtra(AlarmSyncManager.EXTRA_SUBJECT_NAME) ?: "Class"
         val room = intent.getStringExtra(AlarmSyncManager.EXTRA_ROOM) ?: ""
         val teacher = intent.getStringExtra(AlarmSyncManager.EXTRA_TEACHER) ?: ""
@@ -149,6 +155,13 @@ class ClassAlarmReceiver : BroadcastReceiver() {
     private fun handleClassStart(context: Context, intent: Intent) {
         if (!SmartAutomationManager.isAutoSilentClassesEnabled(context)) return
 
+        val classId = intent.getLongExtra(AlarmSyncManager.EXTRA_CLASS_ID, -1L)
+        val db = DatabaseHelper.getInstance(context)
+        if (classId <= 0L || !db.doesClassExistForActiveProfile(classId)) {
+            if (classId > 0L) AlarmSyncManager.cancelClassAlarms(context, classId)
+            return
+        }
+
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
         val prefs = context.getSharedPreferences(ClassAlarmScheduler.PREFS_NAME, Context.MODE_PRIVATE)
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
@@ -168,7 +181,6 @@ class ClassAlarmReceiver : BroadcastReceiver() {
         val room = intent.getStringExtra(AlarmSyncManager.EXTRA_ROOM) ?: ""
         val startTime = intent.getStringExtra(AlarmSyncManager.EXTRA_START_TIME) ?: ""
         val endTime = intent.getStringExtra(AlarmSyncManager.EXTRA_END_TIME) ?: ""
-        val classId = intent.getLongExtra(AlarmSyncManager.EXTRA_CLASS_ID, -1L)
 
         val classEntity = com.duorhythm.app.data.local.entity.ClassEntity(
             id = if (classId > 0) classId else 0L,
@@ -194,6 +206,18 @@ class ClassAlarmReceiver : BroadcastReceiver() {
         val dayOfWeek = intent.getIntExtra(AlarmSyncManager.EXTRA_DAY_OF_WEEK, -1)
 
         val db = DatabaseHelper.getInstance(context)
+        if (classId <= 0L || !db.doesClassExistForActiveProfile(classId)) {
+            if (classId > 0L) AlarmSyncManager.cancelClassAlarms(context, classId)
+            if (prefs.getBoolean(ClassAlarmScheduler.KEY_IN_CLASS_DND, false)) {
+                if (SmartAutomationManager.isAutoRestoreGeneralAfterClassEnabled(context)) {
+                    val savedMode = prefs.getInt(ClassAlarmScheduler.KEY_SAVED_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL)
+                    try { audioManager.ringerMode = savedMode } catch (_: Exception) {}
+                }
+                prefs.edit().putBoolean(ClassAlarmScheduler.KEY_IN_CLASS_DND, false).apply()
+            }
+            nm?.cancel(30101)
+            return
+        }
         val profileId = db.getActiveProfileId()
 
         val cal = Calendar.getInstance()

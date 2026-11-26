@@ -47,7 +47,8 @@ class CreateProfileDialog(
                 return@setOnClickListener
             }
 
-            if (password.length < 4) {
+            val trimmedPassword = password.trim()
+            if (trimmedPassword.length < 4) {
                 DuoAlertBanner.warning(activity, "Please enter a profile password (at least 4 characters)")
                 return@setOnClickListener
             }
@@ -56,7 +57,7 @@ class CreateProfileDialog(
                 slotNumber = slotNumber,
                 name = name,
                 email = email,
-                passwordHash = ProfileManager.hashPassword(password),
+                passwordHash = ProfileManager.hashPassword(trimmedPassword),
                 institution = institution,
                 department = department,
                 semester = semester,

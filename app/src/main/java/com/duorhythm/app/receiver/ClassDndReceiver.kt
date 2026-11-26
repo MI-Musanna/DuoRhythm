@@ -39,6 +39,11 @@ class ClassDndReceiver : BroadcastReceiver() {
 
         when (action) {
             ACTION_CLASS_START -> {
+                val db = DatabaseHelper.getInstance(context)
+                if (classId <= 0L || !db.doesClassExistForActiveProfile(classId)) {
+                    if (classId > 0L) com.duorhythm.app.scheduler.AlarmSyncManager.cancelClassAlarms(context, classId)
+                    return
+                }
                 // Save current ringer mode if not already in class DND mode
                 if (!prefs.getBoolean(KEY_IN_CLASS_DND, false)) {
                     prefs.edit()

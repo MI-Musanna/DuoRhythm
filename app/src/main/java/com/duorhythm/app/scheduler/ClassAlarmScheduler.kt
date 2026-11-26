@@ -45,10 +45,14 @@ object ClassAlarmScheduler {
 
     fun cancelAlarmsForCourse(context: Context, courseId: Long) {
         val db = DatabaseHelper.getInstance(context)
-        val course = db.getStudentSubjectById(courseId)
-        val classes = db.getAllClasses().filter { cls ->
-            course != null && (cls.subjectName.equals(course.name, ignoreCase = true) ||
-                    (course.code.isNotBlank() && cls.subjectName.contains(course.code, ignoreCase = true)))
+        val course = db.getStudentSubjectById(courseId) ?: return
+        val courseNameTrimmed = course.name.trim()
+        val courseCodeTrimmed = course.code.trim()
+        val classes = db.getAllClasses(course.profileId).filter { cls ->
+            val clsSub = cls.subjectName.trim()
+            clsSub.equals(courseNameTrimmed, ignoreCase = true) ||
+                (courseNameTrimmed.isNotBlank() && clsSub.startsWith("$courseNameTrimmed (", ignoreCase = true)) ||
+                (courseCodeTrimmed.isNotBlank() && clsSub.contains(courseCodeTrimmed, ignoreCase = true))
         }
         for (cls in classes) {
             cancelAlarmsForClass(context, cls.id)

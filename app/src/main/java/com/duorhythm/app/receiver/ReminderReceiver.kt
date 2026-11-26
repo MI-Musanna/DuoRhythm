@@ -31,6 +31,19 @@ class ReminderReceiver : BroadcastReceiver() {
             val type = intent.getStringExtra(ReminderManager.EXTRA_TYPE) ?: "CLASS"
             val itemId = intent.getLongExtra(ReminderManager.EXTRA_ID, -1L)
 
+            val db = DatabaseHelper.getInstance(context)
+            if (type == "CLASS") {
+                if (itemId <= 0L || !db.doesClassExistForActiveProfile(itemId)) {
+                    if (itemId > 0L) ReminderManager.cancelClassReminder(context, itemId)
+                    return
+                }
+            } else if (type == "EXAM") {
+                if (itemId <= 0L || !db.doesAssessmentExistForActiveProfile(itemId)) {
+                    if (itemId > 0L) ReminderManager.cancelExamReminder(context, itemId)
+                    return
+                }
+            }
+
             ReminderManager.createNotificationChannel(context)
 
             val openIntent = Intent(context, MainActivity::class.java).apply {

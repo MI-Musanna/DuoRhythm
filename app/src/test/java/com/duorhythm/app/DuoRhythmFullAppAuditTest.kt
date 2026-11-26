@@ -1260,4 +1260,123 @@ class DuoRhythmFullAppAuditTest {
         assertEquals("Please enter a profile password (at least 4 characters)", com.duorhythm.app.ui.custom.DuoAlertBanner.getLastMessageForTesting())
         latestDialog.dismiss()
     }
+
+    @Test
+    fun audit30_v1732_hotfixVerification() {
+        val controller = org.robolectric.Robolectric.buildActivity(com.duorhythm.app.MainActivity::class.java).setup()
+        val activity = controller.get()
+        val inflater = android.view.LayoutInflater.from(activity)
+
+        // 1. Explicit Oval ViewOutlineProvider on Home Avatar & ProfileAvatarHelper
+        val vHome = inflater.inflate(R.layout.fragment_home, null)
+        val ivHomeProfile = vHome.findViewById<android.widget.ImageView>(R.id.ivUserProfile)
+        ivHomeProfile.layout(0, 0, 80, 80)
+        com.duorhythm.app.util.ProfileAvatarHelper.applyCircularOutline(ivHomeProfile)
+        assertTrue("ivUserProfile must have clipToOutline=true", ivHomeProfile.clipToOutline)
+        assertNotEquals("ivUserProfile must have custom oval ViewOutlineProvider", android.view.ViewOutlineProvider.BACKGROUND, ivHomeProfile.outlineProvider)
+        val outline = android.graphics.Outline()
+        ivHomeProfile.outlineProvider.getOutline(ivHomeProfile, outline)
+        assertFalse("Oval outline must not be empty", outline.isEmpty)
+
+        // 2. 4-Segment Version Comparison & Dual-Channel Updater Defaults
+        assertTrue("1.7.3.2-beta must be > 1.7.1-beta", UpdateManager.compareVersions("1.7.3.2-beta", "1.7.1-beta") > 0)
+        assertTrue("v1.7.3.2-beta must be > v1.7.3-beta", UpdateManager.compareVersions("v1.7.3.2-beta", "v1.7.3-beta") > 0)
+        assertTrue("v1.7.3.2-beta must be > 1.7.3.1-beta", UpdateManager.compareVersions("v1.7.3.2-beta", "1.7.3.1-beta") > 0)
+        assertEquals("Normalized versions must match", 0, UpdateManager.compareVersions("v1.7.3.2-beta", "1.7.3.2-beta"))
+
+        val vUpdater = inflater.inflate(R.layout.dialog_modern_updater, null)
+        val btnActionBeta = vUpdater.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnActionBeta)
+        assertNotNull(btnActionBeta)
+        assertFalse("Beta button must default to disabled", btnActionBeta.isEnabled)
+        assertEquals("NO NEWER BETA", btnActionBeta.text.toString())
+
+        // 3. Required Password Across All Profile Creation Layouts & Trimmed Validation
+        val vProfileCreate = inflater.inflate(R.layout.dialog_profile_create, null)
+        val etProfileCreatePass = vProfileCreate.findViewById<android.widget.EditText>(R.id.etCreatePassword)
+        assertEquals("Create profile password (min 4 characters)", etProfileCreatePass.hint?.toString())
+
+        val vOnboardingItem = inflater.inflate(R.layout.item_onboarding_profile, null)
+        val etOnboardingPass = vOnboardingItem.findViewById<android.widget.EditText>(R.id.etOnboardingPassword)
+        assertEquals("Create profile password (min 4 characters)", etOnboardingPass.hint?.toString())
+
+        com.duorhythm.app.ui.custom.DuoAlertBanner.resetForTesting()
+        val createDialog = com.duorhythm.app.ui.profile.CreateProfileDialog(activity, 2)
+        createDialog.show()
+        val latestDialog = org.robolectric.shadows.ShadowAlertDialog.getLatestDialog()
+        val etNameInDialog = latestDialog.findViewById<android.widget.EditText>(R.id.etCreateName)
+        val etPassInDialog = latestDialog.findViewById<android.widget.EditText>(R.id.etCreatePassword)
+        val btnSubmitInDialog = latestDialog.findViewById<android.widget.Button>(R.id.btnCreateSubmit)
+        etNameInDialog.setText("Slot Two")
+        etPassInDialog.setText("  12  ") // Whitespace-padded < 4 trimmed chars
+        btnSubmitInDialog.performClick()
+        assertEquals("Please enter a profile password (at least 4 characters)", com.duorhythm.app.ui.custom.DuoAlertBanner.getLastMessageForTesting())
+        latestDialog.dismiss()
+
+        // 4. Cascade Deletion & DB Existence Guard Blocking Ghost Notifications
+        val activeId = ProfileManager.getActiveProfileId(activity)
+        val subjectId = db.insertStudentSubject(
+            com.duorhythm.app.data.model.StudentSubject(
+                profileId = activeId,
+                name = "2222w",
+                code = "2222",
+                credits = 3
+            ),
+            autoTrackAttendance = false
+        )
+        assertTrue("Subject must be inserted", subjectId > 0L)
+
+        val classId = db.insertClassSchedule(
+            com.duorhythm.app.data.model.ClassScheduleItem(
+                profileId = activeId,
+                subjectName = "2222w",
+                room = "101",
+                teacher = "Prof",
+                dayOfWeek = 1,
+                startTime = "09:00 AM",
+                endTime = "10:00 AM"
+            )
+        )
+        assertTrue("Class must be inserted", classId > 0L)
+        assertTrue("DB guard must detect active class before deletion", db.doesClassExistForActiveProfile(classId))
+
+        // Delete subject -> cascade deletes class 2222w
+        assertTrue("Cascade delete must succeed", db.deleteCourseCascade(subjectId, "2222", activeId))
+        assertFalse("DB guard must return false after cascade deletion", db.doesClassExistForActiveProfile(classId))
+
+        // Trigger notification receivers for deleted classId & ensure 0 notifications are posted
+        val nm = activity.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val shadowNm = org.robolectric.Shadows.shadowOf(nm)
+        nm.cancelAll()
+
+        val schedIntent = android.content.Intent(activity, com.duorhythm.app.receiver.ScheduleReceiver::class.java).apply {
+            action = com.duorhythm.app.scheduler.ClassAlarmScheduler.ACTION_CLASS_PRE_ALERT
+            putExtra(com.duorhythm.app.scheduler.ClassAlarmScheduler.EXTRA_CLASS_ID, classId)
+            putExtra(com.duorhythm.app.scheduler.ClassAlarmScheduler.EXTRA_SUBJECT_NAME, "2222w")
+        }
+        com.duorhythm.app.receiver.ScheduleReceiver().onReceive(activity, schedIntent)
+
+        val reminderIntent = android.content.Intent(activity, com.duorhythm.app.receiver.ReminderReceiver::class.java).apply {
+            action = com.duorhythm.app.service.ReminderManager.ACTION_REMINDER
+            putExtra(com.duorhythm.app.service.ReminderManager.EXTRA_TYPE, "CLASS")
+            putExtra(com.duorhythm.app.service.ReminderManager.EXTRA_ID, classId)
+            putExtra(com.duorhythm.app.service.ReminderManager.EXTRA_TITLE, "Class in 10m: 2222w")
+        }
+        com.duorhythm.app.receiver.ReminderReceiver().onReceive(activity, reminderIntent)
+
+        val assessmentIntent = android.content.Intent(activity, com.duorhythm.app.receiver.AssessmentAlarmReceiver::class.java).apply {
+            action = com.duorhythm.app.receiver.AssessmentAlarmReceiver.ACTION_ASSESSMENT_ALERT
+            putExtra(com.duorhythm.app.receiver.AssessmentAlarmReceiver.EXTRA_ASSESSMENT_ID, 99999L)
+            putExtra(com.duorhythm.app.receiver.AssessmentAlarmReceiver.EXTRA_TITLE, "Ghost Exam")
+        }
+        com.duorhythm.app.receiver.AssessmentAlarmReceiver().onReceive(activity, assessmentIntent)
+
+        val taskIntent = android.content.Intent(activity, com.duorhythm.app.receiver.TaskAlarmReceiver::class.java).apply {
+            action = com.duorhythm.app.receiver.TaskAlarmReceiver.ACTION_TASK_ALERT
+            putExtra(com.duorhythm.app.receiver.TaskAlarmReceiver.EXTRA_TASK_ID, 99999L)
+            putExtra(com.duorhythm.app.receiver.TaskAlarmReceiver.EXTRA_TASK_TITLE, "Ghost Task")
+        }
+        com.duorhythm.app.receiver.TaskAlarmReceiver().onReceive(activity, taskIntent)
+
+        assertEquals("Deleted/non-existent items must post 0 ghost notifications", 0, shadowNm.allNotifications.size)
+    }
 }

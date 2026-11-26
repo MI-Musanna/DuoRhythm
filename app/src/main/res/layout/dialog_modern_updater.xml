@@ -164,7 +164,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="v1.7.1-beta • Bleeding-Edge Preview"
+                android:text="Checking preview channel..."
                 android:textColor="#38BDF8"
                 android:textSize="12sp" />
 
@@ -174,11 +174,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
                 android:layout_marginTop="12dp"
-                android:backgroundTint="#38BDF8"
+                android:backgroundTint="#1E293B"
+                android:enabled="false"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:text="DOWNLOAD UPDATE"
-                android:textColor="#0A0B0E"
+                android:text="NO NEWER BETA"
+                android:textColor="#64748B"
                 android:textSize="12.5sp"
                 android:textStyle="bold"
                 app:cornerRadius="10dp" />

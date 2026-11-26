@@ -118,11 +118,13 @@ class HomeFragment : Fragment() {
             )
             binding.rvHomeQuickNotes.adapter = quickNotesAdapter
             setupBlurEffects()
+            com.duorhythm.app.util.ProfileAvatarHelper.applyCircularOutline(binding.ivUserProfile)
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     ProfileRepository.activeProfileFlow.collect { profile ->
                         if (profile != null && _binding != null) {
                             binding.tvWelcomeUser.text = "Welcome back, ${profile.name}"
+                            com.duorhythm.app.util.ProfileAvatarHelper.applyCircularOutline(binding.ivUserProfile)
                             com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(
                                 binding.ivUserProfile,
                                 profile.avatarUri,
@@ -297,6 +299,7 @@ class HomeFragment : Fragment() {
 
             binding.ivUserProfile.setImageDrawable(null)
             binding.ivUserProfile.setImageBitmap(null)
+            com.duorhythm.app.util.ProfileAvatarHelper.applyCircularOutline(binding.ivUserProfile)
             com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(
                 binding.ivUserProfile,
                 activeProfile?.avatarUri,

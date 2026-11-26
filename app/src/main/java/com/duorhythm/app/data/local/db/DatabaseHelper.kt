@@ -1911,6 +1911,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     }
 
     fun deleteSubscription(subId: Long): Int {
+        try {
+            val nm = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+            nm?.cancel((92000 + subId).toInt())
+        } catch (_: Exception) {}
         val db = writableDatabase
         return db.delete("subscriptions", "id = ?", arrayOf(subId.toString()))
     }
@@ -2205,6 +2209,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     }
 
     fun deleteTask(taskId: Long): Int {
+        try {
+            com.duorhythm.app.scheduler.TaskAlarmScheduler.cancelTaskReminder(appContext, taskId)
+        } catch (_: Exception) {}
         val db = writableDatabase
         return db.delete("tasks", "id = ?", arrayOf(taskId.toString()))
     }
@@ -3180,12 +3187,101 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     }
 
     fun deleteClassSchedule(id: Long): Int {
+        try {
+            com.duorhythm.app.scheduler.AlarmSyncManager.cancelClassAlarms(appContext, id)
+            com.duorhythm.app.service.ReminderManager.cancelClassReminder(appContext, id)
+        } catch (_: Exception) {}
         val db = writableDatabase
         val res = db.delete("classes", "id = ?", arrayOf(id.toString()))
         try {
             com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
         } catch (_: Exception) {}
         return res
+    }
+
+    fun doesClassExistForActiveProfile(classId: Long, profileId: Long = getActiveProfileId()): Boolean {
+        if (classId <= 0L) return false
+        return try {
+            val cursor = readableDatabase.rawQuery(
+                "SELECT 1 FROM classes WHERE id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) LIMIT 1",
+                arrayOf(classId.toString(), profileId.toString())
+            )
+            cursor.use { it.moveToFirst() }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun doesAssessmentExistForActiveProfile(assessmentId: Long, profileId: Long = getActiveProfileId()): Boolean {
+        if (assessmentId <= 0L) return false
+        return try {
+            val cursor = readableDatabase.rawQuery(
+                """SELECT 1 FROM subject_work_items w
+                   LEFT JOIN student_subjects s ON w.subject_id = s.id
+                   WHERE w.id = ?
+                     AND (w.profile_id = ? OR w.profile_id = 0 OR w.profile_id IS NULL)
+                     AND w.status != 'DONE'
+                     AND (w.subject_id <= 0 OR s.id IS NOT NULL)
+                   LIMIT 1""",
+                arrayOf(assessmentId.toString(), profileId.toString())
+            )
+            cursor.use { it.moveToFirst() }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun doesTaskExistForActiveProfile(taskId: Long, profileId: Long = getActiveProfileId()): Boolean {
+        if (taskId <= 0L) return false
+        return try {
+            val cursor = readableDatabase.rawQuery(
+                "SELECT 1 FROM tasks WHERE id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND is_completed = 0 LIMIT 1",
+                arrayOf(taskId.toString(), profileId.toString())
+            )
+            cursor.use { it.moveToFirst() }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun doesSubscriptionExistForActiveProfile(subId: Long, profileId: Long = getActiveProfileId()): Boolean {
+        if (subId <= 0L) return false
+        return try {
+            val cursor = readableDatabase.rawQuery(
+                "SELECT 1 FROM subscriptions WHERE id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND is_active = 1 LIMIT 1",
+                arrayOf(subId.toString(), profileId.toString())
+            )
+            cursor.use { it.moveToFirst() }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun doesDueDebtExistForActiveProfile(debtId: Long, profileId: Long = getActiveProfileId()): Boolean {
+        if (debtId <= 0L) return false
+        return try {
+            ensureDuesDebtsTable(readableDatabase)
+            val cursor = readableDatabase.rawQuery(
+                "SELECT 1 FROM dues_debts WHERE id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND UPPER(COALESCE(status, '')) NOT IN ('PAID', 'SETTLED') LIMIT 1",
+                arrayOf(debtId.toString(), profileId.toString())
+            )
+            cursor.use { it.moveToFirst() }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun doesWorkOrderExist(orderId: Long): Boolean {
+        if (orderId <= 0L) return false
+        return try {
+            val cursor = readableDatabase.rawQuery(
+                "SELECT 1 FROM work_orders WHERE id = ? AND UPPER(COALESCE(status, '')) NOT IN ('COMPLETED', 'DELIVERED') LIMIT 1",
+                arrayOf(orderId.toString())
+            )
+            cursor.use { it.moveToFirst() }
+        } catch (_: Exception) {
+            false
+        }
     }
 
     fun insertClass(classEntity: ClassScheduleItem): Long = insertClassSchedule(classEntity)
@@ -4807,19 +4903,51 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun deleteCourseCascade(courseId: Long, courseCode: String = "", profileId: Long = getActiveProfileId()): Boolean {
         val db = writableDatabase
+        val course = getStudentSubjectById(courseId)
+        val courseName = course?.name?.trim() ?: ""
+        val code = (if (courseCode.isNotBlank()) courseCode else (course?.code ?: "")).trim()
+        val effectiveProfileId = course?.profileId ?: profileId
+
+        // Cancel scheduled alarms for matching classes & assessments before deleting rows
+        try {
+            val matchingClasses = getAllClasses(effectiveProfileId).filter { cls ->
+                val clsSub = cls.subjectName.trim()
+                (courseName.isNotBlank() && (clsSub.equals(courseName, ignoreCase = true) || clsSub.startsWith("$courseName (", ignoreCase = true))) ||
+                    (code.isNotBlank() && clsSub.contains(code, ignoreCase = true))
+            }
+            for (cls in matchingClasses) {
+                com.duorhythm.app.scheduler.AlarmSyncManager.cancelClassAlarms(appContext, cls.id)
+                com.duorhythm.app.service.ReminderManager.cancelClassReminder(appContext, cls.id)
+            }
+            val workItems = getItemsForSubject(courseId)
+            for (item in workItems) {
+                com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(appContext, item.id)
+                com.duorhythm.app.service.ReminderManager.cancelExamReminder(appContext, item.id)
+            }
+        } catch (_: Exception) {}
+
         db.beginTransaction()
         try {
-            val course = getStudentSubjectById(courseId)
-            val courseName = course?.name ?: ""
-            val code = if (courseCode.isNotBlank()) courseCode else (course?.code ?: "")
-
             // 1. Delete Timetable Classes matching course name or course code
+            val profileWhere = "(profile_id = ? OR profile_id = 0 OR profile_id IS NULL)"
             if (courseName.isNotBlank() && code.isNotBlank()) {
-                db.delete("classes", "profile_id = ? AND (subject_name = ? OR subject_name LIKE ?)", arrayOf(profileId.toString(), courseName, "%$code%"))
+                db.delete(
+                    "classes",
+                    "$profileWhere AND (LOWER(TRIM(subject_name)) = LOWER(?) OR subject_name LIKE ? OR subject_name LIKE ?)",
+                    arrayOf(effectiveProfileId.toString(), courseName, "$courseName (%", "%$code%")
+                )
             } else if (courseName.isNotBlank()) {
-                db.delete("classes", "profile_id = ? AND subject_name = ?", arrayOf(profileId.toString(), courseName))
+                db.delete(
+                    "classes",
+                    "$profileWhere AND (LOWER(TRIM(subject_name)) = LOWER(?) OR subject_name LIKE ?)",
+                    arrayOf(effectiveProfileId.toString(), courseName, "$courseName (%")
+                )
             } else if (code.isNotBlank()) {
-                db.delete("classes", "profile_id = ? AND subject_name LIKE ?", arrayOf(profileId.toString(), "%$code%"))
+                db.delete(
+                    "classes",
+                    "$profileWhere AND subject_name LIKE ?",
+                    arrayOf(effectiveProfileId.toString(), "%$code%")
+                )
             }
 
             // 2. Delete subject_work_items (exams, assignments, homework)
@@ -4831,7 +4959,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             // 4. Delete attendance_records matching course name
             if (courseName.isNotBlank()) {
                 try {
-                    db.delete("attendance_records", "subjectName = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL)", arrayOf(courseName, profileId.toString()))
+                    db.delete("attendance_records", "LOWER(TRIM(subjectName)) = LOWER(?) AND $profileWhere", arrayOf(courseName, effectiveProfileId.toString()))
                 } catch (_: Exception) {}
             }
 
@@ -4839,6 +4967,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.delete("student_subjects", "id = ?", arrayOf(courseId.toString()))
 
             db.setTransactionSuccessful()
+            try {
+                com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
+            } catch (_: Exception) {}
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -5156,6 +5287,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     }
 
     fun deleteSubjectWorkItem(id: Long): Int {
+        try {
+            com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(appContext, id)
+            com.duorhythm.app.service.ReminderManager.cancelExamReminder(appContext, id)
+        } catch (_: Exception) {}
         val db = writableDatabase
         return db.delete("subject_work_items", "id = ?", arrayOf(id.toString()))
     }
@@ -5237,6 +5372,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     }
 
     fun deleteWorkOrder(orderId: Long): Int {
+        try {
+            com.duorhythm.app.scheduler.OrderAlarmScheduler.cancelOrderReminders(appContext, orderId)
+        } catch (_: Exception) {}
         val db = writableDatabase
         return db.delete("work_orders", "id = ?", arrayOf(orderId.toString()))
     }
@@ -5859,6 +5997,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     }
 
     fun deleteDueDebt(id: Long): Boolean {
+        try {
+            com.duorhythm.app.scheduler.DueDebtAlarmScheduler.cancelDueDebtAlarm(appContext, id)
+        } catch (_: Exception) {}
         val db = writableDatabase
         ensureDuesDebtsTable(db)
         return db.delete("dues_debts", "id = ?", arrayOf(id.toString())) > 0

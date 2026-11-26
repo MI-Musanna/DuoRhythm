@@ -22,7 +22,13 @@ class OrderAlarmReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        val orderId = intent.getLongExtra(EXTRA_ORDER_ID, System.currentTimeMillis())
+        val orderId = intent.getLongExtra(EXTRA_ORDER_ID, -1L)
+        val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(context)
+        if (orderId <= 0L || !db.doesWorkOrderExist(orderId)) {
+            if (orderId > 0L) OrderAlarmScheduler.cancelOrderReminders(context, orderId)
+            return
+        }
+
         val orderTitle = intent.getStringExtra(EXTRA_ORDER_TITLE) ?: "Client Deliverable"
         val clientName = intent.getStringExtra(EXTRA_CLIENT_NAME)?.takeIf { it.isNotBlank() } ?: "Direct Client"
         val orderDeadline = intent.getStringExtra(EXTRA_ORDER_DEADLINE) ?: "Today"

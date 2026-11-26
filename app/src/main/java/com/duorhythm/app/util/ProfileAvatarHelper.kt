@@ -10,6 +10,15 @@ import java.io.FileOutputStream
 
 object ProfileAvatarHelper {
 
+    fun applyCircularOutline(imageView: ImageView) {
+        imageView.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                outline.setOval(0, 0, view.width, view.height)
+            }
+        }
+        imageView.clipToOutline = true
+    }
+
     /**
      * Unified avatar renderer:
      * 1. Loads valid file://, path, or content:// avatar bitmap with 85% dark-mode glare dimming.
@@ -17,6 +26,7 @@ object ProfileAvatarHelper {
      *    render crisp 2-letter initials (e.g., "MI") on a deterministic name-hashed background.
      */
     fun bindProfileAvatar(imageView: ImageView, avatarPath: String?, profileName: String = "") {
+        applyCircularOutline(imageView)
         var loaded = false
         if (!avatarPath.isNullOrBlank()) {
             try {
@@ -33,7 +43,7 @@ object ProfileAvatarHelper {
                         val rounded = RoundedBitmapDrawableFactory.create(imageView.resources, bitmap).apply {
                             isCircular = true
                         }
-                        imageView.clipToOutline = true
+                        applyCircularOutline(imageView)
                         imageView.setPadding(0, 0, 0, 0)
                         imageView.imageTintList = null
                         imageView.scaleType = ImageView.ScaleType.CENTER_CROP
@@ -49,7 +59,7 @@ object ProfileAvatarHelper {
                             val rounded = RoundedBitmapDrawableFactory.create(imageView.resources, bitmap).apply {
                                 isCircular = true
                             }
-                            imageView.clipToOutline = true
+                            applyCircularOutline(imageView)
                             imageView.setPadding(0, 0, 0, 0)
                             imageView.imageTintList = null
                             imageView.scaleType = ImageView.ScaleType.CENTER_CROP

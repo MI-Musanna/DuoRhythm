@@ -30,6 +30,12 @@ class DueDebtAlarmReceiver : BroadcastReceiver() {
         if (!SmartAutomationManager.isSubscriptionAlertsEnabled(context)) return
 
         val id = intent.getLongExtra(EXTRA_DUE_DEBT_ID, -1L)
+        val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(context)
+        if (id <= 0L || !db.doesDueDebtExistForActiveProfile(id)) {
+            if (id > 0L) com.duorhythm.app.scheduler.DueDebtAlarmScheduler.cancelDueDebtAlarm(context, id)
+            return
+        }
+
         val person = intent.getStringExtra(EXTRA_PERSON_NAME) ?: "Contact"
         val amount = intent.getDoubleExtra(EXTRA_AMOUNT, 0.0)
         val type = intent.getStringExtra(EXTRA_TYPE) ?: "BORROWED"

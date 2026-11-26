@@ -24,7 +24,13 @@ class AssessmentAlarmReceiver : BroadcastReceiver() {
         val prefs = context.getSharedPreferences("duorhythm_prefs", Context.MODE_PRIVATE)
         if (!prefs.getBoolean("pref_exam_reminders_enabled", true)) return
 
-        val assessmentId = intent.getLongExtra(EXTRA_ASSESSMENT_ID, System.currentTimeMillis())
+        val assessmentId = intent.getLongExtra(EXTRA_ASSESSMENT_ID, -1L)
+        val db = com.duorhythm.app.data.local.db.DatabaseHelper.getInstance(context)
+        if (assessmentId <= 0L || !db.doesAssessmentExistForActiveProfile(assessmentId)) {
+            if (assessmentId > 0L) com.duorhythm.app.scheduler.AssessmentAlarmScheduler.cancelAlarmsForAssessment(context, assessmentId)
+            return
+        }
+
         val title = intent.getStringExtra(EXTRA_TITLE) ?: "Upcoming Exam Alert"
         val body = intent.getStringExtra(EXTRA_BODY) ?: "Review your scheduled exam syllabus and room."
 
