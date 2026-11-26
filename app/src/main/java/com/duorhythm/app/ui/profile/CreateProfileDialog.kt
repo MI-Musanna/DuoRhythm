@@ -47,11 +47,16 @@ class CreateProfileDialog(
                 return@setOnClickListener
             }
 
+            if (password.length < 4) {
+                DuoAlertBanner.warning(activity, "Please enter a profile password (at least 4 characters)")
+                return@setOnClickListener
+            }
+
             val newProfile = ProfileEntity(
                 slotNumber = slotNumber,
                 name = name,
                 email = email,
-                passwordHash = if (password.isNotBlank()) ProfileManager.hashPassword(password) else "",
+                passwordHash = ProfileManager.hashPassword(password),
                 institution = institution,
                 department = department,
                 semester = semester,

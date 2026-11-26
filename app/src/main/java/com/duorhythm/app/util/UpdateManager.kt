@@ -398,7 +398,10 @@ object UpdateManager {
         } catch (_: Exception) { null }
 
         // 2. Instant Cache Hit
-        val cachedBody = prefs.getString("online_body_$cleanVer", null)
+        val targetTag = if (currentVer.startsWith("v", ignoreCase = true)) currentVer else "v$currentVer"
+        val cachedBody = prefs.getString("online_body_$targetTag", null)
+            ?: prefs.getString("online_body_$cleanVer", null)
+            ?: prefs.getString("online_body_$currentVer", null)
         if (!cachedBody.isNullOrBlank()) {
             progressBar?.visibility = View.GONE
             tvBody?.visibility = View.VISIBLE
@@ -411,7 +414,6 @@ object UpdateManager {
             // 3. Query GitHub using properly normalized tag (with 'v')
             CoroutineScope(Dispatchers.IO).launch {
                 var fetchedBody: String? = null
-                val targetTag = if (currentVer.startsWith("v", ignoreCase = true)) currentVer else "v$currentVer"
 
                 try {
                     val url = URL("$GITHUB_RELEASES_API/tags/$targetTag")
@@ -424,7 +426,11 @@ object UpdateManager {
                         val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
                         fetchedBody = json.optString("body", "")
                         if (!fetchedBody.isNullOrBlank()) {
-                            prefs.edit().putString("online_body_$cleanVer", fetchedBody).apply()
+                            prefs.edit()
+                                .putString("online_body_$targetTag", fetchedBody)
+                                .putString("online_body_$cleanVer", fetchedBody)
+                                .putString("online_body_$currentVer", fetchedBody)
+                                .apply()
                         }
                     }
                 } catch (_: Exception) {}
@@ -437,7 +443,7 @@ object UpdateManager {
                     } else if (!localChangelog.isNullOrBlank()) {
                         tvBody?.text = formatReleaseNotes(localChangelog)
                     } else {
-                        tvBody?.text = "• Version $currentVer applied successfully.\n• Luminous Emerald/Sky-Blue Circular Reveal wave from exact Student/Work buttons.\n• Added Custom Default Exam Reminder Time picker (with Turn Off option) in Settings."
+                        tvBody?.text = "• Version $currentVer applied successfully.\n• Restored circular profile avatar clipping on Home & Profile.\n• Enforced numeric keypad & digit validation on Subject Code fields.\n• Required profile password validation & reactive ProfileRepository sync."
                     }
                 }
             }

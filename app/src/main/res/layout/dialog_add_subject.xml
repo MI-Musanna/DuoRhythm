@@ -38,6 +38,8 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
+            android:inputType="number"
+            android:digits="0123456789"
             android:hint="Subject Code (e.g. 101)"
             android:textColor="?attr/colorOnSurface"
             android:textColorHint="?android:attr/textColorSecondary"

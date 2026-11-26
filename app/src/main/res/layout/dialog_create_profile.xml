@@ -95,7 +95,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Profile Password (Optional)"
+            android:text="Profile Password *"
             android:textColor="@color/text_secondary"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -118,7 +118,7 @@
                 android:id="@+id/etCreatePassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Create an optional password"
+                android:hint="Create profile password (min 4 characters)"
                 android:imeOptions="actionNext"
                 android:inputType="textPassword"
                 android:padding="12dp"

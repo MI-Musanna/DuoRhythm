@@ -349,11 +349,19 @@ class ScheduleFragment : Fragment() {
 
         btnSave?.setOnClickListener {
             val name = etName?.text?.toString()?.trim().orEmpty()
-            if (name.isEmpty()) {
-                etName?.error = "Subject name is required"
+            if (name.isEmpty() || name.all { it.isDigit() }) {
+                val msg = if (name.isEmpty()) "Subject name is required" else "Subject name cannot be purely numeric"
+                etName?.error = msg
+                activity?.let { act -> com.duorhythm.app.ui.custom.DuoAlertBanner.show(act, msg) }
                 return@setOnClickListener
             }
             val code = etCode?.text?.toString()?.trim().orEmpty()
+            if (code.isNotEmpty() && !code.all { it.isDigit() }) {
+                val msg = "Subject code must contain digits only"
+                etCode?.error = msg
+                activity?.let { act -> com.duorhythm.app.ui.custom.DuoAlertBanner.show(act, msg) }
+                return@setOnClickListener
+            }
             val credits = etCredits?.text?.toString()?.trim()?.toIntOrNull() ?: 3
             val instructor = etInstructor?.text?.toString()?.trim().orEmpty()
 

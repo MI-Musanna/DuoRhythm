@@ -46,6 +46,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="@drawable/bg_circle_button_dark"
+                    android:clipToOutline="true"
                     android:contentDescription="Profile"
                     android:src="@drawable/ic_profile_placeholder" />
 

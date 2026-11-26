@@ -1173,4 +1173,91 @@ class DuoRhythmFullAppAuditTest {
         val styleResId = res.getIdentifier("TextAppearance.DuoRhythm.NumericDisplay", "style", context.packageName)
         assertTrue("TextAppearance.DuoRhythm.NumericDisplay style must exist", styleResId != 0)
     }
+
+    @Test
+    fun audit29_v1731_hotfixVerification() {
+        val controller = org.robolectric.Robolectric.buildActivity(com.duorhythm.app.MainActivity::class.java).setup()
+        val activity = controller.get()
+        val inflater = android.view.LayoutInflater.from(activity)
+
+        // 1. Home Avatar clipToOutline & ProfileAvatarHelper RoundedBitmapDrawable wrapping
+        val vHome = inflater.inflate(R.layout.fragment_home, null)
+        val ivHomeProfile = vHome.findViewById<android.widget.ImageView>(R.id.ivUserProfile)
+        assertNotNull("ivUserProfile must exist in fragment_home", ivHomeProfile)
+        assertTrue("ivUserProfile must have clipToOutline enabled in layout", ivHomeProfile.clipToOutline)
+
+        val testBmp = android.graphics.Bitmap.createBitmap(40, 40, android.graphics.Bitmap.Config.ARGB_8888)
+        val tempAvatarFile = File(activity.cacheDir, "test_avatar_audit29.png")
+        java.io.FileOutputStream(tempAvatarFile).use { out ->
+            testBmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+        }
+        val ivAvatar = android.widget.ImageView(activity)
+        com.duorhythm.app.util.ProfileAvatarHelper.bindProfileAvatar(ivAvatar, tempAvatarFile.absolutePath, "Audit User")
+        assertTrue("ImageView must have clipToOutline enabled for circular avatar", ivAvatar.clipToOutline)
+        val drawable = ivAvatar.drawable
+        assertNotNull("Avatar drawable must not be null", drawable)
+        assertTrue("Avatar drawable must be an instance of RoundedBitmapDrawable", drawable is androidx.core.graphics.drawable.RoundedBitmapDrawable)
+        val roundedDrawable = drawable as androidx.core.graphics.drawable.RoundedBitmapDrawable
+        assertTrue("RoundedBitmapDrawable must be configured as circular", roundedDrawable.isCircular)
+        tempAvatarFile.delete()
+
+        // 2. Numeric InputType and digit restriction on Subject Code in Course Dialogs
+        val vCreateSubject = inflater.inflate(R.layout.dialog_create_subject, null)
+        val etCreateCode = vCreateSubject.findViewById<android.widget.EditText>(R.id.etSubjectCode)
+        assertNotNull("etSubjectCode must exist in dialog_create_subject", etCreateCode)
+        assertEquals("etSubjectCode must have numeric inputType", android.text.InputType.TYPE_CLASS_NUMBER, etCreateCode.inputType)
+
+        val vAddSubject = inflater.inflate(R.layout.dialog_add_subject, null)
+        val etAddCode = vAddSubject.findViewById<android.widget.EditText>(R.id.etSubjectCode)
+        assertNotNull("etSubjectCode must exist in dialog_add_subject", etAddCode)
+        assertEquals("etSubjectCode must have numeric inputType", android.text.InputType.TYPE_CLASS_NUMBER, etAddCode.inputType)
+
+        val vEditSubject = inflater.inflate(R.layout.dialog_edit_subject, null)
+        val etEditCode = vEditSubject.findViewById<android.widget.EditText>(R.id.etEditSubjectCode)
+        assertNotNull("etEditSubjectCode must exist in dialog_edit_subject", etEditCode)
+        assertEquals("etEditSubjectCode must have numeric inputType", android.text.InputType.TYPE_CLASS_NUMBER, etEditCode.inputType)
+
+        // 3. What's New fallback and changelog.json verification
+        val changelogJsonStr = activity.assets.open("changelog.json").bufferedReader().use { it.readText() }
+        val changelogObj = org.json.JSONObject(changelogJsonStr)
+        assertTrue("changelog.json must contain 1.7.3.1-beta entry", changelogObj.has("1.7.3.1-beta"))
+        assertTrue("changelog.json must contain 1.7.3-beta entry", changelogObj.has("1.7.3-beta"))
+        val note1731 = changelogObj.getString("1.7.3.1-beta")
+        assertTrue("1.7.3.1-beta changelog must mention Circular Avatar", note1731.contains("Circular Avatar"))
+        assertTrue("1.7.3.1-beta changelog must mention Numeric Subject Code", note1731.contains("Numeric Subject Code"))
+        assertTrue("1.7.3.1-beta changelog must mention Mandatory Profile Password", note1731.contains("Mandatory Profile Password"))
+
+        // 4. Mandatory Password Check in CreateProfileDialog & Layout
+        val vCreateProfile = inflater.inflate(R.layout.dialog_create_profile, null)
+        val etPassword = vCreateProfile.findViewById<android.widget.EditText>(R.id.etCreatePassword)
+        assertNotNull("etCreatePassword must exist in dialog_create_profile", etPassword)
+        assertEquals("Create profile password (min 4 characters)", etPassword.hint?.toString())
+
+        // Test validation logic in CreateProfileDialog
+        com.duorhythm.app.ui.custom.DuoAlertBanner.resetForTesting()
+        val dialog = com.duorhythm.app.ui.profile.CreateProfileDialog(activity, 3)
+        dialog.show()
+
+        val latestDialog = org.robolectric.shadows.ShadowAlertDialog.getLatestDialog()
+        assertNotNull("Dialog must be displayed", latestDialog)
+        val etNameInDialog = latestDialog.findViewById<android.widget.EditText>(R.id.etCreateName)
+        val etPassInDialog = latestDialog.findViewById<android.widget.EditText>(R.id.etCreatePassword)
+        val btnSubmitInDialog = latestDialog.findViewById<android.widget.Button>(R.id.btnCreateSubmit)
+
+        assertNotNull(etNameInDialog)
+        assertNotNull(etPassInDialog)
+        assertNotNull(btnSubmitInDialog)
+
+        // Submit with blank name
+        btnSubmitInDialog.performClick()
+        assertEquals("Please enter your full name", com.duorhythm.app.ui.custom.DuoAlertBanner.getLastMessageForTesting())
+
+        // Submit with valid name but short password (< 4 chars)
+        com.duorhythm.app.ui.custom.DuoAlertBanner.resetForTesting()
+        etNameInDialog.setText("Audit Student")
+        etPassInDialog.setText("123")
+        btnSubmitInDialog.performClick()
+        assertEquals("Please enter a profile password (at least 4 characters)", com.duorhythm.app.ui.custom.DuoAlertBanner.getLastMessageForTesting())
+        latestDialog.dismiss()
+    }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.widget.ImageView
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import java.io.File
 import java.io.FileOutputStream
 
@@ -29,10 +30,14 @@ object ProfileAvatarHelper {
                 if (file.exists() && file.length() > 0) {
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                     if (bitmap != null) {
+                        val rounded = RoundedBitmapDrawableFactory.create(imageView.resources, bitmap).apply {
+                            isCircular = true
+                        }
+                        imageView.clipToOutline = true
                         imageView.setPadding(0, 0, 0, 0)
                         imageView.imageTintList = null
                         imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-                        imageView.setImageBitmap(bitmap)
+                        imageView.setImageDrawable(rounded)
                         DuoMotionHelper.applyDarkPhotoDimming(imageView, hasPhoto = true)
                         loaded = true
                     }
@@ -41,10 +46,14 @@ object ProfileAvatarHelper {
                     imageView.context.contentResolver.openInputStream(uri)?.use { stream ->
                         val bitmap = BitmapFactory.decodeStream(stream)
                         if (bitmap != null) {
+                            val rounded = RoundedBitmapDrawableFactory.create(imageView.resources, bitmap).apply {
+                                isCircular = true
+                            }
+                            imageView.clipToOutline = true
                             imageView.setPadding(0, 0, 0, 0)
                             imageView.imageTintList = null
                             imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-                            imageView.setImageBitmap(bitmap)
+                            imageView.setImageDrawable(rounded)
                             DuoMotionHelper.applyDarkPhotoDimming(imageView, hasPhoto = true)
                             loaded = true
                         }

@@ -529,8 +529,16 @@ class StudentSubjectDetailActivity : AppCompatActivity() {
             val phone = dialogBinding.etEditSubjectPhone.text?.toString()?.trim().orEmpty()
             val syllabus = dialogBinding.etEditSubjectSyllabus.text?.toString()?.trim().orEmpty()
 
-            if (name.isEmpty()) {
-                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, "Subject name is required")
+            if (name.isEmpty() || name.all { it.isDigit() }) {
+                val msg = if (name.isEmpty()) "Subject name is required" else "Subject name cannot be purely numeric"
+                dialogBinding.etEditSubjectName.error = msg
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
+                return@setOnClickListener
+            }
+            if (code.isNotEmpty() && !code.all { it.isDigit() }) {
+                val msg = "Subject code must contain digits only"
+                dialogBinding.etEditSubjectCode.error = msg
+                com.duorhythm.app.ui.custom.DuoAlertBanner.show(this, msg)
                 return@setOnClickListener
             }
 
