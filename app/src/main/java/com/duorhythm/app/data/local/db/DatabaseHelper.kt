@@ -23,7 +23,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     companion object {
         const val DATABASE_NAME = "duorhythm.db"
-        const val DATABASE_VERSION = 9
+        const val DATABASE_VERSION = 10
 
         @Volatile
         private var instance: DatabaseHelper? = null
@@ -182,9 +182,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS attendance (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                subject_name TEXT UNIQUE NOT NULL,
+                profile_id INTEGER DEFAULT 1,
+                subject_name TEXT NOT NULL,
                 attended_classes INTEGER DEFAULT 0,
-                total_classes INTEGER DEFAULT 0
+                total_classes INTEGER DEFAULT 0,
+                UNIQUE(profile_id, subject_name)
             )"""
         )
 
@@ -259,6 +261,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS work_orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 title TEXT NOT NULL,
                 client_name TEXT DEFAULT '',
                 quantity INTEGER DEFAULT 1,
@@ -287,6 +290,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.execSQL(
             """CREATE TABLE IF NOT EXISTS contacts_groups (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                profile_id INTEGER DEFAULT 1,
                 name TEXT NOT NULL,
                 type TEXT NOT NULL,
                 platform TEXT NOT NULL,
@@ -431,6 +435,28 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     try {
                         ensureSubscriptionsTable()
                     } catch (_: Exception) {}
+                }
+                if (oldVersion < 10) {
+                    ensureColumnExists(db, "contacts_groups", "profile_id", "INTEGER DEFAULT 1")
+                    ensureColumnExists(db, "work_orders", "profile_id", "INTEGER DEFAULT 1")
+                    ensureColumnExists(db, "attendance", "profile_id", "INTEGER DEFAULT 1")
+                    ensureColumnExists(db, "student_subjects", "profile_id", "INTEGER DEFAULT 1")
+                    ensureColumnExists(db, "subject_work_items", "profile_id", "INTEGER DEFAULT 1")
+                    ensureColumnExists(db, "assessments", "profile_id", "INTEGER DEFAULT 1")
+
+                    val backfillStatements = listOf(
+                        "UPDATE contacts_groups SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
+                        "UPDATE work_orders SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
+                        "UPDATE attendance SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
+                        "UPDATE student_subjects SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
+                        "UPDATE subject_work_items SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
+                        "UPDATE assessments SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0"
+                    )
+                    for (sql in backfillStatements) {
+                        try {
+                            db.execSQL(sql)
+                        } catch (_: Exception) {}
+                    }
                 }
                 ensureDefaultCurrencies(db)
             }
@@ -604,6 +630,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureColumnExists(db, "contacts_groups", "phone_number", "TEXT DEFAULT ''")
         ensureColumnExists(db, "contacts_groups", "role", "TEXT DEFAULT 'Classmate'")
         ensureColumnExists(db, "contacts_groups", "scope", "TEXT DEFAULT 'SHARED'")
+        ensureColumnExists(db, "contacts_groups", "profile_id", "INTEGER DEFAULT 1")
+        ensureColumnExists(db, "work_orders", "profile_id", "INTEGER DEFAULT 1")
+        ensureColumnExists(db, "attendance", "profile_id", "INTEGER DEFAULT 1")
         ensureColumnExists(db, "tasks", "start_date", "TEXT DEFAULT NULL")
 
         try {
@@ -2138,6 +2167,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     val taskUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
     val timetableUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    val courseUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    val assessmentUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    val directoryUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    val workOrderUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
 
     fun getTasksFlow(profileId: Long = getActiveProfileId(), isGoal: Boolean? = null): kotlinx.coroutines.flow.Flow<List<TaskItem>> = kotlinx.coroutines.flow.flow {
         emit(getAllTasks("ALL", isGoal, profileId))
@@ -2150,6 +2183,34 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         emit(getScheduleForDay(dayOfWeek, profileId))
         timetableUpdateFlow.collect {
             emit(getScheduleForDay(dayOfWeek, profileId))
+        }
+    }
+
+    fun getCoursesFlow(profileId: Long = getActiveProfileId()): kotlinx.coroutines.flow.Flow<List<StudentSubject>> = kotlinx.coroutines.flow.flow {
+        emit(getAllStudentSubjects(profileId))
+        courseUpdateFlow.collect {
+            emit(getAllStudentSubjects(profileId))
+        }
+    }
+
+    fun getExamsFlow(profileId: Long = getActiveProfileId()): kotlinx.coroutines.flow.Flow<List<Pair<SubjectWorkItem, StudentSubject>>> = kotlinx.coroutines.flow.flow {
+        emit(getAllExams(null, profileId))
+        assessmentUpdateFlow.collect {
+            emit(getAllExams(null, profileId))
+        }
+    }
+
+    fun getContactsForPortalFlow(isStudent: Boolean, roleFilter: String? = null, profileId: Long = getActiveProfileId()): kotlinx.coroutines.flow.Flow<List<ContactGroupItem>> = kotlinx.coroutines.flow.flow {
+        emit(getContactsForPortal(isStudent, roleFilter, profileId))
+        directoryUpdateFlow.collect {
+            emit(getContactsForPortal(isStudent, roleFilter, profileId))
+        }
+    }
+
+    fun getClientOrdersFlow(profileId: Long = getActiveProfileId()): kotlinx.coroutines.flow.Flow<List<ClientOrder>> = kotlinx.coroutines.flow.flow {
+        emit(getClientOrders(profileId))
+        workOrderUpdateFlow.collect {
+            emit(getClientOrders(profileId))
         }
     }
 
@@ -2662,7 +2723,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val db = readableDatabase
             val cursor = db.rawQuery(
-                "SELECT * FROM assessments WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id DESC",
+                "SELECT * FROM assessments WHERE profile_id = ? ORDER BY id DESC",
                 arrayOf(profileId.toString())
             )
             cursor.use {
@@ -2788,7 +2849,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val db = readableDatabase
             val cursor = db.rawQuery(
-                "SELECT * FROM assessments WHERE course_id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id DESC",
+                "SELECT * FROM assessments WHERE course_id = ? AND profile_id = ? ORDER BY id DESC",
                 arrayOf(courseId.toString(), profileId.toString())
             )
             cursor.use {
@@ -3247,7 +3308,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 """SELECT 1 FROM subject_work_items w
                    LEFT JOIN student_subjects s ON w.subject_id = s.id
                    WHERE w.id = ?
-                     AND (w.profile_id = ? OR w.profile_id = 0 OR w.profile_id IS NULL)
+                     AND w.profile_id = ?
                      AND w.status != 'DONE'
                      AND (w.subject_id <= 0 OR s.id IS NOT NULL)
                    LIMIT 1""",
@@ -3316,11 +3377,14 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun updateClass(classEntity: ClassScheduleItem): Int = updateClassSchedule(classEntity)
     fun deleteClass(id: Long): Int = deleteClassSchedule(id)
 
-    fun getAllAttendance(): List<SubjectAttendanceItem> {
+    fun getAllAttendance(profileId: Long = getActiveProfileId()): List<SubjectAttendanceItem> {
         val list = mutableListOf<SubjectAttendanceItem>()
         try {
             val db = readableDatabase
-            val cursor = db.rawQuery("SELECT * FROM attendance ORDER BY subject_name ASC", null)
+            val cursor = db.rawQuery(
+                "SELECT * FROM attendance WHERE profile_id = ? ORDER BY subject_name ASC",
+                arrayOf(profileId.toString())
+            )
             cursor.use {
                 while (it.moveToNext()) {
                     list.add(
@@ -3339,42 +3403,47 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return list
     }
 
-    fun recordAttendance(subjectName: String, isPresent: Boolean) {
+    fun recordAttendance(subjectName: String, isPresent: Boolean, profileId: Long = getActiveProfileId()) {
         val db = writableDatabase
-        ensureSubjectAttendance(subjectName)
+        val pId = if (profileId > 0) profileId else getActiveProfileId()
+        ensureSubjectAttendance(subjectName, pId)
         if (isPresent) {
             db.execSQL(
-                "UPDATE attendance SET attended_classes = attended_classes + 1, total_classes = total_classes + 1 WHERE subject_name = ?",
-                arrayOf(subjectName)
+                "UPDATE attendance SET attended_classes = attended_classes + 1, total_classes = total_classes + 1 WHERE subject_name = ? AND profile_id = ?",
+                arrayOf(subjectName, pId)
             )
         } else {
             db.execSQL(
-                "UPDATE attendance SET total_classes = total_classes + 1 WHERE subject_name = ?",
-                arrayOf(subjectName)
+                "UPDATE attendance SET total_classes = total_classes + 1 WHERE subject_name = ? AND profile_id = ?",
+                arrayOf(subjectName, pId)
             )
         }
     }
 
-    fun resetAttendance(subjectName: String) {
+    fun resetAttendance(subjectName: String, profileId: Long = getActiveProfileId()) {
         val db = writableDatabase
+        val pId = if (profileId > 0) profileId else getActiveProfileId()
         val cv = ContentValues().apply {
             put("attended_classes", 0)
             put("total_classes", 0)
         }
-        db.update("attendance", cv, "subject_name = ?", arrayOf(subjectName))
+        db.update("attendance", cv, "subject_name = ? AND profile_id = ?", arrayOf(subjectName, pId.toString()))
     }
 
-    fun deleteAttendance(subjectName: String): Int {
+    fun deleteAttendance(subjectName: String, profileId: Long = getActiveProfileId()): Int {
         val db = writableDatabase
-        return db.delete("attendance", "subject_name = ?", arrayOf(subjectName))
+        val pId = if (profileId > 0) profileId else getActiveProfileId()
+        return db.delete("attendance", "subject_name = ? AND profile_id = ?", arrayOf(subjectName, pId.toString()))
     }
 
-    private fun ensureSubjectAttendance(subjectName: String) {
+    private fun ensureSubjectAttendance(subjectName: String, profileId: Long = getActiveProfileId()) {
         val db = writableDatabase
-        val c = db.rawQuery("SELECT id FROM attendance WHERE subject_name = ?", arrayOf(subjectName))
+        val pId = if (profileId > 0) profileId else getActiveProfileId()
+        val c = db.rawQuery("SELECT id FROM attendance WHERE subject_name = ? AND profile_id = ?", arrayOf(subjectName, pId.toString()))
         val exists = c.use { it.moveToFirst() }
         if (!exists) {
             val cv = ContentValues().apply {
+                put("profile_id", pId)
                 put("subject_name", subjectName)
                 put("attended_classes", 0)
                 put("total_classes", 0)
@@ -3835,7 +3904,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 val name = subject?.name ?: ""
                 val code = subject?.code ?: ""
                 val teacher = subject?.teacher ?: ""
-                return getItemsForSubject(courseId).filter { it.itemType == "EXAM" }.map {
+                return getItemsForSubject(courseId, null, profileId).filter { it.itemType == "EXAM" }.map {
                     AssessmentEntity.fromSubjectWorkItem(it, name, code, teacher)
                 }
             }
@@ -3853,7 +3922,12 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
 
             override fun deleteAssessmentsByCourse(profileId: Long, courseId: Long) {
-                writableDatabase.delete("subject_work_items", "subject_id = ? AND item_type = 'EXAM'", arrayOf(courseId.toString()))
+                writableDatabase.delete(
+                    "subject_work_items",
+                    "subject_id = ? AND item_type = 'EXAM' AND profile_id = ?",
+                    arrayOf(courseId.toString(), profileId.toString())
+                )
+                assessmentUpdateFlow.tryEmit(Unit)
             }
         }
     }
@@ -4524,7 +4598,43 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     fun deleteProfile(profile: database.entities.ProfileEntity) {
         val db = writableDatabase
+        deleteByProfileId(profile.id)
         db.delete("profiles", "id = ?", arrayOf(profile.id.toString()))
+    }
+
+    fun deleteByProfileId(profileId: Long) {
+        val pArg = arrayOf(profileId.toString())
+        val db = writableDatabase
+        try {
+            walletDao.deleteByProfileId(profileId)
+            taskDao.deleteByProfileId(profileId)
+            timetableDao.deleteByProfileId(profileId)
+            attendanceDao.deleteByProfileId(profileId)
+            holidayDao.deleteByProfileId(profileId)
+            subscriptionDao.deleteByProfileId(profileId)
+        } catch (_: Exception) {}
+        val scopedTables = listOf(
+            "contacts_groups",
+            "work_orders",
+            "student_subjects",
+            "subject_work_items",
+            "assessments",
+            "attendance",
+            "notes",
+            "class_types",
+            "assessment_categories"
+        )
+        for (table in scopedTables) {
+            try {
+                db.delete(table, "profile_id = ?", pArg)
+            } catch (_: Exception) {}
+        }
+        taskUpdateFlow.tryEmit(Unit)
+        timetableUpdateFlow.tryEmit(Unit)
+        courseUpdateFlow.tryEmit(Unit)
+        assessmentUpdateFlow.tryEmit(Unit)
+        directoryUpdateFlow.tryEmit(Unit)
+        workOrderUpdateFlow.tryEmit(Unit)
     }
 
     interface WalletDao {
@@ -4805,7 +4915,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val list = mutableListOf<StudentSubject>()
         try {
             val db = readableDatabase
-            val cursor = db.rawQuery("SELECT * FROM student_subjects WHERE profile_id = ? OR profile_id = 0 OR profile_id IS NULL ORDER BY id ASC", arrayOf(profileId.toString()))
+            val cursor = db.rawQuery("SELECT * FROM student_subjects WHERE profile_id = ? ORDER BY id ASC", arrayOf(profileId.toString()))
             cursor.use {
                 while (it.moveToNext()) {
                     val codeIdx = it.getColumnIndexSafe("subject_code").takeIf { idx -> idx != -1 } ?: it.getColumnIndexSafe("code")
@@ -4907,9 +5017,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("syllabus_path", subject.syllabusPath)
         }
         if (autoTrackAttendance) {
-            ensureSubjectAttendance(subject.name)
+            ensureSubjectAttendance(subject.name, pId)
         }
-        return db.insertWithOnConflict("student_subjects", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val insertedId = db.insertWithOnConflict("student_subjects", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        courseUpdateFlow.tryEmit(Unit)
+        return insertedId
     }
 
     fun updateStudentSubject(subject: StudentSubject): Int {
@@ -4926,7 +5038,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("syllabus_text", subject.syllabusText)
             put("syllabus_path", subject.syllabusPath)
         }
-        return db.update("student_subjects", cv, "id = ?", arrayOf(subject.id.toString()))
+        val updated = db.update("student_subjects", cv, "id = ?", arrayOf(subject.id.toString()))
+        if (updated > 0) {
+            courseUpdateFlow.tryEmit(Unit)
+        }
+        return updated
     }
 
     fun deleteCourseCascade(courseId: Long, courseCode: String = "", profileId: Long = getActiveProfileId()): Boolean {
@@ -4984,10 +5100,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             // 3. Delete subject_materials
             db.delete("subject_materials", "subject_id = ?", arrayOf(courseId.toString()))
 
-            // 4. Delete attendance_records matching course name
+            // 4. Delete attendance_records & attendance summary matching course name
             if (courseName.isNotBlank()) {
                 try {
-                    db.delete("attendance_records", "LOWER(TRIM(subjectName)) = LOWER(?) AND $profileWhere", arrayOf(courseName, effectiveProfileId.toString()))
+                    db.delete("attendance_records", "LOWER(TRIM(subjectName)) = LOWER(?) AND profile_id = ?", arrayOf(courseName, effectiveProfileId.toString()))
+                    db.delete("attendance", "LOWER(TRIM(subject_name)) = LOWER(?) AND profile_id = ?", arrayOf(courseName, effectiveProfileId.toString()))
                 } catch (_: Exception) {}
             }
 
@@ -4996,6 +5113,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
             db.setTransactionSuccessful()
             timetableUpdateFlow.tryEmit(Unit)
+            courseUpdateFlow.tryEmit(Unit)
+            assessmentUpdateFlow.tryEmit(Unit)
             try {
                 com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
             } catch (_: Exception) {}
@@ -5102,9 +5221,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val db = readableDatabase
             val query = if (itemTypeFilter != null && itemTypeFilter != "ALL") {
-                "SELECT * FROM subject_work_items WHERE subject_id = ? AND item_type = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id DESC"
+                "SELECT * FROM subject_work_items WHERE subject_id = ? AND item_type = ? AND profile_id = ? ORDER BY id DESC"
             } else {
-                "SELECT * FROM subject_work_items WHERE subject_id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id DESC"
+                "SELECT * FROM subject_work_items WHERE subject_id = ? AND profile_id = ? ORDER BY id DESC"
             }
             val args = if (itemTypeFilter != null && itemTypeFilter != "ALL") {
                 arrayOf(subjectId.toString(), itemTypeFilter, profileId.toString())
@@ -5148,9 +5267,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
             val db = readableDatabase
             val query = if (!examTypeFilter.isNullOrBlank()) {
-                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND exam_type = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY end_date ASC, start_date ASC"
+                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND exam_type = ? AND profile_id = ? ORDER BY end_date ASC, start_date ASC"
             } else {
-                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY end_date ASC, start_date ASC"
+                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND profile_id = ? ORDER BY end_date ASC, start_date ASC"
             }
             val args = if (!examTypeFilter.isNullOrBlank()) arrayOf(examTypeFilter, profileId.toString()) else arrayOf(profileId.toString())
             val cursor = db.rawQuery(query, args)
@@ -5191,7 +5310,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
             val db = readableDatabase
             val cursor = db.rawQuery(
-                "SELECT * FROM subject_work_items WHERE status != 'DONE' AND (item_type = 'HOMEWORK' OR item_type = 'ASSIGNMENT') AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND (end_date = ? OR (end_date = '' AND start_date = ?))",
+                "SELECT * FROM subject_work_items WHERE status != 'DONE' AND (item_type = 'HOMEWORK' OR item_type = 'ASSIGNMENT') AND profile_id = ? AND (end_date = ? OR (end_date = '' AND start_date = ?))",
                 arrayOf(profileId.toString(), todayDate, todayDate)
             )
             cursor.use {
@@ -5231,7 +5350,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             val subjects = getAllStudentSubjects(profileId).associateBy { it.id }
             val db = readableDatabase
             val cursor = db.rawQuery(
-                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND (exam_type = 'CLASS_TEST_QUIZ' OR exam_type = '') AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND (end_date = ? OR start_date = ?)",
+                "SELECT * FROM subject_work_items WHERE item_type = 'EXAM' AND (exam_type = 'CLASS_TEST_QUIZ' OR exam_type = '') AND profile_id = ? AND (end_date = ? OR start_date = ?)",
                 arrayOf(profileId.toString(), todayDate, todayDate)
             )
             cursor.use {
@@ -5283,13 +5402,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("attachment_uri", item.attachmentUri ?: "")
             put("attachment_name", item.attachmentName ?: "")
         }
-        return db.insertWithOnConflict("subject_work_items", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val id = db.insertWithOnConflict("subject_work_items", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        assessmentUpdateFlow.tryEmit(Unit)
+        return id
     }
 
     fun updateSubjectWorkItemStatus(id: Long, status: String) {
         val db = writableDatabase
         val cv = ContentValues().apply { put("status", status) }
         db.update("subject_work_items", cv, "id = ?", arrayOf(id.toString()))
+        assessmentUpdateFlow.tryEmit(Unit)
     }
 
     fun updateAssessmentStatus(id: Long, status: String) {
@@ -5312,7 +5434,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("attachment_uri", item.attachmentUri ?: "")
             put("attachment_name", item.attachmentName ?: "")
         }
-        return db.update("subject_work_items", cv, "id = ?", arrayOf(item.id.toString()))
+        val count = db.update("subject_work_items", cv, "id = ?", arrayOf(item.id.toString()))
+        if (count > 0) assessmentUpdateFlow.tryEmit(Unit)
+        return count
     }
 
     fun deleteSubjectWorkItem(id: Long): Int {
@@ -5321,7 +5445,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             com.duorhythm.app.service.ReminderManager.cancelExamReminder(appContext, id)
         } catch (_: Exception) {}
         val db = writableDatabase
-        return db.delete("subject_work_items", "id = ?", arrayOf(id.toString()))
+        val deleted = db.delete("subject_work_items", "id = ?", arrayOf(id.toString()))
+        if (deleted > 0) assessmentUpdateFlow.tryEmit(Unit)
+        return deleted
     }
 
     fun deleteById(id: Long): Int = deleteSubjectWorkItem(id)
@@ -5330,16 +5456,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // WORK PORTAL (Orders & Jobs)
     // ==========================================
-    fun getAllWorkOrders(): List<WorkOrder> {
+    fun getAllWorkOrders(profileId: Long = getActiveProfileId()): List<WorkOrder> {
         val list = mutableListOf<WorkOrder>()
         try {
             val db = readableDatabase
-            val cursor = db.rawQuery("SELECT * FROM work_orders ORDER BY id DESC", null)
+            val cursor = db.rawQuery(
+                "SELECT * FROM work_orders WHERE profile_id = ? ORDER BY id DESC",
+                arrayOf(profileId.toString())
+            )
             cursor.use {
                 while (it.moveToNext()) {
                     list.add(
                         WorkOrder(
                             id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
                             title = it.safeGetString("title"),
                             clientName = it.safeGetString("client_name", "clientName"),
                             quantity = it.safeGetInt("quantity"),
@@ -5355,14 +5485,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
             }
         } catch (e: Exception) {
-            Log.e("DUO_DB_READ", "Failed reading work orders", e)
+            Log.e("DUO_DB_READ", "Failed reading work orders for profile $profileId", e)
         }
         return list
     }
 
     fun insertWorkOrder(order: WorkOrder): Long {
         val db = writableDatabase
+        val pId = if (order.profileId > 0) order.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("title", order.title)
             put("client_name", order.clientName)
             put("quantity", order.quantity)
@@ -5374,12 +5506,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("notes", order.notes)
             put("attachment_path", order.attachmentPath)
         }
-        return db.insertWithOnConflict("work_orders", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val id = db.insertWithOnConflict("work_orders", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        workOrderUpdateFlow.tryEmit(Unit)
+        return id
     }
 
     fun updateWorkOrder(order: WorkOrder): Int {
         val db = writableDatabase
+        val pId = if (order.profileId > 0) order.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("title", order.title)
             put("client_name", order.clientName)
             put("quantity", order.quantity)
@@ -5391,13 +5527,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("notes", order.notes)
             put("attachment_path", order.attachmentPath)
         }
-        return db.update("work_orders", cv, "id = ?", arrayOf(order.id.toString()))
+        val count = db.update("work_orders", cv, "id = ?", arrayOf(order.id.toString()))
+        if (count > 0) workOrderUpdateFlow.tryEmit(Unit)
+        return count
     }
 
     fun updateWorkOrderStatus(orderId: Long, status: String) {
         val db = writableDatabase
         val cv = ContentValues().apply { put("status", status) }
         db.update("work_orders", cv, "id = ?", arrayOf(orderId.toString()))
+        workOrderUpdateFlow.tryEmit(Unit)
     }
 
     fun deleteWorkOrder(orderId: Long): Int {
@@ -5405,11 +5544,13 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             com.duorhythm.app.scheduler.OrderAlarmScheduler.cancelOrderReminders(appContext, orderId)
         } catch (_: Exception) {}
         val db = writableDatabase
-        return db.delete("work_orders", "id = ?", arrayOf(orderId.toString()))
+        val deleted = db.delete("work_orders", "id = ?", arrayOf(orderId.toString()))
+        if (deleted > 0) workOrderUpdateFlow.tryEmit(Unit)
+        return deleted
     }
 
     fun getClientOrders(profileId: Long = getActiveProfileId()): List<ClientOrder> {
-        return getAllWorkOrders().map { wo ->
+        return getAllWorkOrders(profileId).map { wo ->
             ClientOrder(
                 id = wo.id,
                 title = wo.title,
@@ -5418,7 +5559,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 status = wo.status.ifBlank { "IN PROGRESS" },
                 dueDate = wo.endDate.ifBlank { wo.startDate },
                 notes = wo.notes,
-                profileId = profileId
+                profileId = wo.profileId
             )
         }
     }
@@ -5434,8 +5575,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     }
 
     fun insertClientOrder(order: ClientOrder): Long {
+        val pId = if (order.profileId > 0) order.profileId else getActiveProfileId()
         val wo = WorkOrder(
             id = order.id,
+            profileId = pId,
             title = order.title,
             clientName = order.clientName,
             totalPrice = order.amount.toDoubleOrNull() ?: 0.0,
@@ -5518,6 +5661,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.insert("transactions", null, transCv)
 
             db.setTransactionSuccessful()
+            workOrderUpdateFlow.tryEmit(Unit)
             return true
         } catch (_: Exception) {
             return false
@@ -5590,16 +5734,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return db.delete("notes", "id = ?", arrayOf(id.toString()))
     }
 
-    fun getAllContactsGroups(): List<ContactGroupItem> {
+    fun getAllContactsGroups(profileId: Long = getActiveProfileId()): List<ContactGroupItem> {
         val list = mutableListOf<ContactGroupItem>()
         try {
             val db = readableDatabase
-            val cursor = db.rawQuery("SELECT * FROM contacts_groups ORDER BY id DESC", null)
+            val cursor = db.rawQuery(
+                "SELECT * FROM contacts_groups WHERE profile_id = ? ORDER BY id DESC",
+                arrayOf(profileId.toString())
+            )
             cursor.use {
                 while (it.moveToNext()) {
                     list.add(
                         ContactGroupItem(
                             id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
                             name = it.safeGetString("name"),
                             type = it.safeGetString("type"),
                             platform = it.safeGetString("platform"),
@@ -5613,12 +5761,12 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
             }
         } catch (e: Exception) {
-            Log.e("DUO_DB_READ", "Failed reading contacts groups", e)
+            Log.e("DUO_DB_READ", "Failed reading contacts groups for profile $profileId", e)
         }
         return list
     }
 
-    fun getContactsForPortal(isStudent: Boolean, roleFilter: String? = null): List<ContactGroupItem> {
+    fun getContactsForPortal(isStudent: Boolean, roleFilter: String? = null, profileId: Long = getActiveProfileId()): List<ContactGroupItem> {
         val list = mutableListOf<ContactGroupItem>()
         try {
             val db = readableDatabase
@@ -5629,13 +5777,13 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             }
 
             val query: String
-            val args: Array<String>?
+            val args: Array<String>
             if (!roleFilter.isNullOrBlank() && roleFilter != "ALL") {
-                query = "SELECT * FROM contacts_groups WHERE $scopeClause AND role = ? ORDER BY id DESC"
-                args = arrayOf(roleFilter)
+                query = "SELECT * FROM contacts_groups WHERE profile_id = ? AND $scopeClause AND role = ? ORDER BY id DESC"
+                args = arrayOf(profileId.toString(), roleFilter)
             } else {
-                query = "SELECT * FROM contacts_groups WHERE $scopeClause ORDER BY id DESC"
-                args = null
+                query = "SELECT * FROM contacts_groups WHERE profile_id = ? AND $scopeClause ORDER BY id DESC"
+                args = arrayOf(profileId.toString())
             }
 
             val cursor = db.rawQuery(query, args)
@@ -5644,6 +5792,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     list.add(
                         ContactGroupItem(
                             id = it.safeGetLong("id"),
+                            profileId = it.safeGetLong("profile_id", "profileId", default = profileId),
                             name = it.safeGetString("name"),
                             type = it.safeGetString("type"),
                             platform = it.safeGetString("platform"),
@@ -5657,14 +5806,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 }
             }
         } catch (e: Exception) {
-            Log.e("DUO_DB_READ", "Failed reading contacts for portal (isStudent=$isStudent)", e)
+            Log.e("DUO_DB_READ", "Failed reading contacts for portal (isStudent=$isStudent, profileId=$profileId)", e)
         }
         return list
     }
 
     fun insertContactGroup(item: ContactGroupItem): Long {
         val db = writableDatabase
+        val pId = if (item.profileId > 0) item.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("name", item.name)
             put("type", item.type)
             put("platform", item.platform)
@@ -5674,12 +5825,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("role", item.role)
             put("scope", item.scope)
         }
-        return db.insertWithOnConflict("contacts_groups", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val id = db.insertWithOnConflict("contacts_groups", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        directoryUpdateFlow.tryEmit(Unit)
+        return id
     }
 
     fun updateContactGroup(item: ContactGroupItem): Int {
         val db = writableDatabase
+        val pId = if (item.profileId > 0) item.profileId else getActiveProfileId()
         val cv = ContentValues().apply {
+            put("profile_id", pId)
             put("name", item.name)
             put("type", item.type)
             put("platform", item.platform)
@@ -5689,12 +5844,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("role", item.role)
             put("scope", item.scope)
         }
-        return db.update("contacts_groups", cv, "id = ?", arrayOf(item.id.toString()))
+        val count = db.update("contacts_groups", cv, "id = ?", arrayOf(item.id.toString()))
+        if (count > 0) directoryUpdateFlow.tryEmit(Unit)
+        return count
     }
 
     fun deleteContactGroup(id: Long): Int {
         val db = writableDatabase
-        return db.delete("contacts_groups", "id = ?", arrayOf(id.toString()))
+        val deleted = db.delete("contacts_groups", "id = ?", arrayOf(id.toString()))
+        if (deleted > 0) directoryUpdateFlow.tryEmit(Unit)
+        return deleted
     }
 
     fun deleteContactGroupItem(id: Long): Int = deleteContactGroup(id)

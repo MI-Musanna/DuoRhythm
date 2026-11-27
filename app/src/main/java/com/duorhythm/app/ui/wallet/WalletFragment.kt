@@ -554,6 +554,14 @@ class WalletFragment : Fragment() {
             // Progressive Disclosure: Zero-State Onboarding vs Active Dashboard
             if (buckets.isEmpty()) {
                 binding.layoutZeroState.visibility = View.VISIBLE
+                binding.btnSetupFirstAccount.visibility = View.GONE
+                binding.layoutEmptyBuckets.setState(
+                    iconRes = R.drawable.ic_wallet,
+                    title = "No accounts yet",
+                    subtitle = "Tap + below to add your Cash, bKash, or Bank account.",
+                    actionText = null,
+                    onAction = null
+                )
                 binding.layoutActiveDashboard.visibility = View.GONE
                 binding.btnCurrencySelector.text = "$currentCurrency ($currentSymbol) ▾"
                 return

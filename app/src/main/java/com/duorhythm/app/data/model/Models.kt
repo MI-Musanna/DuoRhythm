@@ -274,6 +274,7 @@ data class SubjectWorkItem(
 
 data class WorkOrder(
     val id: Long = 0,
+    val profileId: Long = 1,
     val title: String, // e.g. "Print 10 Pages Color"
     val clientName: String = "",
     val quantity: Int = 1,
@@ -312,6 +313,7 @@ data class NoteItem(
 
 data class ContactGroupItem(
     val id: Long = 0,
+    val profileId: Long = 1,
     val name: String,
     val type: String = "CONTACT", // "CONTACT" or "GROUP"
     val platform: String = "PHONE", // "PHONE", "WHATSAPP", "TELEGRAM", "DISCORD", "MESSENGER"

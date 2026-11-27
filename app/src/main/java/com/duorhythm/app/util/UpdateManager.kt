@@ -646,91 +646,70 @@ object UpdateManager {
         val tvInstalledVersion = view.findViewById<TextView>(R.id.tvCurrentInstalledVersion)
         tvInstalledVersion?.text = "Installed: v$currentVersion"
 
+        val latestRelease = listOfNotNull(stable, beta)
+            .maxWithOrNull { a, b -> compareVersions(a.tagName, b.tagName) }
+
         val tvReleaseNotes = view.findViewById<TextView>(R.id.tvReleaseNotesPreview)
-        val notes = beta?.bodyText?.takeIf { it.isNotBlank() } ?: stable?.bodyText ?: "No release notes available."
+        val notes = latestRelease?.bodyText?.takeIf { it.isNotBlank() }
+            ?: "You are running the latest DuoRhythm release."
         tvReleaseNotes?.text = formatReleaseNotes(notes)
 
+        // Permanently hide secondary channel card to keep a clean single-card release view
         val cardStable = view.findViewById<View>(R.id.cardStableTrack)
         val tvNoStable = view.findViewById<View>(R.id.tvNoStableBanner)
+        cardStable?.visibility = View.GONE
+        tvNoStable?.visibility = View.GONE
 
-        // --- STABLE / LATEST TRACK ---
-        var stableHasUpdate = false
-        if (stable != null && !stable.isPrerelease) {
-            cardStable?.visibility = View.VISIBLE
-            tvNoStable?.visibility = View.GONE
-            val tvStable = view.findViewById<TextView>(R.id.tvStableVersion)
-            val btnStable = view.findViewById<MaterialButton>(R.id.btnInstallStable)
-            tvStable?.text = "${stable.tagName} • Verified Latest"
+        // --- UNIFIED SINGLE RELEASE CARD ---
+        val cardRelease = view.findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardBetaTrack)
+        val tvReleaseLabel = view.findViewById<TextView>(R.id.tvBetaLabel)
+        val tvReleaseVersion = view.findViewById<TextView>(R.id.tvBetaVersion)
+        val badgeReleaseStatus = view.findViewById<TextView>(R.id.badgeBetaInstalled)
+        val btnActionRelease = view.findViewById<MaterialButton>(R.id.btnActionBeta)
 
-            val isStableCurrent = compareVersions(currentVersion, stable.tagName) >= 0
-            if (isStableCurrent) {
-                btnStable?.text = "INSTALLED"
-                btnStable?.isEnabled = false
-                btnStable?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#1E293B"))
-                btnStable?.setTextColor(Color.parseColor("#64748B"))
-                btnStable?.strokeColor = null
-            } else {
-                stableHasUpdate = true
-                btnStable?.text = "INSTALL LATEST"
-                btnStable?.isEnabled = true
-                btnStable?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#10B981"))
-                btnStable?.setTextColor(Color.parseColor("#0A0B0E"))
-                btnStable?.setOnClickListener {
-                    dialog.dismiss()
-                    showInAppDownloadDialog(context, stable.downloadUrl, "${stable.tagName}.apk")
-                }
-            }
-        } else {
-            cardStable?.visibility = View.GONE
-            tvNoStable?.visibility = View.VISIBLE
-        }
+        tvReleaseLabel?.text = if (latestRelease?.isPrerelease == true) "Preview Release" else "Official Release"
+        cardRelease?.visibility = View.VISIBLE
 
-        // --- BETA / PREVIEW TRACK ---
-        val cardBeta = view.findViewById<View>(R.id.cardBetaTrack)
-        val tvBeta = view.findViewById<TextView>(R.id.tvBetaVersion)
-        val badgeBeta = view.findViewById<TextView>(R.id.badgeBetaInstalled)
-        val btnActionBeta = view.findViewById<MaterialButton>(R.id.btnActionBeta)
-
-        val isBetaCurrent = beta == null || compareVersions(currentVersion, beta.tagName) >= 0
-        if (!isBetaCurrent && beta != null) {
-            tvBeta?.text = "${beta.tagName} • Bleeding-Edge Preview"
-            tvStatusPill?.text = "UPDATE AVAILABLE • ${beta.tagName}"
+        val hasUpdate = latestRelease != null && compareVersions(currentVersion, latestRelease.tagName) < 0
+        if (hasUpdate && latestRelease != null) {
+            tvStatusPill?.text = "UPDATE AVAILABLE • ${latestRelease.tagName}"
             tvStatusPill?.setTextColor(Color.parseColor("#38BDF8"))
             tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_blue)
 
-            badgeBeta?.text = "UPDATE"
-            badgeBeta?.setTextColor(Color.parseColor("#38BDF8"))
+            badgeReleaseStatus?.text = "VERIFIED LATEST"
+            badgeReleaseStatus?.setTextColor(Color.parseColor("#38BDF8"))
 
-            btnActionBeta?.text = "DOWNLOAD UPDATE"
-            btnActionBeta?.isEnabled = true
-            btnActionBeta?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
-            btnActionBeta?.setTextColor(Color.parseColor("#0A0B0E"))
+            tvReleaseVersion?.text = "${latestRelease.tagName} • Ready to Install"
+            tvReleaseVersion?.setTextColor(Color.parseColor("#38BDF8"))
 
-            val clickAction = View.OnClickListener {
+            btnActionRelease?.text = "INSTALL UPDATE"
+            btnActionRelease?.isEnabled = true
+            btnActionRelease?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#38BDF8"))
+            btnActionRelease?.setTextColor(Color.parseColor("#0A0B0E"))
+            btnActionRelease?.setOnClickListener {
                 dialog.dismiss()
-                showInAppDownloadDialog(context, beta.downloadUrl, "${beta.tagName}.apk")
+                showInAppDownloadDialog(context, latestRelease.downloadUrl, "${latestRelease.tagName}.apk")
             }
-            btnActionBeta?.setOnClickListener(clickAction)
         } else {
-            tvBeta?.text = if (beta != null) "${beta.tagName} • Up To Date" else "No active beta preview"
-            if (stableHasUpdate) {
-                tvStatusPill?.text = "UPDATE AVAILABLE • ${stable?.tagName}"
-                tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
-                tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
+            tvStatusPill?.text = "UP TO DATE"
+            tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
+            tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
+
+            badgeReleaseStatus?.text = "UP TO DATE"
+            badgeReleaseStatus?.setTextColor(Color.parseColor("#10B981"))
+
+            tvReleaseVersion?.text = if (latestRelease != null) {
+                "${latestRelease.tagName} • Installed"
             } else {
-                tvStatusPill?.text = "UP TO DATE"
-                tvStatusPill?.setTextColor(Color.parseColor("#10B981"))
-                tvStatusPill?.setBackgroundResource(R.drawable.bg_pill_dark)
+                "v$currentVersion • Installed"
             }
+            tvReleaseVersion?.setTextColor(Color.parseColor("#10B981"))
 
-            badgeBeta?.text = "UP TO DATE"
-            badgeBeta?.setTextColor(Color.parseColor("#10B981"))
-
-            btnActionBeta?.text = "NO NEWER BETA"
-            btnActionBeta?.isEnabled = false
-            btnActionBeta?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#1E293B"))
-            btnActionBeta?.setTextColor(Color.parseColor("#64748B"))
-            btnActionBeta?.setOnClickListener(null)
+            btnActionRelease?.text = "UP TO DATE"
+            btnActionRelease?.isEnabled = false
+            btnActionRelease?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#1E293B"))
+            btnActionRelease?.setTextColor(Color.parseColor("#64748B"))
+            btnActionRelease?.setOnClickListener(null)
         }
 
         dialog.show()

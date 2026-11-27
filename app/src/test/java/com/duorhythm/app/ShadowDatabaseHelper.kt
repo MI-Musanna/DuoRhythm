@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.ClassScheduleItem
+import com.duorhythm.app.data.model.ClientOrder
+import com.duorhythm.app.data.model.ContactGroupItem
 import com.duorhythm.app.data.model.StudentSubject
 import com.duorhythm.app.data.model.TaskItem
 import com.duorhythm.app.data.model.TransactionItem
 import com.duorhythm.app.data.model.WalletBucketItem
+import com.duorhythm.app.data.model.WorkOrder
 import database.entities.AssessmentEntity
 import database.entities.ProfileEntity
 import org.json.JSONArray
@@ -34,6 +37,8 @@ class ShadowDatabaseHelper {
         private val holidays = mutableMapOf<String, String>()
         private val studentSubjects = mutableListOf<StudentSubject>()
         private val classes = mutableListOf<ClassScheduleItem>()
+        private val contactsGroups = mutableListOf<ContactGroupItem>()
+        private val workOrders = mutableListOf<WorkOrder>()
         private val genericTables = mutableMapOf<String, MutableList<Map<String, Any?>>>()
         private var nextBucketId = 1L
         private var nextTxId = 1L
@@ -42,6 +47,8 @@ class ShadowDatabaseHelper {
         private var nextAssessmentId = 1L
         private var nextSubjectId = 1L
         private var nextClassId = 1L
+        private var nextContactGroupId = 1L
+        private var nextWorkOrderId = 1L
 
         fun reset() {
             buckets.clear()
@@ -52,6 +59,8 @@ class ShadowDatabaseHelper {
             holidays.clear()
             studentSubjects.clear()
             classes.clear()
+            contactsGroups.clear()
+            workOrders.clear()
             genericTables.clear()
             nextBucketId = 1L
             nextTxId = 1L
@@ -60,6 +69,8 @@ class ShadowDatabaseHelper {
             nextAssessmentId = 1L
             nextSubjectId = 1L
             nextClassId = 1L
+            nextContactGroupId = 1L
+            nextWorkOrderId = 1L
         }
     }
 
@@ -207,13 +218,20 @@ class ShadowDatabaseHelper {
     @Implementation
     fun insertAssessment(entity: AssessmentEntity): Long {
         val id = if (entity.id > 0) entity.id else nextAssessmentId++
-        assessments.add(entity.copy(id = id))
+        val pId = if (entity.profileId > 0) entity.profileId else 1L
+        assessments.add(entity.copy(id = id, profileId = pId))
+        if (::realDbHelper.isInitialized) realDbHelper.assessmentUpdateFlow.tryEmit(Unit)
         return id
     }
 
     @Implementation
     fun getAllAssessments(): List<AssessmentEntity> {
         return assessments.toList()
+    }
+
+    @Implementation
+    fun getAssessments(profileId: Long): List<AssessmentEntity> {
+        return assessments.filter { it.profileId == profileId }
     }
 
     @Implementation
@@ -258,13 +276,112 @@ class ShadowDatabaseHelper {
     @Implementation
     fun insertStudentSubject(subject: StudentSubject, autoTrackAttendance: Boolean): Long {
         val id = if (subject.id > 0) subject.id else nextSubjectId++
-        studentSubjects.add(subject.copy(id = id))
+        val pId = if (subject.profileId > 0) subject.profileId else 1L
+        studentSubjects.add(subject.copy(id = id, profileId = pId))
+        if (::realDbHelper.isInitialized) realDbHelper.courseUpdateFlow.tryEmit(Unit)
         return id
+    }
+
+    @Implementation
+    fun getAllStudentSubjects(profileId: Long): List<StudentSubject> {
+        return studentSubjects.filter { it.profileId == profileId }
     }
 
     @Implementation
     fun getStudentSubjectById(subjectId: Long): StudentSubject? {
         return studentSubjects.firstOrNull { it.id == subjectId }
+    }
+
+    @Implementation
+    fun insertContactGroup(item: ContactGroupItem): Long {
+        val id = if (item.id > 0) item.id else nextContactGroupId++
+        val pId = if (item.profileId > 0) item.profileId else 1L
+        contactsGroups.add(item.copy(id = id, profileId = pId))
+        if (::realDbHelper.isInitialized) realDbHelper.directoryUpdateFlow.tryEmit(Unit)
+        return id
+    }
+
+    @Implementation
+    fun getAllContactsGroups(profileId: Long): List<ContactGroupItem> {
+        return contactsGroups.filter { it.profileId == profileId }
+    }
+
+    @Implementation
+    fun getContactsForPortal(isStudent: Boolean, roleFilter: String?, profileId: Long): List<ContactGroupItem> {
+        return contactsGroups.filter { item ->
+            val scopeOk = if (isStudent) {
+                item.scope == "STUDENT_ONLY" || item.scope == "SHARED" || item.scope.isEmpty()
+            } else {
+                item.scope == "WORK_ONLY" || item.scope == "SHARED" || item.scope.isEmpty()
+            }
+            val roleOk = roleFilter.isNullOrBlank() || roleFilter == "ALL" || item.role == roleFilter
+            item.profileId == profileId && scopeOk && roleOk
+        }
+    }
+
+    @Implementation
+    fun insertWorkOrder(order: WorkOrder): Long {
+        val id = if (order.id > 0) order.id else nextWorkOrderId++
+        val pId = if (order.profileId > 0) order.profileId else 1L
+        workOrders.add(order.copy(id = id, profileId = pId))
+        if (::realDbHelper.isInitialized) realDbHelper.workOrderUpdateFlow.tryEmit(Unit)
+        return id
+    }
+
+    @Implementation
+    fun insertClientOrder(order: ClientOrder): Long {
+        return insertWorkOrder(
+            WorkOrder(
+                id = order.id,
+                profileId = if (order.profileId > 0) order.profileId else 1L,
+                title = order.title,
+                clientName = order.clientName,
+                totalPrice = order.amount.toDoubleOrNull() ?: 0.0,
+                startDate = order.startDate,
+                endDate = order.dueDate,
+                status = order.status,
+                notes = order.notes
+            )
+        )
+    }
+
+    @Implementation
+    fun getAllWorkOrders(profileId: Long): List<WorkOrder> {
+        return workOrders.filter { it.profileId == profileId }
+    }
+
+    @Implementation
+    fun getClientOrders(profileId: Long): List<ClientOrder> {
+        return getAllWorkOrders(profileId).map { wo ->
+            ClientOrder(
+                id = wo.id,
+                title = wo.title,
+                clientName = wo.clientName,
+                amount = String.format(Locale.US, "%.2f", wo.totalPrice),
+                status = wo.status,
+                dueDate = wo.endDate,
+                notes = wo.notes,
+                profileId = wo.profileId
+            )
+        }
+    }
+
+    @Implementation
+    fun deleteByProfileId(profileId: Long) {
+        contactsGroups.removeAll { it.profileId == profileId }
+        workOrders.removeAll { it.profileId == profileId }
+        studentSubjects.removeAll { it.profileId == profileId }
+        assessments.removeAll { it.profileId == profileId }
+        tasks.removeAll { it.profileId == profileId }
+        classes.removeAll { it.profileId == profileId }
+        if (::realDbHelper.isInitialized) {
+            realDbHelper.courseUpdateFlow.tryEmit(Unit)
+            realDbHelper.assessmentUpdateFlow.tryEmit(Unit)
+            realDbHelper.directoryUpdateFlow.tryEmit(Unit)
+            realDbHelper.workOrderUpdateFlow.tryEmit(Unit)
+            realDbHelper.taskUpdateFlow.tryEmit(Unit)
+            realDbHelper.timetableUpdateFlow.tryEmit(Unit)
+        }
     }
 
     @Implementation

@@ -18,6 +18,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.MainActivity
 import com.duorhythm.app.R
@@ -25,6 +28,7 @@ import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.StudentSubject
 import com.duorhythm.app.data.model.WorkOrder
 import com.duorhythm.app.data.model.ClientOrder
+import com.duorhythm.app.data.repository.ProfileRepository
 import com.duorhythm.app.ui.work.ClientOrdersAdapter
 import com.duorhythm.app.data.local.pref.ProfileManager
 import android.app.DatePickerDialog
@@ -164,8 +168,54 @@ class PortalFragment : Fragment() {
             }
             updateProfileView()
             loadAcademicIdentity()
+            observePortalState()
         } catch (e: Throwable) {
             android.util.Log.e("PortalFragment", "Error in post-setup", e)
+        }
+    }
+
+    private fun observePortalState() {
+        if (!::dbHelper.isInitialized) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    ProfileRepository.activeProfileFlow.collect { profile ->
+                        if (profile != null && _binding != null && isAdded) {
+                            portalViewModel.loadCourses(profile.id)
+                            loadAcademicIdentity()
+                            if (isStudentProfile) {
+                                loadStudentData()
+                            } else {
+                                setupWorkPortalView()
+                            }
+                        }
+                    }
+                }
+                launch {
+                    kotlinx.coroutines.flow.merge(
+                        dbHelper.courseUpdateFlow,
+                        dbHelper.assessmentUpdateFlow
+                    ).collect {
+                        if (_binding != null && isAdded && isStudentProfile) {
+                            loadStudentData()
+                        }
+                    }
+                }
+                launch {
+                    dbHelper.directoryUpdateFlow.collect {
+                        if (_binding != null && isAdded) {
+                            if (isStudentProfile) loadStudentContacts() else loadWorkContacts()
+                        }
+                    }
+                }
+                launch {
+                    dbHelper.workOrderUpdateFlow.collect {
+                        if (_binding != null && isAdded && !isStudentProfile) {
+                            setupWorkPortalView()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -315,12 +365,11 @@ class PortalFragment : Fragment() {
                     subtitle = if (isFilteredEmpty) {
                         "Try clearing your search or category filter to view scheduled exams."
                     } else {
-                        "Track upcoming midterms, finals, quizzes, and lab practicals here."
+                        "Tap + below to schedule midterms, finals, quizzes, and lab practicals."
                     },
-                    actionText = "+ Schedule Assessment"
-                ) {
-                    binding.btnScheduleAssessment.performClick()
-                }
+                    actionText = null,
+                    onAction = null
+                )
                 binding.emptyAssessmentsView.setAccentColor(Color.parseColor("#38BDF8"))
             } else {
                 binding.rvUnifiedAssessments.visibility = View.VISIBLE
@@ -662,11 +711,10 @@ class PortalFragment : Fragment() {
             binding.layoutEmptyStudentSubjects.setState(
                 iconRes = R.drawable.ic_school,
                 title = "Start tracking your courses",
-                subtitle = "Organize homework, practicals, exams, and attendance in one place.",
-                actionText = "+ Enroll First Subject"
-            ) {
-                showAddSubjectDialog()
-            }
+                subtitle = "Tap + below to organize homework, practicals, exams, and attendance.",
+                actionText = null,
+                onAction = null
+            )
             binding.layoutEmptyStudentSubjects.setAccentColor(Color.parseColor("#38BDF8"))
         } else {
             val isCollapsed = requireContext().getSharedPreferences("duorhythm_prefs", android.content.Context.MODE_PRIVATE).getBoolean("pref_courses_collapsed", false)
@@ -728,14 +776,13 @@ class PortalFragment : Fragment() {
                 iconRes = R.drawable.ic_contacts,
                 title = if (isStudentContactsTab) "No contacts saved" else "No study groups saved",
                 subtitle = if (isStudentContactsTab) {
-                    "Save faculty, advisors, or classmates for quick access."
+                    "Tap + below to save faculty, advisors, or classmates."
                 } else {
-                    "Bookmark Discord, Telegram, or WhatsApp study groups here."
+                    "Tap + below to bookmark Discord, Telegram, or WhatsApp study groups."
                 },
-                actionText = if (isStudentContactsTab) "+ Add Contact" else "+ Add Link"
-            ) {
-                if (isStudentContactsTab) showAddContactDialog(true) else showAddGroupLinkDialog(true)
-            }
+                actionText = null,
+                onAction = null
+            )
             binding.emptyStudentContactsView.setAccentColor(Color.parseColor("#38BDF8"))
         } else {
             binding.rvStudentContacts.visibility = View.VISIBLE
@@ -768,11 +815,10 @@ class PortalFragment : Fragment() {
             binding.emptyWorkOrdersView.setState(
                 iconRes = R.drawable.ic_work,
                 title = "No client orders yet",
-                subtitle = "Log freelance commissions, deliverables, due dates, and client invoices.",
-                actionText = "+ New Order"
-            ) {
-                showCreateOrderDialog()
-            }
+                subtitle = "Tap + below to log freelance commissions, deliverables, and invoices.",
+                actionText = null,
+                onAction = null
+            )
             binding.emptyWorkOrdersView.setAccentColor(Color.parseColor("#10B981"))
         } else {
             binding.rvWorkClientOrders.visibility = View.VISIBLE
@@ -982,11 +1028,10 @@ class PortalFragment : Fragment() {
             binding.emptyWorkContactsView.setState(
                 iconRes = R.drawable.ic_contacts,
                 title = "No client contacts saved",
-                subtitle = "Keep key clients, collaborators, and agency contacts one tap away.",
-                actionText = "+ Add Contact"
-            ) {
-                showAddContactDialog(false)
-            }
+                subtitle = "Tap + below to keep key clients and collaborators one tap away.",
+                actionText = null,
+                onAction = null
+            )
             binding.emptyWorkContactsView.setAccentColor(Color.parseColor("#10B981"))
         } else {
             binding.rvWorkPortalContacts.visibility = View.VISIBLE
@@ -1067,6 +1112,7 @@ class PortalFragment : Fragment() {
             btnSave.isEnabled = false
 
             val item = com.duorhythm.app.data.model.ContactGroupItem(
+                profileId = ProfileManager.getActiveProfileId(activity),
                 name = name,
                 type = "CONTACT",
                 platform = "PHONE",
@@ -1235,6 +1281,7 @@ class PortalFragment : Fragment() {
             btnSave.isEnabled = false
 
             val item = com.duorhythm.app.data.model.ContactGroupItem(
+                profileId = ProfileManager.getActiveProfileId(activity),
                 name = name,
                 type = "GROUP",
                 platform = platformCode,
@@ -1367,6 +1414,7 @@ class PortalFragment : Fragment() {
             val instructor = etInstructor?.text?.toString()?.trim().orEmpty()
 
             val subject = StudentSubject(
+                profileId = ProfileManager.getActiveProfileId(activity),
                 name = name,
                 code = code,
                 colorHex = "#2563EB",
@@ -1480,6 +1528,7 @@ class PortalFragment : Fragment() {
             val baseTotalPrice = qty * baseUnitPrice
 
             val order = WorkOrder(
+                profileId = ProfileManager.getActiveProfileId(requireContext()),
                 title = title,
                 clientName = client,
                 quantity = qty,

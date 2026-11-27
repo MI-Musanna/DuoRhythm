@@ -37,13 +37,13 @@ class DuoEmptyStateView @JvmOverloads constructor(
         @DrawableRes iconRes: Int,
         title: String,
         subtitle: String,
-        actionText: String,
-        onAction: () -> Unit
+        actionText: String? = null,
+        onAction: (() -> Unit)? = null
     ) {
         ivEmptyIcon.setImageResource(iconRes)
         tvEmptyTitle.text = title
         tvEmptySubtitle.text = subtitle
-        if (actionText.isNotBlank()) {
+        if (!actionText.isNullOrBlank() && onAction != null) {
             btnEmptyAction.visibility = View.VISIBLE
             btnEmptyAction.text = actionText
             btnEmptyAction.setOnClickListener { onAction() }

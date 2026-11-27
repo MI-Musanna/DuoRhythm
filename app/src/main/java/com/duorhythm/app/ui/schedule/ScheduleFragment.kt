@@ -261,11 +261,10 @@ class ScheduleFragment : Fragment() {
             binding.emptyScheduleView.setState(
                 iconRes = R.drawable.ic_schedule,
                 title = "No classes scheduled",
-                subtitle = "Keep your $dayName timetable organized by adding lectures, labs, or studio sessions.",
-                actionText = "+ Add Class"
-            ) {
-                showAddClassDialog()
-            }
+                subtitle = "Tap + below to organize $dayName lectures, labs, or studio sessions.",
+                actionText = null,
+                onAction = null
+            )
             binding.emptyScheduleView.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
         } else {
             binding.rvClasses.visibility = View.VISIBLE

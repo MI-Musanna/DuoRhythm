@@ -1289,7 +1289,7 @@ class DuoRhythmFullAppAuditTest {
         val btnActionBeta = vUpdater.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnActionBeta)
         assertNotNull(btnActionBeta)
         assertFalse("Beta button must default to disabled", btnActionBeta.isEnabled)
-        assertEquals("NO NEWER BETA", btnActionBeta.text.toString())
+        assertEquals("UP TO DATE", btnActionBeta.text.toString())
 
         // 3. Required Password Across All Profile Creation Layouts & Trimmed Validation
         val vProfileCreate = inflater.inflate(R.layout.dialog_profile_create, null)
@@ -1414,20 +1414,24 @@ class DuoRhythmFullAppAuditTest {
         )
         assertNull("Beta release must be null when 0 prereleases exist", beta)
 
-        // Render dual channel dialog with beta == null
+        // Render unified single release dialog when beta == null
         UpdateManager.showModernDualChannelDialog(activity, stable, null)
         val latestDialog = org.robolectric.shadows.ShadowDialog.getLatestDialog()
-        assertNotNull("Dual channel update dialog must be shown when beta == null", latestDialog)
-        val tvStable = latestDialog.findViewById<android.widget.TextView>(R.id.tvStableVersion)
+        assertNotNull("Unified update dialog must be shown when beta == null", latestDialog)
+        val cardStable = latestDialog.findViewById<android.view.View>(R.id.cardStableTrack)
+        val cardRelease = latestDialog.findViewById<android.view.View>(R.id.cardBetaTrack)
+        val tvBetaLabel = latestDialog.findViewById<android.widget.TextView>(R.id.tvBetaLabel)
         val tvBeta = latestDialog.findViewById<android.widget.TextView>(R.id.tvBetaVersion)
         val badgeBeta = latestDialog.findViewById<android.widget.TextView>(R.id.badgeBetaInstalled)
         val btnActionBeta = latestDialog.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnActionBeta)
 
-        assertEquals("v1.7.3.3-beta • Verified Latest", tvStable?.text?.toString())
-        assertEquals("No active beta preview", tvBeta?.text?.toString())
+        assertEquals("Secondary channel card must stay GONE in unified single-card dialog", View.GONE, cardStable?.visibility)
+        assertEquals("Primary release card must be VISIBLE", View.VISIBLE, cardRelease?.visibility)
+        assertEquals("Official Release", tvBetaLabel?.text?.toString())
+        assertTrue(tvBeta?.text?.toString()?.contains("v1.7.3.3-beta") == true)
         assertEquals("UP TO DATE", badgeBeta?.text?.toString())
-        assertFalse("Beta button must be disabled when beta == null", btnActionBeta?.isEnabled ?: true)
-        assertEquals("NO NEWER BETA", btnActionBeta?.text?.toString())
+        assertFalse("Install button must be disabled when installed >= latest", btnActionBeta?.isEnabled ?: true)
+        assertEquals("UP TO DATE", btnActionBeta?.text?.toString())
         latestDialog.dismiss()
 
         // 3. Verify isChecking resets to false on exception and DuoAlertBanner reports error
@@ -1621,5 +1625,143 @@ class DuoRhythmFullAppAuditTest {
         assertNotNull(homeBinding.tvChecklistProgress)
         assertNotNull(homeBinding.progressChecklist)
         assertTrue(homeBinding.tvNoClassesScheduled is com.duorhythm.app.ui.custom.DuoEmptyStateView)
+    }
+
+    @Test
+    fun audit33_v175_phase3Verification() {
+        val controller = org.robolectric.Robolectric.buildActivity(androidx.appcompat.app.AppCompatActivity::class.java)
+        val activity = controller.get()
+        activity.setTheme(R.style.Theme_DuoRhythm)
+        controller.setup()
+        val ctx = ApplicationProvider.getApplicationContext<Context>()
+
+        // (a) Nullable DuoEmptyStateView actionText hides btnEmptyAction on FAB screens
+        val emptyView = com.duorhythm.app.ui.custom.DuoEmptyStateView(activity)
+        emptyView.setState(
+            iconRes = R.drawable.ic_tasks,
+            title = "No tasks yet",
+            subtitle = "Tap + below to add your first task",
+            actionText = null,
+            onAction = null
+        )
+        assertEquals("Inner CTA button must be GONE when actionText is null", View.GONE, emptyView.btnEmptyAction.visibility)
+        assertEquals("No tasks yet", emptyView.tvEmptyTitle.text.toString())
+
+        emptyView.setState(
+            iconRes = R.drawable.ic_tasks,
+            title = "Empty sheet",
+            subtitle = "Modal without FAB keeps CTA",
+            actionText = "+ Add Record"
+        ) {}
+        assertEquals("Inner CTA button must be VISIBLE when actionText is provided", View.VISIBLE, emptyView.btnEmptyAction.visibility)
+
+        val walletBinding = com.duorhythm.app.databinding.FragmentWalletBinding.inflate(activity.layoutInflater)
+        assertEquals("Wallet zero-state button must be GONE because speedDialWallet is active", View.GONE, walletBinding.btnSetupFirstAccount.visibility)
+
+        // (b) Single-card Software Releases Dialog (no secondary beta/stable duplication)
+        val newerRelease = UpdateManager.ReleaseInfo(
+            tagName = "v9.9.9-beta",
+            isPrerelease = false,
+            downloadUrl = "https://github.com/MI-Musanna/DuoRhythm/releases/download/v9.9.9-beta/DuoRhythm-v9.9.9-beta.apk",
+            bodyText = "Unified updater verification"
+        )
+        UpdateManager.showModernDualChannelDialog(activity, newerRelease, null)
+        val updateDlg = org.robolectric.shadows.ShadowDialog.getLatestDialog()
+        assertNotNull(updateDlg)
+        assertEquals(View.GONE, updateDlg.findViewById<View>(R.id.cardStableTrack)?.visibility)
+        assertEquals(View.GONE, updateDlg.findViewById<View>(R.id.tvNoStableBanner)?.visibility)
+        assertEquals(View.VISIBLE, updateDlg.findViewById<View>(R.id.cardBetaTrack)?.visibility)
+        assertEquals("VERIFIED LATEST", updateDlg.findViewById<android.widget.TextView>(R.id.badgeBetaInstalled)?.text?.toString())
+        val installBtn = updateDlg.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnActionBeta)
+        assertTrue(installBtn?.isEnabled == true)
+        assertEquals("INSTALL UPDATE", installBtn?.text?.toString())
+        updateDlg.dismiss()
+
+        // (c) DB v10 & Strict per-profile isolation for Portal, Directory Contacts, Group Links, WorkOrders & Reactive Flows
+        assertEquals("Database version must be bumped to 10", 10, DatabaseHelper.DATABASE_VERSION)
+        ShadowDatabaseHelper.reset()
+
+        val dirEmissions = mutableListOf<Unit>()
+        val orderEmissions = mutableListOf<Unit>()
+        kotlinx.coroutines.runBlocking {
+            val j1 = launch(kotlinx.coroutines.Dispatchers.Unconfined) {
+                db.directoryUpdateFlow.collect { dirEmissions.add(it) }
+            }
+            val j2 = launch(kotlinx.coroutines.Dispatchers.Unconfined) {
+                db.workOrderUpdateFlow.collect { orderEmissions.add(it) }
+            }
+
+            db.insertContactGroup(
+                com.duorhythm.app.data.model.ContactGroupItem(
+                    profileId = 1L,
+                    name = "Rakib Sir",
+                    type = "CONTACT",
+                    phoneNumber = "+8801700000001",
+                    role = "Teacher",
+                    scope = "STUDENT_ONLY"
+                )
+            )
+            db.insertContactGroup(
+                com.duorhythm.app.data.model.ContactGroupItem(
+                    profileId = 1L,
+                    name = "CSE Study Link",
+                    type = "GROUP",
+                    platform = "DISCORD",
+                    targetLink = "https://discord.gg/test",
+                    scope = "SHARED"
+                )
+            )
+            db.insertWorkOrder(
+                com.duorhythm.app.data.model.WorkOrder(
+                    profileId = 1L,
+                    title = "Swaad Branding",
+                    clientName = "Swaad",
+                    totalPrice = 2500.0,
+                    status = "IN_PROGRESS"
+                )
+            )
+            db.insertStudentSubject(
+                com.duorhythm.app.data.model.StudentSubject(
+                    profileId = 1L,
+                    name = "Compilers",
+                    code = "401"
+                ),
+                false
+            )
+            db.insertAssessment(
+                AssessmentEntity(
+                    profileId = 1L,
+                    subjectId = 1L,
+                    subjectName = "Compilers",
+                    title = "Midterm Exam",
+                    date = "2026-12-01"
+                )
+            )
+
+            assertEquals(2, db.getAllContactsGroups(1L).size)
+            assertEquals(1, db.getAllWorkOrders(1L).size)
+            assertEquals(1, db.getAllStudentSubjects(1L).size)
+            assertEquals(1, db.getAssessments(1L).size)
+
+            // Slot 2 MUST stay completely isolated from Slot 1 rows
+            assertTrue("Slot 2 contacts must be empty", db.getContactsForPortal(true, null, 2L).isEmpty())
+            assertTrue("Slot 2 work contacts must be empty", db.getContactsForPortal(false, null, 2L).isEmpty())
+            assertTrue("Slot 2 work orders must be empty", db.getAllWorkOrders(2L).isEmpty())
+            assertTrue("Slot 2 client orders must be empty", db.getClientOrders(2L).isEmpty())
+            assertTrue("Slot 2 subjects must be empty", db.getAllStudentSubjects(2L).isEmpty())
+            assertTrue("Slot 2 assessments must be empty", db.getAssessments(2L).isEmpty())
+
+            assertTrue("directoryUpdateFlow must emit on insert", dirEmissions.size >= 2)
+            assertTrue("workOrderUpdateFlow must emit on insert", orderEmissions.isNotEmpty())
+
+            db.deleteByProfileId(1L)
+            assertTrue(db.getAllContactsGroups(1L).isEmpty())
+            assertTrue(db.getAllWorkOrders(1L).isEmpty())
+            assertTrue(db.getAllStudentSubjects(1L).isEmpty())
+            assertTrue(db.getAssessments(1L).isEmpty())
+
+            j1.cancel()
+            j2.cancel()
+        }
     }
 }

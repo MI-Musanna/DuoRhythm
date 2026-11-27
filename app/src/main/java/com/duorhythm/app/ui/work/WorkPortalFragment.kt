@@ -11,6 +11,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.MainActivity
 import com.duorhythm.app.R
@@ -18,6 +21,8 @@ import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
 import com.duorhythm.app.data.model.ClientOrder
 import com.duorhythm.app.data.model.ClientOrderEntity
+import com.duorhythm.app.data.repository.ProfileRepository
+import kotlinx.coroutines.launch
 import com.duorhythm.app.databinding.FragmentWorkPortalBinding
 import com.duorhythm.app.ui.tools.ContactsAdapter
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -47,8 +52,39 @@ class WorkPortalFragment : Fragment() {
 
         setupRecyclerViews()
         setupListeners()
+        observeWorkPortalState()
         loadOrdersAndStats()
         loadWorkContacts()
+    }
+
+    private fun observeWorkPortalState() {
+        val db = DatabaseHelper.getInstance(requireContext())
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    ProfileRepository.activeProfileFlow.collect { profile ->
+                        if (profile != null && _binding != null && isAdded) {
+                            loadOrdersAndStats()
+                            loadWorkContacts()
+                        }
+                    }
+                }
+                launch {
+                    db.workOrderUpdateFlow.collect {
+                        if (_binding != null && isAdded) {
+                            loadOrdersAndStats()
+                        }
+                    }
+                }
+                launch {
+                    db.directoryUpdateFlow.collect {
+                        if (_binding != null && isAdded) {
+                            loadWorkContacts()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onResume() {
@@ -95,8 +131,64 @@ class WorkPortalFragment : Fragment() {
         }
 
         binding.btnAddWorkContact.setOnClickListener {
-            // Add work contact
+            showAddWorkContactDialog()
         }
+    }
+
+    private fun showAddWorkContactDialog() {
+        val activity = activity ?: return
+        val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_add_contact, null)
+        val etName = dialogView.findViewById<android.widget.EditText>(R.id.etContactName)
+        val etPhone = dialogView.findViewById<android.widget.EditText>(R.id.etPhoneNumber)
+        val etRole = dialogView.findViewById<android.widget.EditText>(R.id.etContactRole)
+        val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveContact)
+        val defaultCountryCode = com.duorhythm.app.util.CountryUtils.getDeviceCountryCode(activity)
+
+        val dialog = MaterialAlertDialogBuilder(activity)
+            .setView(dialogView)
+            .create()
+
+        btnSave?.setOnClickListener {
+            val name = etName?.text?.toString()?.trim().orEmpty()
+            val phoneRaw = etPhone?.text?.toString()?.trim().orEmpty()
+            val cleanPhone = com.duorhythm.app.util.CountryUtils.getNormalizedInternationalNumber(phoneRaw, defaultCountryCode)
+            val customRole = etRole?.text?.toString()?.trim().orEmpty().ifEmpty { "Client" }
+
+            if (name.isEmpty()) {
+                etName?.error = "Please enter a name"
+                return@setOnClickListener
+            }
+            val phoneRegex = Regex("^\\+?[0-9]{7,15}$")
+            if (cleanPhone.isEmpty() || !phoneRegex.matches(cleanPhone)) {
+                etPhone?.error = "Please enter a valid phone number"
+                return@setOnClickListener
+            }
+
+            btnSave.isEnabled = false
+            val profileId = ProfileManager.getActiveProfileId(activity)
+            val item = com.duorhythm.app.data.model.ContactGroupItem(
+                profileId = profileId,
+                name = name,
+                type = "CONTACT",
+                platform = "PHONE",
+                targetLink = cleanPhone,
+                notes = "",
+                phoneNumber = cleanPhone,
+                role = customRole,
+                scope = "WORK_ONLY"
+            )
+            DatabaseHelper.getInstance(activity).insertContactGroup(item)
+            dialog.dismiss()
+            loadWorkContacts()
+            com.duorhythm.app.ui.custom.DuoAlertBanner.show(activity, "Contact saved to Directory!")
+        }
+
+        dialog.window?.apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+            setDimAmount(0.65f)
+        }
+        dialog.show()
+        com.duorhythm.app.util.ViewAnimationExtensions.attachToDialog(dialog)
     }
 
     private fun loadOrdersAndStats() {

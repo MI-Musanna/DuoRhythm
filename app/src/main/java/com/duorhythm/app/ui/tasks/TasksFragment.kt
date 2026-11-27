@@ -578,11 +578,10 @@ class TasksFragment : Fragment() {
                 binding.layoutEmptyTasks.setState(
                     iconRes = R.drawable.ic_tasks,
                     title = "No tasks yet",
-                    subtitle = "Stay organized by adding your priorities for today.",
-                    actionText = "+ Add Your First Task"
-                ) {
-                    showCreateTaskDialog(isGoal = false)
-                }
+                    subtitle = "Tap + below to add your priorities for today.",
+                    actionText = null,
+                    onAction = null
+                )
                 binding.layoutEmptyTasks.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
             } else {
                 binding.rvTasks.visibility = View.VISIBLE
@@ -597,11 +596,10 @@ class TasksFragment : Fragment() {
                 binding.layoutEmptyGoals.setState(
                     iconRes = R.drawable.ic_target,
                     title = "No milestone goals yet",
-                    subtitle = "Track long-term achievements and milestones.",
-                    actionText = "+ Set Your First Goal"
-                ) {
-                    showCreateTaskDialog(isGoal = true)
-                }
+                    subtitle = "Tap + below to track long-term achievements and milestones.",
+                    actionText = null,
+                    onAction = null
+                )
                 binding.layoutEmptyGoals.setAccentColor(android.graphics.Color.parseColor("#F59E0B"))
             } else {
                 binding.rvTasks.visibility = View.VISIBLE
