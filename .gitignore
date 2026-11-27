@@ -46,3 +46,6 @@ Thumbs.db
 
 # Workspace attachments
 attachments/
+
+# Temporary local audit reports
+*_audit.md

@@ -96,6 +96,17 @@ class CreateWorkOrderDialogFragment : DialogFragment() {
             binding.etOrderNotes.setText(order.notes)
         }
 
+        val expandMore = editingOrder?.let {
+            it.notes.isNotBlank() || it.startDate.isNotBlank() || it.dueDate.isNotBlank()
+        } ?: false
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = binding.btnToggleWorkOrderMoreOptions,
+            chevronView = binding.ivWorkOrderMoreOptionsChevron,
+            contentContainer = binding.layoutWorkOrderMoreOptions,
+            transitionRoot = binding.root as? ViewGroup,
+            initiallyExpanded = expandMore
+        )
+
         binding.btnSubmitWorkOrder.setOnClickListener {
             saveWorkOrder()
         }

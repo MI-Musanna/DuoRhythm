@@ -105,6 +105,19 @@ class EditClassDialog(
             dialogBinding.etClassEndTime.setText(item.endTime)
         }
 
+        val expandMore = isEdit && (
+            classItem!!.room.isNotBlank() ||
+            classItem.teacher.isNotBlank() ||
+            classItem.buildingOrLink.isNotBlank()
+        )
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = dialogBinding.btnToggleClassMoreOptions,
+            chevronView = dialogBinding.ivClassMoreOptionsChevron,
+            contentContainer = dialogBinding.layoutClassMoreOptions,
+            transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+            initiallyExpanded = expandMore
+        )
+
         fun showPicker(targetField: com.google.android.material.textfield.TextInputEditText) {
             if (fragmentManager == null) return
             val picker = MaterialTimePicker.Builder()

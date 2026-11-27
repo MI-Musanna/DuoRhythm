@@ -1,248 +1,312 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_dialog_glass"
-    android:isScrollContainer="true"
-    android:fillViewport="true"
-    android:overScrollMode="never">
+    android:clipToOutline="true"
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:isScrollContainer="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:paddingBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Record Transaction"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 1. Type Toggle: Income / Expense / Transfer -->
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleTxType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:checkedButton="@id/btnTypeIncome"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTypeIncome"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="14dp"
+                    android:text="▲ INCOME"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTypeExpense"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="14dp"
+                    android:text="▼ EXPENSE"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTypeTransfer"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="14dp"
+                    android:text="⇄ TRANSFER"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <!-- 2. Prominent Amount Input (Auto-Focus Ready) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilTxAmount"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Amount">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etTxAmount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textColor="#F8FAFC"
+                    android:textColorHint="#94A3B8"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 3. Account & Category Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilTxCard"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:hint="From Account">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/actvTxCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="#F8FAFC"
+                        android:textColorHint="#94A3B8"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilTxToAccount"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:hint="To Account"
+                    android:visibility="gone">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/actvTxToAccount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="#F8FAFC"
+                        android:textColorHint="#94A3B8"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilTxCategory"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:hint="Category">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/actvTxCategory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:completionThreshold="1"
+                        android:imeOptions="actionDone"
+                        android:inputType="textCapWords"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="#F8FAFC"
+                        android:textColorHint="#94A3B8"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!-- Quick 1-tap Category Creation Chip (e.g. Create '$name' or '+ Add New Category') -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCreateCategory"
+                style="@style/Widget.MaterialComponents.Chip.Action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="➕ Add New Category"
+                android:textColor="#0284C7"
+                android:visibility="gone"
+                app:chipIcon="@drawable/ic_add"
+                app:chipIconTint="#0284C7"
+                app:chipStrokeColor="#0284C7"
+                app:chipStrokeWidth="1dp" />
+
+            <!-- Hidden legacy spinners for zero-regression ViewBinding safety -->
+            <Spinner
+                android:id="@+id/spTxCategory"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
+
+            <Spinner
+                android:id="@+id/spTxCard"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
+
+            <!-- Video 2 Collapsible More Options Accordion -->
+            <LinearLayout
+                android:id="@+id/btnToggleTxMoreOptions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_chip_unselected"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="More Options"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/ivTxMoreOptionsChevron"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="Toggle More Options"
+                    android:src="@drawable/ic_chevron_down"
+                    app:tint="@color/text_secondary" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutTxMoreOptions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:visibility="gone">
+
+                <!-- 4. Perfectly Styled Outlined Title Field with AutoComplete -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilTransactionTitle"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Title (Optional - defaults to Category)"
+                    app:boxStrokeColor="@color/selector_box_stroke_cyan"
+                    app:boxStrokeWidth="1dp"
+                    app:boxStrokeWidthFocused="1.5dp"
+                    app:hintTextColor="#38BDF8">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/etTxTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:completionThreshold="1"
+                        android:inputType="textCapSentences"
+                        android:minHeight="54dp"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="14dp"
+                        android:textColor="#F8FAFC"
+                        android:textColorHint="#94A3B8"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 5. Optional Notes -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilNotes"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:hint="Notes (Optional)">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etTxNotes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#F8FAFC"
+                        android:textColorHint="#94A3B8" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Fixed Bottom Thumb-Zone Action Pill -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/border_glass_subtle" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp"
-        android:paddingBottom="28dp">
+        android:paddingHorizontal="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="16dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Record Transaction"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <!-- 1. Type Toggle: Income / Expense / Transfer -->
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/toggleTxType"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:checkedButton="@id/btnTypeIncome"
-            app:singleSelection="true">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTypeIncome"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:paddingHorizontal="14dp"
-                android:text="▲ INCOME"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTypeExpense"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:paddingHorizontal="14dp"
-                android:text="▼ EXPENSE"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTypeTransfer"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:paddingHorizontal="14dp"
-                android:text="⇄ TRANSFER"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
-
-        <!-- 2. Prominent Amount Input (Auto-Focus Ready) -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilTxAmount"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:hint="Amount">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etTxAmount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
-                android:textColor="#F8FAFC"
-                android:textColorHint="#94A3B8"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- 3. Account & Category Row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilTxCard"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:hint="From Account">
-
-                <AutoCompleteTextView
-                    android:id="@+id/actvTxCard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:textColor="#F8FAFC"
-                    android:textColorHint="#94A3B8"
-                    android:textSize="14sp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilTxToAccount"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:visibility="gone"
-                android:hint="To Account">
-
-                <AutoCompleteTextView
-                    android:id="@+id/actvTxToAccount"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:textColor="#F8FAFC"
-                    android:textColorHint="#94A3B8"
-                    android:textSize="14sp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilTxCategory"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:hint="Category">
-
-                <AutoCompleteTextView
-                    android:id="@+id/actvTxCategory"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:completionThreshold="1"
-                    android:inputType="textCapWords"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:imeOptions="actionDone"
-                    android:textColor="#F8FAFC"
-                    android:textColorHint="#94A3B8"
-                    android:textSize="14sp" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
-
-        <!-- Quick 1-tap Category Creation Chip (e.g. Create '$name' or '+ Add New Category') -->
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipCreateCategory"
-            style="@style/Widget.MaterialComponents.Chip.Action"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:visibility="gone"
-            android:text="➕ Add New Category"
-            android:textColor="#0284C7"
-            app:chipIcon="@drawable/ic_add"
-            app:chipIconTint="#0284C7"
-            app:chipStrokeColor="#0284C7"
-            app:chipStrokeWidth="1dp" />
-
-        <!-- Hidden legacy spinners for zero-regression ViewBinding safety -->
-        <Spinner
-            android:id="@+id/spTxCategory"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
-
-        <Spinner
-            android:id="@+id/spTxCard"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:visibility="gone" />
-
-        <!-- 4. Perfectly Styled Outlined Title Field with AutoComplete -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilTransactionTitle"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:hint="Title (Optional - defaults to Category)"
-            app:boxStrokeColor="@color/selector_box_stroke_cyan"
-            app:boxStrokeWidth="1dp"
-            app:boxStrokeWidthFocused="1.5dp"
-            app:hintTextColor="#38BDF8">
-
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/etTxTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="54dp"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="14dp"
-                android:inputType="textCapSentences"
-                android:textColor="#F8FAFC"
-                android:textColorHint="#94A3B8"
-                android:textSize="14sp"
-                android:completionThreshold="1" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- 5. Optional Notes -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilNotes"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:hint="Notes (Optional)">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etTxNotes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="#F8FAFC"
-                android:textColorHint="#94A3B8" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- 6. Save Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveTx"
             android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:layout_marginTop="16dp"
-            android:text="Save Record" />
-
+            android:layout_height="48dp"
+            android:text="Save Record"
+            android:textStyle="bold"
+            app:cornerRadius="24dp" />
     </LinearLayout>
 
-</androidx.core.widget.NestedScrollView>
+</LinearLayout>

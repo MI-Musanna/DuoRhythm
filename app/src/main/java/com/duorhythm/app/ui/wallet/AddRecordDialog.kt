@@ -88,6 +88,14 @@ class AddRecordDialog(
         // 2. Observe / Load Master Categories
         loadMasterCategories()
 
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = dialogBinding.btnToggleTxMoreOptions,
+            chevronView = dialogBinding.ivTxMoreOptionsChevron,
+            contentContainer = dialogBinding.layoutTxMoreOptions,
+            transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+            initiallyExpanded = false
+        )
+
         // Setup Category Helper
         categoryHelper = TransactionCategoryHelper(
             context = context,

@@ -1764,4 +1764,119 @@ class DuoRhythmFullAppAuditTest {
             j2.cancel()
         }
     }
+
+    @Test
+    fun audit32_v176_slice1Verification() {
+        val controller = org.robolectric.Robolectric.buildActivity(com.duorhythm.app.MainActivity::class.java).setup()
+        val activity = controller.get()
+        val inflater = android.view.LayoutInflater.from(activity)
+
+        // 1. Schedule empty card wraps content cleanly right below tvDaySummary
+        val vSchedule = inflater.inflate(R.layout.fragment_schedule, null)
+        val tvDaySummary = vSchedule.findViewById<View>(R.id.tvDaySummary)
+        val emptySchedule = vSchedule.findViewById<View>(R.id.emptyScheduleView)
+        assertNotNull(tvDaySummary)
+        assertNotNull(emptySchedule)
+        val emptyLp = emptySchedule.layoutParams as android.widget.LinearLayout.LayoutParams
+        assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, emptyLp.height)
+        assertEquals(0f, emptyLp.weight, 0.001f)
+
+        // 2. All 6 Dialogs (+ edit task / add work order) accordion-fold & sticky Thumb-Zone pill verification
+        data class DialogSpec(
+            val layoutRes: Int,
+            val primaryId: Int,
+            val toggleId: Int,
+            val chevronId: Int,
+            val moreOptionsId: Int,
+            val saveButtonId: Int
+        )
+
+        val specs = listOf(
+            DialogSpec(R.layout.dialog_add_task, R.id.etTaskTitle, R.id.btnToggleTaskMoreOptions, R.id.ivTaskMoreOptionsChevron, R.id.layoutTaskMoreOptions, R.id.btnSaveTask),
+            DialogSpec(R.layout.dialog_edit_task, R.id.etTaskTitle, R.id.btnToggleTaskMoreOptions, R.id.ivTaskMoreOptionsChevron, R.id.layoutTaskMoreOptions, R.id.btnSaveTask),
+            DialogSpec(R.layout.dialog_add_class, R.id.actvSubjectName, R.id.btnToggleClassMoreOptions, R.id.ivClassMoreOptionsChevron, R.id.layoutClassMoreOptions, R.id.btnSaveClass),
+            DialogSpec(R.layout.dialog_add_subject, R.id.etSubjectName, R.id.btnToggleSubjectMoreOptions, R.id.ivSubjectMoreOptionsChevron, R.id.layoutSubjectMoreOptions, R.id.btnSaveSubject),
+            DialogSpec(R.layout.dialog_schedule_assessment, R.id.etAssessmentTitle, R.id.btnToggleAssessmentMoreOptions, R.id.ivAssessmentMoreOptionsChevron, R.id.layoutAssessmentMoreOptions, R.id.btnSaveAssessment),
+            DialogSpec(R.layout.dialog_create_work_order, R.id.etOrderTitle, R.id.btnToggleWorkOrderMoreOptions, R.id.ivWorkOrderMoreOptionsChevron, R.id.layoutWorkOrderMoreOptions, R.id.btnSubmitWorkOrder),
+            DialogSpec(R.layout.dialog_add_work_order, R.id.etOrderTitle, R.id.btnToggleWorkOrderMoreOptions, R.id.ivWorkOrderMoreOptionsChevron, R.id.layoutWorkOrderMoreOptions, R.id.btnSaveWorkOrder),
+            DialogSpec(R.layout.dialog_add_transaction, R.id.etTxAmount, R.id.btnToggleTxMoreOptions, R.id.ivTxMoreOptionsChevron, R.id.layoutTxMoreOptions, R.id.btnSaveTx)
+        )
+
+        for (spec in specs) {
+            val root = inflater.inflate(spec.layoutRes, null) as ViewGroup
+            val primary = root.findViewById<View>(spec.primaryId)
+            val toggle = root.findViewById<View>(spec.toggleId)
+            val chevron = root.findViewById<android.widget.ImageView>(spec.chevronId)
+            val more = root.findViewById<View>(spec.moreOptionsId)
+            val saveBtn = root.findViewById<View>(spec.saveButtonId)
+
+            assertNotNull("Primary field missing for layout ${spec.layoutRes}", primary)
+            assertNotNull("Toggle missing for layout ${spec.layoutRes}", toggle)
+            assertNotNull("Chevron missing for layout ${spec.layoutRes}", chevron)
+            assertNotNull("More options container missing for layout ${spec.layoutRes}", more)
+            assertNotNull("Save button missing for layout ${spec.layoutRes}", saveBtn)
+
+            com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+                toggleRow = toggle,
+                chevronView = chevron,
+                contentContainer = more,
+                transitionRoot = root,
+                initiallyExpanded = false
+            )
+
+            assertEquals(View.VISIBLE, primary.visibility)
+            assertEquals(View.VISIBLE, saveBtn.visibility)
+            assertEquals(View.GONE, more.visibility)
+
+            // Verify bottom save pill is pinned outside the scrollable body
+            var parent: Any? = saveBtn.parent
+            var insideScrollView = false
+            while (parent is View) {
+                if (parent is android.widget.ScrollView || parent is androidx.core.widget.NestedScrollView) {
+                    insideScrollView = true
+                    break
+                }
+                parent = (parent as View).parent
+            }
+            assertFalse("Thumb-Zone pill must sit outside ScrollView/NestedScrollView for ${spec.layoutRes}", insideScrollView)
+
+            toggle.performClick()
+            assertEquals(View.VISIBLE, primary.visibility)
+            assertEquals(View.VISIBLE, saveBtn.visibility)
+            assertEquals(View.VISIBLE, more.visibility)
+
+            toggle.performClick()
+            assertEquals(View.GONE, more.visibility)
+        }
+
+        // 3. Live filter counts callback on TasksAdapter
+        val filterCounts = mutableListOf<Pair<Int, Int>>()
+        val tasksAdapter = TasksAdapter(
+            emptyList(),
+            onToggleCompleted = { _, _ -> },
+            onTaskClick = {},
+            onDeleteClick = {}
+        )
+        tasksAdapter.onFilterApplied = { filtered, total ->
+            filterCounts.add(filtered to total)
+        }
+
+        val sampleTasks = listOf(
+            TaskItem(id = 1L, title = "Study Algorithms", category = "Study", priority = "HIGH", isCompleted = false),
+            TaskItem(id = 2L, title = "Buy Groceries", category = "Personal", priority = "LOW", isCompleted = true),
+            TaskItem(id = 3L, title = "Submit Lab Report", category = "Study", priority = "MEDIUM", isCompleted = false)
+        )
+        tasksAdapter.setMasterTasks(sampleTasks)
+        assertEquals(3 to 3, filterCounts.last())
+
+        tasksAdapter.updateFilterType("Study")
+        assertEquals(2 to 3, filterCounts.last())
+
+        tasksAdapter.updateSearchQuery("algorithms")
+        assertEquals(1 to 3, filterCounts.last())
+
+        tasksAdapter.updateSearchQuery("")
+        tasksAdapter.updateFilterType("Completed")
+        assertEquals(1 to 3, filterCounts.last())
+    }
 }

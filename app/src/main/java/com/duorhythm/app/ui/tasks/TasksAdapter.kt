@@ -25,6 +25,9 @@ class TasksAdapter(
     private var currentSearchQuery: String = ""
     private var suppressEntryAnimUntil: Long = 0L
 
+    var onFilterApplied: ((filteredCount: Int, totalCount: Int) -> Unit)? = null
+    val masterItemCount: Int get() = masterTaskList.size
+
     fun setMasterTasks(list: List<TaskEntity>) {
         masterTaskList = list
         applyFilters()
@@ -60,6 +63,7 @@ class TasksAdapter(
             matchesType && matchesQuery
         }
         submitList(ArrayList(filtered))
+        onFilterApplied?.invoke(filtered.size, masterTaskList.size)
     }
 
     fun submitList(list: List<TaskEntity>) {
@@ -99,6 +103,7 @@ class TasksAdapter(
             tasks = mutable
             notifyItemRemoved(idx)
         }
+        onFilterApplied?.invoke(tasks.size, masterTaskList.size)
     }
 
     fun removeItemAnimated(position: Int) {

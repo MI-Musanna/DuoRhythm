@@ -121,6 +121,27 @@ object AnimationUtils {
     }
 
     /**
+     * Wires a Video 2 collapsible "More Options" accordion toggle with rotating chevron
+     * and smooth container transition.
+     */
+    fun setupMoreOptionsAccordion(
+        toggleRow: View,
+        chevronView: ImageView?,
+        contentContainer: View,
+        transitionRoot: ViewGroup? = contentContainer.parent as? ViewGroup,
+        initiallyExpanded: Boolean = false
+    ) {
+        contentContainer.visibility = if (initiallyExpanded) View.VISIBLE else View.GONE
+        chevronView?.rotation = if (initiallyExpanded) 180f else 0f
+        toggleRow.setOnClickListener {
+            val expand = contentContainer.visibility != View.VISIBLE
+            transitionRoot?.let { beginAccordionTransition(it) }
+            contentContainer.visibility = if (expand) View.VISIBLE else View.GONE
+            chevronView?.let { rotateChevron(it, expand) }
+        }
+    }
+
+    /**
      * Attaches fluid scale and fade window animation to any dialog.
      */
     fun applyDialogAnimation(dialog: Dialog) {

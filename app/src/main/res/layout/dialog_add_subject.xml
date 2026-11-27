@@ -1,75 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:background="?attr/colorSurface"
     android:elevation="8dp"
-    android:padding="24dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Create Subject Section"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="16dp" />
-
-    <EditText
-        android:id="@+id/etSubjectName"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:hint="Subject Name (e.g. Mathematics)"
-        android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?android:attr/textColorSecondary"
-        android:layout_marginBottom="12dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:paddingBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="Create Subject Section"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etSubjectName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Subject Name (e.g. Mathematics)"
+                android:minHeight="48dp"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?android:attr/textColorSecondary" />
+
+            <EditText
+                android:id="@+id/etSubjectCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:digits="0123456789"
+                android:hint="Subject Code (e.g. 101)"
+                android:inputType="number"
+                android:minHeight="48dp"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?android:attr/textColorSecondary" />
+
+            <!-- Video 2 Collapsible More Options Accordion -->
+            <LinearLayout
+                android:id="@+id/btnToggleSubjectMoreOptions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_chip_unselected"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="More Options"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/ivSubjectMoreOptionsChevron"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="Toggle More Options"
+                    android:src="@drawable/ic_chevron_down"
+                    app:tint="@color/text_secondary" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutSubjectMoreOptions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/etCredits"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:hint="Credits (e.g. 3)"
+                    android:inputType="number"
+                    android:minHeight="48dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?android:attr/textColorSecondary" />
+
+                <EditText
+                    android:id="@+id/etInstructor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Instructor (Optional)"
+                    android:minHeight="48dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?android:attr/textColorSecondary" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Fixed Bottom Thumb-Zone Action Pill -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/border_glass_subtle" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="12dp">
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="16dp">
 
-        <EditText
-            android:id="@+id/etSubjectCode"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:inputType="number"
-            android:digits="0123456789"
-            android:hint="Subject Code (e.g. 101)"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?android:attr/textColorSecondary"
-            android:layout_marginEnd="8dp" />
-
-        <EditText
-            android:id="@+id/etCredits"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:inputType="number"
-            android:hint="Credits (e.g. 3)"
-            android:textColor="?attr/colorOnSurface"
-            android:textColorHint="?android:attr/textColorSecondary" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveSubject"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="CREATE SUBJECT SECTION"
+            android:textStyle="bold"
+            app:cornerRadius="25dp" />
     </LinearLayout>
-
-    <EditText
-        android:id="@+id/etInstructor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:hint="Instructor (Optional)"
-        android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?android:attr/textColorSecondary"
-        android:layout_marginBottom="20dp" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSaveSubject"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="CREATE SUBJECT SECTION" />
 </LinearLayout>

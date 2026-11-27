@@ -345,7 +345,6 @@ class PortalFragment : Fragment() {
                         com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(requireContext())
                         com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_PORTAL)
                         unifiedAssessmentsAdapter.removeItemAnimated(entity)
-                        binding.tvScheduledCountBadge.text = "${unifiedAssessmentsAdapter.masterItemCount} Scheduled"
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -355,6 +354,14 @@ class PortalFragment : Fragment() {
             }
         )
         unifiedAssessmentsAdapter.onFilterApplied = { filtered ->
+            val totalCount = unifiedAssessmentsAdapter.masterItemCount
+            val isFiltering = !binding.etExamSearch.text.isNullOrBlank() ||
+                !selectedAssessmentFilter.equals("ALL", ignoreCase = true)
+            binding.tvScheduledCountBadge.text = if (isFiltering && totalCount > 0) {
+                "${filtered.size} of $totalCount"
+            } else {
+                "${filtered.size} Scheduled"
+            }
             if (filtered.isEmpty()) {
                 binding.rvUnifiedAssessments.visibility = View.GONE
                 binding.emptyAssessmentsView.visibility = View.VISIBLE
@@ -752,7 +759,6 @@ class PortalFragment : Fragment() {
         populateDynamicExamFilterChips()
         assessmentAdapter.setMasterData(allAssessmentEntities)
         assessmentAdapter.updateCategoryFilter(if (selectedAssessmentFilter.equals("ALL", true)) "All" else selectedAssessmentFilter)
-        binding.tvScheduledCountBadge.text = "${allAssessmentEntities.size} Scheduled"
         context?.let { ctx ->
             com.duorhythm.app.widget.ExamCountdownWidget.pushUpdate(ctx)
             com.duorhythm.app.widget.AcademicHubWidget.pushUpdate(ctx)
@@ -1391,6 +1397,16 @@ class PortalFragment : Fragment() {
         val etInstructor = dialogView.findViewById<android.widget.EditText>(R.id.etInstructor)
         val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveSubject)
 
+        dialogView.findViewById<android.view.View>(R.id.btnToggleSubjectMoreOptions)?.let { toggle ->
+            com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+                toggleRow = toggle,
+                chevronView = dialogView.findViewById(R.id.ivSubjectMoreOptionsChevron),
+                contentContainer = dialogView.findViewById(R.id.layoutSubjectMoreOptions),
+                transitionRoot = dialogView as? android.view.ViewGroup,
+                initiallyExpanded = false
+            )
+        }
+
         val dialog = MaterialAlertDialogBuilder(activity)
             .setView(dialogView)
             .create()
@@ -1467,6 +1483,13 @@ class PortalFragment : Fragment() {
         val dialogBinding = DialogAddWorkOrderBinding.inflate(layoutInflater)
         activeOrderDialogBinding = dialogBinding
         pendingOrderAttachmentPath = ""
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = dialogBinding.btnToggleWorkOrderMoreOptions,
+            chevronView = dialogBinding.ivWorkOrderMoreOptionsChevron,
+            contentContainer = dialogBinding.layoutWorkOrderMoreOptions,
+            transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+            initiallyExpanded = false
+        )
 
         val prefs = requireContext().getSharedPreferences("duorhythm_prefs", android.content.Context.MODE_PRIVATE)
         val defaultCurr = if (java.util.Locale.getDefault().country.equals("BD", ignoreCase = true)) "BDT" else "USD"

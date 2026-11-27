@@ -202,6 +202,13 @@ class HomeFragment : Fragment() {
             dialogBinding.btnSaveTask.text = if (isGoal) "Create Goal" else "Save Task"
             dialogBinding.cbIsGoal.isChecked = isGoal
             dialogBinding.layoutGoalStartDate.visibility = if (isGoal) View.VISIBLE else View.GONE
+            com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+                toggleRow = dialogBinding.btnToggleTaskMoreOptions,
+                chevronView = dialogBinding.ivTaskMoreOptionsChevron,
+                contentContainer = dialogBinding.layoutTaskMoreOptions,
+                transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+                initiallyExpanded = isGoal
+            )
 
             val categories = dbHelper.getTaskCategories().ifEmpty { listOf("General") }
             dialogBinding.spTaskCategory.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories)

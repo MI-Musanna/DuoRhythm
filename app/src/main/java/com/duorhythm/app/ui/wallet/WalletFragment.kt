@@ -1092,6 +1092,13 @@ class WalletFragment : Fragment() {
 
         val dialogBinding = DialogAddTransactionBinding.inflate(layoutInflater)
         dialogBinding.tilTxAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = dialogBinding.btnToggleTxMoreOptions,
+            chevronView = dialogBinding.ivTxMoreOptionsChevron,
+            contentContainer = dialogBinding.layoutTxMoreOptions,
+            transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+            initiallyExpanded = false
+        )
 
         var txType = initialType
         when (initialType) {

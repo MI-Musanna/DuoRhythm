@@ -357,6 +357,21 @@ class ScheduleAssessmentDialog(
             binding.etAssessmentTime.setText("10:00 AM")
         }
 
+        val expandMore = existingItem != null && (
+            existingItem.attachmentPath.isNotBlank() ||
+            existingItem.description.isNotBlank() ||
+            !existingItem.attachmentUri.isNullOrBlank() ||
+            !existingEntity?.instructor.isNullOrBlank() ||
+            !existingEntity?.teacher.isNullOrBlank()
+        )
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = binding.btnToggleAssessmentMoreOptions,
+            chevronView = binding.ivAssessmentMoreOptionsChevron,
+            contentContainer = binding.layoutAssessmentMoreOptions,
+            transitionRoot = binding.root as? android.view.ViewGroup,
+            initiallyExpanded = expandMore
+        )
+
         // File Picker Launcher with Persistable URI Guard
         val activity = context as? androidx.activity.ComponentActivity
         val filePickerLauncher = activity?.activityResultRegistry?.register(

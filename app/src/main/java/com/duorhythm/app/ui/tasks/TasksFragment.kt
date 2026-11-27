@@ -196,6 +196,21 @@ class TasksFragment : Fragment() {
         binding.rvTasks.adapter = tasksAdapter
         binding.rvTasks.itemAnimator = com.duorhythm.app.util.SmoothGapCollapseAnimator()
         AnimationUtils.applySlideUpLayoutAnimation(binding.rvTasks)
+        tasksAdapter.onFilterApplied = { filteredCount, totalCount ->
+            updateLiveTasksTitle(filteredCount, totalCount)
+        }
+    }
+
+    private fun updateLiveTasksTitle(filteredCount: Int, totalCount: Int) {
+        if (_binding == null) return
+        val baseTitle = if (currentTab == TaskTab.TASKS) "My Tasks" else "Milestone Goals"
+        val hasQuery = !binding.etTaskSearch.text.isNullOrBlank()
+        val hasActiveChipFilter = currentTab == TaskTab.TASKS && !currentFilter.equals("All", ignoreCase = true)
+        binding.tvTasksTitle.text = if (hasQuery || hasActiveChipFilter) {
+            "$baseTitle ($filteredCount / $totalCount)"
+        } else {
+            "$baseTitle ($filteredCount)"
+        }
     }
 
     private fun setupDatePicker(
@@ -338,6 +353,15 @@ class TasksFragment : Fragment() {
 
         dialogBinding.layoutGoalStartDate.visibility = if (task.isGoal) View.VISIBLE else View.GONE
         dialogBinding.tilTaskDueDate.hint = if (task.isGoal) "Target Date (Optional)" else "Due Date (Optional)"
+
+        val expandMore = task.isGoal || task.description.isNotBlank() || !task.startDate.isNullOrBlank()
+        AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = dialogBinding.btnToggleTaskMoreOptions,
+            chevronView = dialogBinding.ivTaskMoreOptionsChevron,
+            contentContainer = dialogBinding.layoutTaskMoreOptions,
+            transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+            initiallyExpanded = expandMore
+        )
 
         dialogBinding.cbIsGoal.setOnCheckedChangeListener { _, isChecked ->
             dialogBinding.layoutGoalStartDate.visibility = if (isChecked) View.VISIBLE else View.GONE
@@ -608,6 +632,7 @@ class TasksFragment : Fragment() {
             }
         }
         syncTasksSpeedDial()
+        updateLiveTasksTitle(count, tasksAdapter.masterItemCount)
     }
 
     fun loadTasks() {
@@ -693,6 +718,14 @@ class TasksFragment : Fragment() {
         }
         dialogBinding.cbIsGoal.isChecked = isGoal
         dialogBinding.layoutGoalStartDate.visibility = if (isGoal) View.VISIBLE else View.GONE
+
+        AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = dialogBinding.btnToggleTaskMoreOptions,
+            chevronView = dialogBinding.ivTaskMoreOptionsChevron,
+            contentContainer = dialogBinding.layoutTaskMoreOptions,
+            transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+            initiallyExpanded = isGoal
+        )
 
         dialogBinding.cbIsGoal.setOnCheckedChangeListener { _, checked ->
             dialogBinding.layoutGoalStartDate.visibility = if (checked) View.VISIBLE else View.GONE

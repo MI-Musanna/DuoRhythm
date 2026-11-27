@@ -1127,6 +1127,13 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         val allBuckets = dbHelper.getAllWalletBuckets()
         val dialogBinding = DialogAddTransactionBinding.inflate(layoutInflater)
         dialogBinding.tilTxAmount.hint = "Amount ($currentSymbol - $currentCurrency)"
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = dialogBinding.btnToggleTxMoreOptions,
+            chevronView = dialogBinding.ivTxMoreOptionsChevron,
+            contentContainer = dialogBinding.layoutTxMoreOptions,
+            transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+            initiallyExpanded = false
+        )
 
         var txType = initialMode
         val initBtnId = when (initialMode) {
@@ -1365,6 +1372,13 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         dialogBinding.actvTxCategory.setText(tx.category, false)
         dialogBinding.etTxTitle.setText(tx.title)
         dialogBinding.etTxNotes.setText(tx.notes)
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = dialogBinding.btnToggleTxMoreOptions,
+            chevronView = dialogBinding.ivTxMoreOptionsChevron,
+            contentContainer = dialogBinding.layoutTxMoreOptions,
+            transitionRoot = dialogBinding.root as? android.view.ViewGroup,
+            initiallyExpanded = tx.title.isNotBlank() || tx.notes.isNotBlank()
+        )
 
         dialogBinding.toggleTxType.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {

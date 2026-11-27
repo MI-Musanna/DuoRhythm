@@ -354,6 +354,16 @@ class ScheduleFragment : Fragment() {
         val etInstructor = dialogView.findViewById<android.widget.EditText>(R.id.etInstructor)
         val btnSave = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveSubject)
 
+        dialogView.findViewById<android.view.View>(R.id.btnToggleSubjectMoreOptions)?.let { toggle ->
+            com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+                toggleRow = toggle,
+                chevronView = dialogView.findViewById(R.id.ivSubjectMoreOptionsChevron),
+                contentContainer = dialogView.findViewById(R.id.layoutSubjectMoreOptions),
+                transitionRoot = dialogView as? android.view.ViewGroup,
+                initiallyExpanded = false
+            )
+        }
+
         val dialog = MaterialAlertDialogBuilder(activity)
             .setView(dialogView)
             .create()

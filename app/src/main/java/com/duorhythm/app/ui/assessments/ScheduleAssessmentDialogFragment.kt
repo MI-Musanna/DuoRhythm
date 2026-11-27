@@ -92,6 +92,17 @@ class ScheduleAssessmentDialogFragment : DialogFragment() {
 
         existingAssessment?.let { populateExistingData(it) }
 
+        val expandMore = existingAssessment?.let {
+            it.room.isNotBlank() || it.instructor.isNotBlank() || it.syllabus.isNotBlank()
+        } ?: false
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = binding.btnToggleAssessmentMoreOptions,
+            chevronView = binding.ivAssessmentMoreOptionsChevron,
+            contentContainer = binding.layoutAssessmentMoreOptions,
+            transitionRoot = binding.root as? ViewGroup,
+            initiallyExpanded = expandMore
+        )
+
         // Date Picker
         binding.etAssessmentDate.setOnClickListener {
             val cal = Calendar.getInstance()
