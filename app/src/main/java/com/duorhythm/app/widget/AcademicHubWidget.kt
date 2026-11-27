@@ -126,7 +126,7 @@ class AcademicHubWidget : AppWidgetProvider() {
             try {
                 val views = RemoteViews(context.packageName, R.layout.widget_academic_hub)
                 val db = DatabaseHelper.getInstance(context)
-                val profileId = ProfileManager.getActiveProfileId()
+                val profileId = ProfileManager.getActiveProfileId(context)
 
                 val prefs = context.getSharedPreferences("widget_academic_prefs", Context.MODE_PRIVATE)
                 val transitionHour = prefs.getInt("transition_hour", 17)

@@ -7,7 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import android.util.Log
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.local.pref.ProfileManager
@@ -16,8 +19,6 @@ import com.duorhythm.app.data.repository.SubscriptionRepository
 import com.duorhythm.app.databinding.DialogRecurringSubscriptionsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import database.entities.SubscriptionEntity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -128,14 +129,18 @@ class RecurringSubscriptionsBottomSheet : BottomSheetDialogFragment() {
             dialog.show(childFragmentManager, "ADD_SUB_DIALOG")
         }
 
-        // Observe reactive database updates
-        flowJob = CoroutineScope(Dispatchers.Main).launch {
-            try {
-                dbHelper.subscriptionUpdateFlow.collect {
-                    loadSubscriptions()
+        // Observe reactive database updates tied to view lifecycle
+        flowJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                try {
+                    dbHelper.subscriptionUpdateFlow.collect {
+                        if (_binding != null && isAdded) {
+                            loadSubscriptions()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("DUO_WALLET", "Safe flow collection catch", e)
                 }
-            } catch (e: Exception) {
-                Log.e("DUO_WALLET", "Safe flow collection catch", e)
             }
         }
     }

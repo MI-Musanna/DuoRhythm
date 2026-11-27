@@ -6,6 +6,7 @@ import com.duorhythm.app.data.local.db.DatabaseHelper
 import com.duorhythm.app.data.model.ClassScheduleItem
 import com.duorhythm.app.data.model.ClientOrder
 import com.duorhythm.app.data.model.ContactGroupItem
+import com.duorhythm.app.data.model.DueDebtItem
 import com.duorhythm.app.data.model.StudentSubject
 import com.duorhythm.app.data.model.TaskItem
 import com.duorhythm.app.data.model.TransactionItem
@@ -13,6 +14,7 @@ import com.duorhythm.app.data.model.WalletBucketItem
 import com.duorhythm.app.data.model.WorkOrder
 import database.entities.AssessmentEntity
 import database.entities.ProfileEntity
+import database.entities.SubscriptionEntity
 import org.json.JSONArray
 import org.json.JSONObject
 import org.robolectric.annotation.Implementation
@@ -39,6 +41,9 @@ class ShadowDatabaseHelper {
         private val classes = mutableListOf<ClassScheduleItem>()
         private val contactsGroups = mutableListOf<ContactGroupItem>()
         private val workOrders = mutableListOf<WorkOrder>()
+        private val transactionsList = mutableListOf<TransactionItem>()
+        private val subscriptionsList = mutableListOf<SubscriptionEntity>()
+        private val duesDebtsList = mutableListOf<DueDebtItem>()
         private val genericTables = mutableMapOf<String, MutableList<Map<String, Any?>>>()
         private var nextBucketId = 1L
         private var nextTxId = 1L
@@ -49,6 +54,8 @@ class ShadowDatabaseHelper {
         private var nextClassId = 1L
         private var nextContactGroupId = 1L
         private var nextWorkOrderId = 1L
+        private var nextSubId = 1L
+        private var nextDueId = 1L
 
         fun reset() {
             buckets.clear()
@@ -61,6 +68,9 @@ class ShadowDatabaseHelper {
             classes.clear()
             contactsGroups.clear()
             workOrders.clear()
+            transactionsList.clear()
+            subscriptionsList.clear()
+            duesDebtsList.clear()
             genericTables.clear()
             nextBucketId = 1L
             nextTxId = 1L
@@ -71,6 +81,8 @@ class ShadowDatabaseHelper {
             nextClassId = 1L
             nextContactGroupId = 1L
             nextWorkOrderId = 1L
+            nextSubId = 1L
+            nextDueId = 1L
         }
     }
 
@@ -78,7 +90,16 @@ class ShadowDatabaseHelper {
     fun insertWalletBucket(bucket: WalletBucketItem): Long {
         val id = nextBucketId++
         buckets[id] = bucket.copy(id = id)
+        if (::realDbHelper.isInitialized) {
+            realDbHelper.walletUpdateFlow.tryEmit(Unit)
+            realDbHelper.transactionUpdateFlow.tryEmit(Unit)
+        }
         return id
+    }
+
+    @Implementation
+    fun getAllWalletBuckets(profileId: Long = 1L): List<WalletBucketItem> {
+        return buckets.values.filter { it.profileId == profileId }.sortedBy { it.id }
     }
 
     @Implementation
@@ -89,13 +110,83 @@ class ShadowDatabaseHelper {
     @Implementation
     fun insertTransaction(tx: TransactionItem): Long {
         val id = nextTxId++
+        transactionsList.add(tx.copy(id = id))
         val delta = if (tx.type == "INCOME") tx.amount else -tx.amount
         val targetId = tx.bucketId
         val bucket = buckets[targetId]
         if (bucket != null) {
             buckets[targetId] = bucket.copy(balance = bucket.balance + delta)
         }
+        if (::realDbHelper.isInitialized) {
+            realDbHelper.transactionUpdateFlow.tryEmit(Unit)
+            realDbHelper.walletUpdateFlow.tryEmit(Unit)
+        }
         return id
+    }
+
+    @Implementation
+    fun getAllTransactions(
+        typeFilter: String? = null,
+        cardIdFilter: Long? = null,
+        bucketIdFilter: Long? = null,
+        profileId: Long = 1L
+    ): List<TransactionItem> {
+        return transactionsList.filter { tx ->
+            tx.profileId == profileId &&
+                (typeFilter.isNullOrEmpty() || typeFilter == "ALL" || tx.type == typeFilter) &&
+                (cardIdFilter == null || cardIdFilter <= 0L || tx.cardId == cardIdFilter) &&
+                (bucketIdFilter == null || bucketIdFilter <= 0L || tx.bucketId == bucketIdFilter)
+        }
+    }
+
+    @Implementation
+    fun clearAllTransactions(profileId: Long = 1L): Int {
+        val before = transactionsList.size
+        transactionsList.removeAll { it.profileId == profileId }
+        val removed = before - transactionsList.size
+        if (::realDbHelper.isInitialized) {
+            realDbHelper.transactionUpdateFlow.tryEmit(Unit)
+            realDbHelper.walletUpdateFlow.tryEmit(Unit)
+        }
+        return removed
+    }
+
+    @Implementation
+    fun insertSubscription(sub: SubscriptionEntity): Long {
+        val id = if (sub.id > 0L) sub.id else nextSubId++
+        val pId = if (sub.profileId > 0L) sub.profileId else 1L
+        subscriptionsList.removeAll { it.id == id }
+        subscriptionsList.add(sub.copy(id = id, profileId = pId))
+        if (::realDbHelper.isInitialized) realDbHelper.subscriptionUpdateFlow.tryEmit(Unit)
+        return id
+    }
+
+    @Implementation
+    fun getSubscriptions(profileId: Long): List<SubscriptionEntity> {
+        return subscriptionsList.filter { it.profileId == profileId }.sortedByDescending { it.id }
+    }
+
+    @Implementation
+    fun insertDueDebt(item: DueDebtItem): Long {
+        val id = if (item.id > 0L) item.id else nextDueId++
+        val pId = if (item.profileId > 0L) item.profileId else 1L
+        duesDebtsList.removeAll { it.id == id }
+        duesDebtsList.add(item.copy(id = id, profileId = pId))
+        if (::realDbHelper.isInitialized) realDbHelper.duesUpdateFlow.tryEmit(Unit)
+        return id
+    }
+
+    @Implementation
+    fun getAllDuesDebts(profileId: Long = 1L): List<DueDebtItem> {
+        return duesDebtsList.filter { it.profileId == profileId }
+    }
+
+    @Implementation
+    fun getDuesDebtsSummary(profileId: Long = 1L): Pair<Double, Double> {
+        val profileDues = duesDebtsList.filter { it.profileId == profileId && it.status == "UNPAID" }
+        val lent = profileDues.filter { it.type == "LENT" }.sumOf { it.amount }
+        val borrowed = profileDues.filter { it.type == "BORROWED" }.sumOf { it.amount }
+        return Pair(lent, borrowed)
     }
 
     @Implementation
@@ -113,9 +204,14 @@ class ShadowDatabaseHelper {
         }
         val fromBucket = buckets[fromBucketId] ?: return false
         val toBucket = buckets[toBucketId] ?: return false
+        if (fromBucket.profileId != toBucket.profileId) return false
 
         buckets[fromBucketId] = fromBucket.copy(balance = fromBucket.balance - amount)
         buckets[toBucketId] = toBucket.copy(balance = toBucket.balance + amount)
+        if (::realDbHelper.isInitialized) {
+            realDbHelper.walletUpdateFlow.tryEmit(Unit)
+            realDbHelper.transactionUpdateFlow.tryEmit(Unit)
+        }
         return true
     }
 
@@ -374,6 +470,10 @@ class ShadowDatabaseHelper {
         assessments.removeAll { it.profileId == profileId }
         tasks.removeAll { it.profileId == profileId }
         classes.removeAll { it.profileId == profileId }
+        buckets.entries.removeAll { it.value.profileId == profileId }
+        transactionsList.removeAll { it.profileId == profileId }
+        subscriptionsList.removeAll { it.profileId == profileId }
+        duesDebtsList.removeAll { it.profileId == profileId }
         if (::realDbHelper.isInitialized) {
             realDbHelper.courseUpdateFlow.tryEmit(Unit)
             realDbHelper.assessmentUpdateFlow.tryEmit(Unit)
@@ -381,6 +481,10 @@ class ShadowDatabaseHelper {
             realDbHelper.workOrderUpdateFlow.tryEmit(Unit)
             realDbHelper.taskUpdateFlow.tryEmit(Unit)
             realDbHelper.timetableUpdateFlow.tryEmit(Unit)
+            realDbHelper.walletUpdateFlow.tryEmit(Unit)
+            realDbHelper.transactionUpdateFlow.tryEmit(Unit)
+            realDbHelper.subscriptionUpdateFlow.tryEmit(Unit)
+            realDbHelper.duesUpdateFlow.tryEmit(Unit)
         }
     }
 

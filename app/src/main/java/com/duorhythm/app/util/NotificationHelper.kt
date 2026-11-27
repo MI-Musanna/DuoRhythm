@@ -144,7 +144,7 @@ object NotificationHelper {
         try {
             val cursor = db.readableDatabase.rawQuery(
                 """SELECT title, type, priority, due_date FROM tasks 
-                   WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
+                   WHERE profile_id = ? 
                      AND is_completed = 0 
                      AND (due_date IS NULL OR due_date = '' OR due_date <= ?) 
                    ORDER BY CASE WHEN due_date IS NOT NULL AND due_date != '' THEN 0 ELSE 1 END, id DESC LIMIT 10""",
@@ -170,7 +170,7 @@ object NotificationHelper {
         try {
             val cursor = db.readableDatabase.rawQuery(
                 """SELECT title, client_name, deadline FROM work_orders 
-                   WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
+                   WHERE profile_id = ? 
                      AND status != 'COMPLETED' 
                    ORDER BY id DESC LIMIT 6""",
                 arrayOf(profileId.toString())

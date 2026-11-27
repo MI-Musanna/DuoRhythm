@@ -149,6 +149,21 @@ class HomeFragment : Fragment() {
             setupListeners()
             loadDashboardData()
             setupSpeedDial()
+
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    kotlinx.coroutines.flow.merge(
+                        dbHelper.walletUpdateFlow,
+                        dbHelper.transactionUpdateFlow,
+                        dbHelper.subscriptionUpdateFlow,
+                        dbHelper.duesUpdateFlow
+                    ).collect {
+                        if (_binding != null && isAdded) {
+                            loadDashboardData()
+                        }
+                    }
+                }
+            }
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -207,7 +222,7 @@ class HomeFragment : Fragment() {
                 chevronView = dialogBinding.ivTaskMoreOptionsChevron,
                 contentContainer = dialogBinding.layoutTaskMoreOptions,
                 transitionRoot = dialogBinding.root as? android.view.ViewGroup,
-                initiallyExpanded = isGoal
+                initiallyExpanded = false
             )
 
             val categories = dbHelper.getTaskCategories().ifEmpty { listOf("General") }

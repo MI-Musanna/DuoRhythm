@@ -191,6 +191,7 @@ class ScheduleAssessmentDialogFragment : DialogFragment() {
             db.updateAssessment(entityToSave)
         }
 
+        com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(requireContext())
         com.duorhythm.app.ui.views.ConfettiOverlayView.burst(activity)
         com.duorhythm.app.ui.custom.DuoAlertBanner.show(requireContext(), if (isCreateMode) "Assessment scheduled!" else "Assessment updated!")
         onSavedListener?.invoke()

@@ -596,6 +596,7 @@ class ScheduleAssessmentDialog(
             }
 
             com.duorhythm.app.MainActivity.notifyBadgeDataChanged(com.duorhythm.app.ui.common.MainPagerAdapter.INDEX_PORTAL)
+            com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(context)
             dialog.dismiss()
             onSaved()
         }

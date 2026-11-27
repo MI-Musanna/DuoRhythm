@@ -1677,8 +1677,8 @@ class DuoRhythmFullAppAuditTest {
         assertEquals("INSTALL UPDATE", installBtn?.text?.toString())
         updateDlg.dismiss()
 
-        // (c) DB v10 & Strict per-profile isolation for Portal, Directory Contacts, Group Links, WorkOrders & Reactive Flows
-        assertEquals("Database version must be bumped to 10", 10, DatabaseHelper.DATABASE_VERSION)
+        // (c) DB v11 & Strict per-profile isolation for Portal, Directory Contacts, Group Links, WorkOrders & Reactive Flows
+        assertEquals("Database version must be bumped to 11", 11, DatabaseHelper.DATABASE_VERSION)
         ShadowDatabaseHelper.reset()
 
         val dirEmissions = mutableListOf<Unit>()
@@ -1878,5 +1878,166 @@ class DuoRhythmFullAppAuditTest {
         tasksAdapter.updateSearchQuery("")
         tasksAdapter.updateFilterType("Completed")
         assertEquals(1 to 3, filterCounts.last())
+    }
+
+    @Test
+    fun audit33_v177_phase4Verification() {
+        // 1. Strict Wallet, Transactions, Subscriptions & Dues/Debts profileId Isolation + Flow emissions
+        val walletEmissions = mutableListOf<Unit>()
+        val duesEmissions = mutableListOf<Unit>()
+        kotlinx.coroutines.runBlocking {
+            val jWallet = launch(kotlinx.coroutines.Dispatchers.Unconfined) {
+                db.walletUpdateFlow.collect { walletEmissions.add(it) }
+            }
+            val jDues = launch(kotlinx.coroutines.Dispatchers.Unconfined) {
+                db.duesUpdateFlow.collect { duesEmissions.add(it) }
+            }
+
+            val b1 = db.insertWalletBucket(WalletBucketItem(profileId = 1L, name = "Slot1 Bank", balance = 1000.0))
+            val b2 = db.insertWalletBucket(WalletBucketItem(profileId = 2L, name = "Slot2 Cash", balance = 500.0))
+            assertTrue("Both profile buckets should insert cleanly", b1 > 0L && b2 > 0L)
+
+            val slot1Buckets = db.getAllWalletBuckets(1L)
+            val slot2Buckets = db.getAllWalletBuckets(2L)
+            assertEquals(1, slot1Buckets.size)
+            assertEquals("Slot1 Bank", slot1Buckets.first().name)
+            assertEquals(1, slot2Buckets.size)
+            assertEquals("Slot2 Cash", slot2Buckets.first().name)
+
+            // Cross-profile bucket transfer MUST be blocked
+            assertFalse(
+                "Cross-profile wallet transfer must be rejected",
+                db.executeTransfer(b1, b2, 100.0, "2026-11-27", "BDT", "Cross test", "")
+            )
+
+            db.insertTransaction(
+                TransactionItem(
+                    profileId = 1L,
+                    title = "Slot1 Coffee",
+                    amount = 150.0,
+                    type = "EXPENSE",
+                    category = "Food",
+                    date = "2026-11-27",
+                    bucketId = b1
+                )
+            )
+            assertEquals(1, db.getAllTransactions(null, null, null, 1L).size)
+            assertTrue("Slot 2 transactions must stay empty", db.getAllTransactions(null, null, null, 2L).isEmpty())
+
+            db.insertSubscription(
+                database.entities.SubscriptionEntity(
+                    profileId = 1L,
+                    name = "Slot1 Fiber",
+                    amount = 1200.0,
+                    dueDay = 10
+                )
+            )
+            assertEquals(1, db.getSubscriptions(1L).size)
+            assertTrue("Slot 2 subscriptions must stay empty", db.getSubscriptions(2L).isEmpty())
+
+            db.insertDueDebt(
+                DueDebtItem(
+                    profileId = 1L,
+                    personName = "Alice",
+                    amount = 800.0,
+                    type = "LENT",
+                    status = "UNPAID"
+                )
+            )
+            assertEquals(1, db.getAllDuesDebts(1L).size)
+            assertTrue("Slot 2 dues/debts must stay empty", db.getAllDuesDebts(2L).isEmpty())
+            assertEquals(800.0, db.getDuesDebtsSummary(1L).first, 0.01)
+            assertEquals(0.0, db.getDuesDebtsSummary(2L).first, 0.01)
+
+            assertTrue("walletUpdateFlow must emit on bucket/tx writes", walletEmissions.size >= 2)
+            assertTrue("duesUpdateFlow must emit on due/debt write", duesEmissions.isNotEmpty())
+
+            db.clearAllTransactions(2L)
+            assertEquals("Clearing Slot 2 tx must not delete Slot 1 tx", 1, db.getAllTransactions(null, null, null, 1L).size)
+
+            jWallet.cancel()
+            jDues.cancel()
+        }
+
+        // 2. All 4 Home-Screen AppWidgetProviders registered in AndroidManifest & active-profile sync safe
+        val pm = context.packageManager
+        val widgetClasses = listOf(
+            com.duorhythm.app.widget.AcademicHubWidget::class.java,
+            com.duorhythm.app.widget.ScheduleWidgetProvider::class.java,
+            com.duorhythm.app.widget.ExamCountdownWidget::class.java,
+            com.duorhythm.app.widget.TimetableGlanceWidget::class.java
+        )
+        for (cls in widgetClasses) {
+            val info = pm.getReceiverInfo(android.content.ComponentName(context, cls), 0)
+            assertNotNull("${cls.simpleName} must be registered in AndroidManifest", info)
+        }
+        val todayDbDay = com.duorhythm.app.util.TimetableUtils.calendarDayToDbDay(
+            java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK)
+        )
+        db.insertClassSchedule(
+            com.duorhythm.app.data.model.ClassScheduleItem(
+                profileId = 1L,
+                subjectName = "Slot1 Chemistry",
+                room = "101",
+                dayOfWeek = todayDbDay,
+                startTime = "09:00 AM",
+                endTime = "10:00 AM"
+            )
+        )
+        db.insertClassSchedule(
+            com.duorhythm.app.data.model.ClassScheduleItem(
+                profileId = 2L,
+                subjectName = "Slot2 Physics",
+                room = "202",
+                dayOfWeek = todayDbDay,
+                startTime = "11:00 AM",
+                endTime = "12:00 PM"
+            )
+        )
+        ProfileManager.setActiveProfileId(context, 2L)
+        com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(context)
+        val awm = android.appwidget.AppWidgetManager.getInstance(context)
+        val shadowAwm = org.robolectric.Shadows.shadowOf(awm)
+        val timetableWidgetId = shadowAwm.createWidget(
+            com.duorhythm.app.widget.TimetableGlanceWidget::class.java,
+            R.layout.widget_timetable_glance
+        )
+        val examWidgetId = shadowAwm.createWidget(
+            com.duorhythm.app.widget.ExamCountdownWidget::class.java,
+            R.layout.widget_exam_glance
+        )
+        com.duorhythm.app.widget.TimetableGlanceWidget.updateAppWidget(context, awm, timetableWidgetId)
+        com.duorhythm.app.widget.ExamCountdownWidget.updateAppWidget(context, awm, examWidgetId)
+        val timetableView = shadowAwm.getViewFor(timetableWidgetId)
+        assertEquals(
+            "TimetableGlanceWidget must resolve active profileId=2L instead of hardcoded 1L",
+            "Slot2 Physics",
+            timetableView.findViewById<android.widget.TextView>(R.id.tvWidgetSubjectTitle)?.text?.toString()
+        )
+        ProfileManager.setActiveProfileId(context, 1L)
+
+        // 3. Goal Creation Modal accordion collapsed by default + TasksAdapter pendingMasterCount
+        val activity = org.robolectric.Robolectric.buildActivity(com.duorhythm.app.MainActivity::class.java).setup().get()
+        val inflater = android.view.LayoutInflater.from(activity)
+        val goalModal = inflater.inflate(R.layout.dialog_add_task, null) as ViewGroup
+        val moreOptions = goalModal.findViewById<View>(R.id.layoutTaskMoreOptions)
+        com.duorhythm.app.util.AnimationUtils.setupMoreOptionsAccordion(
+            toggleRow = goalModal.findViewById(R.id.btnToggleTaskMoreOptions),
+            chevronView = goalModal.findViewById(R.id.ivTaskMoreOptionsChevron),
+            contentContainer = moreOptions,
+            transitionRoot = goalModal,
+            initiallyExpanded = false
+        )
+        assertEquals(View.GONE, moreOptions.visibility)
+
+        val tasksAdapter = TasksAdapter(emptyList(), { _, _ -> }, {}, {})
+        tasksAdapter.setMasterTasks(
+            listOf(
+                TaskItem(id = 10L, title = "Pending Task", isCompleted = false, progress = 0),
+                TaskItem(id = 11L, title = "Completed Task", isCompleted = true, progress = 100),
+                TaskItem(id = 12L, title = "Halfway Goal", isCompleted = false, progress = 50, isGoal = true)
+            )
+        )
+        assertEquals(2, tasksAdapter.pendingMasterCount)
     }
 }

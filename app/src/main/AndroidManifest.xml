@@ -327,6 +327,30 @@
                 android:resource="@xml/widget_schedule_dashboard_info" />
         </receiver>
 
+        <!-- Exam Countdown Glance Widget Provider -->
+        <receiver
+            android:name=".widget.ExamCountdownWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_exam_info" />
+        </receiver>
+
+        <!-- Timetable Glance Widget Provider -->
+        <receiver
+            android:name=".widget.TimetableGlanceWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_timetable_info" />
+        </receiver>
+
         <activity
             android:name=".ui.widget.WidgetConfigActivity"
             android:exported="true"

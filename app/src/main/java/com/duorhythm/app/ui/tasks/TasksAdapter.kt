@@ -27,6 +27,7 @@ class TasksAdapter(
 
     var onFilterApplied: ((filteredCount: Int, totalCount: Int) -> Unit)? = null
     val masterItemCount: Int get() = masterTaskList.size
+    val pendingMasterCount: Int get() = masterTaskList.count { !it.isCompleted && it.progress < 100 }
 
     fun setMasterTasks(list: List<TaskEntity>) {
         masterTaskList = list

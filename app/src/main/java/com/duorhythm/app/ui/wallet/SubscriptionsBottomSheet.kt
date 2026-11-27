@@ -15,8 +15,9 @@ import com.duorhythm.app.data.model.TransactionItem
 import com.duorhythm.app.databinding.DialogSubscriptionManagerBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import database.entities.SubscriptionEntity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -82,41 +83,44 @@ class SubscriptionsBottomSheet : BottomSheetDialogFragment() {
             }.show()
         }
 
-        // Observe Flow directly to automatically refresh RecyclerView items
-        flowJob = CoroutineScope(Dispatchers.Main).launch {
-            dbHelper.subscriptionDao.getSubscriptionsFlow(activeProfileId).collectLatest { list ->
-                val accounts = dbHelper.accountDao.getAccounts(activeProfileId).associateBy { it.id }
-                for (sub in list) {
-                    if (sub.linkedAccountId != null && sub.linkedAccountId > 0) {
-                        sub.accountName = accounts[sub.linkedAccountId]?.name ?: "Account"
+        // Observe Flow directly using viewLifecycleOwner.lifecycleScope + repeatOnLifecycle
+        flowJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                dbHelper.subscriptionDao.getSubscriptionsFlow(activeProfileId).collectLatest { list ->
+                    if (_binding == null || !isAdded) return@collectLatest
+                    val accounts = dbHelper.accountDao.getAccounts(activeProfileId).associateBy { it.id }
+                    for (sub in list) {
+                        if (sub.linkedAccountId != null && sub.linkedAccountId > 0) {
+                            sub.accountName = accounts[sub.linkedAccountId]?.name ?: "Account"
+                        }
                     }
-                }
-                adapter.updateData(list, currencySymbol, currencyRate)
+                    adapter.updateData(list, currencySymbol, currencyRate)
 
-                val totalProjected = list.sumOf { it.amount }
-                binding.tvSubManagerSummary.text = String.format(
-                    Locale.US,
-                    "Total Projected: %s%.0f / mo • %d Tracked",
-                    currencySymbol,
-                    totalProjected,
-                    list.size
-                )
+                    val totalProjected = list.sumOf { it.amount }
+                    binding.tvSubManagerSummary.text = String.format(
+                        Locale.US,
+                        "Total Projected: %s%.0f / mo • %d Tracked",
+                        currencySymbol,
+                        totalProjected,
+                        list.size
+                    )
 
-                if (list.isEmpty()) {
-                    binding.rvManagerSubscriptions.visibility = View.GONE
-                    binding.tvEmptySubscriptions.visibility = View.VISIBLE
-                    binding.tvEmptySubscriptions.setState(
-                        iconRes = com.duorhythm.app.R.drawable.ic_subscription,
-                        title = "No subscriptions tracked",
-                        subtitle = "Monitor recurring bills, streaming services, and renewal dates.",
-                        actionText = "+ Add Subscription"
-                    ) {
-                        binding.btnAddNewSubscription.performClick()
+                    if (list.isEmpty()) {
+                        binding.rvManagerSubscriptions.visibility = View.GONE
+                        binding.tvEmptySubscriptions.visibility = View.VISIBLE
+                        binding.tvEmptySubscriptions.setState(
+                            iconRes = com.duorhythm.app.R.drawable.ic_subscription,
+                            title = "No subscriptions tracked",
+                            subtitle = "Monitor recurring bills, streaming services, and renewal dates.",
+                            actionText = "+ Add Subscription"
+                        ) {
+                            binding.btnAddNewSubscription.performClick()
+                        }
+                        binding.tvEmptySubscriptions.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
+                    } else {
+                        binding.rvManagerSubscriptions.visibility = View.VISIBLE
+                        binding.tvEmptySubscriptions.visibility = View.GONE
                     }
-                    binding.tvEmptySubscriptions.setAccentColor(android.graphics.Color.parseColor("#38BDF8"))
-                } else {
-                    binding.rvManagerSubscriptions.visibility = View.VISIBLE
-                    binding.tvEmptySubscriptions.visibility = View.GONE
                 }
             }
         }

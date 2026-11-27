@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AttendanceDao {
-    @Query("SELECT * FROM attendance_records WHERE date = :date AND (profile_id = :currentProfileId OR profile_id = 0 OR profile_id IS NULL)")
+    @Query("SELECT * FROM attendance_records WHERE date = :date AND profile_id = :currentProfileId")
     fun getRecordsByDate(date: String, currentProfileId: Long): Flow<List<AttendanceRecord>>
 
     @Query("SELECT * FROM attendance_records WHERE date = :date")
@@ -18,7 +18,7 @@ interface AttendanceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun recordAttendance(record: AttendanceRecord)
 
-    @Query("DELETE FROM attendance_records WHERE subjectName = :subjectName AND date = :date AND (profile_id = :currentProfileId OR profile_id = 0 OR profile_id IS NULL)")
+    @Query("DELETE FROM attendance_records WHERE subjectName = :subjectName AND date = :date AND profile_id = :currentProfileId")
     suspend fun deleteRecord(subjectName: String, date: String, currentProfileId: Long)
 
     @Query("DELETE FROM attendance_records WHERE subjectName = :subjectName AND date = :date")

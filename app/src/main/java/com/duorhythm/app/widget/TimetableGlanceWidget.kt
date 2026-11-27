@@ -31,7 +31,10 @@ class TimetableGlanceWidget : AppWidgetProvider() {
             views.setTextViewText(R.id.tvWidgetDayTag, dayName.uppercase())
 
             val db = DatabaseHelper.getInstance(context)
-            val classes = db.getClasses(1L, dayOfWeek)
+            val profileId = com.duorhythm.app.data.local.pref.ProfileManager.getActiveProfileId(context).let {
+                if (it > 0L) it else 1L
+            }
+            val classes = db.getClasses(profileId, dayOfWeek)
 
             if (classes.isNotEmpty()) {
                 val nextClass = classes.first()

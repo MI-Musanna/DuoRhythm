@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface HolidayDao {
-    @Query("SELECT COUNT(*) > 0 FROM holiday_records WHERE date = :date AND (profile_id = :currentProfileId OR profile_id = 0 OR profile_id IS NULL)")
+    @Query("SELECT COUNT(*) > 0 FROM holiday_records WHERE date = :date AND profile_id = :currentProfileId")
     fun isHoliday(date: String, currentProfileId: Long): Flow<Boolean>
 
-    @Query("SELECT COUNT(*) > 0 FROM holiday_records WHERE date = :date AND (profile_id = :profileId OR profile_id = 0 OR profile_id IS NULL)")
+    @Query("SELECT COUNT(*) > 0 FROM holiday_records WHERE date = :date AND profile_id = :profileId")
     fun isHoliday(profileId: Long, date: String): Boolean
 
     @Query("SELECT COUNT(*) > 0 FROM holiday_records WHERE date = :date")
@@ -29,7 +29,7 @@ interface HolidayDao {
         insertHoliday(record)
     }
 
-    @Query("DELETE FROM holiday_records WHERE date = :date AND (profile_id = :currentProfileId OR profile_id = 0 OR profile_id IS NULL)")
+    @Query("DELETE FROM holiday_records WHERE date = :date AND profile_id = :currentProfileId")
     suspend fun removeHoliday(date: String, currentProfileId: Long)
 
     @Query("DELETE FROM holiday_records WHERE date = :date")

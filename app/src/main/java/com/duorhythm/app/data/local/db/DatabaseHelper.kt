@@ -23,7 +23,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
     companion object {
         const val DATABASE_NAME = "duorhythm.db"
-        const val DATABASE_VERSION = 10
+        const val DATABASE_VERSION = 11
 
         @Volatile
         private var instance: DatabaseHelper? = null
@@ -445,16 +445,30 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                     ensureColumnExists(db, "assessments", "profile_id", "INTEGER DEFAULT 1")
 
                     val backfillStatements = listOf(
-                        "UPDATE contacts_groups SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
-                        "UPDATE work_orders SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
-                        "UPDATE attendance SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
-                        "UPDATE student_subjects SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
-                        "UPDATE subject_work_items SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0",
-                        "UPDATE assessments SET profile_id = 1 WHERE profile_id IS NULL OR profile_id = 0"
+                        "UPDATE contacts_groups SET profile_id = 1 WHERE COALESCE(profile_id, 0) <= 0",
+                        "UPDATE work_orders SET profile_id = 1 WHERE COALESCE(profile_id, 0) <= 0",
+                        "UPDATE attendance SET profile_id = 1 WHERE COALESCE(profile_id, 0) <= 0",
+                        "UPDATE student_subjects SET profile_id = 1 WHERE COALESCE(profile_id, 0) <= 0",
+                        "UPDATE subject_work_items SET profile_id = 1 WHERE COALESCE(profile_id, 0) <= 0",
+                        "UPDATE assessments SET profile_id = 1 WHERE COALESCE(profile_id, 0) <= 0"
                     )
                     for (sql in backfillStatements) {
                         try {
                             db.execSQL(sql)
+                        } catch (_: Exception) {}
+                    }
+                }
+                if (oldVersion < 11) {
+                    ensureDuesDebtsTable(db)
+                    val tablesToScope = listOf(
+                        "wallet_buckets", "accounts", "cards", "transactions", "subscriptions",
+                        "dues_debts", "tasks", "classes", "notes", "assessment_categories",
+                        "attendance_records"
+                    )
+                    for (table in tablesToScope) {
+                        try {
+                            ensureColumnExists(db, table, "profile_id", "INTEGER DEFAULT 1")
+                            db.execSQL("UPDATE $table SET profile_id = 1 WHERE COALESCE(profile_id, 0) <= 0")
                         } catch (_: Exception) {}
                     }
                 }
@@ -844,6 +858,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
             if (bucketCount == 0 && legacyCash > 0) {
                 val cv = ContentValues().apply {
+                    put("profile_id", 1L)
                     put("name", "Cash in Hand")
                     put("icon", "cash")
                     put("color_hex", "#10B981")
@@ -1165,7 +1180,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val db = readableDatabase
             val cursor = db.rawQuery(
-                "SELECT * FROM cards WHERE profile_id = ? OR profile_id = 0 OR profile_id IS NULL ORDER BY id ASC",
+                "SELECT * FROM cards WHERE profile_id = ? ORDER BY id ASC",
                 arrayOf(profileId.toString())
             )
             cursor.use {
@@ -1231,7 +1246,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val clauses = mutableListOf<String>()
         val args = mutableListOf<String>()
 
-        clauses.add("(profile_id = ? OR profile_id = 0 OR profile_id IS NULL)")
+        clauses.add("profile_id = ?")
         args.add(profileId.toString())
 
         if (!typeFilter.isNullOrEmpty() && typeFilter != "ALL") {
@@ -1294,7 +1309,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val delta = if (tx.type == "INCOME") tx.amount else -tx.amount
         var targetBucketId = tx.bucketId
         if (targetBucketId <= 0L) {
-            val c = db.rawQuery("SELECT id FROM wallet_buckets ORDER BY id ASC LIMIT 1", null)
+            val c = db.rawQuery("SELECT id FROM wallet_buckets WHERE profile_id = ? ORDER BY id ASC LIMIT 1", arrayOf(pId.toString()))
             c.use {
                 if (it.moveToFirst()) targetBucketId = it.getLong(0)
             }
@@ -1306,17 +1321,20 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             db.execSQL("UPDATE wallet_buckets SET balance = balance + ? WHERE id = ?", arrayOf(delta, targetBucketId))
         }
         transactionUpdateFlow.tryEmit(Unit)
+        walletUpdateFlow.tryEmit(Unit)
         return id
     }
 
     val transactionUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    val walletUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    val duesUpdateFlow = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
 
     fun getMonthlyTransactions(profileId: Long, monthYear: String): List<TransactionItem> {
         val list = mutableListOf<TransactionItem>()
         try {
             val db = readableDatabase
             val cursor = db.rawQuery(
-                "SELECT * FROM transactions WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND date LIKE ? ORDER BY date DESC, id DESC",
+                "SELECT * FROM transactions WHERE profile_id = ? AND date LIKE ? ORDER BY date DESC, id DESC",
                 arrayOf(profileId.toString(), "$monthYear%")
             )
             cursor.use {
@@ -1377,6 +1395,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
         val count = db.delete("transactions", "id = ?", arrayOf(txId.toString()))
         transactionUpdateFlow.tryEmit(Unit)
+        walletUpdateFlow.tryEmit(Unit)
         return count
     }
 
@@ -1417,13 +1436,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
         val count = db.update("transactions", cv, "id = ?", arrayOf(tx.id.toString()))
         transactionUpdateFlow.tryEmit(Unit)
+        walletUpdateFlow.tryEmit(Unit)
         return count
     }
 
-    fun clearAllTransactions(): Int {
+    fun clearAllTransactions(profileId: Long = getActiveProfileId()): Int {
         val db = writableDatabase
-        val count = db.delete("transactions", null, null)
+        val count = db.delete("transactions", "profile_id = ?", arrayOf(profileId.toString()))
         transactionUpdateFlow.tryEmit(Unit)
+        walletUpdateFlow.tryEmit(Unit)
         return count
     }
 
@@ -1639,7 +1660,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val list = mutableListOf<WalletBucketItem>()
         try {
             val db = readableDatabase
-            val cursor = db.rawQuery("SELECT * FROM wallet_buckets WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id ASC", arrayOf(profileId.toString()))
+            val cursor = db.rawQuery("SELECT * FROM wallet_buckets WHERE profile_id = ? ORDER BY id ASC", arrayOf(profileId.toString()))
             cursor.use {
                 while (it.moveToNext()) {
                     list.add(
@@ -1703,7 +1724,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("balance", bucket.balance)
             put("note", bucket.note)
         }
-        return db.insertWithOnConflict("wallet_buckets", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val id = db.insertWithOnConflict("wallet_buckets", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        walletUpdateFlow.tryEmit(Unit)
+        transactionUpdateFlow.tryEmit(Unit)
+        return id
     }
 
     fun updateWalletBucket(bucket: WalletBucketItem): Int {
@@ -1716,7 +1740,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("balance", bucket.balance)
             put("note", bucket.note)
         }
-        return db.update("wallet_buckets", cv, "id = ?", arrayOf(bucket.id.toString()))
+        val rows = db.update("wallet_buckets", cv, "id = ?", arrayOf(bucket.id.toString()))
+        walletUpdateFlow.tryEmit(Unit)
+        transactionUpdateFlow.tryEmit(Unit)
+        return rows
     }
 
     fun updateBucketBalance(bucketId: Long, newBalance: Double): Int {
@@ -1724,7 +1751,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val cv = ContentValues().apply {
             put("balance", newBalance)
         }
-        return db.update("wallet_buckets", cv, "id = ?", arrayOf(bucketId.toString()))
+        val rows = db.update("wallet_buckets", cv, "id = ?", arrayOf(bucketId.toString()))
+        walletUpdateFlow.tryEmit(Unit)
+        transactionUpdateFlow.tryEmit(Unit)
+        return rows
     }
 
     fun deleteWalletBucket(bucketId: Long): Int {
@@ -1732,20 +1762,32 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val db = writableDatabase
         db.beginTransaction()
         try {
-            // Delete all transactions associated with this bucket / category
+            // Delete all transactions associated with this bucket / category in the bucket's profile
             if (bucket != null) {
-                db.delete("transactions", "bucket_id = ? OR category = ?", arrayOf(bucketId.toString(), bucket.name))
-                // Clear bucket link from subscriptions
+                db.delete(
+                    "transactions",
+                    "(bucket_id = ? OR category = ?) AND profile_id = ?",
+                    arrayOf(bucketId.toString(), bucket.name, bucket.profileId.toString())
+                )
+                // Clear bucket link from subscriptions in the bucket's profile
                 val cv = ContentValues().apply {
                     put("bucket_id", 0)
                     put("bucket_name", "")
                 }
-                db.update("subscriptions", cv, "bucket_id = ? OR bucket_name = ?", arrayOf(bucketId.toString(), bucket.name))
+                db.update(
+                    "subscriptions",
+                    cv,
+                    "(bucket_id = ? OR bucket_name = ?) AND profile_id = ?",
+                    arrayOf(bucketId.toString(), bucket.name, bucket.profileId.toString())
+                )
             } else {
                 db.delete("transactions", "bucket_id = ?", arrayOf(bucketId.toString()))
             }
             val deleted = db.delete("wallet_buckets", "id = ?", arrayOf(bucketId.toString()))
             db.setTransactionSuccessful()
+            walletUpdateFlow.tryEmit(Unit)
+            transactionUpdateFlow.tryEmit(Unit)
+            subscriptionUpdateFlow.tryEmit(Unit)
             return deleted
         } finally {
             db.endTransaction()
@@ -1845,7 +1887,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             ensureSubscriptionsTable()
             val db = readableDatabase
-            val cursor = db.rawQuery("SELECT * FROM subscriptions WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id ASC", arrayOf(profileId.toString()))
+            val cursor = db.rawQuery("SELECT * FROM subscriptions WHERE profile_id = ? ORDER BY id ASC", arrayOf(profileId.toString()))
             cursor.use {
                 while (it.moveToNext()) {
                     val autoLog = it.safeGetBoolean("auto_log", "autoLog", default = true)
@@ -1910,7 +1952,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("profile_id", pId)
             put("profileId", pId)
         }
-        return db.insertWithOnConflict("subscriptions", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val rowId = db.insertWithOnConflict("subscriptions", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        subscriptionUpdateFlow.tryEmit(Unit)
+        return rowId
     }
 
     fun updateSubscription(sub: SubscriptionItem): Int {
@@ -1928,7 +1972,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("is_active", if (sub.isActive) 1 else 0)
             put("auto_log", if (sub.autoLog) 1 else 0)
         }
-        return db.update("subscriptions", cv, "id = ?", arrayOf(sub.id.toString()))
+        val rows = db.update("subscriptions", cv, "id = ?", arrayOf(sub.id.toString()))
+        subscriptionUpdateFlow.tryEmit(Unit)
+        return rows
     }
 
     fun updateSubscriptionRenewalDate(subId: Long, newRenewalDate: String): Int {
@@ -1936,7 +1982,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val cv = ContentValues().apply {
             put("renewal_date", newRenewalDate)
         }
-        return db.update("subscriptions", cv, "id = ?", arrayOf(subId.toString()))
+        val rows = db.update("subscriptions", cv, "id = ?", arrayOf(subId.toString()))
+        subscriptionUpdateFlow.tryEmit(Unit)
+        return rows
     }
 
     fun deleteSubscription(subId: Long): Int {
@@ -1945,7 +1993,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             nm?.cancel((92000 + subId).toInt())
         } catch (_: Exception) {}
         val db = writableDatabase
-        return db.delete("subscriptions", "id = ?", arrayOf(subId.toString()))
+        val rows = db.delete("subscriptions", "id = ?", arrayOf(subId.toString()))
+        subscriptionUpdateFlow.tryEmit(Unit)
+        return rows
     }
 
     fun updateSubscriptionPaidState(subId: Long, monthYearKey: String, nextRenewalDate: String) {
@@ -1966,6 +2016,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             db.execSQL("UPDATE wallet_buckets SET balance = balance - ? WHERE id = ?", arrayOf(amount, accountId))
         } catch (_: Exception) {}
+        walletUpdateFlow.tryEmit(Unit)
     }
 
     fun getAccountById(id: Long): WalletBucketItem? {
@@ -1990,12 +2041,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
         val id = db.insertWithOnConflict("transactions", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
         transactionUpdateFlow.tryEmit(Unit)
+        walletUpdateFlow.tryEmit(Unit)
         return id
     }
 
-    fun getTodayTotalExpense(dateStr: String): Double {
+    fun getTodayTotalExpense(dateStr: String, profileId: Long = getActiveProfileId()): Double {
         val db = readableDatabase
-        val c = db.rawQuery("SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND date = ?", arrayOf(dateStr))
+        val c = db.rawQuery(
+            "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND date = ? AND profile_id = ?",
+            arrayOf(dateStr, profileId.toString())
+        )
         c.use {
             return if (it.moveToFirst() && !it.isNull(0)) it.getDouble(0) else 0.0
         }
@@ -2005,9 +2060,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return try {
             val db = readableDatabase
             val query = if (!monthPrefix.isNullOrEmpty()) {
-                "SELECT SUM(amount) FROM transactions WHERE type = 'INCOME' AND date LIKE ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL)"
+                "SELECT SUM(amount) FROM transactions WHERE type = 'INCOME' AND date LIKE ? AND profile_id = ?"
             } else {
-                "SELECT SUM(amount) FROM transactions WHERE type = 'INCOME' AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL)"
+                "SELECT SUM(amount) FROM transactions WHERE type = 'INCOME' AND profile_id = ?"
             }
             val args = if (!monthPrefix.isNullOrEmpty()) {
                 arrayOf("$monthPrefix%", profileId.toString())
@@ -2027,9 +2082,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return try {
             val db = readableDatabase
             val query = if (!monthPrefix.isNullOrEmpty()) {
-                "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND date LIKE ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL)"
+                "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND date LIKE ? AND profile_id = ?"
             } else {
-                "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL)"
+                "SELECT SUM(amount) FROM transactions WHERE type = 'EXPENSE' AND profile_id = ?"
             }
             val args = if (!monthPrefix.isNullOrEmpty()) {
                 arrayOf("$monthPrefix%", profileId.toString())
@@ -2120,7 +2175,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 false -> " AND is_goal = 0"
                 null -> ""
             }
-            val profileWhere = "(profile_id = ? OR profile_id = 0 OR profile_id IS NULL)"
+            val profileWhere = "profile_id = ?"
             val (query, args) = when (filter) {
                 "TODAY" -> {
                     val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
@@ -2310,7 +2365,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val db = readableDatabase
             val cursor = db.rawQuery(
-                "SELECT * FROM classes WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND day_of_week = ? ORDER BY start_time ASC",
+                "SELECT * FROM classes WHERE profile_id = ? AND day_of_week = ? ORDER BY start_time ASC",
                 arrayOf(profileId.toString(), dayOfWeek.toString())
             )
             cursor.use {
@@ -2344,7 +2399,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val db = readableDatabase
             val cursor = db.rawQuery(
-                "SELECT * FROM classes WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY day_of_week ASC, start_time ASC",
+                "SELECT * FROM classes WHERE profile_id = ? ORDER BY day_of_week ASC, start_time ASC",
                 arrayOf(profileId.toString())
             )
             cursor.use {
@@ -2403,7 +2458,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
         val query = """
             SELECT * FROM classes 
-            WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
+            WHERE profile_id = ? 
               AND (day_of_week = ? OR LOWER(day_name) = LOWER(?) OR day_name LIKE ?)
             ORDER BY start_time ASC
         """.trimIndent()
@@ -2520,7 +2575,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
         val query = """
             SELECT * FROM classes 
-            WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
+            WHERE profile_id = ? 
               AND (
                   day_of_week = ? 
                   OR LOWER(TRIM(day_name)) = LOWER(TRIM(?))
@@ -2585,7 +2640,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val db = this.readableDatabase
         val query = """
             SELECT * FROM classes 
-            WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
+            WHERE profile_id = ? 
               AND LOWER(TRIM(day_name)) = LOWER(TRIM(?))
             ORDER BY start_time ASC
         """.trimIndent()
@@ -2661,7 +2716,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         // Direct ISO matching: Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6, Sunday=7
         val query = """
             SELECT * FROM classes 
-            WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) 
+            WHERE profile_id = ? 
               AND day_of_week = ?
             ORDER BY start_time ASC
         """.trimIndent()
@@ -2787,7 +2842,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val db = writableDatabase
             // Delete garbage test items created during previous testing
-            db.delete("assessments", "(profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND LOWER(TRIM(title)) IN ('fg', 'gg', 'test', 'hh', 'asdf')", arrayOf(profileId.toString()))
+            db.delete("assessments", "profile_id = ? AND LOWER(TRIM(title)) IN ('fg', 'gg', 'test', 'hh', 'asdf')", arrayOf(profileId.toString()))
             db.delete("assessments", "LOWER(TRIM(title)) IN ('fg', 'gg', 'test', 'hh', 'asdf')", null)
             try {
                 db.delete("subject_work_items", "LOWER(TRIM(title)) IN ('fg', 'gg', 'test', 'hh', 'asdf')", null)
@@ -2925,7 +2980,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureAssessmentCategoriesTable()
         val list = mutableListOf<String>()
         val db = this.readableDatabase
-        val query = "SELECT category_name FROM assessment_categories WHERE profile_id = ? OR profile_id = 0 ORDER BY id ASC"
+        val query = "SELECT category_name FROM assessment_categories WHERE profile_id = ? ORDER BY id ASC"
         var cursor: android.database.Cursor? = null
         try {
             cursor = db.rawQuery(query, arrayOf(profileId.toString()))
@@ -2977,17 +3032,17 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 put("category_name", trimmed)
                 put("name", trimmed)
             }
-            db.update("assessment_categories", cv, "(profile_id = ? OR profile_id = 0) AND (category_name = ? OR name = ?)", arrayOf(profileId.toString(), oldName.trim(), oldName.trim()))
+            db.update("assessment_categories", cv, "profile_id = ? AND (category_name = ? OR name = ?)", arrayOf(profileId.toString(), oldName.trim(), oldName.trim()))
 
             // 2. Cascade rename to existing assessments
             val cvAssess = ContentValues().apply { put("type", trimmed) }
             try {
-                db.update("assessments", cvAssess, "(profile_id = ? OR profile_id = 0) AND type = ?", arrayOf(profileId.toString(), oldName.trim()))
+                db.update("assessments", cvAssess, "profile_id = ? AND type = ?", arrayOf(profileId.toString(), oldName.trim()))
             } catch (_: Exception) {}
 
             try {
                 val cvWork = ContentValues().apply { put("exam_type", trimmed) }
-                db.update("subject_work_items", cvWork, "(profile_id = ? OR profile_id = 0) AND exam_type = ?", arrayOf(profileId.toString(), oldName.trim()))
+                db.update("subject_work_items", cvWork, "profile_id = ? AND exam_type = ?", arrayOf(profileId.toString(), oldName.trim()))
             } catch (_: Exception) {}
 
             db.setTransactionSuccessful()
@@ -3004,7 +3059,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureAssessmentCategoriesTable()
         val db = this.writableDatabase
         return try {
-            db.delete("assessment_categories", "(profile_id = ? OR profile_id = 0) AND (category_name = ? OR name = ?)", arrayOf(profileId.toString(), name.trim(), name.trim())) > 0
+            db.delete("assessment_categories", "profile_id = ? AND (category_name = ? OR name = ?)", arrayOf(profileId.toString(), name.trim(), name.trim())) > 0
         } catch (e: Exception) {
             Log.e("DUO_DB", "Error deleting category", e)
             false
@@ -3248,7 +3303,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val res = db.insertWithOnConflict("classes", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
         timetableUpdateFlow.tryEmit(Unit)
         try {
-            com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
+            com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(appContext)
         } catch (_: Exception) {}
         return res
     }
@@ -3269,7 +3324,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val res = db.update("classes", cv, "id = ?", arrayOf(item.id.toString()))
         timetableUpdateFlow.tryEmit(Unit)
         try {
-            com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
+            com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(appContext)
         } catch (_: Exception) {}
         return res
     }
@@ -3283,7 +3338,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val res = db.delete("classes", "id = ?", arrayOf(id.toString()))
         timetableUpdateFlow.tryEmit(Unit)
         try {
-            com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
+            com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(appContext)
         } catch (_: Exception) {}
         return res
     }
@@ -3292,7 +3347,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         if (classId <= 0L) return false
         return try {
             val cursor = readableDatabase.rawQuery(
-                "SELECT 1 FROM classes WHERE id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) LIMIT 1",
+                "SELECT 1 FROM classes WHERE id = ? AND profile_id = ? LIMIT 1",
                 arrayOf(classId.toString(), profileId.toString())
             )
             cursor.use { it.moveToFirst() }
@@ -3324,7 +3379,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         if (taskId <= 0L) return false
         return try {
             val cursor = readableDatabase.rawQuery(
-                "SELECT 1 FROM tasks WHERE id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND is_completed = 0 LIMIT 1",
+                "SELECT 1 FROM tasks WHERE id = ? AND profile_id = ? AND is_completed = 0 LIMIT 1",
                 arrayOf(taskId.toString(), profileId.toString())
             )
             cursor.use { it.moveToFirst() }
@@ -3337,7 +3392,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         if (subId <= 0L) return false
         return try {
             val cursor = readableDatabase.rawQuery(
-                "SELECT 1 FROM subscriptions WHERE id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND is_active = 1 LIMIT 1",
+                "SELECT 1 FROM subscriptions WHERE id = ? AND profile_id = ? AND is_active = 1 LIMIT 1",
                 arrayOf(subId.toString(), profileId.toString())
             )
             cursor.use { it.moveToFirst() }
@@ -3351,7 +3406,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         return try {
             ensureDuesDebtsTable(readableDatabase)
             val cursor = readableDatabase.rawQuery(
-                "SELECT 1 FROM dues_debts WHERE id = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) AND UPPER(COALESCE(status, '')) NOT IN ('PAID', 'SETTLED') LIMIT 1",
+                "SELECT 1 FROM dues_debts WHERE id = ? AND profile_id = ? AND UPPER(COALESCE(status, '')) NOT IN ('PAID', 'SETTLED') LIMIT 1",
                 arrayOf(debtId.toString(), profileId.toString())
             )
             cursor.use { it.moveToFirst() }
@@ -3481,7 +3536,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val list = mutableListOf<database.entities.AttendanceRecord>()
         try {
             val db = readableDatabase
-            val cursor = db.rawQuery("SELECT * FROM attendance_records WHERE date = ? AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL)", arrayOf(date, profileId.toString()))
+            val cursor = db.rawQuery("SELECT * FROM attendance_records WHERE date = ? AND profile_id = ?", arrayOf(date, profileId.toString()))
             cursor.use {
                 while (it.moveToNext()) {
                     list.add(
@@ -4197,7 +4252,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     fun insertSubscription(sub: database.entities.SubscriptionEntity): Long {
         ensureSubscriptionsTable()
         val db = this.writableDatabase
-        val pId = if (sub.profileId <= 0L) 1L else sub.profileId
+        val pId = if (sub.profileId > 0L) sub.profileId else getActiveProfileId()
         val values = ContentValues().apply {
             put("profile_id", pId)
             put("profileId", pId)
@@ -4255,7 +4310,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         ensureSubscriptionsTable()
         val list = mutableListOf<database.entities.SubscriptionEntity>()
         val db = this.readableDatabase
-        val query = "SELECT * FROM subscriptions WHERE profile_id = ? OR profile_id = 0 OR profile_id IS NULL ORDER BY id DESC"
+        val query = "SELECT * FROM subscriptions WHERE profile_id = ? ORDER BY id DESC"
         var cursor: android.database.Cursor? = null
         try {
             cursor = db.rawQuery(query, arrayOf(profileId.toString()))
@@ -4270,11 +4325,12 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 ?: cursor.getColumnIndexSafe("linkedAccountId").takeIf { it != -1 }
                 ?: cursor.getColumnIndexSafe("bucket_id")
             val lastPaidIdx = cursor.getColumnIndexSafe("last_paid_month_year").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("lastPaidMonthYear")
+            val profileIdIdx = cursor.getColumnIndexSafe("profile_id").takeIf { it != -1 } ?: cursor.getColumnIndexSafe("profileId")
 
             while (cursor.moveToNext()) {
                 val entity = database.entities.SubscriptionEntity(
                     id = if (idIdx != -1) cursor.getLong(idIdx) else 0L,
-                    profileId = profileId,
+                    profileId = if (profileIdIdx != -1 && !cursor.isNull(profileIdIdx)) cursor.getLong(profileIdIdx) else profileId,
                     name = if (nameIdx != -1) cursor.getString(nameIdx) ?: "" else "",
                     amount = if (amountIdx != -1) cursor.getDouble(amountIdx) else 0.0,
                     isRange = if (isRangeIdx != -1) cursor.getInt(isRangeIdx) == 1 else false,
@@ -4650,10 +4706,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             override fun deleteByProfileId(profileId: Long) {
                 val db = writableDatabase
                 db.delete("wallet_buckets", "profile_id = ?", arrayOf(profileId.toString()))
+                try { db.delete("accounts", "profile_id = ?", arrayOf(profileId.toString())) } catch (_: Exception) {}
                 db.delete("cards", "profile_id = ?", arrayOf(profileId.toString()))
                 db.delete("transactions", "profile_id = ?", arrayOf(profileId.toString()))
                 db.delete("subscriptions", "profile_id = ?", arrayOf(profileId.toString()))
                 db.delete("dues_debts", "profile_id = ?", arrayOf(profileId.toString()))
+                transactionUpdateFlow.tryEmit(Unit)
+                walletUpdateFlow.tryEmit(Unit)
+                subscriptionUpdateFlow.tryEmit(Unit)
+                duesUpdateFlow.tryEmit(Unit)
             }
         }
     }
@@ -4799,7 +4860,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val db = readableDatabase
         try {
             val cursor = db.rawQuery(
-                "SELECT DISTINCT title FROM transactions WHERE (profile_id = ? OR profile_id = 0) AND title IS NOT NULL AND TRIM(title) != '' ORDER BY id DESC LIMIT 40",
+                "SELECT DISTINCT title FROM transactions WHERE profile_id = ? AND title IS NOT NULL AND TRIM(title) != '' ORDER BY id DESC LIMIT 40",
                 arrayOf(profileId.toString())
             )
             while (cursor.moveToNext()) {
@@ -5073,7 +5134,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         db.beginTransaction()
         try {
             // 1. Delete Timetable Classes matching course name or course code
-            val profileWhere = "(profile_id = ? OR profile_id = 0 OR profile_id IS NULL)"
+            val profileWhere = "profile_id = ?"
             if (courseName.isNotBlank() && code.isNotBlank()) {
                 db.delete(
                     "classes",
@@ -5116,7 +5177,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             courseUpdateFlow.tryEmit(Unit)
             assessmentUpdateFlow.tryEmit(Unit)
             try {
-                com.duorhythm.app.widget.ScheduleWidgetProvider.updateAllWidgets(appContext)
+                com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(appContext)
             } catch (_: Exception) {}
             return true
         } catch (e: Exception) {
@@ -5186,15 +5247,19 @@ class DatabaseHelper private constructor(private val appContext: Context) :
     // ==========================================
     // EXPENSE ANALYTICS
     // ==========================================
-    fun getCategoryExpenses(monthPrefix: String? = null): List<CategoryExpense> {
+    fun getCategoryExpenses(monthPrefix: String? = null, profileId: Long = getActiveProfileId()): List<CategoryExpense> {
         val list = mutableListOf<CategoryExpense>()
         val db = readableDatabase
         val query = if (!monthPrefix.isNullOrEmpty()) {
-            "SELECT category, SUM(amount) as cat_sum FROM transactions WHERE type = 'EXPENSE' AND date LIKE ? GROUP BY category ORDER BY cat_sum DESC"
+            "SELECT category, SUM(amount) as cat_sum FROM transactions WHERE type = 'EXPENSE' AND date LIKE ? AND profile_id = ? GROUP BY category ORDER BY cat_sum DESC"
         } else {
-            "SELECT category, SUM(amount) as cat_sum FROM transactions WHERE type = 'EXPENSE' GROUP BY category ORDER BY cat_sum DESC"
+            "SELECT category, SUM(amount) as cat_sum FROM transactions WHERE type = 'EXPENSE' AND profile_id = ? GROUP BY category ORDER BY cat_sum DESC"
         }
-        val args = if (!monthPrefix.isNullOrEmpty()) arrayOf("$monthPrefix%") else null
+        val args = if (!monthPrefix.isNullOrEmpty()) {
+            arrayOf("$monthPrefix%", profileId.toString())
+        } else {
+            arrayOf(profileId.toString())
+        }
         val cursor = db.rawQuery(query, args)
         var total = 0.0
         val rawList = mutableListOf<Pair<String, Double>>()
@@ -5404,6 +5469,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         }
         val id = db.insertWithOnConflict("subject_work_items", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
         assessmentUpdateFlow.tryEmit(Unit)
+        try { com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(appContext) } catch (_: Exception) {}
         return id
     }
 
@@ -5412,6 +5478,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val cv = ContentValues().apply { put("status", status) }
         db.update("subject_work_items", cv, "id = ?", arrayOf(id.toString()))
         assessmentUpdateFlow.tryEmit(Unit)
+        try { com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(appContext) } catch (_: Exception) {}
     }
 
     fun updateAssessmentStatus(id: Long, status: String) {
@@ -5435,7 +5502,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("attachment_name", item.attachmentName ?: "")
         }
         val count = db.update("subject_work_items", cv, "id = ?", arrayOf(item.id.toString()))
-        if (count > 0) assessmentUpdateFlow.tryEmit(Unit)
+        if (count > 0) {
+            assessmentUpdateFlow.tryEmit(Unit)
+            try { com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(appContext) } catch (_: Exception) {}
+        }
         return count
     }
 
@@ -5446,7 +5516,10 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } catch (_: Exception) {}
         val db = writableDatabase
         val deleted = db.delete("subject_work_items", "id = ?", arrayOf(id.toString()))
-        if (deleted > 0) assessmentUpdateFlow.tryEmit(Unit)
+        if (deleted > 0) {
+            assessmentUpdateFlow.tryEmit(Unit)
+            try { com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(appContext) } catch (_: Exception) {}
+        }
         return deleted
     }
 
@@ -5662,6 +5735,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
 
             db.setTransactionSuccessful()
             workOrderUpdateFlow.tryEmit(Unit)
+            transactionUpdateFlow.tryEmit(Unit)
+            walletUpdateFlow.tryEmit(Unit)
             return true
         } catch (_: Exception) {
             return false
@@ -5681,7 +5756,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val list = mutableListOf<NoteItem>()
         try {
             val db = readableDatabase
-            val cursor = db.rawQuery("SELECT * FROM notes WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY id DESC", arrayOf(profileId.toString()))
+            val cursor = db.rawQuery("SELECT * FROM notes WHERE profile_id = ? ORDER BY id DESC", arrayOf(profileId.toString()))
             cursor.use {
                 while (it.moveToNext()) {
                     list.add(
@@ -6091,6 +6166,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         try {
             val fromBucket = getWalletBucketById(fromBucketId) ?: return false
             val toBucket = getWalletBucketById(toBucketId) ?: return false
+            if (fromBucket.profileId != toBucket.profileId) return false
 
             val debitTitle = if (title.isNotBlank()) title else "Transfer to ${toBucket.name}"
             val creditTitle = if (title.isNotBlank()) title else "Transfer from ${fromBucket.name}"
@@ -6104,7 +6180,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 cardId = 0L,
                 currency = currency,
                 notes = note,
-                bucketId = fromBucketId
+                bucketId = fromBucketId,
+                profileId = fromBucket.profileId
             )
             val creditTx = TransactionItem(
                 title = creditTitle,
@@ -6115,13 +6192,16 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                 cardId = 0L,
                 currency = currency,
                 notes = note,
-                bucketId = toBucketId
+                bucketId = toBucketId,
+                profileId = toBucket.profileId
             )
 
             insertTransaction(debitTx)
             insertTransaction(creditTx)
 
             db.setTransactionSuccessful()
+            walletUpdateFlow.tryEmit(Unit)
+            transactionUpdateFlow.tryEmit(Unit)
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -6166,7 +6246,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("created_at", if (item.createdAt.isNotBlank()) item.createdAt else SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()))
             put("profile_id", pId)
         }
-        return db.insertWithOnConflict("dues_debts", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        val id = db.insertWithOnConflict("dues_debts", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        duesUpdateFlow.tryEmit(Unit)
+        return id
     }
 
     fun updateDueDebt(item: DueDebtItem): Boolean {
@@ -6181,7 +6263,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
             put("status", item.status)
             put("notes", item.notes.trim())
         }
-        return db.update("dues_debts", cv, "id = ?", arrayOf(item.id.toString())) > 0
+        val updated = db.update("dues_debts", cv, "id = ?", arrayOf(item.id.toString())) > 0
+        if (updated) duesUpdateFlow.tryEmit(Unit)
+        return updated
     }
 
     fun deleteDueDebt(id: Long): Boolean {
@@ -6190,7 +6274,9 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         } catch (_: Exception) {}
         val db = writableDatabase
         ensureDuesDebtsTable(db)
-        return db.delete("dues_debts", "id = ?", arrayOf(id.toString())) > 0
+        val deleted = db.delete("dues_debts", "id = ?", arrayOf(id.toString())) > 0
+        if (deleted) duesUpdateFlow.tryEmit(Unit)
+        return deleted
     }
 
     fun getAllDuesDebts(profileId: Long = getActiveProfileId()): List<DueDebtItem> {
@@ -6198,7 +6284,7 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         val db = readableDatabase
         ensureDuesDebtsTable(db)
         try {
-            val cursor = db.rawQuery("SELECT * FROM dues_debts WHERE (profile_id = ? OR profile_id = 0 OR profile_id IS NULL) ORDER BY status ASC, id DESC", arrayOf(profileId.toString()))
+            val cursor = db.rawQuery("SELECT * FROM dues_debts WHERE profile_id = ? ORDER BY status ASC, id DESC", arrayOf(profileId.toString()))
             cursor.use {
                 while (it.moveToNext()) {
                     list.add(
@@ -6282,7 +6368,8 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         date = today,
                         currency = currency,
                         notes = if (note.isNotBlank()) note else "Settled lent due from ${item.personName}",
-                        bucketId = bucketId
+                        bucketId = bucketId,
+                        profileId = item.profileId
                     )
                 } else {
                     // Money was borrowed from them, now paid back -> EXPENSE from bucket
@@ -6294,13 +6381,15 @@ class DatabaseHelper private constructor(private val appContext: Context) :
                         date = today,
                         currency = currency,
                         notes = if (note.isNotBlank()) note else "Paid borrowed debt to ${item.personName}",
-                        bucketId = bucketId
+                        bucketId = bucketId,
+                        profileId = item.profileId
                     )
                 }
                 insertTransaction(tx)
             }
 
             db.setTransactionSuccessful()
+            duesUpdateFlow.tryEmit(Unit)
             return true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -6316,11 +6405,11 @@ class DatabaseHelper private constructor(private val appContext: Context) :
         var totalLentUnpaid = 0.0
         var totalBorrowedUnpaid = 0.0
         try {
-            val cursorLent = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'LENT' AND status = 'UNPAID' AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL)", arrayOf(profileId.toString()))
+            val cursorLent = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'LENT' AND status = 'UNPAID' AND profile_id = ?", arrayOf(profileId.toString()))
             cursorLent.use {
                 if (it.moveToFirst() && !it.isNull(0)) totalLentUnpaid = it.getDouble(0)
             }
-            val cursorBorrowed = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'BORROWED' AND status = 'UNPAID' AND (profile_id = ? OR profile_id = 0 OR profile_id IS NULL)", arrayOf(profileId.toString()))
+            val cursorBorrowed = db.rawQuery("SELECT SUM(amount) FROM dues_debts WHERE type = 'BORROWED' AND status = 'UNPAID' AND profile_id = ?", arrayOf(profileId.toString()))
             cursorBorrowed.use {
                 if (it.moveToFirst() && !it.isNull(0)) totalBorrowedUnpaid = it.getDouble(0)
             }

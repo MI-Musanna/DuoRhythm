@@ -248,6 +248,7 @@ class WorkspaceProfilesBottomSheet : BottomSheetDialogFragment() {
         ProfileManager.setActiveProfileId(act, profile.id)
         ProfileManager.syncUserProfile(act, profile)
         ProfileRepository.refreshProfiles(act)
+        com.duorhythm.app.widget.WidgetSyncHelper.refreshAllWidgets(act)
         DuoAlertBanner.success(act, "Switched to ${profile.name}")
         dismiss()
         if (onProfileSwitched != null) {

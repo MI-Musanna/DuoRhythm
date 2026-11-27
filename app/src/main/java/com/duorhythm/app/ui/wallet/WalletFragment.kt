@@ -18,6 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.duorhythm.app.R
 import com.duorhythm.app.data.model.CurrencyRate
@@ -74,6 +75,7 @@ class WalletFragment : Fragment() {
         }
     }
     private var transactionsJob: Job? = null
+    private var reactiveSyncJob: Job? = null
 
     private var currentCurrency = "BDT"
     private var currentRate = 1.0
@@ -121,14 +123,30 @@ class WalletFragment : Fragment() {
             walletViewModel.loadMonthlyTransactions(activeProfileId, currentMonthYear)
 
             transactionsJob = viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    walletViewModel.monthlyTransactionsFlow.collect {
+                viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                    try {
+                        walletViewModel.monthlyTransactionsFlow.collect {
+                            if (_binding != null && isAdded) {
+                                loadData()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("DUO_WALLET", "Safe flow collection catch", e)
+                    }
+                }
+            }
+            reactiveSyncJob = viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                    kotlinx.coroutines.flow.merge(
+                        dbHelper.walletUpdateFlow,
+                        dbHelper.transactionUpdateFlow,
+                        dbHelper.subscriptionUpdateFlow,
+                        dbHelper.duesUpdateFlow
+                    ).collect {
                         if (_binding != null && isAdded) {
                             loadData()
                         }
                     }
-                } catch (e: Exception) {
-                    Log.e("DUO_WALLET", "Safe flow collection catch", e)
                 }
             }
         } catch (e: Throwable) {
@@ -1350,6 +1368,8 @@ class WalletFragment : Fragment() {
     override fun onDestroyView() {
         transactionsJob?.cancel()
         transactionsJob = null
+        reactiveSyncJob?.cancel()
+        reactiveSyncJob = null
         super.onDestroyView()
         _binding = null
     }

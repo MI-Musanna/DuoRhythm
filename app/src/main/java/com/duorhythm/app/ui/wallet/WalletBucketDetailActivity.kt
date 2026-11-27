@@ -37,6 +37,11 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import android.widget.ImageView
 import android.widget.TextView
 
@@ -97,6 +102,17 @@ class WalletBucketDetailActivity : AppCompatActivity() {
         setupListeners()
         loadBucketData()
         setupSpeedDial()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                merge(
+                    dbHelper.walletUpdateFlow,
+                    dbHelper.transactionUpdateFlow
+                ).collect {
+                    loadBucketData()
+                }
+            }
+        }
 
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

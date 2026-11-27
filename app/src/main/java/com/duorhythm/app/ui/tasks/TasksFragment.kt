@@ -206,10 +206,16 @@ class TasksFragment : Fragment() {
         val baseTitle = if (currentTab == TaskTab.TASKS) "My Tasks" else "Milestone Goals"
         val hasQuery = !binding.etTaskSearch.text.isNullOrBlank()
         val hasActiveChipFilter = currentTab == TaskTab.TASKS && !currentFilter.equals("All", ignoreCase = true)
-        binding.tvTasksTitle.text = if (hasQuery || hasActiveChipFilter) {
-            "$baseTitle ($filteredCount / $totalCount)"
-        } else {
-            "$baseTitle ($filteredCount)"
+        binding.tvTasksTitle.text = when {
+            hasQuery || hasActiveChipFilter -> "$baseTitle ($filteredCount / $totalCount)"
+            currentTab == TaskTab.TASKS -> {
+                val pendingCount = tasksAdapter.pendingMasterCount
+                if (totalCount > 0) "$baseTitle ($pendingCount pending)" else "$baseTitle (0)"
+            }
+            else -> {
+                val activeCount = tasksAdapter.pendingMasterCount
+                if (totalCount > 0) "$baseTitle ($activeCount active)" else "$baseTitle (0)"
+            }
         }
     }
 
@@ -724,7 +730,7 @@ class TasksFragment : Fragment() {
             chevronView = dialogBinding.ivTaskMoreOptionsChevron,
             contentContainer = dialogBinding.layoutTaskMoreOptions,
             transitionRoot = dialogBinding.root as? android.view.ViewGroup,
-            initiallyExpanded = isGoal
+            initiallyExpanded = false
         )
 
         dialogBinding.cbIsGoal.setOnCheckedChangeListener { _, checked ->
