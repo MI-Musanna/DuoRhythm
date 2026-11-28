@@ -17,4 +17,8 @@
     <string name="shortcut_task_long">Create Priority Task</string>
     <string name="shortcut_schedule_short">Timetable</string>
     <string name="shortcut_schedule_long">View Today\'s Routine</string>
+
+    <string name="widget_academic_hub_desc">Live 4x2 dashboard showing today\'s next classes and upcoming exams.</string>
+    <string name="widget_timetable_desc">Compact 2x1 pill displaying your next scheduled class and room.</string>
+    <string name="widget_exam_desc">Compact 2x1 countdown badge for your nearest upcoming exam or test.</string>
 </resources>

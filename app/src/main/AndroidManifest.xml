@@ -306,7 +306,8 @@
         <!-- Unified All-in-One 4x2 Academic Hub Widget -->
         <receiver
             android:name=".widget.AcademicHubWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="Academic Hub">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -315,22 +316,11 @@
                 android:resource="@xml/widget_academic_hub_info" />
         </receiver>
 
-        <!-- Schedule Dashboard Widget Provider -->
-        <receiver
-            android:name=".widget.ScheduleWidgetProvider"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_schedule_dashboard_info" />
-        </receiver>
-
-        <!-- Exam Countdown Glance Widget Provider -->
+        <!-- Exam Countdown 2x1 Glance Widget Provider -->
         <receiver
             android:name=".widget.ExamCountdownWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="Exam Countdown">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -339,10 +329,11 @@
                 android:resource="@xml/widget_exam_info" />
         </receiver>
 
-        <!-- Timetable Glance Widget Provider -->
+        <!-- Next Class 2x1 Timetable Glance Widget Provider -->
         <receiver
             android:name=".widget.TimetableGlanceWidget"
-            android:exported="true">
+            android:exported="true"
+            android:label="Next Class Glance">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

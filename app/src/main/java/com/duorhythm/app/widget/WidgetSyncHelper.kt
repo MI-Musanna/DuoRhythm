@@ -10,9 +10,6 @@ object WidgetSyncHelper {
     fun refreshAllWidgets(context: Context) {
         val appCtx = context.applicationContext ?: context
         try {
-            ScheduleWidgetProvider.updateAllWidgets(appCtx)
-        } catch (_: Exception) {}
-        try {
             AcademicHubWidget.pushUpdate(appCtx)
         } catch (_: Exception) {}
         try {

@@ -3,8 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_card_dark_elevated"
+    android:gravity="center_vertical"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,9 +18,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="UPCOMING EXAM • DUORHYTHM"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="EXAM COUNTDOWN"
             android:textColor="#F59E0B"
-            android:textSize="11sp"
+            android:textSize="10sp"
             android:textStyle="bold" />
 
         <TextView
@@ -27,8 +31,9 @@
             android:layout_height="wrap_content"
             android:fontFeatureSettings="tnum"
             android:letterSpacing="-0.03"
+            android:text="3d left"
             android:textColor="#F59E0B"
-            android:textSize="11sp"
+            android:textSize="10sp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -36,18 +41,22 @@
         android:id="@+id/tvWidgetExamTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="No upcoming assessments"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Midterm Exam • 3d left"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tvWidgetExamDetails"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="All clear • Tap to view portal"
+        android:layout_marginTop="1dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Thu, 09:30 AM • Hall A"
         android:textColor="#94A3B8"
-        android:textSize="12sp" />
+        android:textSize="11sp" />
 </LinearLayout>

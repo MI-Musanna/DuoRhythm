@@ -1959,11 +1959,10 @@ class DuoRhythmFullAppAuditTest {
             jDues.cancel()
         }
 
-        // 2. All 4 Home-Screen AppWidgetProviders registered in AndroidManifest & active-profile sync safe
+        // 2. Active 3 Home-Screen AppWidgetProviders registered in AndroidManifest & active-profile sync safe
         val pm = context.packageManager
         val widgetClasses = listOf(
             com.duorhythm.app.widget.AcademicHubWidget::class.java,
-            com.duorhythm.app.widget.ScheduleWidgetProvider::class.java,
             com.duorhythm.app.widget.ExamCountdownWidget::class.java,
             com.duorhythm.app.widget.TimetableGlanceWidget::class.java
         )
@@ -2040,4 +2039,99 @@ class DuoRhythmFullAppAuditTest {
         )
         assertEquals(2, tasksAdapter.pendingMasterCount)
     }
+
+    @Test
+    fun audit34_v178_widgetConsolidationAndPreviews() {
+        val pm = context.packageManager
+
+        // 1. Exactly 3 named launcher widget receivers; ScheduleWidgetProvider removed from launcher picker
+        val expectedWidgets = mapOf(
+            com.duorhythm.app.widget.AcademicHubWidget::class.java to "Academic Hub",
+            com.duorhythm.app.widget.TimetableGlanceWidget::class.java to "Next Class Glance",
+            com.duorhythm.app.widget.ExamCountdownWidget::class.java to "Exam Countdown"
+        )
+        for ((cls, expectedLabel) in expectedWidgets) {
+            val info = pm.getReceiverInfo(android.content.ComponentName(context, cls), 0)
+            assertNotNull("${cls.simpleName} must be registered", info)
+            assertEquals(expectedLabel, info.loadLabel(pm).toString())
+        }
+
+        val duplicateRemoved = try {
+            pm.getReceiverInfo(
+                android.content.ComponentName(context, com.duorhythm.app.widget.ScheduleWidgetProvider::class.java),
+                0
+            )
+            false
+        } catch (_: android.content.pm.PackageManager.NameNotFoundException) {
+            true
+        }
+        assertTrue("Duplicate ScheduleWidgetProvider receiver must be removed from AndroidManifest", duplicateRemoved)
+
+        // 2. Validate provider XML metadata attributes (targetCellWidth/Height, previewLayout, description)
+        fun inspectProviderXml(xmlResId: Int): Map<String, String> {
+            val parser = context.resources.getXml(xmlResId)
+            val attrs = mutableMapOf<String, String>()
+            var event = parser.eventType
+            while (event != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                if (event == org.xmlpull.v1.XmlPullParser.START_TAG && parser.name == "appwidget-provider") {
+                    for (i in 0 until parser.attributeCount) {
+                        attrs[parser.getAttributeName(i)] = parser.getAttributeValue(i)
+                    }
+                    break
+                }
+                event = parser.next()
+            }
+            parser.close()
+            return attrs
+        }
+
+        val hubAttrs = inspectProviderXml(R.xml.widget_academic_hub_info)
+        assertEquals("4", hubAttrs["targetCellWidth"])
+        assertEquals("2", hubAttrs["targetCellHeight"])
+        assertTrue(hubAttrs.containsKey("previewLayout"))
+        assertTrue(hubAttrs.containsKey("description"))
+
+        val timetableAttrs = inspectProviderXml(R.xml.widget_timetable_info)
+        assertEquals("2", timetableAttrs["targetCellWidth"])
+        assertEquals("1", timetableAttrs["targetCellHeight"])
+        assertTrue(timetableAttrs.containsKey("previewLayout"))
+        assertTrue(timetableAttrs.containsKey("description"))
+
+        val examAttrs = inspectProviderXml(R.xml.widget_exam_info)
+        assertEquals("2", examAttrs["targetCellWidth"])
+        assertEquals("1", examAttrs["targetCellHeight"])
+        assertTrue(examAttrs.containsKey("previewLayout"))
+        assertTrue(examAttrs.containsKey("description"))
+
+        // 3. Inflate all 3 widget XML layouts: verify dark OLED backgrounds, non-empty preview text, RemoteViews-safe hierarchy
+        val inflater = android.view.LayoutInflater.from(context)
+        fun assertRemoteViewsSafeAndNoUnsupported(view: View) {
+            assertFalse(view is androidx.recyclerview.widget.RecyclerView)
+            assertFalse(view.javaClass.name.contains("ConstraintLayout"))
+            if (view is ViewGroup) {
+                for (i in 0 until view.childCount) {
+                    assertRemoteViewsSafeAndNoUnsupported(view.getChildAt(i))
+                }
+            }
+        }
+
+        val hubRoot = inflater.inflate(R.layout.widget_academic_hub, null) as ViewGroup
+        assertNotNull(hubRoot.findViewById<View>(R.id.layoutWidgetRoot).background)
+        assertTrue(hubRoot.findViewById<android.widget.TextView>(R.id.tvClass1Title).text.isNotBlank())
+        assertTrue(hubRoot.findViewById<android.widget.TextView>(R.id.tvExam1Title).text.isNotBlank())
+        assertRemoteViewsSafeAndNoUnsupported(hubRoot)
+
+        val timetableRoot = inflater.inflate(R.layout.widget_timetable_glance, null) as ViewGroup
+        assertNotNull(timetableRoot.findViewById<View>(R.id.layoutWidgetRoot).background)
+        assertTrue(timetableRoot.findViewById<android.widget.TextView>(R.id.tvWidgetDayTag).text.isNotBlank())
+        assertTrue(timetableRoot.findViewById<android.widget.TextView>(R.id.tvWidgetSubjectTitle).text.isNotBlank())
+        assertRemoteViewsSafeAndNoUnsupported(timetableRoot)
+
+        val examRoot = inflater.inflate(R.layout.widget_exam_glance, null) as ViewGroup
+        assertNotNull(examRoot.findViewById<View>(R.id.layoutWidgetExamRoot).background)
+        assertTrue(examRoot.findViewById<android.widget.TextView>(R.id.tvWidgetExamCountdown).text.isNotBlank())
+        assertTrue(examRoot.findViewById<android.widget.TextView>(R.id.tvWidgetExamTitle).text.isNotBlank())
+        assertRemoteViewsSafeAndNoUnsupported(examRoot)
+    }
 }
+

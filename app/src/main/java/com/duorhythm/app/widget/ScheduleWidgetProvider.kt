@@ -31,16 +31,13 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
     companion object {
         fun updateAllWidgets(context: Context) {
             try {
-                val appWidgetManager = AppWidgetManager.getInstance(context)
-                val thisWidget = ComponentName(context, ScheduleWidgetProvider::class.java)
-                val allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
-                for (widgetId in allWidgetIds) {
-                    updateWidget(context, appWidgetManager, widgetId)
-                }
-            } catch (_: Exception) {}
-
-            try {
                 AcademicHubWidget.pushUpdate(context)
+            } catch (_: Exception) {}
+            try {
+                TimetableGlanceWidget.pushUpdate(context)
+            } catch (_: Exception) {}
+            try {
+                ExamCountdownWidget.pushUpdate(context)
             } catch (_: Exception) {}
         }
 

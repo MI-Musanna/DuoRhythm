@@ -153,6 +153,7 @@
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1.5dp"
+                        android:text="Room 402"
                         android:textColor="#38BDF8"
                         android:textSize="8.5sp"
                         android:textStyle="bold" />
@@ -166,6 +167,7 @@
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
+                    android:text="Data Structures"
                     android:textColor="#FFFFFF"
                     android:textSize="12.5sp"
                     android:textStyle="bold" />
@@ -175,6 +177,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
+                    android:text="10:00 AM • Dr. Rahman"
                     android:textColor="#94A3B8"
                     android:textSize="9.5sp" />
             </LinearLayout>
@@ -219,6 +222,7 @@
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1.5dp"
+                        android:text="Lab 204"
                         android:textColor="#38BDF8"
                         android:textSize="8.5sp"
                         android:textStyle="bold" />
@@ -232,6 +236,7 @@
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
+                    android:text="Operating Systems"
                     android:textColor="#FFFFFF"
                     android:textSize="12.5sp"
                     android:textStyle="bold" />
@@ -241,6 +246,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
+                    android:text="12:30 PM • Prof. Karim"
                     android:textColor="#94A3B8"
                     android:textSize="9.5sp" />
             </LinearLayout>
@@ -307,6 +313,7 @@
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1.5dp"
+                        android:text="IN 3 DAYS"
                         android:textColor="#F59E0B"
                         android:textSize="8.5sp"
                         android:textStyle="bold" />
@@ -323,6 +330,7 @@
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1.5dp"
+                        android:text="Hall A"
                         android:textColor="#F59E0B"
                         android:textSize="8.5sp"
                         android:textStyle="bold" />
@@ -336,6 +344,7 @@
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
+                    android:text="Midterm Exam"
                     android:textColor="#FFFFFF"
                     android:textSize="12.5sp"
                     android:textStyle="bold" />
@@ -345,6 +354,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
+                    android:text="3d left • 09:30 AM"
                     android:textColor="#94A3B8"
                     android:textSize="9.5sp" />
             </LinearLayout>
@@ -372,6 +382,7 @@
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1.5dp"
+                        android:text="IN 6 DAYS"
                         android:textColor="#F59E0B"
                         android:textSize="8.5sp"
                         android:textStyle="bold" />
@@ -388,6 +399,7 @@
                         android:background="@drawable/bg_widget_pill_badge"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="1.5dp"
+                        android:text="Room 305"
                         android:textColor="#F59E0B"
                         android:textSize="8.5sp"
                         android:textStyle="bold" />
@@ -401,6 +413,7 @@
                     android:ellipsize="end"
                     android:lineSpacingExtra="1dp"
                     android:maxLines="2"
+                    android:text="Database Quiz"
                     android:textColor="#FFFFFF"
                     android:textSize="12.5sp"
                     android:textStyle="bold" />
@@ -410,6 +423,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
+                    android:text="Sun • 11:00 AM"
                     android:textColor="#94A3B8"
                     android:textSize="9.5sp" />
             </LinearLayout>

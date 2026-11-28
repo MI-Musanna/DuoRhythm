@@ -3,8 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_card_dark_elevated"
+    android:gravity="center_vertical"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,38 +15,38 @@
         android:orientation="horizontal">
 
         <TextView
+            android:id="@+id/tvWidgetDayTag"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="NEXT CLASS • DUORHYTHM"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="NEXT CLASS • 10:00 AM"
             android:textColor="#38BDF8"
-            android:textSize="11sp"
+            android:textSize="10sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvWidgetDayTag"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#94A3B8"
-            android:textSize="11sp" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/tvWidgetSubjectTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="No upcoming classes today"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Data Structures • Room 402"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tvWidgetClassDetails"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="Timetable on track • Tap to open"
+        android:layout_marginTop="1dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="10:00 AM - 11:30 AM • Dr. Rahman"
         android:textColor="#94A3B8"
-        android:textSize="12sp" />
+        android:textSize="11sp" />
 </LinearLayout>
